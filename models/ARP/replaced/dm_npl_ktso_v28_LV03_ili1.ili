@@ -1,0 +1,688 @@
+TRANSFER TransferName;
+
+!!* Geodatenmodell Nutzungsplanung Kt. SO
+!!* @Issuer KT.SO
+!!* @Version 28 LV03
+!!  Datum: 02. November 2015
+
+MODEL Nutzungsplanung_KtSO_V28_LV03
+
+  DOMAIN
+  
+    LKoord =
+      COORD2
+        480000.000   70000.000
+        840000.000  300000.000;  !! [m]
+    
+    Line =
+      POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+
+    Einzelflaeche = SURFACE WITH (ARCS, STRAIGHTS)
+      VERTEX LKoord
+      WITHOUT OVERLAPS > 0.050;
+
+    Gebietseinteilung = AREA WITH (ARCS, STRAIGHTS)
+      VERTEX LKoord
+      WITHOUT OVERLAPS > 0.050;
+      
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderung);
+      
+    Verbindlichkeit = (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend);
+      
+    Rotation = GRADS 0 399;      
+
+    Schriftgroesse = (
+      klein,
+      mittel,
+      gross);
+      
+    CHCantonCode = (
+      AG,
+      BE,
+      BL,
+      JU,
+      SO
+    );
+
+    CHMunicipalityCode = TEXT*4;
+    
+    URI = TEXT*255;
+    
+    XMLDate = DATE;
+    
+    BOOLEAN = (true, false);
+    
+    OID = TEXT*16;
+    
+    
+  TOPIC Rechtsvorschriften =
+  
+    TABLE Plandokument =
+      PlandokumentID : OID;
+      Titel : TEXT*80;
+      OffiziellerTitel : OPTIONAL TEXT*240;
+      OffizielleNr : TEXT*20;
+      Kanton : OPTIONAL CHCantonCode;
+      Gemeinde : OPTIONAL CHMunicipalityCode;
+      publiziertAb : XMLDate;
+      Rechtsstatus : Rechtsstatus;
+      PlanImWeb : URI;
+      Bemerkungen : OPTIONAL TEXT*240;
+    NO IDENT
+    END Plandokument;
+
+    TABLE Dokument =
+      DokumentID : OID;
+      Titel : TEXT*80;
+      OffiziellerTitel : OPTIONAL TEXT*240;
+      Abkuerzung : OPTIONAL TEXT*10;
+      OffizielleNr : TEXT*20;
+      Kanton : OPTIONAL CHCantonCode;
+      Gemeinde : OPTIONAL CHMunicipalityCode;
+      publiziertAb : XMLDate;
+      Rechtsstatus : Rechtsstatus;
+      TextImWeb : OPTIONAL URI;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Rechtsvorschrift : OPTIONAL BOOLEAN;
+    NO IDENT
+    END Dokument;
+
+    TABLE HinweisWeitereDokumente =
+      Ursprung : ->Dokument; !! {1}
+      Hinweis : ->Dokument; !! {1}
+    NO IDENT
+    END HinweisWeitereDokumente;
+  END Rechtsvorschriften.
+
+  
+  TOPIC Nutzungsplanung =
+
+!!    Alle konkreten Objekte sind Einzahl. 
+!!    Objekte, die mit "weitere" oder "andere" beginnen, sind in Mehrzahl.
+
+    DOMAIN
+    
+      NP_Typ_Kanton_Grundnutzung = (
+        N110_Wohnzone_1_G,
+        N111_Wohnzone_2_G,
+        N112_Wohnzone_3_G,
+        N113_Wohnzone_4_G,
+        N114_Wohnzone_5_G,
+        N115_Wohnzone_6_G,
+        N116_Wohnzone_7_G_und_groesser,
+        N117_Zone_fuer_Terrassenhaeuser_Terrassensiedlung,
+        N120_Gewerbezone_ohne_Wohnen,
+        N121_Industriezone,
+        N122_Arbeitszone,
+        N130_Gewerbezone_mit_Wohnen_Mischzone,
+        N131_Gewerbezone_mit_Wohnen_Mischzone_2_G,
+        N132_Gewerbezone_mit_Wohnen_Mischzone_3_G,
+        N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser,
+        N140_Kernzone,
+        N141_Zentrumszone,
+        N142_Erhaltungszone,
+        N150_Zone_fuer_oeff_Bauten_u_Anlagen,
+        N160_Gruen_und_Freihaltezone_innerhalb_Bauzone,
+        N161_kommunale_Uferschutzzone_innerhalb_Bauzone,
+        N162_Landwirtschaftliche_Kernzone,
+        N163_Weilerzone,
+        N169_weitere_eingeschraenkte_Bauzonen,
+        N170_Zone_fuer_Freizeit_und_Erholung,
+        N180_Verkehrszone_Strasse,
+        N181_Verkehrszone_Bahnareal, 
+        N182_Verkehrszone_Flugplatzareal,
+        N189_weitere_Verkehrszonen,  
+        N190_Spezialzone,
+        N210_Landwirtschaftszone,
+        N220_Spezielle_Landwirtschaftszone,
+        N230_Rebbauzone,
+        N290_weitere_Landwirtschaftszonen,
+        N310_kommunale_Naturschutzzone,
+        N311_Waldrandschutzzone,
+        N312_kantonale_Landwirtschafts_und_Schutzzone_Witi,
+        N319_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften,
+        N320_Gewaesser,
+        N321_kantonale_Uferschutzzone,
+        N322_kommunale_Uferschutzzone_innerhalb_Bauzone,
+        N329_weitere_Zonen_fuer_Gewaesser_und_ihre_Ufer,
+        N390_weitere_Schutzzonen_ausserhalb_Bauzonen,
+        N420_Verkehrsflaeche_Strasse,
+        N421_Verkehrsflaeche_Bahnareal, 
+        N422_Verkehrsflaeche_Flugplatzareal,
+        N429_weitere_Verkehrsflaechen,  
+        N430_Reservezone_Wohnen,
+        N431_Reservezone_Mischzone_Kernzone,
+        N432_Reservezone_Gewerbe_Industrie_Arbeiten,
+        N433_Reservezone_OeBA,
+        N439_Reservezone,
+        N440_Wald,
+        N490_Golfzone,
+        N491_Abbauzone,
+        N492_Deponiezone,
+        N499_weitere_Zonen_nach_Art18_RPG_ausserhalb_Bauzonen
+      );
+        
+      NP_Typ_Kanton_Ueberlagernd_Flaeche = (
+        N510_ueberlagernde_Ortsbildschutzzone,
+        N520_BLN_Gebiet,
+        N521_Juraschutzzone,
+        N522_Naturreservat_inkl_Geotope,
+        N523_Landschaftsschutzzone,
+        N524_Siedlungstrennguertel_von_kommunaler_Bedeutung,
+        N525_Siedlungstrennguertel_von_kantonaler_Bedeutung,
+        N529_weitere_Schutzzonen_fuer_Lebensraeume_und_Landschaften,
+        N530_Naturgefahren_erhebliche_Gefaehrdung,
+        N531_Naturgefahren_mittlere_Gefaehrdung,
+        N532_Naturgefahren_geringe_Gefaehrdung,
+        N533_Naturgefahren_Restgefaehrdung,
+        N590_Hofstattzone_Freihaltezone,
+        N591_Bauliche_Einschraenkungen,
+        N592_Hecken_Feldgehoelz_Ufergehoelz,
+        N593_Grundwasserschutzzone_S1,
+        N594_Grundwasserschutzzone_S2,
+        N595_Grundwasserschutzzone_S3,
+        N596_Grundwasserschutzareal,
+        N599_weitere_ueberlagernde_Nutzungszonen,
+        N610_Perimeter_kantonaler_Nutzungsplan,
+        N611_Perimeter_kommunaler_Gestaltungsplan,
+        N620_Perimeter_Gestaltungsplanpflicht,
+        N680_Empfindlichkeitsstufe_I,
+        N681_Empfindlichkeitsstufe_II,
+        N682_Empfindlichkeitsstufe_II_aufgestuft,
+        N683_Empfindlichkeitsstufe_III,
+        N684_Empfindlichkeitsstufe_III_aufgestuft,
+        N685_Empfindlichkeitsstufe_IV,
+        N686_keine_Empfindlichkeitsstufe,  
+        N690_kantonales_Vorranggebiet_Natur_und_Landschaft,
+        N691_kommunales_Vorranggebiet_Natur_und_Landschaft,
+        N692_Planungszone,
+        N699_weitere_flaechenbezogene_Festlegungen_NP
+      );
+        
+      NP_Typ_Kanton_Ueberlagernd_Linie = (
+        N790_Wanderwege,
+        N791_historische_Verkehrswege,  
+        N799_weitere_linienbezogene_Festlegungen_NP
+      );
+      
+      NP_Typ_Kanton_Ueberlagernd_Punkt = (
+        N810_geschuetzter_Einzelbaum,
+        N811_erhaltenswerter_Einzelbaum,
+        N812_geologisches_Objekt,
+        N813_Naturobjekt,
+        N820_kantonal_geschuetztes_Kulturobjekt,
+        N821_kommunal_geschuetztes_Kulturobjekt,
+        N822_schuetzenswertes_Kulturobjekt,
+        N823_erhaltenswertes_Kulturobjekt,
+        N899_weitere_punktbezogene_Festlegungen_NP
+      );
+      
+
+    TABLE Typ_Grundnutzung =
+      Typ_Kt : NP_Typ_Kanton_Grundnutzung; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Nutzungsziffer : OPTIONAL [0.00 .. 9.00];
+      Nutzungsziffer_Art : OPTIONAL (
+        Baumassenziffer,
+        Geschossflaechenziffer,
+        Ueberbauungsziffer,
+        Ausnuetzungsziffer);
+      Geschosszahl : OPTIONAL [0 .. 50];
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Grundnutzung;
+
+    TABLE Typ_Grundnutzung_Dokument =
+      Typ : ->Typ_Grundnutzung; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Grundnutzung_Dokument;
+
+    TABLE Typ_Ueberlagernd_Flaeche =
+      Typ_Kt : NP_Typ_Kanton_Ueberlagernd_Flaeche; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Ueberlagernd_Flaeche;
+
+    TABLE Typ_Ueberlagernd_Flaeche_Dokument =
+      Typ : ->Typ_Ueberlagernd_Flaeche; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Ueberlagernd_Flaeche_Dokument;
+      
+
+    TABLE Typ_Ueberlagernd_Linie =
+      Typ_Kt : NP_Typ_Kanton_Ueberlagernd_Linie; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Ueberlagernd_Linie;
+
+    TABLE Typ_Ueberlagernd_Linie_Dokument =
+      Typ : ->Typ_Ueberlagernd_Linie; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Ueberlagernd_Linie_Dokument;
+      
+
+    TABLE Typ_Ueberlagernd_Punkt =
+      Typ_Kt: NP_Typ_Kanton_Ueberlagernd_Punkt; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT Code_kommunal;
+    END Typ_Ueberlagernd_Punkt;
+
+    TABLE Typ_Ueberlagernd_Punkt_Dokument =
+      Typ : ->Typ_Ueberlagernd_Punkt; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Ueberlagernd_Punkt_Dokument;
+      
+
+    TABLE Grundnutzung =
+      Typ : ->Typ_Grundnutzung; !! {0..*}
+      Geometrie : Gebietseinteilung;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Grundnutzung;
+
+    TABLE Grundnutzung_Pos =
+      TextPos : -> Grundnutzung; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Grundnutzung_Pos;
+
+    TABLE Ueberlagernd_Flaeche =
+      Typ : ->Typ_Ueberlagernd_Flaeche; !! {0..*}
+      Geometrie : Einzelflaeche;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+      Planvorschrift : OID; !! {*} ->Plandokument.PlandokumentID
+    NO IDENT
+    END Ueberlagernd_Flaeche;
+
+    TABLE Ueberlagernd_Flaeche_Pos =
+      TextPos : -> Ueberlagernd_Flaeche; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Ueberlagernd_Flaeche_Pos;
+
+    TABLE Ueberlagernd_Linie =
+      Typ : ->Typ_Ueberlagernd_Linie; !! {0..*}
+      Geometrie : Line;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Ueberlagernd_Linie;
+
+    TABLE Ueberlagernd_Linie_Pos =
+      TextPos : -> Ueberlagernd_Linie; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Ueberlagernd_Linie_Pos;
+
+    TABLE Ueberlagernd_Punkt =
+      Typ : ->Typ_Ueberlagernd_Punkt; !! {0..*}
+      Geometrie : LKoord;
+      Name_Nummer: OPTIONAL TEXT*80;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Ueberlagernd_Punkt;
+
+    TABLE Ueberlagernd_Punkt_Pos =
+      TextPos : -> Ueberlagernd_Punkt; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Ueberlagernd_Punkt_Pos;
+
+  END Nutzungsplanung.
+
+
+  TOPIC Erschliessungsplanung = 
+  
+    DOMAIN 
+
+      EP_Typ_Kanton_Erschliessung_Flaechenobjekte = (
+        E560_Nationalstrasse,
+        E561_Kantonsstrasse,
+        E562_Sammelstrasse_kommunal,
+        E563_Erschliessungsstrasse_kommunal,
+        E564_Flurweg_mit_Erschliessungsfunktion,
+        E565_Flurweg_ohne_Erschliessungsfunktion,
+        E566_private_Erschliessungsstrasse,
+        E567_unklassierte_Strasse,         
+        E568_Strassenbankett_Verkehrsinsel,
+        E569_andere_Verkehrsflaechen,        
+        E570_Gehweg_und_Trottoir,
+        E571_Fussweg,
+        E572_Radweg,
+        E573_Fuss_und_Radweg,
+        E574_Gruenstreifen_Rabatte,
+        E579_uebrige_Flaechen_Langsamverkehr       
+      );
+        
+      EP_Typ_Kanton_Erschliessung_Linienobjekte = (
+        E710_eidgenoessische_Baulinie,
+        E711_Baulinie_Strasse_kantonal,
+        E712_Vorbaulinie_kantonal,
+        E713_Gestaltungsbaulinie_kantonal,
+        E714_Rueckwaertige_Baulinie_kantonal, 
+        E715_Baulinie_Infrastruktur_kantonal,
+        E719_weitere_nationale_und_kantonale_Baulinien,
+        E720_Baulinie_Strasse,
+        E721_Vorbaulinie,
+        E722_Gestaltungsbaulinie,
+        E723_Rueckwaertige_Baulinie, 
+        E724_Baulinie_Infrastruktur,
+        E725_Waldabstandslinie,
+        E726_Baulinie_Hecke,
+        E727_Baulinie_Gewaesser,
+        E728_Immissionsstreifen,
+        E729_weitere_kommunale_Baulinien,
+        E789_weitere_linienbezogene_Objekte_EP        
+      ); 
+        
+      EP_Typ_Kanton_Erschliessung_Punktobjekte = (
+        E889_weitere_punktbezogene_Objekte_EP
+      ); 
+    
+    TABLE Typ_Erschliessung_Flaechenobjekte =
+      Typ_Kt : EP_Typ_Kanton_Erschliessung_Flaechenobjekte; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Erschliessung_Flaechenobjekte;
+
+    TABLE Typ_Erschliessung_Flaeche_Dokument =
+      Typ : -> Typ_Erschliessung_Flaechenobjekte; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Erschliessung_Flaeche_Dokument;
+      
+
+    TABLE Typ_Erschliessung_Linienobjekte =
+      Typ_Kt : EP_Typ_Kanton_Erschliessung_Linienobjekte; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Erschliessung_Linienobjekte;
+
+    TABLE Typ_Erschliessung_Linienobjekte_Dokument =
+      Typ : -> Typ_Erschliessung_Linienobjekte; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Erschliessung_Linienobjekte_Dokument;
+      
+
+    TABLE Typ_Erschliessung_Punktobjekte =
+      Typ_Kt: EP_Typ_Kanton_Erschliessung_Punktobjekte; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT Code_kommunal;
+    END Typ_Erschliessung_Punktobjekte;
+
+    TABLE Typ_Erschliessung_Punktobjekte_Dokument =
+      Typ : -> Typ_Erschliessung_Punktobjekte; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Erschliessung_Punktobjekte_Dokument;
+
+
+    TABLE Erschliessung_Flaechenobjekte =
+      Typ : -> Typ_Erschliessung_Flaechenobjekte; !! {0..*}
+      Geometrie : Einzelflaeche;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Erschliessung_Flaechenobjekte;
+
+    TABLE Erschliessung_Flaechenobjekte_Pos =
+      TextPos : -> Erschliessung_Flaechenobjekte; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Erschliessung_Flaechenobjekte_Pos;
+
+    TABLE Erschliessung_Linienobjekte =
+      Typ : ->Typ_Erschliessung_Linienobjekte; !! {0..*}
+      Geometrie : Line;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Erschliessung_Linienobjekte;
+
+    TABLE Erschliessung_Linienobjekte_Pos =
+      TextPos : -> Erschliessung_Linienobjekte; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Erschliessung_Linienobjekte_Pos;
+
+    TABLE Erschliessung_Punktobjekte =
+      Typ : ->Typ_Erschliessung_Punktobjekte; !! {0..*}
+      Geometrie : LKoord;
+      Name_Nummer: OPTIONAL TEXT*80;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Erschliessung_Punktobjekte;
+
+    TABLE Erschliessung_Punktobjekte_Pos =
+      TextPos : -> Erschliessung_Punktobjekte; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END Erschliessung_Punktobjekte_Pos;
+    
+  END Erschliessungsplanung.
+
+
+  TOPIC Waldgrenzen =
+
+    DOMAIN 
+
+      WG_Typ_Kanton_Waldgrenze = (
+        W770_Waldgrenze_in_Bauzone, 
+        W771_negative_Waldfeststellung  
+      ); 
+
+    TABLE Typ_Waldgrenze =
+      Typ_Kt : WG_Typ_Kanton_Waldgrenze; !! {0..*}
+      Code_kommunal : TEXT*12; 
+      Bezeichnung : TEXT*80;
+      Abkuerzung : OPTIONAL TEXT*12;
+      Verbindlichkeit : Verbindlichkeit;
+      Bemerkungen : OPTIONAL TEXT*240;
+    IDENT 
+      Code_kommunal;
+    END Typ_Waldgrenze;
+
+    TABLE Typ_Waldgrenze_Dokument =
+      Typ : ->Typ_Waldgrenze; !! {*}
+      Vorschrift : OID; !! {*} ->Dokument.DokumentID
+    NO IDENT
+    END Typ_Waldgrenze_Dokument;
+    
+    !! Analog Nutzungsplanung.Ueberlagernd_Linie
+    TABLE Waldgrenze =
+      Typ : ->Typ_Waldgrenze; !! {0..*}
+      Geometrie : Line;
+      Name_Nummer: OPTIONAL TEXT*20;
+      Rechtsstatus : Rechtsstatus;
+      publiziertAb : XMLDate;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;  !! siehe Objektkatalog
+      Festsetzungsbehoerde : OPTIONAL TEXT*80;  !! URI
+      Festsetzungsdatum : OPTIONAL XMLDate;
+      Autor_Feststellung : OPTIONAL TEXT*80;
+      Datum_Feststellung : OPTIONAL XMLDate;
+      Verbindlichkeit : Verbindlichkeit;
+      Vorschrift : OID; !! {1..*} ->Dokument.DokumentID
+    NO IDENT
+    END Waldgrenze;
+
+  END Waldgrenzen.
+
+  
+  
+  TOPIC Verfahrenstand =
+
+    DOMAIN
+      Planungsart = (
+        Nutzungsplanung,
+        Erschliessungsplanung,
+        Waldfeststellung
+      );
+     
+      Verfahrensstufe = (
+        Vorpruefung,
+        Planauflage,        	
+        zur_Genehmigung_beantragt,
+        genehmigt_Beschwerde_haengig,  
+        rechtskraeftig,
+        von_Genehmigung_ausgenommen
+      );
+
+    TABLE VS_Perimeter_Verfahrensstand =
+      Geometrie : Einzelflaeche;  
+      Planungsart: Planungsart;
+      Verfahrensstufe : Verfahrensstufe; 
+      Name_Nummer: OPTIONAL TEXT*20;
+      Bemerkungen : OPTIONAL TEXT*240;
+      Erfasser : OPTIONAL TEXT*80;
+      Datum : XMLDate;
+    NO IDENT
+    END VS_Perimeter_Verfahrensstand;
+
+    TABLE VS_Perimeter_Pos =
+      TextPos : -> VS_Perimeter_Verfahrensstand; !! {0..*}
+      Pos : LKoord;
+      Ori : OPTIONAL Rotation;
+      HAli : OPTIONAL HALIGNMENT;
+      VAli : OPTIONAL VALIGNMENT;
+      Groesse : Schriftgroesse;
+    NO IDENT
+    END VS_Perimeter_Pos;
+
+  END Verfahrenstand.  
+
+
+  TOPIC TransferMetadaten =
+    TABLE Amt =
+      Name : TEXT*80;
+      AmtImWeb : OPTIONAL URI;
+    NO IDENT !! IDENT
+    END Amt;
+
+    TABLE Datenbestand =
+      Stand : XMLDate;
+      Lieferdatum : OPTIONAL XMLDate;
+      Bemerkungen : OPTIONAL TEXT*2400;
+      zustaendigeStelle : ->Amt; !! {0..*}
+    NO IDENT
+    END Datenbestand;
+  END TransferMetadaten.
+  
+END Nutzungsplanung_KtSO_V28_LV03.
+
+FORMAT
+  FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

@@ -1,0 +1,160 @@
+
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Datenmodell Vernetzungsprojekte nach ÖQV
+!! beschrieben in INTERLIS Version 1 (SN 612030)
+!!
+!! Version:   01
+!! Datum:     03.02.2011
+!! Dateiname: oeqvso01.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+MODEL Vernetzungsprojekte_SO_V01
+DOMAIN
+  LKoord = COORD2	580000.000	205000.000
+			648000.000	270000.000;
+  HKoord = COORD3	580000.000	205000.000	0.000
+			648000.000	270000.000	1600.000; 
+  Hoehe = DIM1 200.000 1600.000;
+  Telefonr = TEXT*10;                      !!Format: 0326272502
+  Boolean = (true,false);
+  CodeGelan = (Buntbrachen_556,
+    Rotationsbrachen_557,
+    Saum_auf_Ackerflaeche_559,
+    Extensiv_genutzte_Wiesen_611,
+    Wenig_intensiv_genutzte_Wiesen_612,
+    Extensiv_genutzte_Weiden_617,
+    Waldweiden_618,
+    Streueflaechen_851,
+    Hecken_Feldgehoelze_Ufergehoelze_852,
+    Wassergraben_Tuempel_Teich_904,
+    Ruderalflaechen_Steinhaufen_Steinwaelle_905,
+    Trockenmauern_906,
+    Weitere_oekologische_Ausgleichsflaechen_908,
+    Rebflaechen_mit_natuerlicher_Artenvielfalt_70175,
+    Hochstamm_Feldobstbaeume_99500,
+    Einheimische_standortgerechte_Einzelbaeume_und_Alleen_99600,
+    Ackerschonstreifen_99700,
+    Wildtierfreundlicher_Ackerbau_99800);
+!!*******************************************************************
+
+
+ 
+TOPIC Vernetzungsprojekt =
+
+  TABLE Firma = 
+    Firma:            TEXT*80;
+    Strasse:          OPTIONAL TEXT*80;
+    Hausnummer:       OPTIONAL TEXT*8;
+    Plz:              [1000..9999];
+    Ortschaft:        TEXT*80;
+    Telefon:          Telefonr;             !!Format: 0326272502
+    Mail:             OPTIONAL TEXT*80;
+    Sitz_gem:         TEXT*80;
+    Gwr_egid:         OPTIONAL [1..999999999]; !!Bezug zur Gebäudeadresse
+    Gwr_edid:         OPTIONAL [0..99]; !!Bezug zur Gebäudeadresse/Eingang
+    IDENT Firma,Sitz_gem; 
+  END Firma;
+
+  TABLE Person = 
+    Name:             TEXT*80;
+    Vorname:          OPTIONAL TEXT*80;
+    Strasse:          OPTIONAL TEXT*80;
+    Hausnummer:       OPTIONAL TEXT*8;
+    Plz:              [1000..9999];
+    Ortschaft:        TEXT*80;
+    Telefon:          Telefonr;             !!Format: 0326272502
+    Mail:             TEXT*80;
+    Firma:            OPTIONAL->Firma; !!nur optional bei Personen ohne Firma
+    Gwr_egid:         OPTIONAL [1..999999999]; !!Bezug zur Gebäudeadresse
+    Gwr_edid:         OPTIONAL [0..99]; !!Bezug zur Gebäudeadresse/Eingang
+    IDENT Name,Mail;
+  END Person;
+
+  TABLE Vernetzungsgebiet = 
+    Geometrie:        SURFACE WITH (STRAIGHTS)
+                      VERTEX LKoord !!Überschneidungen müssen eliminiert werden
+                      WITHOUT OVERLAPS > 0.05;
+    Vprojekt_num:     [0..99999999]; !!wird durch ALW vorgegeben
+    Vprojekt_name:    TEXT*80; !!wird durch ALW vorgegeben
+    Traegerschaft:    ->Firma;
+    Erarb_person:     ->Person;
+    Erarb_j:          [1900..2100];
+    Bemerkung:        OPTIONAL TEXT*80;
+    NO IDENT	
+  END Vernetzungsgebiet;
+
+  TABLE Landschaftsraum = 
+    Vprojekt_num:     ->Vernetzungsgebiet;
+    Lraum_num:        [0..99999999];
+    Geometrie:        SURFACE WITH (STRAIGHTS)
+                      VERTEX LKoord !!Überschneidungen müssen eliminiert werden
+                      WITHOUT OVERLAPS > 0.05;
+    Lraum_name:       TEXT*80;
+    Erarb_person:     ->Person;
+    Bearb_datum:      DATE;               !!Format:JJJJMMDD
+    Bemerkung:        OPTIONAL TEXT*80;
+    IDENT Lraum_num;
+  END Landschaftsraum;
+
+  TABLE Massnahmengebiet =
+    Lraum_num:        ->Landschaftsraum;
+    Vbiot_num:        [0..99999999];
+    Geometrie:        SURFACE WITH (STRAIGHTS)
+                      VERTEX LKoord; !!Überschneidungen müssen eliminiert werden       
+    Vbiot_name:       TEXT*80;
+    Erarb_person:     ->Person;
+    Bearb_datum:      DATE;               !!Format:JJJJMMDD
+    Bemerkung:        OPTIONAL TEXT*80;
+    Ext_wiese:        Boolean;
+    Wi_wiese:         Boolean;
+    Streufl:          Boolean;
+    Hecken:           Boolean;
+    Buntbrache:       Boolean;
+    Rot_brache:       Boolean;
+    Ackerschon:       Boolean;
+    Saum:             Boolean;
+    Hochstamm:        Boolean;
+    Ext_weide:        Boolean;
+    Waldweide:        Boolean;
+    Reben_ar:         Boolean;
+    Einzelbaum:       Boolean;
+    weitere_ln:       Boolean;
+    Wtf_ackerbau:     Boolean;
+    NO IDENT
+  END Massnahmengebiet;
+
+  TABLE Vernetzungsflaechen_Betrieb =
+    Geometrie:        SURFACE WITH (STRAIGHTS) !!Überschneidungen nur bei
+                      VERTEX LKoord; !!Hochstammbaumsurfaces
+    Pst_nr:           [0..99999999];
+    kulturcode_gelan: CodeGelan;
+    V_flaeche:        OPTIONAL [0.00..99999999.99];
+    V_anzahl_baum:    OPTIONAL [0..99999999]; 
+    Erfasst:          DATE;                 !!Format:JJJJMMDD
+    Poid_gelan:       OPTIONAL [0..9999999999];
+    Vprojekt_num:     ->Vernetzungsgebiet;
+    V_auflage:        OPTIONAL TEXT*80;
+    V_wertvoll:       Boolean;
+    Erarb_person:     ->Person;
+    NO IDENT
+  END Vernetzungsflaechen_Betrieb;
+
+END Vernetzungsprojekt. !!Topic
+
+
+END Vernetzungsprojekte_SO_V01. !!Model
+
+!!FORMAT FREE;
+FORMAT FIX WITH LINESIZE = 320, TIDSIZE = 16;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+
+
+

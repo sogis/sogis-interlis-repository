@@ -1,0 +1,125 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_AGI_swissBOUNDARIES3D_Publikation_20171017.ili"; 
+!!@ Title = "swissBOUNDARIES3D Publikationsmodell"; 
+!!@ shortDescription = "Publikationsmodell der swissBOUNDARIES3D-Daten des 
+!!@ Bundes"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation = ""; 
+!!@ kGeoiV_ID = ""; 
+!!  Publikationsmodell;
+!!  Compiler-Version = "4.7.3-20170524"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2017-10-17 | Noëmi Sturm  | Erstfassung 
+!! 2017-10-25 | Noëmi Sturm  | Änderung Textlänge bei Bezirk in Klasse Hoheits-
+!!                             gebiet
+!! 2017-10-26 | Noëmi Sturm  | Kommentare auf Klassen ergänzt
+!!=============================================================================
+
+MODEL SO_AGI_swissBOUNDARIES3D_Publikation_20171026 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2017-10-26"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC swissBOUNDARIES3D =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Bezirksgebiet
+     */
+    CLASS Bezirk =
+      /** Nummer des Bezirks
+       */
+      Bezirksnummer : MANDATORY 0 .. 9999;
+      /** Name des Bezirks
+       */
+      Bezirksname : MANDATORY TEXT*100;
+      /** Kanton in dem der Bezirk liegt
+       */
+      Kanton : MANDATORY TEXT*100;
+      /** Land in dem der Bezirk liegt
+       */
+      Land : MANDATORY TEXT*100;
+      /** Datum der letzten Aenderung
+       */
+      Datum_Aenderung : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2999-12-31";
+      /** Raeumliche Darstellung des Bezirks als Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      UNIQUE Bezirksnummer;
+    END Bezirk;
+
+    /** Hoheitsgebiet (Gemeindengebiet, Kommunanz, Kantonsgebiet)
+     */
+    CLASS Hoheitsgebiet =
+      /** Nummer des Hoheitsgebiets vergeben durch das Bundesamt fuer Statistik
+       */
+      BFS_Nummer : MANDATORY -999999 .. 9999;
+      /** Name des Hoheitsgebiets
+       */
+      Hoheitsgebietsname : MANDATORY TEXT*255;
+      /** Art des Hoheitsgebiets
+       */
+      Hoheitsgebietsart : MANDATORY TEXT*255;
+      /** Bezirk in dem das Hoheitsgebiet liegt
+       */
+      Bezirk : TEXT*100;
+      /** Kanton in dem das Hoheitsgebiet liegt
+       */
+      Kanton : TEXT*100;
+      /** Land in dem das Hoheitsgebiet liegt
+       */
+      Land : MANDATORY TEXT*100;
+      /** Datum der letzten Aenderung
+       */
+      Datum_Aenderung : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2999-12-31";
+      /** Raeumliche Darstellung des Hoheitsgebiets als Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      UNIQUE BFS_Nummer;
+    END Hoheitsgebiet;
+
+    /** Kantonsgebiet
+     */
+    CLASS Kanton =
+      /** Nummer des Kantons
+       */
+      Kantonsnummer : MANDATORY 0 .. 99;
+      /** Name des Kantons
+       */
+      Kantonsname : MANDATORY TEXT*100;
+      /** Land in dem der Kanton liegt
+       */
+      Land : MANDATORY TEXT*100;
+      /** Datum der letzten Aenderung
+       */
+      Datum_Aenderung : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2999-12-31";
+      /** Raeumliche Darstellung des Kantons als Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      UNIQUE Kantonsnummer;
+    END Kanton;
+
+    /** Landesgebiet
+     */
+    CLASS Land =
+      /** Landeskuerzel
+       */
+      Landeskuerzel : MANDATORY TEXT*2;
+      /** Name des Landes
+       */
+      Landesname : MANDATORY TEXT*100;
+      /** Datum der letzten Aenderung
+       */
+      Datum_Aenderung : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2999-12-31";
+      /** Raeumliche Darstellung des Landes als Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      UNIQUE Landeskuerzel;
+    END Land;
+
+  END swissBOUNDARIES3D;
+
+END SO_AGI_swissBOUNDARIES3D_Publikation_20171026.

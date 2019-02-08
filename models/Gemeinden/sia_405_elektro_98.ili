@@ -1,0 +1,128 @@
+TRANSFER SIA405_mit_Erweiterungen;
+
+MODEL SIA405_mit_Erweiterungen
+
+!! ANHANG B GEO405/INTERLIS Modellbeschreibungen in INTERLIS 
+!! *********************************************************
+!! B5 Thema Elektrizität
+
+DOMAIN
+  !! Allgemeine Typen fuer alle SIA405 Medien
+  INTEGER4 = [0 .. 9999];
+  INTEGER6 = [0 .. 999999];
+  REAL42 = [0.00 .. 9999.99];
+  Orientierung = DEGREES 0.0 360.0;
+  Hoehecm = DIM1      -200.00	 5000.00;
+  LKoordcm = COORD2 480000.00	 70000.00
+                    840000.00   300000.00;
+  Genauigkeit = (unbekannt, ungenau, genau);
+  Status = (unbekannt, in_Betrieb, ausser_Betrieb, Reserve, tot 
+  , Berechnungsvariante, geplant, Projekt, provisorisch);
+
+
+
+TOPIC SIA405_Elektrizitaet =
+	
+
+
+  !! Teilbereich Netzlogik
+  !! *********************
+
+
+  !! Teilbereich Basismodell
+  !! ***********************
+
+  TABLE Trasseabschnitt =
+    Name_Nummer: TEXT*20;
+    Geometrie: POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoordcm 
+      WITHOUT OVERLAPS > 0.20;
+    Art: (unbekannt, Kabeltrasse, Freileitungstrasse);
+    Trassebreite: INTEGER4;         !! max Breite, Ausdehnung, in mm
+    Lagebestimmung: Genauigkeit;
+  IDENT
+    Name_Nummer;
+  END Trasseabschnitt;
+
+  TABLE Trasseabschnitt_Text =
+    TrasseabschnittRef:	-> Trasseabschnitt;
+    Text: TEXT*40;  !! reserviert fuer Attributtext der Tabelle Trasseabschnitt
+    TextPos: LKoordcm;
+    TextOri: Orientierung;
+    TextHAli: HALIGNMENT;
+    TextVAli: VALIGNMENT; 
+  NO IDENT
+  END Trasseabschnitt_Text;
+
+  TABLE Trassepunkt =
+    Name_Nummer: TEXT*20;
+    Geometrie: LKoordcm;
+    Art: (unbekannt, Schacht
+    , Tragwerk (Tragwerk_allgemein, Gittermast), Lampenstelle
+    , Verkehrsbeleuchtung, Kleinanschluss, Verteilkabine
+    , Transformatorenstation, Maststation);
+  IDENT
+    Name_Nummer;
+  END Trassepunkt;
+
+
+  TABLE Trassepunkt_Text =
+    TrassepunktRef: -> Trassepunkt //1-mc//;
+    Text: TEXT*40;	     !!reserviert fuer Attributtext der Tabelle Trassepunkt
+    TextPos: LKoordcm;
+    TextOri: Orientierung;
+    TextHAli: HALIGNMENT;
+    TextVAli: VALIGNMENT; 
+  NO IDENT
+  END Trassepunkt_Text;
+
+  TABLE Bauwerk =
+    Name_Nummer: TEXT*20;
+    Art: (unbekannt, Bauwerk, Schacht);
+    Lagebestimmung: Genauigkeit;
+  IDENT
+    Name_Nummer;
+  END Bauwerk;
+
+  TABLE Bauwerk_Text =
+    BauwerkRef:	-> Bauwerk //1-mc//;
+    Text: TEXT*40;	      !! reserviert fuer AttributteXt der Tabelle Bauwerk
+    TextPos: LKoordcm;
+    TextOri: Orientierung;
+    TextHAli: HALIGNMENT;
+    TextVAli: VALIGNMENT; 
+  NO IDENT
+  END Bauwerk_Text;
+
+  TABLE Bauwerk_Linie =
+    BauwerkRef:	-> Bauwerk //l-mc//;
+    Geometrie: POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoordcm; 
+  NO IDENT
+  END Bauwerk_Linie;
+
+  TABLE Bauwerk_Flaeche =
+    BauwerkRef:	-> Bauwerk //1-mc//;
+    Geometrie:	SURFACE WITH (STRAIGHTS,ARCS) VERTEX LKoordcm 
+      WITHOUT OVERLAPS > 0.20;
+  NO IDENT
+  END Bauwerk_Flaeche;
+
+
+  !! Teilbereich Erweiterungen
+  !! *************************
+
+
+END SIA405_Elektrizitaet.
+
+END SIA405_mit_Erweiterungen.
+
+FORMAT FREE;
+!!FORMAT FIX WITH LINESIZE = 75, TIDSIZE = 10;
+!!Interlis-Compiler Vs 0.0 arbeitet nur mit fixem Format, so dass 
+!!die Kommentarzeichen bei FORMAT FREE zu setzen sind und
+!! bei der FORMAT FIX-Zeile entfernt werden muessen.
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT; 
+  TID = ANY;
+END.
+

@@ -1,0 +1,176 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_Agglomerationsprogramme_Publikation_20170203.ili"; 
+!!@ Title = "Agglomerationsprogramme"; 
+!!@ shortDescription = "Publikationsmodell der Aggloprogramme des Kanton Solothurn"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation = ""; 
+!!@ kGeoiV_ID = ""; 
+!!  Publikationsmodellmodell;
+!!  Compiler-Version = "4.6.1-20170109"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2017-01-17 | Noëmi Sturm  | Erstfassung 
+!! 2017-01-19 | Noëmi Sturm  | Anpassungen gemäss Rückmeldungen
+!! 2017-01-23 | Noëmi Sturm  | Ergänzung der Class Aggloprogramm
+!! 2017-02-03 | Noëmi Sturm  | Anpassungen gemäss Rückmeldungen
+!!============================================================================== 
+
+MODEL SO_Agglomerationsprogramme_Publikation_20170203 (de)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2017-02-03"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Agglomerationsprogramme =
+
+    DOMAIN
+
+      Geometrietyp = (
+        andere,
+        keine_Geometrie,
+        Polygon,
+        Linie,
+        Punkt
+      );
+
+      Prioritaet = (
+        Vorleistung,
+        Daueraufgabe,
+        C,
+        B_Eigenleistung,
+        B,
+        A_Eigenleistung,
+        A
+      );
+
+      Projektphase = (
+        archiviert,
+        gestoppt,
+        Daueraufgabe,
+        umgesetzt,
+        Bauphase,
+        Planung_Vorprojekt
+      );
+
+      Umsetzungsstand = (
+        in_Erarbeitung,
+        Planungsstopp_Sistierung,
+        nicht_eingereicht,
+        groessere_zeitliche_Verzoegerung,
+        kurze_zeitliche_Verzoegerung,
+        im_Soll
+      );
+
+    CLASS Agglomerationsprogramm =
+      /** Name des Agglomerationsprogramms
+       */
+      Name : MANDATORY TEXT*200;
+      /** Generation
+       */
+      Generation : MANDATORY TEXT*255;
+      /** Gemeindename
+       */
+      Gemeinde : MANDATORY TEXT*200;
+      /** BFS-Nr der Gemeinde
+       */
+      BFS_Nr : MANDATORY 0 .. 9999;
+      /** Kantonskuerzel
+       */
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      /** Landeskuerzel
+       */
+      Land : MANDATORY TEXT*2;
+      /** Geometrie der Gemeinde
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Agglomerationsprogramm;
+
+    CLASS Massnahme =
+      /** Aggloprogramm
+       */
+      Aggloprogramm : MANDATORY TEXT*200;
+      /** Generation
+       */
+      Generation : MANDATORY 0 .. 100;
+      /** Handlungsfeld
+       */
+      Handlungsfeld : MANDATORY TEXT*200;
+      /** Handlungspaket
+       */
+      Handlungspaket : MANDATORY MTEXT;
+      /** Massnahmenpaket
+       */
+      Massnahmenpaket : TEXT*200;
+      /** Prioritaet
+       */
+      Prioritaet : Prioritaet;
+      /** Geometrietyp
+       */
+      Geometrietyp : MANDATORY Geometrietyp;
+      /** Massnahmennummer
+       */
+      Nummer : MANDATORY TEXT*255;
+      /** Beschreibung
+       */
+      Beschreibung : MTEXT;
+      /** Kosten gemaess Massnahmenblatt in Fr.
+       */
+      Kosten_Massnahmenblatt : 0 .. 100000000;
+      /** Kosten gemaess Leistungsvereinbarung mit dem Bund in Fr.
+       */
+      Kosten_LV : 0 .. 100000000;
+      /** aktueller Kostenstand in Fr.
+       */
+      Kostenstand_aktuell : 0 .. 100000000;
+      /** Der in der Leistungsvereinbarung festgelegte Betrag in Fr, welcher vom Bund für eine Massnahme übernommen wird.
+       */
+      Kostenanteil_Bund : 0 .. 999999999;
+      /** Pfad zum Massnahmenblatt
+       */
+      Massnahmenblatt : MTEXT;
+      /** fuer die Massnahme zustaendiges Amt/Person
+       */
+      Ansprechperson : MTEXT;
+      /** weitere Bemerkungen
+       */
+      sonstiges : MTEXT;
+      /** aktuelle Projektphase
+       */
+      Projektphase : Projektphase;
+      /** aktueller Stand der Umsetzung
+       */
+      Umsetzungsstand : Umsetzungsstand;
+      /** Name der federfuehrenden Aemter/Personen
+       */
+      Federfuehrung : MTEXT;
+      /** beteiligte Gemeinden
+       */
+      Gemeinden : MTEXT;
+      /** Baubeginn geplant (laut LV)
+       */
+      Baubeginn : TEXT*255;
+      /** gemaess Massnahmenblatt
+       */
+      infrastrukturell : BOOLEAN;
+      /** Link zur Webseite der Agglomeration für Massnahmen aus einem anderen Kanton
+       */
+      Agglomerationsprogramm_Link : INTERLIS.URI;
+      /** Datum der Aenderung
+       */
+      letzte_Anpassung : INTERLIS.XMLDate;
+      /** Punktgeometrie
+       */
+      Punktgeometrie : GeometryCHLV95_V1.Coord2;
+      /** Liniengeometrie
+       */
+      Liniengeometrie : GeometryCHLV95_V1.Line;
+      /** Flaechengeometrie
+       */
+      Flaechengeometrie : GeometryCHLV95_V1.Surface;
+    END Massnahme;
+
+  END Agglomerationsprogramme;
+
+END SO_Agglomerationsprogramme_Publikation_20170203.

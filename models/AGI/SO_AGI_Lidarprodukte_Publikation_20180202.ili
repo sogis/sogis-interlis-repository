@@ -1,0 +1,91 @@
+INTERLIS 2.3;
+/**
+*!!------------------------------------------------------------------------------ 
+*!! Version    | wer | Änderung 
+*!!------------------------------------------------------------------------------ 
+*!! 2018-01-05 | Noëmi Sturm  | Erstfassung 
+*!! 2018-02-02 | Noëmi Sturm  | Enumeration bei Filetyp und Bezugsrahmen
+*!!                             URI bei Link
+*!!==============================================================================
+*/
+
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AGI_Lidarprodukte_Publikation_20180202 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2018-02-02"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Lidarprodukte =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Produkte, welche aus den LiDAR-Daten abgeleitet wurden
+     */
+    CLASS Lidarprodukt =
+      /** Kachelausdehnung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Kachelhoehe in Pixel
+       */
+      Kachel_Hoehe : 0 .. 999999999;
+      /** Kachelbreite in Pixel
+       */
+      Kachel_Breite : 0 .. 999999999;
+      /** Pixelhoehe in Meter
+       */
+      Pixel_Hoehe : 0.00 .. 999999999.00;
+      /** Pixelbreite in Meter
+       */
+      Pixel_Breite : 0.00 .. 999999999.00;
+      /** Jahr des LiDAR-Flugs
+       */
+      Flugjahr : MANDATORY INTERLIS.GregorianYear;
+      /** Datum des LiDAR-Flugs
+       */
+      Flugdatum : MANDATORY TEXT*50;
+      /** Link zur Kachel
+       */
+      Link : MANDATORY INTERLIS.URI;
+      /** Minimaler Wert (Hoehe/Hoehendifferenz) innerhalb der Kachel in Meter
+       */
+      Minimum : -25000.00 .. 25000.00;
+      /** Maximaler Wert (Hoehe/Hoehendifferenz) innerhalb der Kachel  in Meter
+       */
+      Maximum : -25000.00 .. 25000.00;
+      /** Dateigroesse der Kachel in Megabyte (MB)
+       */
+      Filegroesse : MANDATORY 0.00 .. 999999999.00;
+      /** Dateityp
+       */
+      Filetyp : MANDATORY (
+        LAZ,
+        Shape,
+        GeoTIFF,
+        GeoPackage
+      );
+      /** Bemerkungen
+       */
+      Bemerkung : MTEXT*2000;
+      /** Bezugsrahmen
+       */
+      Bezugsrahmen : MANDATORY (
+        LV03,
+        LV95
+      );
+      /** Produkttyp
+       */
+      Produkttyp : MANDATORY (
+        Hoehenlinien,
+        Rohdaten,
+        DOMDiff,
+        nDOM,
+        DTM_Relief,
+        DOM_Relief,
+        DTM,
+        DOM,
+        DTM_Hangneigung
+      );
+    END Lidarprodukt;
+
+  END Lidarprodukte;
+
+END SO_AGI_Lidarprodukte_Publikation_20180202.

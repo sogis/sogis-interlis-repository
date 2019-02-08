@@ -1,0 +1,348 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_Nutzungsplanung_Publikation_20170821.ili"; 
+!!@ Title = "Nutzungsplanung Publikation"; 
+!!@ shortDescription = "Publikationsmodell für die Nutzungsplanung des Kantons 
+!!@ Solothurn";  
+!!@ Issuer = "http://arp.so.ch"; 
+!!@ technicalContact = "http://agi.so.ch"; 
+!!@ furtherInformation = "";
+!!  Publikationsmodell;
+!!  Compiler-Version = "4.7.3-20170524"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2017-07-21 | al  | Erstfassung
+!! 2017-08-21 | al  | Anpassung nach Review sz
+!! 2017-09-29 | sz  | Formelle Korrekturen
+!!============================================================================== 
+
+MODEL SO_Nutzungsplanung_Publikation_20170821 (de)
+AT "http://www.geo.so.ch"
+VERSION "2017-08-21"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Nutzungsplanung =
+ 
+  DOMAIN
+
+    Einzelflaeche
+      EXTENDS GeometryCHLV95_V1.Surface = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2
+      WITHOUT OVERLAPS>0.001;
+
+    Gebietseinteilung
+      EXTENDS GeometryCHLV95_V1.Area = AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2
+      WITHOUT OVERLAPS>0.001;
+
+   
+    Rotation = 0 .. 399;  !! 0 Gon = Horizontale = Basislinie, z.B. einer Beschriftung
+
+    Schriftgroesse = (    !! siehe Darstellungsmodell
+      klein,
+      mittel,
+      gross
+    );
+    
+    CLASS Grundnutzung =
+      OID AS INTERLIS.UUIDOID;  
+      Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+      Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Typ_Nutzungsziffer : 0.00 .. 9.00;
+      Typ_Nutzungsziffer_Art : TEXT*20;
+      Typ_Geschosszahl : 0 .. 50;
+	  Geometrie : MANDATORY Gebietseinteilung;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Kanton : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_TextImWeb : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+      Dok_Rechtsvorschrift : MTEXT;  !! Auflistung der Dokumente aus Typ und Grundnutzung
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END Grundnutzung;
+	
+	
+	CLASS Ueberlagernd_Flaeche =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY Einzelflaeche;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;  
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift : MTEXT;  !! Auflistung der Dokumente aus Typ	  
+	  Plan_PlandokumentID : TEXT*16;
+      Plan_Titel : TEXT*80;
+      Plan_OffiziellerTitel : TEXT*240;
+      Plan_OffizielleNr : TEXT*20;
+      Plan_Kanton : CHAdminCodes_V1.CHCantonCode;
+      Plan_Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      Plan_publiziertAb : INTERLIS.XMLDate;
+      Plan_Rechtsstatus : TEXT*20;
+      Plan_PlanImWeb : URI;  
+      Plan_Bemerkungen : MTEXT*240;
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END Ueberlagernd_Flaeche;
+	
+	
+   CLASS Ueberlagernd_Linie =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen : MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift : MTEXT;  !! Auflistung der Dokumente aus Typ
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END Ueberlagernd_Linie;
+	
+	
+	CLASS Ueberlagernd_Punkt =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton :  MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb :  MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen :  MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift : MTEXT;  !! Auflistung der Dokumente aus Typ
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END Ueberlagernd_Punkt;
+	
+	
+    CLASS Nutzungsplanung_Beschriftung =
+      OID AS INTERLIS.UUIDOID;  
+      Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+	  Pos : GeometryCHLV95_V1.Coord2;
+      Pos_Ori : Rotation;
+      Pos_HAli : HALIGNMENT;
+      Pos_VAli : VALIGNMENT;
+      Pos_Groesse : Schriftgroesse;  
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END Nutzungsplanung_Beschriftung;
+	
+	
+	CLASS Erschliessung_Flaechenobjekt =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY Einzelflaeche;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;  
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb :  MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift : MTEXT;  !! Auflistung der Dokumente aus Typ	
+      BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde  	  
+    END Erschliessung_Flaechenobjekt;
+	
+		
+	CLASS Erschliessung_Linienobjekt =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;  
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton :  MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde :  MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift :  MTEXT;  !! Auflistung der Dokumente aus Typ	  
+      BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde	  
+    END Erschliessung_Linienobjekt;
+	
+	
+	CLASS Erschliessung_Punktobjekt =
+      OID AS INTERLIS.UUIDOID;  
+	  Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name_Nummer: TEXT*20;
+      Rechtsstatus : MANDATORY TEXT*20;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen :  MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;  
+      Dok_ID : MTEXT;  !! Auflistung der Dokumente aus Typ 
+      Dok_Titel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffiziellerTitel : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Abkuerzung : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_OffizielleNr : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Kanton : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Gemeinde : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_publiziertAb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Rechtsstatus : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_TextImWeb : MTEXT;  !! Auflistung der Dokumente aus Typ
+      Dok_Bemerkungen : MTEXT;  !! Auflistung der Dokumente aus TyP
+      Dok_Rechtsvorschrift :  MTEXT;  !! Auflistung der Dokumente aus Typ	  
+      BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde	  
+    END Erschliessung_Punktobjekt;
+	
+	
+	CLASS Erschliessung_Beschriftung =
+      OID AS INTERLIS.UUIDOID;  
+      Typ_Bezeichnung : MANDATORY TEXT*80;
+      Typ_Abkuerzung : TEXT*12;
+      Typ_Verbindlichkeit : MANDATORY TEXT*30;
+      Typ_Bemerkungen : MTEXT*240;
+	  Typ_Kt : MANDATORY TEXT*60;
+      Typ_Code_kommunal : MANDATORY TEXT*12;
+	  Pos : GeometryCHLV95_V1.Coord2;
+      Pos_Ori : Rotation;
+      Pos_HAli : HALIGNMENT;
+      Pos_VAli : VALIGNMENT;
+      Pos_Groesse : Schriftgroesse; 
+      BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde	  
+    END Erschliessung_Beschriftung;
+	
+	
+	CLASS VS_Perimeter_Verfahrensstand =
+	  OID AS INTERLIS.UUIDOID;  
+      Geometrie : MANDATORY Einzelflaeche;  !! In einem Gebiet können mehrere Verfahren laufen.
+      Planungsart: MANDATORY TEXT*30;
+      Verfahrensstufe : MANDATORY TEXT*30; 
+      Name_Nummer: TEXT*20;
+      Bemerkungen : MTEXT*240;
+      Erfasser : TEXT*80;
+      Datum : MANDATORY INTERLIS.XMLDate;
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END VS_Perimeter_Verfahrensstand;
+	
+		
+	CLASS VS_Perimeter_Beschriftung =
+      OID AS INTERLIS.UUIDOID;  
+      Verfahrensstufe : MANDATORY TEXT*30; 
+      Name_Nummer: TEXT*20;
+	  Pos : GeometryCHLV95_V1.Coord2;
+      Pos_Ori : Rotation;
+      Pos_HAli : HALIGNMENT;
+      Pos_VAli : VALIGNMENT;
+      Pos_Groesse : Schriftgroesse;  
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END VS_Perimeter_Beschriftung;
+	
+
+    CLASS TransferMetadaten =
+      OID AS INTERLIS.UUIDOID;  
+	  Amt_Name : MANDATORY TEXT*80;
+      AmtImWeb : URI;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT*240;
+	  BFS_Nr  : 0 .. 9999; !! BFS-Nr der Gemeinde
+    END TransferMetadaten;
+	
+  END Nutzungsplanung;
+
+END SO_Nutzungsplanung_Publikation_20170821.

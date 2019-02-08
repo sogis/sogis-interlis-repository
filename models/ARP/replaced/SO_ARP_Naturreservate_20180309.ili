@@ -1,0 +1,214 @@
+INTERLIS 2.3;
+/**
+*!!------------------------------------------------------------------------------ 
+*!! Version    | wer | Änderung 
+*!!------------------------------------------------------------------------------ 
+*!! 2017-02-01 | Noëmi Sturm  | Erstfassung 
+*!! 2017-03-30 | Noëmi Sturm  | diverse kleinere Anpassungen
+*!! 2017-04-19 | Noëmi Sturm  | Erweiterung Class Zustaendiger
+*!! 2017-05-26 | Noëmi Sturm  | Anpassung Zustaendiger
+*!! 2017-12-04 | Noëmi Sturm  | neue Class Pflanze & Korrektur Zustaendiger
+*!! 2017-12-06 | Noëmi Sturm  | Verschiebung der Attribute Pflege und Aufsicht
+*!! 2017-12-07 | Noëmi Sturm  | Entfernen des Unique-Constraint auf Teilgebiete
+*!! 2017-12-08 | Noëmi Sturm  | Verschiebung der Attribute Erhebungsjahr/-projekt
+*!! 2017-12-08 | Noëmi Sturm  | Review-Rückmeldungen integriert
+*!! 2018-03-05 | Noëmi Sturm  | Integration ÖREB-Attribute
+*!! 2018-03-06 | Noëmi Sturm  | Mandatory Constraint hinzugefügt
+*!! 2018-03-08 | Noëmi Sturm  | Mandatory Constraint hinzugefügt,
+*!!                           | OffizielleNr und Datum hinzugefügt
+*!! 2018-03-09 | Noëmi Sturm  | Foto, Objektblatt und Pflanzenliste aus 
+*!!                           | dokumenttyp entfernt
+*!!==============================================================================
+*/
+
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_ARP_Naturreservate_20180309 (de)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2018-03-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    dokumenttyp = (
+      Kommunale_Inventare,
+      Bericht,
+      Pflegekonzept,
+      Sonderbauvorschriften,
+      Gestaltungsplan,
+      RRB
+    );
+
+  TOPIC Reservate =
+
+    /** Dokumente auf welche sich die kantonalen Naturreservate stuetzen, oder welche die in der Datenbank verwalteten Daten ergaenzen.
+     */
+    CLASS Dokument =
+      /** Bezeichnung des Dokuments
+       */
+      Bezeichnung : TEXT*100;
+      /** Name des Dokuments
+       */
+      Dateiname : MANDATORY TEXT;
+      /** Typ des Dokuments
+       */
+      Typ : MANDATORY SO_ARP_Naturreservate_20180309.dokumenttyp;
+      /** Rechtsstatus des Dokuments. in Kraft / laufende Aenderung
+       */
+      Rechtsstatus : MANDATORY (
+        laufendeAenderung,
+        inKraft
+      );
+      /** Datum des Inkrafttretens des Dokuments
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Dient das Dokument als Rechtsvorschrift? ja/nein
+       */
+      Rechtsvorschrift : MANDATORY BOOLEAN;
+      /** Offizielle Nummer  des Dokuments
+       */
+      OffizielleNr : TEXT*20;
+      UNIQUE Dateiname, Typ;
+      MANDATORY CONSTRAINT ((Typ  == #RRB OR Typ == #Sonderbauvorschriften OR Typ == #Gestaltungsplan) AND DEFINED (publiziertAb))  OR   ((Typ  == #Kommunale_Inventare OR Typ == #Objektblatt OR Typ == #Foto OR Typ == #Bericht OR Typ == #Pflegekonzept OR Typ == #Pflanzenliste) AND NOT(DEFINED (publiziertAb)));
+      MANDATORY CONSTRAINT ((Rechtsvorschrift) AND DEFINED (OffizielleNr))  OR   (NOT(Rechtsvorschrift) AND NOT(DEFINED (OffizielleNr)));
+    END Dokument;
+
+    /** in kantonalen Naturreservaten erhobenen Pflanzen
+     */
+    CLASS Pflanze =
+      /** wissenschaftlicher (lateinischer) Name der Pflanze
+       */
+      wissenschaftlicher_Name : MANDATORY TEXT*130;
+      /** deutscher Name der Pflanze
+       */
+      deutscher_Name : TEXT*64;
+      /** Steht die Pflanze in der Schweiz unter Schutz? ja/nein
+       */
+      geschuetzt : MANDATORY BOOLEAN;
+      /** Steht die Pflanze auf der roten Liste? ja/nein
+       */
+      rote_Liste : MANDATORY BOOLEAN;
+    END Pflanze;
+
+    /** kantonale Naturreservate
+     */
+    CLASS Reservat =
+      /** Reservatsnummer
+       */
+      Nummer : MANDATORY 0.00 .. 99999.00;
+      /** NSI-Nummer (Burki-Inventar)
+       */
+      NSI_Nummer : TEXT*10;
+      /** Reservatsname
+       */
+      Name : MANDATORY TEXT*100;
+      /** Reservatsbeschreibung
+       */
+      Beschreibung : MTEXT*10000;
+      /** Rechtsstatus des Reservats. in Kraft / laufende Aenderung
+       */
+      Rechtsstatus : MANDATORY (
+        laufendeAenderung,
+        inKraft
+      );
+      /** Datum des Inkrafttretens des Reservats
+       */
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      UNIQUE Nummer;
+    END Reservat;
+
+    /** Teilgebiete der Reservate
+     */
+    CLASS Teilgebiet =
+      /** Teilgebietsname
+       */
+      Name : MANDATORY TEXT*100;
+      /** Geometrie des Teilgebiets
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Beschreibung des Teilgebiets
+       */
+      Beschreibung : MANDATORY MTEXT*10000;
+      /** Rechtsstatus des Teilgebiets. in Kraft / laufende Aenderung
+       */
+      Rechtsstatus : MANDATORY (
+        laufendeAenderung,
+        inKraft
+      );
+      /** Datum des Inkrafttretens des Teilgebiets
+       */
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      /** Datum der Erfassung
+       */
+      Datum : INTERLIS.XMLDate;
+      MANDATORY CONSTRAINT (DEFINED(Datum) AND DEFINED (publiziertAb))  OR   (NOT(DEFINED(Datum)) AND NOT(DEFINED (publiziertAb)));
+    END Teilgebiet;
+
+    /** Auflistung der fuer die Reservate zustaendigen Personen/Organisationen
+     */
+    CLASS Zustaendiger =
+      /** Name der Organisation
+       */
+      Organisation : TEXT*200;
+      /** Vor- und Nachname der zustaendigen Person
+       */
+      Name : TEXT*200;
+      /** Adresse der zustaendigen Person
+       */
+      Adresse : MTEXT*200;
+      /** Telefonnummer der zustaendigen Person
+       */
+      Telefon : TEXT*20;
+      /** E-mailadresse der zustaendigen Person
+       */
+      Email : TEXT*100;
+    END Zustaendiger;
+
+    ASSOCIATION Reservat_Dokument =
+      /** Fremdschluessel zu reservate_dokument
+       */
+      Dokument -- {0..*} Dokument;
+      /** Fremdschluessel zu reservate_reservat
+       */
+      Reservat -- {1..*} Reservat;
+    END Reservat_Dokument;
+
+    ASSOCIATION Reservat_Teilgebiet =
+      Teilgebiet_Reservat -- {1..*} Teilgebiet;
+      /** Fremdschluessel zu reservate_reservat
+       */
+      Reservat -- {1} Reservat;
+    END Reservat_Teilgebiet;
+
+    ASSOCIATION Reservat_Zustaendiger =
+      /** Fremdschluessel zu reservate_zustaendiger
+       */
+      Zustaendiger -- {0..*} Zustaendiger;
+      /** Fremdschluessel zu reservate_reservat
+       */
+      Reservat -- {0..*} Reservat;
+      /** Ist der/die Zustaendige verantwortlich fuer die Pflege? ja/nein
+       */
+      Pflege : MANDATORY BOOLEAN;
+      /** Ist der/die Zustaendige fuer die Aufsicht zustaendig? ja/nein
+       */
+      Aufsicht : MANDATORY BOOLEAN;
+    END Reservat_Zustaendiger;
+
+    ASSOCIATION Teilgebiet_Pflanze =
+      /** Fremdschluessel zu reservate_teilgebiet
+       */
+      Teilgebiet -- {0..*} Teilgebiet;
+      /** Fremdschluessel zu reservate_pflanze
+       */
+      Pflanze -- {0..*} Pflanze;
+      /** Jahr der Erhebung
+       */
+      Erhebungsjahr : INTERLIS.GregorianYear;
+      /** Name des Erhebungsprojekts
+       */
+      Erhebungsprojekt : MANDATORY TEXT*15;
+    END Teilgebiet_Pflanze;
+
+  END Reservate;
+
+END SO_ARP_Naturreservate_20180309.

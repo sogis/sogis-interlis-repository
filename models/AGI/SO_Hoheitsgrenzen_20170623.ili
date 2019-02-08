@@ -1,0 +1,135 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_Hoheitsgrenzen_20170623.ili"; 
+!!@ Title = "Hoheitsgrenzen"; 
+!!@ shortDescription = "Hoheitsgrenzen des Kanton Solothurn"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation = ""; 
+!!@ kGeoiV_ID = ""; 
+!!  Erfassungsmodell;
+!!  Compiler-Version = "4.7.3-20170524"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer             | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2016-04-20 | Stefan Ziegler  | Erstfassung 
+!! 2016-11-28 | Noemi Sturm     | Erweiterung 
+!! 2017-01-12 | Noemi Sturm     | Anpassungen
+!! 2017-02-02 | Noëmi Sturm     | Korrekturen
+!! 2017-02-03 | Noëmi Sturm     | Anpassungen 
+!! 2017-02-10 | Noëmi Sturm     | Finalisierung und Abschluss
+!! 2017-06-20 | Noëmi Sturm     | komplette Überarbeitung
+!! 2017-06-23 | Noëmi Sturm     | erweitern der Pos-Class
+!!============================================================================== 
+
+MODEL SO_Hoheitsgrenzen_20170623 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2017-06-23"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  CLASS Pos (ABSTRACT) =
+    /** Beschriftungstext
+     */
+    Beschriftungstext : MANDATORY TEXT*255;
+    /** Das fuer die Beschriftung geeignete Format
+     */
+    Format : MANDATORY (
+      A3,
+      A4
+    );
+    /** Positionierungspunkt der Beschriftung
+     */
+    Pos : MANDATORY GeometryCHLV95_V1.Coord2;
+    /** Beschriftungsorientierung
+     */
+    Ori : GeometryCHLV95_V1.Orientation;
+    /** Horizontal Alignment der Beschriftung
+     */
+    HAli : MANDATORY INTERLIS.HALIGNMENT;
+    /** Vertical Alignment der Beschriftung
+     */
+    VAli : MANDATORY INTERLIS.VALIGNMENT;
+  END Pos;
+
+  TOPIC Hoheitsgrenzen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Bezirk =
+      /** Bezirksname
+       */
+      Bezirksname : MANDATORY TEXT*255;
+      /** Bezirksnummer
+       */
+      Bezirksnummer : MANDATORY 1 .. 9999;
+      UNIQUE Bezirksname;
+      UNIQUE Bezirksnummer;
+    END Bezirk;
+
+    CLASS Bezirksname_Pos
+    EXTENDS SO_Hoheitsgrenzen_20170623.Pos =
+    END Bezirksname_Pos;
+
+    CLASS Gemeinde =
+      /** BFS-Nr der Gemeinde
+       */
+      BFS_Gemeindenummer : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      UNIQUE BFS_Gemeindenummer;
+    END Gemeinde;
+
+    CLASS Gemeindename_Pos
+    EXTENDS SO_Hoheitsgrenzen_20170623.Pos =
+    END Gemeindename_Pos;
+
+    CLASS Kanton =
+      /** Kantonsname
+       */
+      Kantonsname : MANDATORY TEXT*255;
+      /** Nummer des Kantons
+       */
+      Kantonsnummer : MANDATORY 11 .. 11;
+      UNIQUE Kantonsname;
+      UNIQUE Kantonsnummer;
+    END Kanton;
+
+    CLASS Kantonsname_Pos
+    EXTENDS SO_Hoheitsgrenzen_20170623.Pos =
+    END Kantonsname_Pos;
+
+    ASSOCIATION Bezirk_Bezirksname_Pos =
+      /** Fremdschluessel auf hoheitsgrenzen_bezirk
+       */
+      Bezirk -- {1} Bezirk;
+      Bezirksname_Pos -- {0..*} Bezirksname_Pos;
+    END Bezirk_Bezirksname_Pos;
+
+    ASSOCIATION Gemeinde_Bezirk =
+      Gemeinde -- {1..*} Gemeinde;
+      /** Fremdschluessel auf hoheitsgrenzen_bezirk
+       */
+      Bezirk -- {1} Bezirk;
+    END Gemeinde_Bezirk;
+
+    ASSOCIATION Gemeinde_Gemeindename_Pos =
+      /** Fremdschluessel auf hoheitsgrenzen_gemeinde
+       */
+      Gemeinde -- {1} Gemeinde;
+      Gemeindename_Pos -- {0..*} Gemeindename_Pos;
+    END Gemeinde_Gemeindename_Pos;
+
+    ASSOCIATION Kanton_Bezirk =
+      Bezirk -- {1..*} Bezirk;
+      /** Fremdschluessel auf hoheitsgrenzen_kanton
+       */
+      Kanton -- {1} Kanton;
+    END Kanton_Bezirk;
+
+    ASSOCIATION Kanton_Kantonsname_Pos =
+      /** Fremdschluessel zu hoheitsgrenzen_kanton
+       */
+      Kanton -- {1} Kanton;
+      Kantonsname_Pos -- {0..*} Kantonsname_Pos;
+    END Kanton_Kantonsname_Pos;
+
+  END Hoheitsgrenzen;
+
+END SO_Hoheitsgrenzen_20170623.

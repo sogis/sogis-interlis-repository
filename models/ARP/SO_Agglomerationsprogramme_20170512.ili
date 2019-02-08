@@ -1,0 +1,146 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_Agglomerationsprogramme_20170512.ili"; 
+!!@ Title = "Agglomerationsprogramme"; 
+!!@ shortDescription = "Agglomerationsprogramme des Kanton Solothurn"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation=www.geo.so.ch
+!!@ kGeoiV_ID = ""; 
+!!  Erfassungsmodell;
+!!  Compiler-Version = "4.6.1-20170109"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2016-05-09 | Andrea Lüscher  | Erstfassung 
+!! 2017-05-12 | Noëmi Sturm     | Änderung LV03-Geometrien zu LV95-Geometrien
+!!=============================================================================
+
+MODEL SO_Agglomerationsprogramme_20170512 (en)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2017-05-12"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Agglomerationsprogramme =
+
+    DOMAIN
+
+      Prioritaet = (
+        Vorleistung,
+        Daueraufgabe,
+        C,
+        B_Eigenleistung,
+        B,
+        A_Eigenleistung,
+        A
+      );
+
+      Projektphase = (
+        archiviert,
+        gestoppt,
+        Daueraufgabe,
+        umgesetzt,
+        Bauphase,
+        Planung_Vorprojekt
+      );
+
+      Umsetzungsstand = (
+        in_Erarbeitung,
+        Planungsstopp_Sistierung,
+        nicht_eingereicht,
+        groessere_zeitliche_Verzoegerung,
+        kurze_zeitliche_Verzoegerung,
+        im_Soll
+      );
+
+    CLASS Agglomerationsprogramm =
+      Name : MANDATORY TEXT*200;
+      Generation : MANDATORY 0 .. 100;
+      Link : INTERLIS.URI;
+    END Agglomerationsprogramm;
+
+    CLASS Federfuehrung =
+      Name : MANDATORY TEXT*200;
+    END Federfuehrung;
+
+    CLASS Flaechenobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Flaechenobjekt;
+
+    CLASS Gemeinde =
+      Name : MANDATORY TEXT*200;
+      BFS_Nr : 0 .. 9999;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY TEXT*2;
+    END Gemeinde;
+
+    CLASS Linienobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Linienobjekt;
+
+    CLASS Paket =
+      Handlungsfeld : MANDATORY TEXT*200;
+      Handlungspaket : MANDATORY MTEXT;
+      Handlungspaket_Kuerzel : TEXT*10;
+      Massnahmepaket : TEXT*200;
+    END Paket;
+
+    CLASS Punktobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Punktobjekt;
+
+    CLASS Massnahme =
+      Nummer : MANDATORY TEXT*255;
+      Beschreibung : MTEXT;
+      Prioritaet : Prioritaet;
+      Kosten_Massnahmenblatt : 0 .. 100000000;
+      Kostenstand_aktuell : 0 .. 100000000;
+      Kostenanteil_Bund : 0 .. 999999999;
+      Massnahmenblatt : MTEXT;
+      Ansprechperson : MTEXT;
+      sonstiges : MTEXT;
+      Projektphase : Projektphase;
+      Umsetzungsstand : Umsetzungsstand;
+      infrastrukturell : BOOLEAN;
+      letzte_Anpassung : INTERLIS.XMLDate;
+      Kosten_LV : 0 .. 100000000;
+    END Massnahme;
+
+    ASSOCIATION Agglo_Massnahme =
+      Agglo_Programm -- {1} Agglomerationsprogramm;
+      Massnahme -<> {1..*} Massnahme;
+    END Agglo_Massnahme;
+
+    ASSOCIATION Federfuehrung_Massnahme =
+      Massnahme -<> {0..*} Massnahme;
+      Federfuehrung_Name -- {0..*} Federfuehrung;
+    END Federfuehrung_Massnahme;
+
+    ASSOCIATION Flaeche_Massnahme =
+      Flaechen_Geometrie -- {0..1} Flaechenobjekt;
+      Flaechen_Massnahme -<#> {1} Massnahme;
+    END Flaeche_Massnahme;
+
+    ASSOCIATION Gemeinde_Massnahme =
+      Gemeinde_Name -- {0..*} Gemeinde;
+      Massnahme -<> {0..*} Massnahme;
+    END Gemeinde_Massnahme;
+
+    ASSOCIATION Linie_Massnahme =
+      Linien_Geometrie -- {0..1} Linienobjekt;
+      Linien_Massnahme -<#> {1} Massnahme;
+    END Linie_Massnahme;
+
+    ASSOCIATION Paket_Massnahme =
+      Paket -- {1} Paket;
+      Massnahme -<> {1..*} Massnahme;
+    END Paket_Massnahme;
+
+    ASSOCIATION Punkt_Massnahme =
+      Punkte_Geometrie -- {0..1} Punktobjekt;
+      Punkte_Massnahme -<#> {1} Massnahme;
+    END Punkt_Massnahme;
+
+  END Agglomerationsprogramme;
+
+END SO_Agglomerationsprogramme_20170512.

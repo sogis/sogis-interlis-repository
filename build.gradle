@@ -1,0 +1,56 @@
+buildscript {
+    repositories {
+        maven { url "http://jars.interlis.ch" }
+        maven { url "http://download.osgeo.org/webdav/geotools/" }
+        jcenter()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "ch.so.agi.gretl" version "1.0.58"
+    id "org.ajoberstar.grgit" version "3.0.0"
+    id "com.bmuschko.docker-remote-api" version "4.4.1"
+}
+
+apply from: "$rootDir/gradle/versioning.gradle"
+
+import ch.so.agi.gretl.tasks.*
+import ch.so.agi.gretl.api.*
+import java.text.SimpleDateFormat
+import org.ajoberstar.grgit.Grgit
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+
+task createIliModelsXml(type: IliRepositorizer) {
+    description = "Create ilimodels.xml file."
+    modelsDir = file("models/")
+    dataFile = "ilimodels.xml"
+}
+
+task versionTxt()  {
+    description = "Create a version.txt file with some information about the build."
+    outputs.upToDateWhen { false }
+    doLast {
+        new File("version.txt").text = """
+Version: $version
+Revision: ${Grgit.open(dir: '.').head().id}
+Buildtime: ${new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date())}
+Application-name: sogis-interlis-repository
+"""
+    }
+}
+
+docker {
+    registryCredentials {
+        username = System.env.dockerRegistryUser
+        password = System.env.dockerRegistryPass
+    }
+}
+
+task buildDockerImage(type: DockerBuildImage) {
+    description = "Build docker image."
+    inputDir = project.rootDir
+    tags = ["sogis/interlis-repository:"+version, "sogis/interlis-repository:latest"]
+}

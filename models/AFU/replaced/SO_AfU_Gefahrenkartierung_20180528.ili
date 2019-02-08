@@ -1,0 +1,618 @@
+INTERLIS 2.3;
+
+/** !! Erfassungsmodell der Gefahrenkartierungsdaten des Kantons Solothurn.
+ * !! Umfasst die Klassen Erhebungsgebiet, Ueberflutungskarte, Intensitaetskarte 
+ * !! und Gefahrenkarte.
+ * !! Die Daten werden periodisch als Resultat projektbezogener Gefahren- 
+ * !! ueberpruefungen in den Gemeinden nachgefuehrt.
+ * !! Bis auf die zum Teil fehlenden Intensitaeten erfuellt das Modell die Vorgaben
+ * !! des MGDM Gefahrenkartierung (minimal) des Bundes Hazard_Mapping Version 1.2
+ * !!
+ * !! Topics im Modell:
+ * !! Basisklassen: Enthaelt abstrakte Basisklassen.
+ * !! Gefahrenkartierung: Enthaelt die Nutzungsklassen des Modelles.
+ * !!------------------------------------------------------------------------------ 
+ * !! Version    | wer | aenderung 
+ * !!------------------------------------------------------------------------------ 
+ * !! 2018-01-29 | OJ  | Initial erstellt.
+ * !! 2018-02-20 | OJ  | Umbennennung IK_Absenkung_Einsturz, Bem.feld auf GK_basis.
+ * !! 2018-05-07 | OJ  | Ergaenzung Perimeter_Gef. bzgl Abklaerung Hauptprozesse.
+ *                       Ergaenzung mit neuer Klasse GK_MGDM.
+ *                       Ergaenzung mit neuer Klasse Erhebungsgebiet
+ * !! 2018-05-28 | OJ  | Ergaenzung mit IK_synoptisch_MGDM. 
+ *                       Ergaenzung Perimeter_Gefahrenkartierung mit Detailinfo
+ *                       zu den abgeklaerten Haupt- und Teilprozessen
+ * !!==============================================================================
+ */
+!!@ File=SO_Gefahrenkartierung_20180129.ili
+!!@ Title=Gefahrenkartierung
+!!@ Issuer=http://afu.so.ch
+!!@ technicalContact=http://agi.so.ch
+MODEL SO_AfU_Gefahrenkartierung_20180528 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2018-05-28"  =
+  IMPORTS Units,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Einzelflaeche_ohne_Kreisboegen = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+
+    Gebietseinteilung_ohne_Kreisboegen = AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+
+    /** Interpretiert bedeutet, dass die Karte gutachterlich erstellt wurde. Generiert heisst, dass die GK automatisiert aus den IK's hergeleitet wurde.
+     */
+    Gefahrenkarte_Art = (
+      generiert,
+      interpretiert
+    );
+
+    /** Korrekturwerte der Gefahrenstufe bei der Generierung der Gefahrenkarten aus den Intensitaetskarten
+     */
+    Gefahrenstufe_Korrektur = (
+      nicht_relevant,
+      minus,
+      plus
+    );
+
+    /** Aufzaehlung der Hauptprozesse der Gefahrenbeurteilung gemaess Systematik des MGDM.
+     */
+    Hauptprozess = (
+      Sturz,
+      Rutschung,
+      Wasser,
+      Lawine
+    );
+
+    /** Definiert den Attributtyp fuer die NGKID's (Perimeter der Untersuchung - Untersuchungsgebiet)
+     */
+    NGKID_Typ = 1 .. 10000;
+
+    /** Definiert den Attributtyp fuer die Prozessquellen ID's
+     */
+    Prozessquellen_Id_Typ = 1 .. 100000000;
+
+    /** Teilprozesse fuer IK_synoptisch_MGDM
+     */
+    Teilprozess = (
+      Ufererosion,
+      Ueberschwemmung,
+      Uebermurung,
+      Steinschlag_Blockschlag,
+      spontane_Rutschung,
+      permanente_Rutschung,
+      Hangmure,
+      Felssturz_Bergsturz,
+      Einsturz_Absenkung
+    );
+
+    Linienzug_ohne_Kreisboegen = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+    Bemerkung_Typ = TEXT*254;
+
+    /** In Grad im Uhrzeigersinn
+     */
+    Rotation = 0 .. 359 [Units.Angle_Degree] CLOCKWISE;
+
+    Erstellungsart = (
+      rekonstr_digitalisierte_GK,
+      digital_erstellte_GK,
+      gem_GHK_nicht_von_NatGef_betr,
+      gem_Abkl_nicht_von_NatGef_betr
+    );
+
+    /** Wert "nicht_rekonstruierbar" nur bei Rekonstruktion
+     */
+    Prozessart_Wasser = (
+      Ueberflutung,
+      Uebersarung,
+      Murgang,
+      Ufererosion,
+      nicht_rekonstruierbar
+    );
+
+    /** Wert "nicht_rekonstruierbar" nur bei Rekonstruktion
+     */
+    Prozessart_Sturz = (
+      Stein_Blockschlag,
+      Felssturz,
+      Bergsturz,
+      nicht_rekonstruierbar
+    );
+
+    /** Wert "nicht_rekonstruierbar" nur bei Rekonstruktion
+     */
+    Prozessart_Rutsch_kont = (
+      Rutsch_kont,
+      Sackung,
+      nicht_rekonstruierbar
+    );
+
+    /** Wert "groesser_300_Jahre" entspricht  Restgefaehrdung
+     */
+    Wiederkehrperiode = (
+      von_0_bis_30_Jahre,
+      von_30_bis_100_Jahre,
+      von_100_bis_300_Jahre,
+      groesser_300_Jahre
+    );
+
+    Ueberflutungshoehe_Wasser = (
+      von_0_bis_25cm,
+      von_25_bis_50cm,
+      von_50_bis_75cm,
+      von_75_bis_100cm,
+      von_100_bis_200cm,
+      groesser_200cm,
+      keine_Ueberflutung
+    );
+
+    Punktsignatur_Art = (
+      Fliessrichtung,
+      Untergeschoss
+    );
+
+    /** Wert "vorhanden" entspricht Restgefaehrdung
+     */
+    Intensitaet = (
+      keine,
+      vorhanden,
+      schwach,
+      mittel,
+      stark
+    );
+
+    /** Wert "vorhanden" entspricht Restgefaehrdung
+     */
+    Gefahrenstufe = (
+      keine,
+      vorhanden,
+      gering,
+      mittel,
+      erheblich
+    );
+
+    Rutschgeschwindigkeit = (
+      substabil_0_bis_2cm_Jahr,
+      wenig_aktiv_2_bis_10cm_Jahr,
+      aktiv_groesser_10cm_Jahr,
+      keine,
+      nicht_rekonstruierbar
+    );
+
+    Tiefe_Gleitflaeche = (
+      oberflaechlich_0_bis_2m,
+      mitteltief_2_bis_10m,
+      tief_10_bis_40m,
+      unbestimmt_kleiner_40m,
+      sehr_tief_groesser_40m,
+      keine,
+      nicht_rekonstruierbar
+    );
+
+    Differenzialbewegung = (
+      keine,
+      gering_bis_2cm_Jahr_Parzelle,
+      hoch_groesser_2cm_Jahr_Parzelle,
+      nicht_rekonstruierbar
+    );
+
+    Beschleunigung = (
+      keine,
+      gering_kleiner_2fach_Mittelwert_v,
+      mittel_2fach_bis_5fach_Mittelwert_v,
+      stark_groesser_5fach_Mittelwert_v,
+      nicht_rekonstruierbar
+    );
+
+    Intensitaet_Korrektur = (
+      Entschaerfung_minus_1,
+      keine,
+      Verschaerfung_plus_1,
+      Verschaerfung_plus_2,
+      nicht_rekonstruierbar
+    );
+
+  /** Beschreibung: Siehe Modellheader
+   */
+  TOPIC Basisklassen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Basisklasse welche die gemeinsamen Eigenschaften aller Klassen des Modelles Gefahrenkartierung definiert.
+     */
+    CLASS Gefahrenkartierung_basis (ABSTRACT) =
+      /** Fremdschluessel. Bezieht sich auf NGKID der Klasse Perimeter_Gefahrenkartierung
+       */
+      NGKID : MANDATORY SO_AfU_Gefahrenkartierung_20180528.NGKID_Typ;
+    END Gefahrenkartierung_basis;
+
+    /** Die Gefahrenkarten enthalten die Gefahrenstufen (gemaess den Empfehlungen des Bundes) und eine
+     * Charakterisierung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt.
+     * 
+     * - In der Gefahrenkarte Wasser werden die Gefahrenstufen fuer die Prozessarten Ueberflutung,
+     * Uebersarung, Murgang und Ufererosion dargestellt.
+     * - In der Gefahrenkarte Sturz werden die Gefahrenstufen fuer die Prozessarten Stein-/Blockschlag,
+     * Felssturz und Bergsturz dargestellt.
+     * - In der Gefahrenkarte Rutschung kontinuierlich/Sackung werden die Gefahrenstufen fuer die Prozessarten
+     * Rutsch kontinuierlich und Sackung dargestellt.
+     * - In der Gefahrenkarte Rutschung spontan werden die Gefahrenstufen dieses Hauptprozesses dargestellt.
+     * - In der Gefahrenkarte Hangmure werden die Gefahrenstufen dieses Hauptprozesses dargestellt.
+     * - In der Gefahrenkarte Absenkung/Einsturz werden die Gefahrenstufen dieses Hauptprozesses dargestellt.
+     * 
+     * Die Prozessgefahrenkarten sind im Idealfall aus den prozessbezogenen Intensitaetskarten mittels
+     * Geoprocessing-Methoden abgeleitet. Die haeufigste von den Bueros gewaehlte Variante ist jedoch, dass
+     * die Prozessgefahrenkarten komplett autonom von den prozessbezogenen Intensitaetskarten erstellt worden
+     * sind. Daher werden diese im Modell als interpretierte Prozessgefahrenkarten bezeichnet bzw. abgebildet.
+     * Im Topic Gefahrenkartierung sind die interpretierten und generierten Gefahrenkarten zwecks Abdeckung
+     * des ganzen Kantons in den jeweiligen Layern zusammengefasst.
+     */
+    CLASS GK_basis (ABSTRACT)
+    EXTENDS Gefahrenkartierung_basis =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      /** Gefahrenstufe
+       */
+      Gef_Stufe : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gefahrenstufe;
+      /** Charakterisierung (dominierende Prozessart und Nummer der Gefahrenstufe)
+       */
+      Index : TEXT*10;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Erstellungsart der Daten (generiert oder interpretiert)
+       */
+      GK_Art : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gefahrenkarte_Art;
+    END GK_basis;
+
+    /** Die Intensitaetskarten werden in der Regel fuer den Gefahrenkartenperimeter im Massstab 1:5000 erstellt.
+     * Sie enthalten die Flaechen der jeweiligen Intensitaeten pro Wiederkehrperiode fuer die Prozessarten Wasser,
+     * Sturz, kontinuierliche und spontane Rutschung, Hangmure sowie Absenkung.
+     * 
+     * - Die Intensitaetskarte Wasser enthaelt die Intensitaeten pro Wiederkehrperiode, unterschieden in die Prozessarten
+     * ueberflutung (inkl. uebersarung), Murgang und Ufererosion
+     * - Die Intensitaetskarte Sturz enthaelt die Intensitaeten pro Wiederkehrperiode, unterschieden in die Prozessarten
+     * Stein-/Blockschlag, Felssturz und Bergsturz
+     * - Die Intensitaetskarte kontinuierliche Rutschung enthaelt die Intensitaeten pro Wiederkehrperiode, unterschieden
+     * in die Prozessarten kontinuierliche Rutschung und Sackung.
+     * - Die Intensitaetskarte kontinuierliche Rutschung/Sackung enthaelt die Intensitaeten pro Wiederkehrperiode,
+     * unterschieden in die Prozessarten kontinuierliche Rutschung und Sackung
+     * - Die Intensitaetskarte Rutschung spontan enthaelt die Intensitaeten dieses Hauptprozesses pro Wiederkehrperiode.
+     * - Die Intensitaetskarte Hangmure enthaelt die Intensitaeten dieses Hauptprozesses pro Wiederkehrperiode.
+     * - Die Intensitaetskarte Absenkung enthaelt die Intensitaeten dieses Hauptprozesses pro Wiederkehrperiode.
+     */
+    CLASS IK_basis (ABSTRACT)
+    EXTENDS Gefahrenkartierung_basis =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      /** Intensitaetsstufe
+       */
+      Int_Stufe : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Intensitaet;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Korrekturfaktor fuer die Generierung der korrekten Gefahrenstufe (bei den Stufen 2,4 und 6 sind zwei moeglich)
+       */
+      GS_Korr : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gefahrenstufe_Korrektur;
+    END IK_basis;
+
+    /** Basisklasse aller Intensitaetskarten (IK) mit Wiederkehrperiode
+     */
+    CLASS IK_wkp_basis (ABSTRACT)
+    EXTENDS IK_basis =
+      /** Wiederkehrperiode / Jaehrlichkeit
+       */
+      WKP : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Wiederkehrperiode;
+    END IK_wkp_basis;
+
+    /** In einem bestimmten Raum kann die Gefaehrdung je Teilprozess von verschiedenen Quellen (Herkunftsraeumen)
+     * stammen. Diese werden als Prozessquellen bezeichnet (z.B. verschiedene Baeche). Ihr Einwirkungsraum kann sich
+     * ueberlagern.
+     * - Bei den Wassergefahren werden als Prozessquelle die Abschnitte von Gerinnen (Linien) erfasst.
+     * - Beim Sturz werden als Prozessquelle isolierte bzw. raeumlich abgrenzbare Ausbruchzonen (Flaechen) erfasst.
+     */
+    CLASS Prozessquelle_basis (ABSTRACT)
+    EXTENDS Gefahrenkartierung_basis =
+      /** ID der Prozessquelle im Erhebungsgebiet. Zusammen mit NGKID eindeutig
+       */
+      ID : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessquellen_Id_Typ;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Bezeichnung der Prozessquelle
+       */
+      Bez_ProzQ : TEXT*254;
+      UNIQUE NGKID, ID;
+    END Prozessquelle_basis;
+
+  END Basisklassen;
+
+  /** Beschreibung: Siehe Modellheader
+   */
+  TOPIC Gefahrenkartierung =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_AfU_Gefahrenkartierung_20180528.Basisklassen;
+
+    /** Weist die besiedelten Flaechen (Siedlungsgebiet) aus, zu welchen die Gefahrensituation abgeklaert wurde. Der Datensatz ist manuell vom Siedlungsgebiet des Richtplans 2008 abgeleitet.
+     */
+    CLASS Erhebungsgebiet =
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gebietseinteilung_ohne_Kreisboegen;
+    END Erhebungsgebiet;
+
+    /** Bildet die Gefahrengebiete innerhalb des jeweiligen Hauptprozesses ueberlappungsfrei ab. Die Daten werden automatisch aus den 6 GK's (GK_Wasser, ...) erstellt und erfuellen die topologischen Anforderungen von hazard_area im MGDM.
+     */
+    CLASS GK_MGDM =
+      /** Hauptprozess des Gefahrengebiets
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Hauptprozess;
+      /** Siehe GK_basis.Gef_Stufe
+       */
+      Gef_Stufe : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gefahrenstufe;
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+    END GK_MGDM;
+
+    /** In der synoptischen Gefahrenkarte werden die synoptischen Gefahrengebiete kartografisch dargestellt.
+     * Dieser Layer wird aus den 6  Gefahrenkarten automatisiert erstellt.
+     */
+    CLASS GK_synoptisch_generiert =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      Gef_Stufe : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Gefahrenstufe;
+      /** Charakterisierung (dominierende Prozessart und Nummer der Gefahrenstufe)
+       */
+      Index : TEXT*10;
+    END GK_synoptisch_generiert;
+
+    /** Bildet die synoptischen Intensitaeten prozessquellenuebergreifend ab und entspricht der Klasse synoptic_intensity im MGDM. Die Daten werden automatisiert von den Intensitaetskarten abgeleitet (IK_Wasser, ..). Innerhalb eines Teilprozesses ueberlagern sich die Flaechen nicht. Siehe Dokumentation zu synoptic_intensity im MGDM.
+     */
+    CLASS IK_synoptisch_MGDM =
+      /** Wiederkehrperiode der Intensitaetsflaeche. NULL bei Teilprozessen ohne Wiederkehrperiode (IK_Rutsch_kont_Sackung).
+       */
+      WKP : SO_AfU_Gefahrenkartierung_20180528.Wiederkehrperiode;
+      /** Intensitaetsstufe
+       */
+      Int_Stufe : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Intensitaet;
+      /** Teilprozess der Intensitaetsflaeche.
+       */
+      Teilproz : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Teilprozess;
+      /** Kantonale Bezeichnung des Teilprozesses.
+       */
+      Bez_Kanton : MANDATORY TEXT*50;
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Einzelflaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+    END IK_synoptisch_MGDM;
+
+    /** Mit Hilfe des Perimeters wird die Groesse des Untersuchungsgebiets festgelegt,
+     * welches zur Beurteilung der Prozesse und Gefahren notwendig ist.
+     */
+    CLASS Perimeter_Gefahrenkartierung =
+      /** Eindeutige ID des Perimeters
+       */
+      NGKID : MANDATORY SO_AfU_Gefahrenkartierung_20180528.NGKID_Typ;
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      /** Perimeterbezeichnung
+       */
+      Peri_Name : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Gefahrenkarte nach Massnahme
+       */
+      GK_n_Mn : TEXT*254;
+      /** Erstellungsart
+       */
+      Erst_Art : SO_AfU_Gefahrenkartierung_20180528.Erstellungsart;
+      /** Erstellungsdatum
+       */
+      Erst_Dat : MANDATORY INTERLIS.XMLDate;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** True falls fuer den Perimeter die Intensitaetskarte Wasser vorhanden ist.
+       */
+      IK_Wasser : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Intensitaetskarte Sturz vorhanden ist.
+       */
+      IK_Sturz : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Intensitaetskarte Absenkung/Einsturz vorhanden ist.
+       */
+      IK_Abs_Ein : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Intensitaetskarte Hangmure vorhanden ist.
+       */
+      IK_Hangm : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Intensitaetskarte Rutschung spontan vorhanden ist.
+       */
+      IK_Ru_spon : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Intensitaetskarte Rutschung kontinuierlich vorhanden ist.
+       */
+      IK_Ru_kont : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Wasser vorhanden ist.
+       */
+      GK_Wasser : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Sturz vorhanden ist.
+       */
+      GK_Sturz : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Absenkung/Einsturz vorhanden ist.
+       */
+      GK_Abs_Ein : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Hangmure vorhanden ist.
+       */
+      GK_Hangm : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Rutschung spontan vorhanden ist.
+       */
+      GK_Ru_Spon : MANDATORY INTERLIS.BOOLEAN;
+      /** True falls fuer den Perimeter die Gefahrenkarte Rutschung kontinuierlich vorhanden ist.
+       */
+      GK_Ru_kont : MANDATORY INTERLIS.BOOLEAN;
+    END Perimeter_Gefahrenkartierung;
+
+    CLASS Prozessquelle_Wasser
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.Prozessquelle_basis =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Linienzug_ohne_Kreisboegen;
+    END Prozessquelle_Wasser;
+
+    CLASS Prozessquelle_Sturz
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.Prozessquelle_basis =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+    END Prozessquelle_Sturz;
+
+    /** In der Punktsignatur werden die gefaehrdeten Untergeschosse und die Fliessrichtung zur Ueberflutungskarte
+     * pro Wiederkehrperiode dargestellt. Die Fliessrichtung wird in Grad (0-359) angegeben (0 fuer Nord).
+     */
+    CLASS Punktsignatur
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.Gefahrenkartierung_basis =
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Art der Punktsignatur (Fliessrichtung, Untergeschoss)
+       */
+      Art : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Punktsignatur_Art;
+      /** Rotation der Fliessrichtung
+       */
+      Fliessr : SO_AfU_Gefahrenkartierung_20180528.Rotation;
+      /** Wiederkehrperiode / Jaehrlichkeit
+       */
+      WKP : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Wiederkehrperiode;
+    END Punktsignatur;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Wasser
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_wkp_basis =
+      /** Prozessart Wasser
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Wasser;
+      /** Fremdschluessel auf die Prozessquelle
+       */
+      ProzessQ : SO_AfU_Gefahrenkartierung_20180528.Prozessquellen_Id_Typ;
+    END IK_Wasser;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Sturz
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_wkp_basis =
+      /** Art (Typ) des Sturzprozesses
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Sturz;
+      /** Fremdschluessel auf die Prozessquelle
+       */
+      ProzessQ : SO_AfU_Gefahrenkartierung_20180528.Prozessquellen_Id_Typ;
+    END IK_Sturz;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Rutsch_kont_Sackung
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_basis =
+      /** Art (Typ) des Rutsch- , Sackungsprozesses
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Rutsch_kont;
+      /** Intensitaetsstufe Korrektur
+       */
+      Int_Korr : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Intensitaet_Korrektur;
+      /** Rutschgeschwindigkeit
+       */
+      Rutschge : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Rutschgeschwindigkeit;
+      /** Tiefe Gleitflaeche
+       */
+      TiefeGlF : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Tiefe_Gleitflaeche;
+      /** Differenzialbewegung
+       */
+      Diff_Bew : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Differenzialbewegung;
+      /** Beschleunigung
+       */
+      Beschl : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Beschleunigung;
+    END IK_Rutsch_kont_Sackung;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Rutsch_spontan
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_wkp_basis =
+    END IK_Rutsch_spontan;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Hangmure
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_wkp_basis =
+    END IK_Hangmure;
+
+    /** Dokumentation siehe IK_basis
+     */
+    CLASS IK_Absenkung_Einsturz
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.IK_wkp_basis =
+    END IK_Absenkung_Einsturz;
+
+    /** Die Ueberflutungskarte enthaelt die ueberflutungshoehen pro Wiederkehrperioden.
+     */
+    CLASS Ueberflutungskarte
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.Gefahrenkartierung_basis =
+      /** Einzelne Flaeche
+       */
+      Geometrie : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Einzelflaeche_ohne_Kreisboegen;
+      /** Fremdschluessel auf die Prozessquelle
+       */
+      ProzessQ : SO_AfU_Gefahrenkartierung_20180528.Prozessquellen_Id_Typ;
+      /** Wiederkehrperiode / Jaehrlichkeit
+       */
+      WKP : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Wiederkehrperiode;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : SO_AfU_Gefahrenkartierung_20180528.Bemerkung_Typ;
+      /** Bereiche der Ueberflutungshoehen
+       */
+      Ueberfl_hb : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Ueberflutungshoehe_Wasser;
+    END Ueberflutungskarte;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Wasser
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+      /** Art (Typ) des Wasserprozesses
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Wasser;
+    END GK_Wasser;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Sturz
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+      /** Art (Typ) des Sturzprozesses
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Sturz;
+    END GK_Sturz;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Rutsch_kont_Sackung
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+      /** Art (Typ) des Rutschungs- Sackungsprozesses
+       */
+      ProzessA : MANDATORY SO_AfU_Gefahrenkartierung_20180528.Prozessart_Rutsch_kont;
+    END GK_Rutsch_kont_Sackung;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Rutsch_spontan
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+    END GK_Rutsch_spontan;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Hangmure
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+    END GK_Hangmure;
+
+    /** Dokumentation siehe GK_basis
+     */
+    CLASS GK_Absenkung_Einsturz
+    EXTENDS SO_AfU_Gefahrenkartierung_20180528.Basisklassen.GK_basis =
+    END GK_Absenkung_Einsturz;
+
+  END Gefahrenkartierung;
+
+END SO_AfU_Gefahrenkartierung_20180528.

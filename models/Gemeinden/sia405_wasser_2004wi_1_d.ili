@@ -1,0 +1,770 @@
+!! SIA405_Wasser_2004WI_1_d.ili
+!! Stand 2001
+!! Übernommen aus dem SVGW Regelwerk Stand 2001 
+
+TRANSFER SIA405_Wasser_WI;
+
+MODEL SIA405_Wasser_2004_WI
+
+DOMAIN
+!! Allgemeine Defaultwerte
+!!
+!! Allgemeine Typen fuer alle SVGW Medien
+INTEGER4	=	[0 .. 9999];
+INTEGER6	=	[0 .. 999999];
+INTEGER8	=	[0 .. 99999999];
+REAL21		=	[0.0..    99.9];
+REAL42	=	[0.00 .. 9999.99];
+REAL43	=	[0.000 .. 9999.999];
+Orientierung	=	DEGREES  0.0  360.0;
+Hoehe	=	DIM1            -200.000      5000.000;
+LKoord = COORD2 2480000.000	  1070000.000
+		     2840000.000	1300000.000;
+Genauigkeit	=	(unbekannt, ungenau, genau, geortet);
+Plantyp	=	(Leitungskataster, 
+			Werkplan,
+			Uebersichtsplan);
+Status		=	(unbekannt,
+			in_Betrieb,
+			ausser_Betrieb,
+			Reserve,
+			tot,
+			Berechnungsvariante,
+			geplant,
+			Projekt,
+provisorisch);
+
+
+TOPIC SIA405_Wasser_WI =
+
+DOMAIN
+!! Typen fuer das Medium Wasser
+Knotentyp	=	(unbekannt,
+		Normalknoten,
+		Einspeisepunkt);
+
+TABLE Hydraulischer_Knoten =
+Name_Nummer:	TEXT*40;
+Geometrie:	OPTIONAL LKoord;
+Knotentyp:	Knotentyp;
+Verbrauch:	OPTIONAL INTEGER8;
+Druck:	OPTIONAL REAL21;
+Bemerkung:	OPTIONAL TEXT*80;		!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+IDENT
+Name_Nummer;
+END Hydraulischer_Knoten;
+
+TABLE Hydraulischer_Knoten_Text =
+KnotenRef:	-> Hydraulischer_Knoten // 1-mc //;
+Text:	TEXT*80;
+TextPos:	LKoord;
+TextOri:	OPTIONAL Orientierung // Default: 90.0 //;
+TextHAli:	OPTIONAL HALIGNMENT // Default: Center //;
+TextVAli:	OPTIONAL VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Hydraulischer_Knoten_Text;
+
+TABLE Hydraulischer_Strang =
+von_Knoten:	-> Hydraulischer_Knoten // 1-m //;
+bis_Knoten:	-> Hydraulischer_Knoten // 1-m //;
+Name_Nummer:	TEXT*40;
+Referenz_Laenge:	REAL43;
+Referenz_Rauheit:	OPTIONAL INTEGER4;
+Referenz_Durchmesser:	INTEGER4;
+Verbrauch:	OPTIONAL INTEGER6;
+Durchfluss:	OPTIONAL REAL42;
+Fliessgeschwindigkeit:	OPTIONAL REAL43;
+Zustand:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+IDENT
+Name_Nummer;
+END Hydraulischer_Strang;
+
+TABLE Hydraulischer_Strang_Text =
+StrangRef:	-> Hydraulischer_Strang // 1-mc //;
+Text:	TEXT*80;
+TextPos:	LKoord;
+TextOri:	Orientierung // Default: 90.0 //;
+TextHAli:	HALIGNMENT // Default: Center //;
+TextVAli:	VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Hydraulischer_Strang_Text;
+
+TABLE Leitung =
+StrangRef:	-> Hydraulischer_Strang // mc-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Geometrie:	POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoord;
+Funktion:	(unbekannt, 
+	Fernwasserleitung,
+	Zubringerleitung,
+	Hauptleitung,
+	Versorgungsleitung,
+	Anschlussleitung (normal,
+		gemeinsam),
+	Entlueftungsleitung,
+	Hydrantenanschlussleitung,
+	Entleerungsleitung,
+	Quellleitung,
+	Quellableitung,
+	Interne_Leitung,
+	Bau_Wasseranschluss);
+Material:	(unbekannt,
+	Faserzement (Faserzement,
+	Asbestzement),
+	Beton (unbekannt,
+		armiert,
+		nicht_armiert),
+	Guss (unbekannt,
+		Grauguss,
+		Guss_duktil,
+	Ahrens_Guss),
+	Kunststoff (Epoxiharz,
+			Glasfaserverstaerkter_Epoxiharz,
+			Polypropylen,
+			Polyvinylchlorid (unbekannt,
+			 GFK,
+			 PVC_hart,
+			 PVC_U,
+			 andere),
+		Polyethylen (unbekannt,
+		HDPE,
+		MDPE,
+		LDPE,
+		andere)),
+	Stahl (unbekannt,
+		nicht_rostbestaendig,
+		rostbestaendig,
+		Mannesmann,
+		verzinkt),
+	Steinzeug,
+	Ton,
+	Teuchel);
+DurchmesserInnen:	OPTIONAL INTEGER4;
+DurchmesserAussen:	OPTIONAL INTEGER4;
+Durchmesser:	OPTIONAL INTEGER4;
+Nennweite:	OPTIONAL TEXT*10;
+Wasserqualitaet:	(unbekannt,
+	Trinkwasser,
+	Industriebrauchwasser,
+	Rohwasser,
+	andere);
+Lagebestimmung:	(unbekannt,
+	ungenau,
+	genau,
+	geortet);
+Status:	Status;
+Einbaujahr:	INTEGER4;
+Verbindungsart:	OPTIONAL (unbekannt,
+	Muffen (unbekannt,
+	gesteckt,
+	geflanscht,
+	geschweisst,
+	geschraubt,
+	gestemmt,
+	spiegelgeschweisst,
+	elektrogeschweisst,
+	Bleimuffen),
+	Stopfbuechse,
+	Gewinde,
+	Eternitkupplung,
+	Straubkupplung,
+	Gibaultkupplung);
+Aussenbeschichtung:	OPTIONAL (unbekannt,
+	keine,
+	Bitumenschicht,
+	Chlor_Kautschuk,
+	Faserzementmoertel,
+	Zink_Epoxi_Polyrethan,
+	Polyethylen_verstaerkt,
+	Polyethylen_Folie,
+	Jute,
+	Petrolatumband,
+	Kunststoffband,
+	Bitumenband,
+	Schrumpffolie);
+Innenbeschichtung:	OPTIONAL (unbekannt,
+	keine,
+	Polyurethan (normal,
+		Ecopur,
+		andere),
+	Polyethylen,
+	Zementmoertel,
+	emailiert,
+	bitumiert,
+	Zinkstein_Epoxi);
+Verlegeart:	OPTIONAL (unbekannt,
+	offener_Graben,
+	Grabenlos,
+	Rohr_pressen,
+	freiliegend);
+Schubsicherung:	OPTIONAL (unbekannt,
+	aussen,
+	innen,
+	keine,
+	Duekerring,
+	DueRo_Schubsicherung,
+	Klemmschelle);
+Ueberdeckung:	OPTIONAL REAL42;
+Sanierung:	(keine,
+	PE_Rohrrelining,
+	Zement_Auskleidung,
+	Epoxi_Auskleidung,
+	Muffenabdichtung,
+	Schlauch_Auskleidung,
+	Stahl_Relining,
+	andere);
+Bettung:	OPTIONAL (unbekannt,
+	Betonkies,
+	Beton,
+	Sand,
+	Recyclingmaterial,
+	Fliess);
+Kathodischer_Schutz:	OPTIONAL (unbekannt,
+	keiner,
+	Gleichstrom,
+	Wechselstrom,
+	Opferanode);
+Druckzone:	TEXT*30;
+Zulaessiger_Bauteil_Betriebsdruck: OPTIONAL REAL21;
+Betriebsdruck:	OPTIONAL REAL21;
+Hydraulische_Rauheit:	OPTIONAL REAL42;
+Laenge:	REAL43;
+Unterhalt:	OPTIONAL TEXT*30;
+Zustand:	OPTIONAL TEXT*30;
+Eigentuemer:	OPTIONAL TEXT*30;
+Betreiber:	OPTIONAL TEXT*30;
+Konzessionaer:	OPTIONAL TEXT*30;
+Unterhaltspflichtiger:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;				!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Leitung;
+
+TABLE Leitung_Text =
+LeitungRef:	-> Leitung // 1-mc //;
+Text:	TEXT*80;	!! ESCAPETEXT
+TextPos:	LKoord;
+TextOri:	OPTIONAL Orientierung // Default: 90.0 //;
+TextHAli:	OPTIONAL HALIGNMENT // Default: Center //;
+TextVAli:	OPTIONAL VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Leitung_Text;
+
+TABLE Schadenstelle =
+LeitungRef:	-> Leitung // 1-mc //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Geometrie:	LKoord;
+Art:	(unbekannt,
+	Bruch (Querbruch,
+	Scherbe),
+	Riss,
+	Loch,
+	Mangel,
+	weitere);
+Ursache:	(Setzung,
+	Korrosion,
+	Verbindung,
+	Fremdeinwirkung,
+	bauliche_Maengel,
+	Frost,
+	Materialfehler,
+	diverse);
+Ausloeser:	OPTIONAL TEXT*30;
+Erhebungsdatum:	DATE;
+Behebungsdatum:	OPTIONAL DATE;
+Zustand:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Schadenstelle;
+
+TABLE Leitungsknoten =
+Hydraulischer_KnotenRef: -> Hydraulischer_Knoten // mc-c //;
+Geometrie:	LKoord;
+SymbolOri:	Orientierung;
+Lagebestimmung:	Genauigkeit;
+Hoehe:	OPTIONAL Hoehe;
+Hoehenbestimmung:	OPTIONAL Genauigkeit;
+Einbaujahr:	OPTIONAL INTEGER4;
+Druckzone:	OPTIONAL TEXT*30;
+Eigentuemer:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Leitungsknoten;
+
+TABLE Leitungsknoten_Text =
+LeitungsknotenRef:	-> Leitungsknoten // 1-mc //;
+Text:	TEXT*80;	!! ESCAPETEXT
+TextPos:	LKoord;
+TextOri:	OPTIONAL Orientierung // Default: 90.0 //;
+TextHAli:	OPTIONAL HALIGNMENT // Default: Center //;
+TextVAli:	OPTIONAL VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Leitungsknoten_Text;
+
+TABLE Absperrorgan =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Schieber (unbekannt,
+		Normalschieber (Combi_T_1armig,
+		Combi_T_3_armig,
+		Combi_T_4_armig),
+		Anschlussschieber,
+		Hydrantenschieber,
+		Streckenschieber,
+		Trennschieber,
+		Zonenschieber,
+		Anbohrschieber,
+		Entleerungsschieber),
+	Klappe (unbekannt,
+		Normalklappe,
+		Streckenklappe,
+		Zonenklappe));
+Schaltzustand:	OPTIONAL (unbekannt,
+		offen,
+		geschlossen);
+Schaltantrieb:	OPTIONAL (unbekannt,
+		keiner,
+		motorisch (unbekannt,
+			mit_Fernsteuerung,
+			ohne_Fernsteuerung),
+		mechanisch);
+Material:	OPTIONAL (unbekannt,
+		Stahl,
+		Guss,
+		Kunststoff);
+Zulaessiger_Bauteil_Betriebsdruck: OPTIONAL REAL21;
+Nennweite:	OPTIONAL TEXT*10;
+Hersteller:	OPTIONAL TEXT*30;
+Typ:	OPTIONAL TEXT*10;
+Schliessrichtung:	OPTIONAL (rechts, links);
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Absperrorgan;
+
+TABLE Hydrant =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Oberflurhydrant (einarmig,
+	zweiarmig,
+	dreiarmig,
+	mit_Entleerung,
+	ohne_Entleerung),
+	Unterflurhydrant (einarmig,
+	zweiarmig,
+	mit_Entleerung,
+	ohne_Entleerung),
+		Gartenhydrant,
+		Industriehydrant,
+		Feuerkopf,
+		Feuervorhang,
+		Sprinkler,
+		Schneeanlage);
+Material:	OPTIONAL (unbekannt,
+	Metall);
+Dimension:	OPTIONAL INTEGER4;
+Hersteller:	OPTIONAL TEXT*30;
+Versorgungsdruck:	OPTIONAL REAL21;
+Fliessdruck:	OPTIONAL REAL21;
+Entnahme:	OPTIONAL INTEGER4;
+Typ:	OPTIONAL TEXT*10;
+Zustand:	OPTIONAL TEXT*30;
+IDENT
+Name_Nummer;
+END Hydrant;
+
+TABLE Rohrleitungsteil =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(Verbindungselement (unbekannt,
+	Ueberschieber_Schlaufe,
+	Reparaturschelle,
+	Weldend,
+	Anbohrung (normal,
+	  blind,
+	  gekehrt)),
+	Formstueck (unbekannt,
+	Reduktion (normal,
+	Reduzierflansch,
+	Reduzierkupplung),
+	Bogen (horizontal,
+	vertikal),
+	Kompensator,
+	T_Stueck,
+	Kreuzstueck,
+	Anschlussstueck),
+	Anbohrschelle (normal,
+	blind,
+	gekehrt),
+	Abschlusselement (unbekannt,
+	Kappe_Blindflansch,
+	Blindflansch,
+	Zapfen,
+	Verschlussklappe),
+	Lueftung (auf_Rohr,
+	auf_Formstueck_Armatur),
+	Diverse (unbekannt,
+	Isolierstueck,
+	Drucksonde_Gleichrichter,
+	Rueckflussverhinderer,
+	Zaehler,
+	Standardschacht,
+	Druckminderventil),
+	Standrohr);
+Verbindung:	(unbekannt,
+	normal,
+	aussenschubgesichert,
+	innenschubgesichert,
+	geflanscht,
+	gesteckt,
+	geschraubt,
+	geschweisst,
+	gestemmt);
+Material:	OPTIONAL (unbekannt,
+	Stahl,
+	Guss,
+	Kunststoff);
+Nennweite:	OPTIONAL INTEGER4;
+Zulaessiger_Betriebsdruck: OPTIONAL REAL21;
+Abwinklung:	OPTIONAL TEXT*10;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Rohrleitungsteil;
+
+TABLE Hausanschluss =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Standort:	OPTIONAL TEXT*10;
+Art:	OPTIONAL TEXT*30;
+Gebaeudeanschluss:	(unbekannt,
+	Guss,
+	Stahl,
+	Kunststoff);
+Isolierstueck:	OPTIONAL (ja, nein);
+Typ:	OPTIONAL TEXT*10;
+Dimension:	OPTIONAL INTEGER4;
+Zuordnung_hydraulischer_Strang: TEXT*20;
+Zuordnung_hydraulischer_Knoten: TEXT*20;
+Verbrauch:	OPTIONAL INTEGER8;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Hausanschluss;
+
+OPTIONAL TABLE Muffen =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Art:	(unbekannt,
+	geflanscht,
+	gesteckt,
+	geschraubt,
+	geschweisst,
+	gestemmt,
+	spiegelgeschweisst,
+	elektrogeschweisst,
+	Stopfbuechse,
+	Gewinde,
+	Eternitkupplung,
+	Straubkupplung,
+	Gibaultkupplung);
+Schubsicherung:	OPTIONAL (unbekannt,
+	aussen,
+	innen,
+	keine,
+	Duekerring,
+	DueRo_Schubsicherung,
+	Klemmschelle);
+Nennweite:	OPTIONAL INTEGER4;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Muffen;
+
+TABLE Uebrige =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Probeentnahme,
+	Piezometer,
+	interne_Verbindung,
+	andere);
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Uebrige;
+
+TABLE Anlage =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Schacht (unbekannt,
+	Regulierschacht,
+	Klappenschacht,
+	Zonentrennung,
+	Notzonentrennung,
+	Leerlauf,
+	Stetslauf,
+	Druckbrecher,
+	Sammel_Spezialschacht,
+	Quellschacht),
+	Kammer,
+	Messstation (unbekannt,
+	Abrechnungsdaten,
+	Netzinformationen,
+	Qualitaet,
+	Umwelt,
+	allg_tech_Parameter,
+	Messkasten,
+	Messsonde),
+	Fernsteuerung_Ueberwachung,
+	Leitsystem,
+	Bedienerfelder,
+	Brunnen (Trinkwasserbrunnen,
+	Ziehbrunnen));
+Material:	OPTIONAL (unbekannt,
+	Beton,
+	Faserzement,
+	Kunststoff,
+	Metall,
+	Stein);
+Leistung:	OPTIONAL TEXT*30;
+Betreiber:	OPTIONAL TEXT*30;
+Konzessionaer:	OPTIONAL TEXT*30;
+Unterhaltspflichtiger:	OPTIONAL TEXT*30;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Anlage;
+
+ TABLE Foerderanlage =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Heberanlage,
+	Pumpwerk (Hauptpumpwerk,
+	Zwischenpumpwerk,
+	Druckerhoehungsanlage),
+	Widder,
+	andere);
+Leistung:	TEXT*30;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Foerderanlage;
+
+TABLE Wasserbehaelter =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(unbekannt,
+	Behaelter_Reservoir,
+	Kammer,
+	Behaelter_mit_Stufenpumpe,
+	andere);
+Material:	OPTIONAL (unbekannt,
+	Beton,
+	Faserzement (Faserzement, 
+	Asbestzement),
+	Kunststoff,
+	Metall,
+	Stein);
+Beschichtung:	OPTIONAL TEXT*40;
+Ueberlaufhoehe:	OPTIONAL Hoehe;
+Fassungsvermoegen:	INTEGER6;
+Brauchwasserreserve:	INTEGER6;
+Loeschwasserreserve:	INTEGER6;
+Leistung:	OPTIONAL TEXT*30;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Wasserbehaelter;
+
+TABLE Wassergewinnungsanlage =
+LeitungsknotenRef:	-> Leitungsknoten // 1-c //;
+Name_Nummer:	OPTIONAL TEXT*40;
+Art:	(Fassungsanlage (unbekannt,
+	Grundwasserfassung,
+	Einzelfassung,
+	Quellfassung,
+	Quelle_ungefasst,
+	Einzelquelle,
+	Fluss_Seewasserfassung,
+	Einfache_Brunnenstube,
+	Horizontalbrunnen,
+	Vertikalbrunnen,
+	primitive_Fassung,
+	Notbrunnen),
+	Aufbereitungsanlage (unbekannt,
+	Mehrstufenverfahren,
+	Kleinanlage,
+	Filteranlage,
+	Einzelgeraet,
+	Grundwasseranreicherung));
+Leistung:	OPTIONAL TEXT*30;
+Betreiber:	OPTIONAL TEXT*30;
+Konzessionaer:	OPTIONAL TEXT*30;
+Unterhaltspflichtiger:	OPTIONAL TEXT*30;
+Zustand:	OPTIONAL TEXT*30;
+NO IDENT
+END Wassergewinnungsanlage;
+
+TABLE Spezialbauwerk =
+Name_Nummer:	OPTIONAL TEXT*40;	!! ESCAPETEXT
+Art:	(Anlage,
+	Wasserbehaelter,
+	Wassergewinnungsanlage
+	(Quellfassung_im_Graben,
+	Quellfassung_im_Stollen,
+	Sammelbrunnenstube,
+	uebrige),
+	Foerderanlage,
+	weitere (Dueker,
+	Kulisse,
+	Futterrohr,
+	Leitungskanal (begehbar, 
+	nicht_begehbar),
+	Stollen (begehbar, 
+	nicht_begehbar),
+	uebrige));
+Material:	OPTIONAL (unbekannt,
+	Beton,
+	Kunststoff,
+	Metall);
+Einbaujahr:	OPTIONAL INTEGER4;
+Eigentuemer:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;				!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Spezialbauwerk;
+
+TABLE Spezialbauwerk_Flaeche =
+Objekt:	-> Spezialbauwerk // 1-mc// ;
+Geometrie:	SURFACE WITH (STRAIGHTS,ARCS) VERTEX LKoord
+	WITHOUT OVERLAPS > 0.050;
+NO IDENT
+END Spezialbauwerk_Flaeche;
+
+TABLE Spezialbauwerk_Linie =
+Objekt:	-> Spezialbauwerk // 1-mc // ;
+Geometrie:	POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoord;
+NO IDENT
+END Spezialbauwerk_Linie;
+
+TABLE Spezialbauwerk_Text =
+Objekt:	-> Spezialbauwerk // 1-mc // ;
+Text:	TEXT*80;							!! ESCAPETEXT
+TextPos:	LKoord;
+TextOri:	OPTIONAL Orientierung // Default: 90.0 //;
+TextHAli:	OPTIONAL HALIGNMENT // Default: Center //;
+TextVAli:	OPTIONAL VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Spezialbauwerk_Text;
+
+OPTIONAL TABLE Uebersichtsplanposition =
+LeitungsknotenRef: 	-> Leitungsknoten // 1-mc //;
+SymbolPos: 	LKoord;
+SymbolOri: 	Orientierung;
+SymbolSkalierungLaengs: OPTIONAL [0.0..9.9];
+SymbolSkalierungHoch: 	OPTIONAL [0.0..9.9];
+Plantyp: 	Plantyp;
+NO IDENT
+END Uebersichtsplanposition;
+
+TABLE Kabelpunkt =
+Name_Nummer:	OPTIONAL TEXT*40;		!!ESCAPETEXT
+Geometrie:	LKoord;
+Art:	(unbekannt,
+	Kabelmuffe,
+	Kabelschacht,
+	Kabine,
+	Kabelpunkt,
+	weitere);
+Lagebestimmung:	Genauigkeit;
+Hoehe:	OPTIONAL Hoehe;
+Hoehenbestimmung:	OPTIONAL Genauigkeit;
+Einbaujahr:	OPTIONAL INTEGER4;
+Ueberdeckung:	OPTIONAL REAL42;
+Zustand:	OPTIONAL TEXT*30;
+Eigentuemer:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Kabelpunkt;
+
+TABLE Kabel =
+Name_Nummer:	OPTIONAL TEXT*40;	!! ESCAPETEXT
+Geometrie:	POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoord;
+Funktion:	(unbekannt,
+	Signalkabel,
+	Steuerkabel,
+	weitere);
+Kabelart:	(Kupfer,
+	koaxial,
+	Lichwellenleiter);
+Lagebestimmung:	Genauigkeit;
+Status:	Status;
+Einbaujahr:	OPTIONAL INTEGER4;
+Ueberdeckung:	OPTIONAL REAL42; 
+Zustand:	OPTIONAL TEXT*30;
+Eigentuemer:	OPTIONAL TEXT*30;
+Bemerkung:	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung:	DATE;
+NO IDENT
+END Kabel;
+
+TABLE Kabel_Text=
+Objekt:	-> Kabel // 1-mc //;
+Text:	TEXT*80;						!! ESCAPETEXT
+TextPos:	LKoord;
+TextOri:	OPTIONAL Orientierung // Default: 90.0 //;
+TextHALI:	OPTIONAL HALIGNMENT // Default: Center //;
+TextVALI:	OPTIONAL VALIGNMENT // Default: Half //;
+Plantyp:	Plantyp // Default: Werkplan //;
+NO IDENT
+END Kabel_Text;
+
+OPTIONAL TABLE Schutzrohr=
+Name_Nummer: 	OPTIONAL TEXT*20;
+Geometrie: 	POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoord;
+LineTyp: 	OPTIONAL (Default, unsichtbar);	
+Material: 	(unbekannt, Polyaethylen, Polyvinylchlorid	
+	, Stahl, Guss_duktil, Grauguss, Beton);
+Nennweite: 	OPTIONAL [1..99999];
+Aussendurchmesser: 	OPTIONAL [1..99999];
+Laenge: 	OPTIONAL INTEGER6;
+Erstellungsjahr: 	OPTIONAL INTEGER4;
+Lagebestimmung: 	Genauigkeit;
+Status: 	Status;
+Ueberdeckung: 	OPTIONAL REAL42;
+Zustand: 	OPTIONAL TEXT*30;
+Eigentuemer: 	OPTIONAL TEXT*30;
+Bemerkung: 	OPTIONAL TEXT*80;			!! ESCAPETEXT
+Letzte_Aenderung: 	OPTIONAL DATE;
+NO IDENT
+END Schutzrohr;
+OPTIONAL TABLE Schutzrohr_Text=
+Objekt: 	-> Schutzrohr // 1-mc //;
+Text: 	TEXT*80;						!! ESCAPETEXT
+TextPos: 	LKoord;
+TextOri: 	Orientierung;
+TextHAli: 	HALIGNMENT;
+TextVAli: 	VALIGNMENT;
+Plantyp: 	Plantyp;
+NO IDENT
+END Schutzrohr_Text;
+
+END SIA405_Wasser_WI.
+
+END SIA405_Wasser_2004_WI.
+
+!!FORMAT FREE;
+FORMAT FIX WITH LINESIZE = 90, TIDSIZE = 10;
+
+CODE
+      BLANK = DEFAULT,    UNDEFINED = DEFAULT,    CONTINUE = DEFAULT;
+      TID = I32;
+END.
+
+

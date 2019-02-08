@@ -1,0 +1,155 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------ 
+ * !! Version    | wer  | Aenderung 
+ * !!------------------------------------------------------------------------------ 
+ * !! 2018-08-30 | MS | Erstfassung 
+ * !! 2018-09-18 | MS | Ueberarbeitung nach Review durch Noemi Sturm
+ * !! 2018-09-27 | MS | Erweitrung bezueglich Trinkwasserversorgung
+ * !! 2018-10-22 | MS | Totalueberarbeitung und Umbenennung
+ * !!==========================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AfU_Wasserbewirtschaftung_Publikation_20181022 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2018-10-22"  =
+  IMPORTS INTERLIS,GeometryCHLV95_V1;
+
+  TOPIC Wasserbewirtschaftung =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Wasserobjekte
+     */
+    CLASS Wasserobjekt (ABSTRACT) =
+      /** Name des Wasserbewirtschaftungs-Objektes
+       */
+      Objektname : MANDATORY TEXT*1000;
+      /** Vegas-Nummer
+       */
+      Objektnummer : MANDATORY 0 .. 100000;
+      /** Technische Angaben
+       */
+      Technische_Angabe : MTEXT*10000;
+      /** Bemerkungen
+       */
+      Bemerkung : MTEXT*10000;
+      /** Dokumente zum Wasserobjekt
+       */
+      Dokumente : TEXT*1000000;
+      /** Geometrie des Objektes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Wasserobjekt;
+
+    /** Einbauten zur Beobachtung des Grundwassers
+     */
+    CLASS Grundwassereinbau
+    EXTENDS Wasserobjekt =
+      /** Art der Grundwassereinbauten
+       */
+      Objektart : MANDATORY (
+        weitere_Einbauten,
+        Versickerungsschacht,
+        Grundwasserbeobachtung(
+          Limnigraf,
+          Piezometer(
+            Gerammt,
+            Bohrung
+          ),
+          Sondierung(
+            Bohrung,
+            Baggerschlitz
+          )
+        )
+      );
+    END Grundwassereinbau;
+
+    /** Entnahmeschacht fuer Grundwasserwaermepumpen
+     */
+    CLASS Grundwasserwaermepumpen_Entnahmeschacht
+    EXTENDS Wasserobjekt =
+      /** Stand des Verfahrens bezueglich des Entnahmeschachtes
+       */
+      Verfahrensstand : MANDATORY (
+        alte_Voranfrage,
+        neue_Voranfrage,
+        bewilligt
+      );
+    END Grundwasserwaermepumpen_Entnahmeschacht;
+
+    /** Objekte der Trinkwasserversorgung
+     */
+    CLASS Trinkwasserversorgung
+    EXTENDS Wasserobjekt =
+      /** Art des Trinkwasserversorgungs-Objektes
+       */
+      Trinkwasserobjektart : (
+        Kontrollschacht,
+        Sammelbrunnenstube,
+        Quellwasserbehaelter,
+        Netzmessstelle,
+        Pumpwerk,
+        Reservoir
+      );
+    END Trinkwasserversorgung;
+
+    /** Wasseraustritte (Quellen und Fassungen)
+     */
+    CLASS Wasseraustritt (ABSTRACT)
+    EXTENDS Wasserobjekt =
+      /** Befindet sich das Objekt in einer Schutzzone? (nicht unbedingt deckungsgleich mit den Schutzzonen-Polygone)
+       */
+      Schutzzone : MANDATORY BOOLEAN;
+      /** Art der Nutzung bzw. Nutzniesser der Anlage
+       */
+      Nutzungstyp : (
+        oeffentlich,
+        privat_oeffentliches_Interesse,
+        privat
+      );
+      /** Verwendungszweck des Wassers
+       */
+      Verwendungszweck : (
+        Trinkwasser,
+        Brauchwasser,
+        Notbrunnen
+      );
+    END Wasseraustritt;
+
+    /** Wasserfassungen
+     */
+    CLASS Fassung
+    EXTENDS Wasseraustritt =
+      /** Typ der Fassung
+       */
+      Fassungstyp : MANDATORY (
+        Sodbrunnen,
+        Vertikalbrunnen,
+        Horizontalbrunnen
+      );
+      /** Konzessionsmenge der Fassung in l/min (Wie viel Wasser darf gefoerdert werden?)
+       */
+      Konzessionsmenge : 0 .. 100000;
+    END Fassung;
+
+    /** Quellen
+     */
+    CLASS Quelle
+    EXTENDS Wasseraustritt =
+      /** Ist die Quelle gefasst?
+       */
+      Gefasst : MANDATORY BOOLEAN;
+      /** Eigentuemer der Quelle
+       */
+      Eigentuemer : TEXT*500;
+      /** Minimale Schuettung in l/min
+       */
+      Min_Schuettung : 0 .. 100000;
+      /** Maximale Schuettung in l/min
+       */
+      Max_Schuettung : 0 .. 100000;
+    END Quelle;
+
+  END Wasserbewirtschaftung;
+
+END SO_AfU_Wasserbewirtschaftung_Publikation_20181022.

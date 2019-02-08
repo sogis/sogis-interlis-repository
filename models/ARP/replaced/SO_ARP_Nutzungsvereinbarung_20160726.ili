@@ -1,0 +1,74 @@
+INTERLIS 2.3;
+!!============================================================================== 
+/** Dieses Erfassungsmodell dient fuer die Verwaltung der raeumlichen Ausdehnungen 
+ * der Nutzungsvereinbarungen.
+ * Nutzungsvereinbarungen bestehen zwischen dem Kanton Solothurn und Paechtern/
+ * Bewirtschaftern von Staatsland. Ziel einer Nutzungsvereinbarung ist der Erhalt 
+ * und/oder die Aufwertung wertvoller Lebensraeume fuer Tiere und Pflanzen.
+ */ 
+!!@ File = "SO_ARP_Nutzungsvereinbarung_20160716.ili"; 
+!!@ Title = "AV-Nachfuehrungskreise"; 
+!!@ shortDescription = "ARP_Nutzungsvereinbarung"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://models.geo.so.ch/AGI/SO_ARP_Nutzungsvereinbarung_20160706.pdf
+!!@ IDGeoIV=SO-1005
+!!  Erfassungsmodell;
+!!  Compiler-Version = "4.5.22-20160407"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | aenderung 
+!!------------------------------------------------------------------------------ 
+!! 2016-07-06 | al  | Erstfassung 
+!! 2016-07-16 | al  | Anpassung Bewirtschafter 
+!! 2016-07-25 | al  | Anpassung Mulitpolygon und ein Vertrag
+!!============================================================================== 
+MODEL SO_ARP_Nutzungsvereinbarung_20160726 (de)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2016-07-26"  =
+  IMPORTS GeometryCHLV03_V1;
+
+  TOPIC Nutzungsvereinbarungen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Informationen zum Vertrag
+     */
+    CLASS Nutzungsvereinbarungen =
+      /** Nummer der Nutzungsvereinbarung
+       */
+      Nummer : MANDATORY TEXT*255;
+      /** Link zum PDF Dokument (Pachtvertrag und Nutzungsvereinbarung)
+       */
+      Vertrag : TEXT*255;
+      /** Datum der Nutzungsvereinbarung
+       */
+      Datum : INTERLIS.XMLDate;
+      /** Ausdehnung der betroffenen Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV03_V1.MultiSurface;
+      /** Art z.B. Wiese oder Gehoelz
+       */
+      Flaechenart : TEXT*255;
+      /** PersonenID von mjpnatur.personen
+       */
+      Bewirtschafter_PERSID : MANDATORY 1 .. 100000000000;
+      UNIQUE Nummer;
+    END Nutzungsvereinbarungen;
+
+    /** Projekt wie z.B. LRO
+     */
+    CLASS Projekte =
+      /** Name des Projektes
+       */
+      Name : MANDATORY TEXT*255;
+    END Projekte;
+
+    ASSOCIATION Projekt_Vereinbarung =
+      /** Beziehung Nutzungsvereinbarung zum Projekt
+       */
+      Vereinbarung_Projekt -- {0..*} Nutzungsvereinbarungen;
+      Projekt_Vereinbarung -- {1} Projekte;
+    END Projekt_Vereinbarung;
+
+  END Nutzungsvereinbarungen;
+
+END SO_ARP_Nutzungsvereinbarung_20160726.

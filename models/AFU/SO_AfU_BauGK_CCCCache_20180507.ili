@@ -1,0 +1,83 @@
+INTERLIS 2.3;
+
+/** !! Modell des Datencache der Fachapplikation Axioma Mandant AfU (BauGK).
+ * !! Inhalt des Modells ist die Klasse Geschaeft. Diese umfasst die
+ * !! Attribute aus BauGK, welche in der GDI verfügbar sein müssen.
+ * !! Die Feldbezeichnungen entsprechen 1:1 den Beschriftungen im GUI von Axioma
+ * !! (zwecks einfacher Nachvollziehbarkeit).
+ * !! Zusammenzugsfelder (Gemeindenamen, Sachverhalte, ..) sind als JSON Array
+ * !! of Strings codiert, damit die Darstellung in den GIS-Clients 
+ * !! korrekt konfiguriert werden kann. Die Eintraege sind jeweils alphabetisch
+ * !! sortiert. Beispiel-JSON für Gemeindenamen: ["Olten","Winznau"].
+ * !! Auf eine UUID wird bewusst verzichtet, um entsprechenden Zusatzaufwand
+ * !! zur korrekten Fuerung des Schluessels im Quellsystem zu verhindern.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2018-03-12 | OJ  | Initial erstellt
+ * !! 2018-05-07 | OJ  | Anpassung bezueglich JSON in den Zusammenzugsfeldern
+ * !! 2018-08-07 | OJ  | Anpassungen Doku nach Review durch NS
+ * !!==============================================================================
+ */
+!!@ Issuer=http://afu.so.ch
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AfU_BauGK_CCCCache_20180507 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2018-05-07"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Cache =
+
+    /** Siehe Dokumentation des Modells im Modellheader.
+     */
+    CLASS Geschaeft =
+      /** Eindeutige Identifikation des Geschaefts. Wird von Axioma automatisch vergeben.
+       * Beispiel: 2016-1000
+       */
+      Laufnummer : MANDATORY TEXT*20;
+      /** Titel des Geschaefts. Heisst in Axioma Titel, kann jedoch mehr als 500 Zeichen lang sein.
+       * 
+       * Beispiel: Gartengestaltung (Nordseitig der Liegenschaft)
+       */
+      Titel : MANDATORY TEXT*1000;
+      /** Datum des Eingangs (der Eroeffnung) des Geschaeftes.
+       */
+      Eingang : MANDATORY INTERLIS.XMLDate;
+      /** Datum des Ausgangs (des Abschlusses) des Geschaefts
+       */
+      Ausgang : INTERLIS.XMLDate;
+      /** Liste der Gemeindenamen eines Geschaeftes. Wird aus den in Axioma erfassten Parzellen abgeleitet.
+       * Ableitung ueber die Beziehung Parzelle - Grundbuch - Gemeinde.
+       * Eine Gemeinde darf in der Liste nicht mehrmals vorkommen.
+       * 
+       * Beispiel: ["Rickenbach","Wangen bei Olten"]
+       */
+      Gemeindenamen : TEXT*512;
+      /** Eigner des Geschaefts (Geschaeftsfuerende Stelle)
+       * 
+       * Beispiel: Abteilung Luft/Lärm
+       */
+      Geschaeftseigner : MANDATORY TEXT*512;
+      /** Art (Typ) des Geschaefts.
+       * 
+       * Beispiel: Plangenehmigung LFG
+       */
+      Geschaeftsart : TEXT*512;
+      /** Status des Geschaeftes
+       * 
+       * Beispiel: 1_pendent
+       */
+      Projektstatus : TEXT*255;
+      /** Liste der Sachverhalte des Geschaeftes.
+       * 
+       * Beispiel:["LLE_Beurteilung nach NISV","BS_Bauen auf Standorten, die im Prüfperimeter Bodenabtrag eingetragen sind (§§ 132 und 136 GWBA)"]
+       */
+      Sachverhalte : TEXT*2000;
+      /** Aus den X- und Y-Koordinaten des Axioma-Geschaefts erstellte Punktgeometrie (Einzelpunkt).
+       */
+      Punktgeometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Geschaeft;
+
+  END Cache;
+
+END SO_AfU_BauGK_CCCCache_20180507.

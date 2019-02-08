@@ -1,0 +1,69 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_Forstreviere_20170420.ili"; 
+!!@ Title = "Forstreviere und Forstkreise"; 
+!!@ shortDescription = "Forstreviere und Forstkreise des Kanton Solothurn"; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation = ""; 
+!!@ kGeoiV_ID = ""; 
+!!  Erfassungsmodell;
+!!  Compiler-Version = "4.6.1-20170109"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2017-04-11 | Noëmi Sturm  | Erstfassung 
+!! 2017-04-19 | Noëmi Sturm  | Anpassung Geometrietyp
+!! 2017-04-20 | Noëmi Sturm  | Anpassung Geometrietyp
+!! 2017-05-10 | Noëmi Sturm  | Korrektur Beziehung Forstrevier_Forstkreis
+!! 2017-05-12 | Noëmi Sturm  | Neue Definition der Beziehungen
+!!=============================================================================
+
+MODEL SO_Forstreviere_20170512 (de)
+AT "http://geo.so.ch/models/AWJF"
+VERSION "2017-05-12"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Forstreviere =
+
+    CLASS Forstkreis =
+      /** Name des Forstkreises
+       */
+      Name : MANDATORY TEXT*50;
+    END Forstkreis;
+
+    CLASS Forstrevier =
+      /** Name des Forstreviers
+       */
+      Name : MANDATORY TEXT*50;
+    END Forstrevier;
+
+    CLASS Forstreviergeometrie =
+      /** Name der Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*30;
+      /** BFS-Nummer der Gemeinde
+       */
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Geometrie des Forstreviers
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Forstreviergeometrie;
+
+    ASSOCIATION Forstreviergeometrie_Forstkreis =
+      Forstreviergeometrie -- {0..*} Forstreviergeometrie;
+      /** Fremdschluessel zu forstreviere_forstkreis
+       */
+      Forstkreis -- {1} Forstkreis;
+    END Forstreviergeometrie_Forstkreis;
+
+    ASSOCIATION Forstreviergeometrie_Forstrevier =
+      Forstreviergeometrie -- {0..*} Forstreviergeometrie;
+      /** Fremdschluessel zu forstreviere_forstrevier
+       */
+      Forstrevier -- {1} Forstrevier;
+    END Forstreviergeometrie_Forstrevier;
+
+  END Forstreviere;
+
+END SO_Forstreviere_20170512.

@@ -1,0 +1,128 @@
+INTERLIS 2.3;
+/**
+*!!------------------------------------------------------------------------------ 
+*!! Version    | wer | Änderung 
+*!!------------------------------------------------------------------------------ 
+*!! 2017-05-17 | Noëmi Sturm  | Erstfassung 
+*!! 2017-12-04 | Noëmi Sturm  | Ergänzung mit Pflanzenliste, kleinere Anpassungen
+*!! 2017-12-11 | Noëmi Sturm  | Review-Rückmeldungen integriert
+*!! 2017-12-18 | Noëmi Sturm  | Eigentümer entfernt, Modell umbenannt
+*!! 2018-03-09 | Noëmi Sturm  | Parzellennummer vergrössern
+*!!==============================================================================
+*/
+
+MODEL SO_ARP_Naturreservate_Publikation_20180309 (de)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2018-03-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Naturreservate =
+
+    /** Auflistung der in kantonalen Naturreservaten erhobenen Pflanzen
+     */
+    CLASS Pflanzenliste =
+      /** wissenschaftlicher (lateinischer) Name der Pflanze
+       */
+      wissenschaftlicher_Name : MANDATORY TEXT*130;
+      /** deutscher Name der Pflanze
+       */
+      deutscher_Name : TEXT*64;
+      /** Steht die Pflanze in der Schweiz unter Schutz? ja/nein
+       */
+      geschuetzt : MANDATORY BOOLEAN;
+      /** Jahr der Erhebung
+       */
+      Erhebungsjahr : INTERLIS.GregorianYear;
+      /** Name des Erhebungsprojekts
+       */
+      Erhebungsprojekt : MANDATORY TEXT*15;
+      /** Steht die Pflanze auf der roten Liste? ja/nein
+       */
+      rote_Liste : MANDATORY BOOLEAN;
+      /** Name des Teilgebiets
+       */
+      Teilgebietsname : MANDATORY TEXT*100;
+      /** Reservatsnummer
+       */
+      Reservatsnummer : MANDATORY 0.00 .. 99999.00;
+      /** Nummer des Teilgebiets
+       */
+      Teilgebietsnummer : MANDATORY 0 .. 999999999999;
+    END Pflanzenliste;
+
+    /** kantonale Naturreservate
+     */
+    CLASS Reservat =
+      /** Reservatsnummer
+       */
+      Nummer : MANDATORY 0.00 .. 99999.00;
+      /** NSI-Nummer (Burki-Inventar)
+       */
+      NSI_Nummer : TEXT*10;
+      /** Reservatsname
+       */
+      Name : MANDATORY TEXT*100;
+      /** Geometrie des Reservats
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Reservatsbeschreibung
+       */
+      Beschreibung : MTEXT*10000;
+      /** Gesamtflaeche des Reservats in [ha]
+       */
+      Flaeche : MANDATORY 0.00 .. 9999999999.00;
+      /** Namen aller im Reservat liegenden Teilgebiete
+       */
+      Teilgebietsnamen : MANDATORY TEXT*1000;
+      /** betroffene Gemeinden
+       */
+      Gemeinden : MANDATORY TEXT*1000;
+      /** Pfade zu den Dokumenten
+       */
+      Dokumente : TEXT*1000000;
+      /** Fuer das Naturreservat zustaendige Personen/Organisationen
+       */
+      Zustaendiger : TEXT*500;
+    END Reservat;
+
+    /** Teilgebiete der Reservate
+     */
+    CLASS Teilgebiet =
+      /** Teilgebietsname
+       */
+      Name : MANDATORY TEXT*100;
+      /** Geometrie des Teilgebiets
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Beschreibung des Teilgebiets
+       */
+      Beschreibung : MANDATORY MTEXT*10000;
+      /** Flaeche des Teilgebiets in [ha]
+       */
+      Flaeche : MANDATORY 0.00 .. 1000000000.00;
+      /** betroffene Gemeinden
+       */
+      Gemeinden : MANDATORY TEXT*500;
+      /** Pfade zu den Dokumenten
+       */
+      Dokumente : TEXT*1000000;
+      /** Nummern der betroffenen Parzellen
+       */
+      Parzellennummern : TEXT*100000;
+      /** Reservatsnummer
+       */
+      Reservatsnummer : MANDATORY 0.00 .. 99999.00;
+      /** Reservatsname
+       */
+      Reservatsname : MANDATORY TEXT*100;
+      /** Nummern der betroffenen Vereinbarungsflaechen
+       */
+      Vereinbarungsflaechen : TEXT*500;
+      /** Bewirtschafter der betroffenen Vereinbarungsflächen
+       */
+      Bewirtschafter : TEXT*500;
+    END Teilgebiet;
+
+  END Naturreservate;
+
+END SO_ARP_Naturreservate_Publikation_20180309.

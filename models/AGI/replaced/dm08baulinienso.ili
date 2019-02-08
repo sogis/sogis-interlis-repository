@@ -1,0 +1,147 @@
+TRANSFER INTERLIS1;
+
+MODEL DM08BaulinienSO
+
+	!! Geodatenportal so-geo.ch
+	!!
+	!! Datenmodell der Baulinien im Kanton Solothurn
+	!!
+	!! Modell aufgebaut auf dem Datenmodell DM06NplBE
+	!! Datenmodell erstellt durch:
+	!! Dütschler & Naegeli
+	!! Vermessung + Geoinformation AG
+	!! Fliederweg 11
+	!! 3601 Thun
+	!!
+	!! im Auftrag von so-geo.ch
+
+	DOMAIN
+
+	!! Referenzsystem LV03
+
+	LKoord = COORD2 480000.000   70000.000
+		    840000.000  300000.000;
+
+	!!  Qualitaetsstandard bezieht sich auf die Basisdaten, die bei der
+	!!  Datenersterfassung verwendet wurden.
+	
+	Qualitaetsstandard = (
+	AV93, AV93_PN, UEP_2000, UEP_5000, UEP_10000, LK_25000, unbekannt);
+
+	Rotation = GRADS 0.0 400.0;
+
+	Schriftgroesse = (klein, mittel, gross);
+
+	!!  Angabe, wo die originalen Daten verwaltet werden
+	
+	Datenverwaltungsstellen = (
+	Bund, Kanton, Gemeinde, Geometer, Planer, weitere);
+	
+
+
+	TOPIC Baulinien =
+
+		DOMAIN
+
+		AbstandslinienArt = (
+		Eisenbahn,
+		Nationalstrasse,
+		Strasse,
+		Leitung,
+		Gewaesserabstandslinie,
+		Waldabstandslinie,
+		Baulinie,
+		Garagebaulinie,
+		Erdgeschossbaulinie,
+		Gestaltungsbaulinie,
+		Rueckwaertige_Baulinie,
+		Innenbaulinie,
+		Hilfsbaulinie,
+		weitere                        !! weitere Abstandslinientypen
+		(Vorbaulinie,
+		relative_Baulinie,
+		besondere_Baulinie,
+		AL_4));
+
+		TABLE Abstandslinie =
+			Identifikator: OPTIONAL [0 .. 99999999]; !! 3 St. BFS und 5 St. Laufnr.
+			Art: AbstandslinienArt;
+			Beschrieb: OPTIONAL TEXT*80;
+			Planbeschriftung: OPTIONAL TEXT*30; !! fuer Beschriftungen auf dem Plan
+			Qualitaet: Qualitaetsstandard;
+			Datum_Genehmigung: OPTIONAL DATE;
+			Datenverwaltungsstelle: Datenverwaltungsstellen;
+			Bemerkung: OPTIONAL TEXT*80;
+		NO IDENT
+		END Abstandslinie;
+
+		TABLE LinienelementAbstand =
+			Objekt: -> Abstandslinie;  !! Beziehung 1-m
+			Geometrie: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+		NO IDENT
+		END LinienelementAbstand;
+
+		TABLE AbstandsliniePos = !! beschriftet Attribut Planbeschriftung
+			Objekt: -> Abstandslinie; !! Beziehung 1-mc
+			TextPos: LKoord;
+			TextOri: OPTIONAL Rotation // undefiniert = 100.0 //;
+			TextHAli: OPTIONAL HALIGNMENT // undefiniert = Center //;
+			TextVAli: OPTIONAL VALIGNMENT // undefiniert = Half //;
+			TextSize: OPTIONAL Schriftgroesse // undefiniert = mittel //;
+		NO IDENT
+		END AbstandsliniePos;
+
+	END Baulinien.
+
+
+	TOPIC Waldfeststellung =
+
+		TABLE Einzelpunkt =
+			Identifikator: OPTIONAL TEXT*12;
+			Geometrie: LKoord;
+			LageGen: [0.0 .. 700.0];  !! in cm
+			LageZuv: (ja,     !! genuegend
+			nein);  !! ungenuegend
+		IDENT
+		Geometrie;
+		END Einzelpunkt;
+
+		TABLE FeststellungWald =
+			Qualitaet: Qualitaetsstandard;
+			Datum_Verfuegung: OPTIONAL DATE;      !! Verfuegungsdatum / RRB
+			Datum_Inkraftsetzung: OPTIONAL DATE;  !! Datum Inkraftsetzung
+			Behoerde: OPTIONAL TEXT*12;   !! verfuegende Behoerde (Abkuerzung)
+			Nummer: TEXT*12;              !! Nr. des techn. Dossiers / Verfuegung
+			Datenverwaltungsstelle: Datenverwaltungsstellen;
+			Bemerkung: OPTIONAL TEXT*80;
+		IDENT
+		Nummer;
+		END FeststellungWald;
+
+		TABLE LinienelementWald =
+			Objekt: -> FeststellungWald;  !! Beziehung 1-m
+			Geometrie: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+		NO IDENT
+		END LinienelementWald;
+
+		TABLE FeststellungWaldPos = !! beschriftet Attr. Datum_Verfuegung
+			Objekt: -> FeststellungWald; !! Beziehung 1-mc
+			TextPos: LKoord;
+			TextOri: OPTIONAL Rotation // undefiniert = 100.0 //;
+			TextHAli: OPTIONAL HALIGNMENT // undefiniert = Center //;
+			TextVAli: OPTIONAL VALIGNMENT // undefiniert = Half //;
+			TextSize: OPTIONAL Schriftgroesse // undefiniert = mittel //;
+		NO IDENT
+		END FeststellungWaldPos;
+
+	END Waldfeststellung.
+
+
+END DM08BaulinienSO.
+
+FORMAT FREE;
+
+CODE
+	BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+	TID = ANY;
+END.

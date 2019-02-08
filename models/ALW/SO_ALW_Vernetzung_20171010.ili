@@ -1,0 +1,91 @@
+INTERLIS 2.3;
+!!============================================================================== 
+!!@ File = "SO_ALW_Vernetzung_20171010.ili"; 
+!!@ Title = "Vernetzungsperimeter und Massnahmengebiete"; 
+!!@ shortDescription = "Perimeter der Vernetzungsprojekte. Das Ziel von Ver-
+!!@ netzungsprojekten ist, die natürliche Artenvielfalt auf der landwirtschaft-
+!!@ lichen Nutzfläche zu erhalten und zu fördern."; 
+!!@ Issuer = "http://www.agi.so.ch"; 
+!!@ technicalContact = "mailto:agi@so.ch"; 
+!!@ furtherInformation = ""; 
+!!@ kGeoiV_ID = ""; 
+!!  Erfassungsmodell;
+!!  Compiler-Version = "4.7.3-20170524"; 
+!!------------------------------------------------------------------------------ 
+!! Version    | wer | Änderung 
+!!------------------------------------------------------------------------------ 
+!! 2017-04-05 | Noëmi Sturm  | Erstfassung 
+!! 2017-05-02 | Noëmi Sturm  | Datentypen vergrössern, Attributnamensänderungen
+!! 2017-05-23 | Noëmi Sturm  | Attributnamen ändern
+!! 2017-10-10 | Noëmi Sturm  | Umbenennung des Attributs updated zu Stand, Er-
+!!                             gänzung mit UUID
+!!============================================================================== 
+
+MODEL SO_ALW_Vernetzung_20171010 (de)
+AT "http://www.geo.so.ch/models/ALW"
+VERSION "2017-10-10"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Vernetzung =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Massnahmengebiet =
+      /** Raeumliche Darstellung der Massnahmengebiete als Polygone
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Nummer des Massnahmengebietes (Traegerschaft)
+       */
+      Mg_ID : 1 .. 9999;
+      /** Nummer des Massnahmengebietes in GELAN
+       */
+      GELAN_ID : MANDATORY 1 .. 999999999;
+      /** Name des Massnahmengebietes (Traegerschaft)
+       */
+      Mg_Name : MANDATORY TEXT*1024;
+      /** Erhaltungsflaechen vorhanden: ja oder nein
+       */
+      Erhaltung : MANDATORY BOOLEAN;
+      /** Datum der letzten Aktualisierung
+       */
+      Stand : MANDATORY INTERLIS.XMLDate;
+      /** Bemerkung zum Massnahmengebiet
+       */
+      Bemerkung : MTEXT*200;
+    END Massnahmengebiet;
+
+    CLASS Vernetzungsperimeter =
+      /** Raeumliche Darstellung des Vernetzungsperimeters als Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Nummer des Vernetzungsprojektes (wird vom ALW vergeben)
+       */
+      Vp_ID : MANDATORY 1 .. 9999;
+      /** Name des Vernetzungsprojektes (wird vom ALW vergeben)
+       */
+      Vp_Name : MANDATORY TEXT*1024;
+      /** Name der verantwortlichen Traegerschaft
+       */
+      Traegersch : MANDATORY TEXT*1024;
+      /** Jahr der Projekterfassung
+       */
+      Erarb_Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Datum der letzten Aktualisierung
+       */
+      Stand : MANDATORY INTERLIS.XMLDate;
+      /** Bemerkung zum Vernetzungsperimeter
+       */
+      Bemerkung : MTEXT*200;
+    END Vernetzungsperimeter;
+
+    ASSOCIATION Vernetzungsperimeter_Massnahmengebiet =
+      /** Fremdschluessel zu vernetzung_vernetzungsperimeter
+       */
+      VP_t_id -- {1} Vernetzungsperimeter;
+      /** Fremdschluessel zu vernetzung_massnahmengebiet
+       */
+      Massnahmengebiet -- {1..*} Massnahmengebiet;
+    END Vernetzungsperimeter_Massnahmengebiet;
+
+  END Vernetzung;
+
+END SO_ALW_Vernetzung_20171010.

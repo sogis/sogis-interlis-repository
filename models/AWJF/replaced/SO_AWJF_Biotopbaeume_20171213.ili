@@ -1,0 +1,203 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------ 
+ * !! Version | wer | Änderung 
+ * !!------------------------------------------------------------------------------ 
+ * !! 2017-04-26 | Peter Senn  | Erstfassung 
+ * !! 2017-12-13 | Peter Senn  | Modelländerung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AWJF_Biotopbaeume_20171213 (de)
+AT "http://geo.so.ch/models/AWJF"
+VERSION "2017-12-13"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  UNIT
+
+    /** Zentimeter
+     */
+    Centimeter [cm] = 1 / 100  [INTERLIS.m];
+
+  /** Biotopbaeume
+   */
+  TOPIC Biotopbaeume =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      /** Art des Baums gemäss Liste des WSL
+       */
+      Baumart = (
+        Weisstanne,
+        Laerche,
+        Fichte,
+        Arve,
+        Bergfoehre,
+        Schwarzfoehre,
+        Weymouthsfoehre,
+        Waldfoehre,
+        Douglasie,
+        Eibe,
+        Thuja,
+        Uebrige_Nadelbaeume,
+        Feldahorn,
+        Schneeballblaettriger_Ahorn,
+        Spitzahorn,
+        Bergahorn,
+        Rosskastanie,
+        Schwarzerle,
+        Grauerle,
+        Gruenerle,
+        Birken,
+        Moorbirke,
+        Hagebuche,
+        Edelkastanie,
+        Buche,
+        Esche,
+        Nussbaum,
+        Holzapfel,
+        Hopfenbuche,
+        Pappeln,
+        Kirschbaum,
+        Traubenkirsche,
+        Birnenbaum,
+        Eichen,
+        Robinie,
+        Weiden,
+        Mehlbeerbaum,
+        Vogelbeerbaum,
+        Elsbeerbaum,
+        Linden,
+        Ulmen,
+        Uebrige_Laubbaeume
+      );
+
+      Hauptmerkmal = (
+        m1_Stammdurchmesser_70,
+        m2_Spechtloecher_Bruthoehlen_Wurzelhoehlen,
+        m3_Horstbaeume,
+        m4_Sitz_Schlafbaeume_Auerwilds,
+        m5_Alte_ehemalige_Weidebaeume,
+        m6_Lebende_Baeume_Efeu_Mistelbewuchs,
+        m7_Baeume_mit_markanten_Schaeden,
+        m8_Baeume_mit_besonderem_Wuchs,
+        m20_Stehendes_Totholz,
+        m21_Seltene_Baumart,
+        m22_Gesellschaftsbaum,
+        m23_Potenzieller_Biotopbaum
+      );
+
+    CLASS Biotopbaum =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Baum Id
+       */
+      Baum_id : MANDATORY TEXT*50;
+      /** Baumkategorie
+       */
+      Baumkategorie : MANDATORY (
+        Gesellschaftsbaum,
+        Seltene_Baumart,
+        Stehendes_Totholz,
+        Potenzieller_Biotopbaum,
+        Biotopbaum
+      );
+      /** Jahr der Inventur
+       */
+      Inventur_Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Wirtschaftszone
+       */
+      Wirtschaftszone : MANDATORY (
+        Jura,
+        Mittelland
+      );
+      /** Gesuchsnummer DB-Besitzer (AWJF lokal)
+       */
+      Gesuchsnummer : MANDATORY 1 .. 10000;
+      /** Waldeigentuemer
+       */
+      Waldeigentuemer_Code : MANDATORY (
+        Oeffentlich,
+        Privat,
+        Staatswald
+      );
+      /** Baumart gemaess Liste des WSL
+       */
+      Baumart : MANDATORY Baumart;
+      /** Brusthoehendurchmesser in cm
+       */
+      BHD : 1 .. 900 [SO_AWJF_Biotopbaeume_20171213.cm];
+      /** Baumhoehe in Meter
+       */
+      Baumhoehe : 0 .. 100 [INTERLIS.m];
+      /** Betriebsart (Waldfunktionen)
+       */
+      Betriebsart : (
+        Wirtschaftswald,
+        Schutzwald,
+        Erholungswald,
+        Natur_und_Landschaft,
+        Schutzwald_Natur_und_Landschaft
+      );
+      /** Merkmal 1
+       */
+      Merkmal_1 : Hauptmerkmal;
+      /** Beschreibung Merkmal 1
+       */
+      Beschreibung_Merkmal_1 : TEXT*200;
+      /** Merkmal 2
+       */
+      Merkmal_2 : Hauptmerkmal;
+      /** Beschreibung  Merkmal 2
+       */
+      Beschreibung_Merkmal_2 : TEXT*200;
+      /** Merkmal 3
+       */
+      Merkmal_3 : Hauptmerkmal;
+      /** Beschreibung Merkmal 3
+       */
+      Beschreibung_Merkmal_3 : TEXT*200;
+      /** Forstliche Massnahmen
+       */
+      Massnahmen : TEXT*200;
+      /** Besonderheiten
+       */
+      Besonderheiten : TEXT*200;
+      /** Biotopbaumflaeche, zb. 8 wertvolle Baeume stehen auf engem Raum
+       */
+      Biotopflaeche : 0 .. 200;
+      /** Allgemeine Bemerkungen
+       */
+      Bemerkungen : TEXT*200;
+      /** 1: Teilprogramm ABER NICHT Inventar, die nicht im Teilprogramm sind
+       * 2: Teilprogramm UND Inventar
+       * 3: NICHT Teilprogramm, ABER Inventar inklusive Teilprogramm im Inventar
+       */
+      TP_Inventar : MANDATORY (
+        TP_aber_nicht_Inventar_nicht_im_TP,
+        TP_und_Inventar,
+        Nicht_TP_aber_Inventar
+      );
+      /** Auszahlung Beitrag erfolgt: Ja/Nein
+       */
+      Auszahlung_Beitrag : BOOLEAN;
+      /** Auszahlungsjahr
+       */
+      Auszahlung_Beitrag_Jahr : INTERLIS.GregorianYear;
+      UNIQUE Baum_id;
+    END Biotopbaum;
+
+    CLASS Foto =
+      /** Pfad Bildablage
+       */
+      Ablage : MANDATORY TEXT*512;
+    END Foto;
+
+    ASSOCIATION Biotopbaum_Foto =
+      Biotopbaum_Foto -- {0..*} Foto;
+      Biotopbaum -- {1} Biotopbaum;
+    END Biotopbaum_Foto;
+
+  END Biotopbaeume;
+
+END SO_AWJF_Biotopbaeume_20171213.
