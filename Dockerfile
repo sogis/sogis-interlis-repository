@@ -4,7 +4,6 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN mkdir -p /opt/repository/
 
-COPY models/ADA /opt/repository/ADA
 COPY models/AFU /opt/repository/AFU
 COPY models/AGI /opt/repository/AGI
 COPY models/ALW /opt/repository/ALW
