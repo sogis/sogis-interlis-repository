@@ -9,8 +9,6 @@ COPY models/AGI /opt/repository/AGI
 COPY models/ALW /opt/repository/ALW
 COPY models/AMB /opt/repository/AMB
 COPY models/ARP /opt/repository/ARP 
-COPY models/AVT /opt/repository/AVT
-COPY models/AWA /opt/repository/AWA
 COPY models/AWJF /opt/repository/AWJF
 COPY models/Gemeinden /opt/repository/Gemeinden
 
