@@ -5,6 +5,9 @@ buildscript {
         jcenter()
         mavenCentral()
     }
+    dependencies {
+        classpath("ch.interlis:ili2c-tool:4.7.7")
+    }
 }
 
 plugins {
@@ -22,11 +25,21 @@ import org.ajoberstar.grgit.Grgit
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer.ExposedPort
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 
 task createIliModelsXml(type: IliRepositorizer) {
     description = "Create ilimodels.xml file."
     modelsDir = file("models/")
     dataFile = "ilimodels.xml"
+}
+
+task validateIliModelsXml(type: IliValidator) {
+    description = "Validate ilimodels.xml file."
+    dataFiles = ["ilimodels.xml"]
+    logFile = "ilivalidator.log"
 }
 
 task versionTxt()  {
@@ -55,23 +68,35 @@ task buildDockerImage(type: DockerBuildImage) {
     tags = ["sogis/interlis-repository:"+version, "sogis/interlis-repository:latest"]
 }
 
+task createDockerContainer(type: DockerCreateContainer) {
+    description = "Create docker container."
+    targetImageId buildDockerImage.getImageId()
+    portBindings = ['80:80']
+    exposedPorts = [new ExposedPort("tcp", [80])]    
+}
+
+task startDockerContainer(dependsOn: 'createDockerContainer', type: DockerStartContainer) {	
+    description = "Start docker container."
+    targetContainerId createDockerContainer.getContainerId()
+
+    // Starting container != web service is ready.
+    doLast { 
+        sleep(4*1000)
+    }
+}
+
+task stopDockerContainer(type: DockerStopContainer) {
+    description = "Stop running docker container."
+    targetContainerId createDockerContainer.getContainerId()
+}
+
 task pushDockerImage_One(type: DockerPushImage) {
     description = "Push docker image to hub.docker.com."
-    /*
-    onlyIf {
-        dockerTest.state.failure == null
-    }
-    */
     imageName =  "sogis/interlis-repository:latest"
 }
 
 task pushDockerImage_Two(type: DockerPushImage) {
     description = "Push docker image to hub.docker.com)."
-    /*
-    onlyIf {
-        dockerTest.state.failure == null
-    }
-    */
     imageName =  "sogis/interlis-repository:"+version
 }
 
@@ -85,3 +110,29 @@ task pushDockerImages() {
 pushDockerImages.dependsOn {
     tasks.findAll { task -> task.name.startsWith('pushDockerImage_') }
 }
+
+// It will fail if repository is not ok.
+// "Process 'command '/Library/Java/JavaVirtualMachines/jdk8u192-b12/Contents/Home/bin/java'' finished with non-zero exit value 1"
+task checkInterlisRepository(type: JavaExec) {
+    classpath = buildscript.configurations.classpath
+    main = 'ch.interlis.ili2c.Main'
+    args  "--check-repo-ilis", "http://localhost"
+}
+
+// This is how you can grap standard out or standard error.
+/*
+task checkInterlisRepository() {
+    description = "Checks the interlis repository (ili2c --check-repo-ilis)"    
+    doLast {
+        def os = new ByteArrayOutputStream()
+        javaexec {
+            classpath = buildscript.configurations.classpath
+            main = 'ch.interlis.ili2c.Main'
+            args  "--check-repo-ilis", "http://localhost"
+            //errorOutput = os
+            standardOutput = os
+        }
+        def buildString = os.toString()
+    }
+}
+*/
