@@ -55,6 +55,10 @@ Application-name: sogis-interlis-repository
     }
 }
 
+def getCheckedOutGitCommitHash() {
+    'git log -1 --pretty=%H'.execute().text.trim()
+}
+
 docker {
     registryCredentials {
         username = System.env.dockerRegistryUser
@@ -66,6 +70,9 @@ task buildDockerImage(type: DockerBuildImage) {
     description = "Build docker image."
     inputDir = project.rootDir
     tags = ["sogis/interlis-repository:"+version, "sogis/interlis-repository:latest"]
+    labels = ["interlis-repository.created": new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), 
+            "interlis-repository.git_commit":  getCheckedOutGitCommitHash(), 
+            "interlis-repository.travis_build": version]    
 }
 
 task createDockerContainer(type: DockerCreateContainer) {
