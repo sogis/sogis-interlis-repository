@@ -55,3 +55,12 @@ Datenmodelle sollten prinzipiell nicht gelöscht werden. Sollte dies doch einmal
 
 ### Andere Modellablagen verknüpfen
 An die bestehende Modellablage des Kantons Solothurn können weitere Modellablagen wie z.B. das des Bundes geknüpft werden. Dies geschieht im `ilisite.xml`-File, wo im xml-tag `<ilisite09.RepositoryLocation_>` die zusätzlichen Repositories angegeben werden können. Wichtig dabei ist, dass die Repositories, auf welchen die Repositories des Kantons Solothurn basieren (also "Eltern"), im `<parentSite>` aufgeführt werden, während "Kinder" im `<subsidiarySite>` und "Geschwister" im `<peerSite>` aufgelistet werden. 
+
+## Testen
+Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installiert sein):
+
+```
+./gradlew createIliModelsXml validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer
+```
+
+Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten.
