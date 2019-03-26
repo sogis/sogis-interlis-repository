@@ -1,0 +1,176 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2019-01-30 | Martin Schweizer  | Erstfassung
+ * !! 2019-02-11 | Martin Schweizer  | Korrektur
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AWJF_Seltene_Baumarten_20190211 (de)
+AT "http://geo.so.ch/models/AWJF"
+VERSION "2019-02-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC seltene_Baumarten =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      /** Art des Baums gemaess Liste des WSL
+       */
+      Baumart = (
+        Weisstanne,
+        Laerche,
+        Fichte,
+        Arve,
+        Bergfoehre,
+        Schwarzfoehre,
+        Weymouthsfoehre,
+        Waldfoehre,
+        Douglasie,
+        Eibe,
+        Thuja,
+        Uebrige_Nadelbaeume,
+        Feldahorn,
+        Schneeballblaettriger_Ahorn,
+        Spitzahorn,
+        Bergahorn,
+        Rosskastanie,
+        Schwarzerle,
+        Grauerle,
+        Gruenerle,
+        Birke,
+        Moorbirke,
+        Hagebuche,
+        Edelkastanie,
+        Buche,
+        Esche,
+        Nussbaum,
+        Holzapfel,
+        Hopfenbuche,
+        Pappel,
+        Kirschbaum,
+        Traubenkirsche,
+        Birnenbaum,
+        Wildbirne,
+        Eiche,
+        Stieleiche,
+        Flaumeiche, 
+        Robinie,
+        Weide,
+        Mehlbeere,
+        Vogelbeere,
+        Vogelkirsche, 
+        Elsbeere,
+        Linde,
+        Ulme,
+        Bergulme, 
+        Feldulme, 
+        Wildapfel, 
+        Wildobst, 
+        Faulbaum, 
+        Speierling, 
+        Mispel, 
+        Uebrige_Laubbaeume
+      );
+
+    /** Oberklasse der seltenen Baumarten.
+     */
+    CLASS Seltene_Baumart (ABSTRACT) =
+      /** ID pro Forstrevier. Jeder Baum hat eine ID, welche aus dem Kuerzel fuer das Forstrevier und einer Nummer besteht.
+       */
+      ID_Forstrevier : MANDATORY TEXT*10;
+      /** Handelt es sich um eine Pflanzung? Ja / nein?
+       */
+      Pflanzung : MANDATORY BOOLEAN;
+      /** Jahr der Erfassung des Baumes
+       */
+      Erfassungsjahr : INTERLIS.GregorianYear;
+      /** Waldgesellschaft (welche Baumarten wachsen auf diesem Boden).
+       */
+      Waldgesellschaft : TEXT*10;
+      /** Eigentuemer des Baumes / der Pflanzung
+       */
+      Eigentuemer : TEXT*50;
+      /** Sponsor des Baumes / der Pflanzung
+       */
+      Sponsor : TEXT*50;
+      /** Bemerkung
+       */
+      Bemerkung : TEXT*200;
+      /** Gesuchnummer aus einer Datenbank des AWJF
+       */
+      Gesuchnummer : 100 .. 9999;
+      /** Erfolgte die Auszahlung? Ja /  Nein?
+       */
+      Auszahlung_erfolgte : MANDATORY BOOLEAN;
+      /** Jahr, in welchem die Auszahlung erfolgte
+       */
+      Auszahlungsjahr : INTERLIS.GregorianYear;
+    END Seltene_Baumart;
+
+    /** Freistehende seltene Baumarten
+     */
+    CLASS Freistellung
+    EXTENDS Seltene_Baumart =
+      /** Anzahl Baeume an diesem Standort
+       */
+      Anzahl : 0 .. 9999;
+      /** Brusthoehendurchmesser
+       */
+      Brusthoehendurchmesser : TEXT*12;
+      /** Standort des Baumes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Freistellung;
+
+    /** Pflanzungen seltener Baeume (Flaeche)
+     */
+    CLASS Pflanzung
+    EXTENDS Seltene_Baumart =
+      /** Flaeche einer Pflanzung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Pflanzung;
+
+    /** Baumtyp
+     */
+    CLASS Baumtyp =
+      /** Art des Baumes
+       */
+      Baumart : MANDATORY Baumart;
+    END Baumtyp;
+
+    /** Beziehung zwischen Freistellung und Bamtyp
+     */
+    ASSOCIATION Beziehung_Freistellung_Baumtyp =
+      /** Fremdschluessel zu Baumtyp
+       */
+      Baumtyp -- {1} Baumtyp;
+      /** Fremdschluessel zu Freistellung
+       */
+      Freistellung -- {0..*} Freistellung;
+    END Beziehung_Freistellung_Baumtyp;
+
+    /** Baumarten, welche in der Pflanzung vorkommen
+     */
+    ASSOCIATION Beziehung_Pflanzung_Baumtyp =
+      /** Fremdschluessel zu Baumtyp
+       */
+      Baumtyp -- {0..*} Baumtyp;
+      /** Fremdschluessel zur Pflanzung
+       */
+      Pflanzung -- {0..*} Pflanzung;
+      /** Anzahl der vorhandenen Baeume der entsprechenden Baumart
+       */
+      Anzahl_Baeume : MANDATORY 0 .. 100000;
+      /** Info zu dieser Baumart in dieser Pflanzung (z.B.Brusthoehendurchmesser etc.)
+       */
+      Info : TEXT*100;
+    END Beziehung_Pflanzung_Baumtyp;
+
+  END seltene_Baumarten;
+
+END SO_AWJF_Seltene_Baumarten_20190211.

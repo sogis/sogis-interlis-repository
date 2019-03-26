@@ -1,0 +1,73 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Aenderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2019-01-29 | NS  | Erstversion
+ *  !! 2019-02-01 | NS  | Anpassung Zaehlart
+ *  !! 2019-02-06 | NS  | Anpassung Laenge Bezeichnung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AVT_Verkehrszaehlstellen_20190206 (de)
+AT "http://geo.so.ch/models/AVT"
+VERSION "2019-02-06"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Verkehrszaehlstellen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Information zu den Dokumenten
+     */
+    CLASS Dokument =
+      /** Bezeichnung fuer das Datenblatt
+       */
+      Bezeichnung : MANDATORY TEXT*500;
+      /** Link zum Datenblatt
+       */
+      Link : MANDATORY INTERLIS.URI;
+      /** Jahrgang des Datenblatts
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+    END Dokument;
+
+    /** Stelle an der der Verkehr manuell oder automatisch gezaehlt wird.
+     */
+    CLASS Verkehrszaehlstelle =
+      /** Bezeichnung der Zaehlstelle
+       */
+      Bezeichnung : MANDATORY TEXT*15;
+      /** Art der Zaehlung
+       */
+      Zaehlart : MANDATORY (
+        /** staedtische Zaehlung
+         */
+        staedtische_Zaehlung,
+        /** Lichtsignalanlage (LSA)
+         */
+        Lichtsignalanlage,
+        /** automatische Verkehrszaehlstelle (AVZ)
+         */
+        automatische_Verkehrszaehlstelle,
+        /** manuelle Zaehlung
+         */
+        manuell
+      );
+      /** Darstellung der Zaehlstelle als Punkt
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      UNIQUE Bezeichnung;
+    END Verkehrszaehlstelle;
+
+    ASSOCIATION Verkehrszaehlstelle_Dokument =
+      /** Fremdschluessel zu Verkehrszaehlstelle
+       */
+      Verkehrszaehlstelle -- {1} Verkehrszaehlstelle;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Verkehrszaehlstelle_Dokument;
+
+  END Verkehrszaehlstellen;
+
+END SO_AVT_Verkehrszaehlstellen_20190206.

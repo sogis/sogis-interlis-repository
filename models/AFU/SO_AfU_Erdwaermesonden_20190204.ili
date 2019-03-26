@@ -1,0 +1,153 @@
+INTERLIS 2.3;
+
+/** !! Seitenwagenmodell fuer die Fachapplikation
+ * !! Erdwaermesonden.
+ * !! Auf die Verwendung von UUIDOID wurde aufgrund des
+ * !! Anwendungsfalles bewusst verzichtet.
+ * !! In den Attributen mit Suffix _Code sind die in der Fachapplikation
+ * !! Erdaermesonden vergebenen Codes vermerkt. Die gueltigen Werte und Bedeutung
+ * !! der Codes sind in code_values.html erlaeutert.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2018-02-04 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AfU_Erdwaermesonden_20190204 (de)
+AT "http://geo.so.ch/models/AFU/"
+VERSION "2019-02-04"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  TOPIC Erdwaermesonden =
+
+    /** Anlage zum Waermen / Kuehlen von Gebaeuden mittels Waermetauscher in Boden oder Wasser. Eine Anlage umfasst 0-n Bohrungen.
+     */
+    CLASS Anlage =
+      /** Interner Schluessel der Anlage in Uplus.
+       * 
+       * UPlusAttribut: __uuid
+       */
+      Anlage_UUID : MANDATORY INTERLIS.UUIDOID;
+      /** UPlusAttribut: ComGenFileNoGrp
+       */
+      Aktennummer : TEXT*4000;
+      /** In Uplus verwalteter codierter Wert des aktuellen Status.
+       * 
+       * UPlusAttribut: ComGenStatusVoc.logicalName
+       */
+      Status_Code : MANDATORY TEXT*4000;
+      /** In Uplus verwalteter Anzeigetext für den Status der Anlage
+       * 
+       * UPlusAttribut: ComGenStatusVoc.label
+       */
+      Status_Text : MANDATORY TEXT*4000;
+      /** In Uplus verwalteter codierter Wert des aktuellen Geschaeftsstatus.
+       * 
+       * UPlusAttribut: ComEwsStatusVoc.logicalName (Status Geschaeft)
+       */
+      Geschaeftsstatus_Code : MANDATORY TEXT*4000;
+      /** In Uplus verwalteter Anzeigetext fuer den Status des Geschaeftes.
+       * 
+       * UPlusAttribut: ComEwsStatusVoc.label (Status Geschaeft)
+       */
+      Geschaeftsstatus_Text : MANDATORY TEXT*4000;
+      /** In Uplus verwalteter codierter Wert der Waermequelle
+       * 
+       * UPlusAttribut: ComCotRef.CotLogicalNameTxt
+       */
+      Waermequelle_Code : MANDATORY TEXT*4000;
+      /** In Uplus verwalteter Anzeigetext fuer die Waermequelle.
+       * 
+       * UPlusAttribut: Typ/ComCotRef
+       */
+      Waermequelle_Text : MANDATORY TEXT*4000;
+      /** Bezeichnung der Anlage, ohne Zeilenumbrueche.
+       * 
+       * UPlusAttribut: ComGenDescriptionTxt (Bezeichnung)
+       */
+      Bezeichnung : TEXT*4000;
+      /** UPlusAttribut: ComEwsBoreHoleGrpCountLnu
+       */
+      Anzahl_Bohrloecher : 0 .. 2147483647;
+      /** Beispiel: Oberbuchsiten
+       */
+      Grundbuch_Name : TEXT*4000;
+      /** Die Nummer des Grundbuches, muss aus historischen Gruenden als Text gefuehrt werden.
+       * 
+       * UPlusAttribut: SitGenParcelNoTxt
+       */
+      Grundbuchnummer_Text : TEXT*4000;
+      Gutachten_vorhanden : MANDATORY BOOLEAN;
+      /** UPlusAttribut: ComWstRef.WstStartDat fuer Geschaeftsschritt WorkflowType-Ews-Bew_090
+       */
+      Datum_Bewilligung : INTERLIS.XMLDate;
+      /** Name der Gemeinde, auf deren Boden die Anlage gebaut wird
+       * 
+       * UPlusAttribut: ComSitRef.SitTowRef.FirGenTownVoc.label
+       */
+      Gemeindename : TEXT*4000;
+      /** Summe der Sondenmeter (der Bohrtiefen) aller Bohrungen der Anlage.
+       * Null bei Anlagen ohne Bohrungen.
+       * 
+       * UPlusAttribut: ComEwsTotalLengthNum
+       */
+      Sondenmeter_Summe : 0 .. 2147483647;
+      /** Leistung der Anlage [kW].
+       * 
+       * UPlusAttribut: ComEwsPowerHeatingNum
+       */
+      Leistung : 0 .. 2147483647;
+      /** Gibt an, ob die Anlage Waerme in die Umwelt abgibt (Umwelt: Boden, Wasser, Luft, ...)
+       * 
+       * UPlusAttribut: ComEwsHeatInputVoc.label Feld namens Waermeeintrag
+       */
+      Waermeeintrag : TEXT*4000;
+      /** UPlusAttribut: SitGenYCoordinatesNum (east)/ SitGenXCoordinatesNum (nord)
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      UNIQUE Anlage_UUID;
+    END Anlage;
+
+    /** Bohrung mit Waermetauscher fuer die Anlage der ID [Anlage_UUID].
+     */
+    CLASS Bohrung =
+      /** Fremdschluessel auf die interne Anlage-UUID in Uplus.
+       * 
+       * UPlusAttribut: __uuid
+       */
+      Anlage_UUID : MANDATORY INTERLIS.UUIDOID;
+      /** Aktennummer der Anlage der Bohrung
+       * 
+       * UPlusAttribut: ComGenFileNoGrp
+       */
+      Aktennummer_Anlage : TEXT*4000;
+      /** Sprechende Nummer der Bohrung.
+       * 
+       * UPlusAttribut: ComEwsBoreHoleGrp.NoLnu
+       */
+      Bohrung_Nummer : 0 .. 2147483647;
+      /** UPlusAttribut: ComEwsBoreHoleGrp.RemarkClb
+       */
+      Bohrtiefe : 0 .. 2147483647;
+      /** JSON-Array von String-Textbloecken zu den Vorkommnissen.
+       * 
+       * UPlusAttribut: ComEwsBoreHoleGrp.RemarkClb
+       */
+      Vorkommnisse : MTEXT;
+      /** Voll qualifizierter http(s) Link auf das Bohrprofil-Dokument.
+       * 
+       * UPlusAttribut: ComEwsBoreHoleGrp.MulRef
+       */
+      Bohrprofil_Link : INTERLIS.URI;
+      /** Sagt aus, ob fuer die Bohrung Bohrprofile vorhanden sind.
+       */
+      Bohrprofil_vorhanden : MANDATORY BOOLEAN;
+      /** UPlusAttribut: ComEwsBoreHoleGrp.EastNum resp. ComEwsBoreHoleGrp.NorthNum
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      UNIQUE Anlage_UUID, Bohrung_Nummer;
+    END Bohrung;
+
+  END Erdwaermesonden;
+
+END SO_AfU_Erdwaermesonden_20190204.
