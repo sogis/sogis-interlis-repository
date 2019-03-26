@@ -45,7 +45,7 @@ Im `ilisite.xml` sind sämtlichen Metadaten zur vorliegenden Modellablage aufgef
 Das File `ilimodels.xml` beinhaltet das Verzeichnis mit allen Datenmodellen inklusive deren Metadaten. Hier werden pro Datenmodell Metainformationen verwaltet. Die Datei ist das eigentlich Herzstück der Modellablage und muss nachgeführt werden, falls neue Modelle entstehen oder alte abgelöst werden werden. Die Datei wird wird bei jedem Commit in das Github-Respository mit einem _GRETL_-Task in Travis neu erstellt. Aufgrund des Automatisationsprozesses werden einige Attribute nicht mehr geführt, da diese nicht im INTERLIS-Modell vorhanden sind. Mit Metaattributen in der Modellen könnte man viele dieser jetzt fehlenden Attribute automatisch nachführen.
 
 ### Neue Datenmodell in die Modellablage aufnehmen
-Es genügt das Kopieren des Modelles in den _Amts_-Ordner. Alles weitere, inklusive der Prüfung der Modellablage mit _ili2c_, wird im automatischen Buildprozess gemacht.
+Es genügt das Kopieren des Modelles in den _Amts_-Ordner. Alles weitere, inklusive der Prüfung der Modellablage mit _ili2c_, wird im automatischen Buildprozess gemacht. Falls der _Amts_-Ordner noch nicht existiert, muss dieser angelegt werden. Entsprechend ist das Dockerfile anzupassen.
 
 ### Datenmodell bearbeiten
 Ein bereits im Repository aufgeführtes Datenmodell darf nicht bearbeitet werden und unter dem gleichen Namen wieder abgespeichert werden. Wird ein schon bestehendes Datenmodell überarbeitet muss dieses mit gleichem Projektnamen aber mit einer neuen Versionsnummer abgespeichert werden. Z. B. `SO_ARP_Nutzungsplanung_20150301.ili` wird bearbeitet und muss anschliessend unter dem neuen Namen z.B. `SO_ARP_Nutzungsplanung_20171118.ili` abgespeichert werden. 
@@ -63,4 +63,4 @@ Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installie
 ./gradlew createIliModelsXml validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer
 ```
 
-Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten.
+Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten. Um ungewünschte Nebeneffekte auszuschliessen, ist das `.ilicache`-Verzeichnis im Home-Verzeichnis zu löschen.

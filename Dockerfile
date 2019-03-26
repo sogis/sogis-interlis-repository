@@ -9,10 +9,12 @@ RUN touch /var/run/nginx.pid && \
 RUN mkdir -p /opt/repository/
 
 COPY models/AFU /opt/repository/AFU
+COPY models/AGEM /opt/repository/AGEM
 COPY models/AGI /opt/repository/AGI
 COPY models/ALW /opt/repository/ALW
 COPY models/AMB /opt/repository/AMB
 COPY models/ARP /opt/repository/ARP 
+COPY models/AVT /opt/repository/AVT 
 COPY models/AWJF /opt/repository/AWJF
 COPY models/Gemeinden /opt/repository/Gemeinden
 
