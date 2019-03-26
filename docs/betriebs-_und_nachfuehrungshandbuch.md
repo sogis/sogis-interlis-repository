@@ -1,7 +1,7 @@
 # Betriebs- und Nachführungshandbuch
 
 ## Einleitung
-Die INTERLIS-Modellablage ist ein Docker-Image und wird in OpenShift betrieben. Die Modelle und weitere Dateien werden im Github-Repository gespeichert. Jeder Commit in das Repository löst einen Buildprozess in Travis aus. Das erste Resultat des Buildprozesses ist eine neue, nachgeführte `ilimodels.xml`-Datei. Anschliessend werden ein Docker-Image erstellt, welches die eigentliche INTERLIS-Modellablage repräsentiert, d.h. die Modelle werden immer in das Image gebrannt. Das Image resp. der Container der Testumgebung in OpenShift wird viertelstündlich nachgeführt.
+Die INTERLIS-Modellablage ist ein Docker-Image und wird in OpenShift betrieben. Die Modelle und weitere Dateien werden im Github-Repository gespeichert. Jeder Commit in das Repository löst einen Buildprozess in Travis aus. Das erste Resultat des Buildprozesses ist eine neue, nachgeführte `ilimodels.xml`-Datei. Anschliessend wird ein Docker-Image erstellt, welches die eigentliche INTERLIS-Modellablage repräsentiert, d.h. die Modelle werden immer in das Image gebrannt. Das Image resp. der Container der Testumgebung in OpenShift wird viertelstündlich nachgeführt.
 
 ## Betrieb
 TODO:
