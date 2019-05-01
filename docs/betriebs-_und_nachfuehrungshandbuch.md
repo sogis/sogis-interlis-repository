@@ -32,6 +32,8 @@ Die INTERLIS-Modelle werden gemäss den zuständigen Ämtern abgelegt. Dadurch s
     - replaced            
   - Gemeinden
     - replaced
+  - SGV
+    - replaced
 
 Sämtliche Interlis-Modelle müssen in den “Amts“-Ordnern abgelegt werden. In jedem _Amts_-Ordner gibt es noch einen _replaced_-Ordner. In diesen werden nicht mehr aktuelle Modelle abgespeichert. Z.B. Modelle welche durch eine neuere Modellversion abgelöst wurden. Im Ordner _models_ sind die beiden Files `ilimodels.xml` und `ilisite.xml` vorhanden, welche einerseits das Verzeichnis der Modelle und die Modell-Metadaten und andererseits die Repository-Metadaten enthalten.    
 
