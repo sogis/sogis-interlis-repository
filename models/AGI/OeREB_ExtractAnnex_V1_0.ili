@@ -1,0 +1,113 @@
+INTERLIS 2.3;
+
+/** Zusatzdaten für statischen OEREB-Auszug
+ */
+MODEL OeREB_ExtractAnnex_V1_0 (de)
+AT "mailto:ce@eisenhutinformatik.ch"
+VERSION "2019-07-24"  =
+  IMPORTS OeREBKRM_V1_1,CHAdminCodes_V1,LocalisationCH_V1,CatalogueObjects_V1;
+
+    DOMAIN
+      Code = TEXT*60;
+      STRUCTURE Code_ = value : MANDATORY Code; END Code_;
+    TOPIC Annex =
+        
+        CLASS ThemaTxt
+        	EXTENDS CatalogueObjects_V1.Catalogues.Item =
+		  Code : MANDATORY OeREBKRM_V1_1.Thema;
+		  Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+          /** 
+           * Kantonales Subthema zu einem Bundesthema:
+           *   Code=Nutzungsplanung
+           *   otherCode=ch.so.Nutzungsplanung.CantonalBuildingLines
+           *   In der Transferstruktur:
+           *     Eigentumsbeschraenkung/Thema=Nutzungsplanung
+           *     Eigentumsbeschraenkung/SubThema=CantonalBuildingLines
+           * Kantonales Thema (kein Subthema zu einem Bundesthema): 
+           *   Code=WeiteresThema
+           *   otherCode=ch.so.Einzelschutz
+           *   In der Transferstruktur:
+           *     Eigentumsbeschraenkung/Thema=WeiteresThema
+           *     Eigentumsbeschraenkung/SubThema=ch.so.Einzelschutz
+           */
+          otherCode : Code;
+          MANDATORY CONSTRAINT Code!=#WeiteresThema OR DEFINED(otherCode);
+          UNIQUE otherCode;
+        END ThemaTxt;
+        
+		CLASS Logo =
+		  /** ch.plr, ch, ch.so oder ch.bfsnr
+		   */
+		  code : MANDATORY Code;
+		  logo : MANDATORY BLACKBOX BINARY;
+		  UNIQUE code;
+		END Logo;
+		
+		CLASS MunicipalityWithPLRC =
+		  /** BFS-Nr.
+		   */
+		  municipality : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+		  /** Thema / SubThema 
+		   */
+		  themes : BAG OF Code_;
+		  /** Stand der Grundlagedaten z.B. der AV
+		   */
+		  baseDataDate : INTERLIS.XMLDateTime;
+		  metadataOfGeographicalBaseData : URI;
+		  UNIQUE municipality;
+		END MunicipalityWithPLRC;
+		
+		CLASS Office =
+		  Name : MANDATORY LocalisationCH_V1.MultilingualText;
+		  /** OfficeAtWeb wird für die Referenzierung verwendet!
+		   *  solange UID nicht generell zugeordnet.
+		   */
+		  OfficeAtWeb : MANDATORY OeREBKRM_V1_1.WebReferenz;
+		  UID : OeREBKRM_V1_1.UID;
+		  /** Falls im statischen Auszug mehr Informationen angezeigt 
+		   *  werden sollen als im Rahmenmodell möglich ist zu erfassen. 
+		   *  Im Rahmenmodell können nur die Attribute Name, AmtImWeb, UID erfasst werden.
+		  */
+		  Line1 : TEXT*80;
+		  Line2 : TEXT*80;
+		  Street : TEXT*100;
+		  Number : TEXT*7;
+		  PostalCode : TEXT*4;
+		  City : TEXT*60;
+		  UNIQUE UID;
+		  UNIQUE OfficeAtWeb;
+		END Office;
+
+    CLASS Glossary =
+	  /** Abkürzung
+	   */
+      Title : MANDATORY LocalisationCH_V1.MultilingualText;
+	  /** Beschreibung der Abkürzung
+	   */	  
+      Content : MANDATORY LocalisationCH_V1.MultilingualMText;
+    END Glossary;
+
+    CLASS ExclusionOfLiability =
+	  /** Haftungsausschuss
+	   */
+      Title : MANDATORY LocalisationCH_V1.MultilingualText;
+	  
+      Content : MANDATORY LocalisationCH_V1.MultilingualMText;
+    END ExclusionOfLiability;
+		
+    CLASS  GeneralInformation =
+	  /** Allgemeine Informationen
+	   */
+      Content : MANDATORY LocalisationCH_V1.MultilingualMText;
+    END GeneralInformation;
+
+    CLASS  BaseData =
+	 /** Grundlagedaten z.B. AV
+	  */
+      Content : MANDATORY LocalisationCH_V1.MultilingualMText;
+	END BaseData;		
+		
+	END Annex;
+    
+
+END OeREB_ExtractAnnex_V1_0.
