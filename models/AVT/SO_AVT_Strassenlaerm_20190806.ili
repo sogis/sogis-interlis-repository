@@ -1,0 +1,68 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Aenderung
+ *  !!------------------------------------------------------------------------------ 
+ *  !! 2019-04-15 | cst | Initialversion
+ *  !! 2019-08-06 | cst | Attribut empfindlichkeitsstufe neu vom Typ TEXT
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AVT_Strassenlaerm_20190806 (de)
+AT "http://www.geo.so.ch/models/AVT"
+VERSION "2019-08-06"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,LBK_Haupt_uebrigeStrassen_LV95_V1_1,LBK_Haupt_uebrigeStrassen_Codelisten_V1_1;
+ 
+  /** Erweiterung des MGDM-TOPIC um OID-Deklaration. Import aller Klassen ohne weitere Zusaetze.
+   */
+  TOPIC Emission_Strasse
+  EXTENDS LBK_Haupt_uebrigeStrassen_LV95_V1_1.Emission_Strasse =
+    OID AS INTERLIS.UUIDOID;
+	DEPENDS ON LBK_Haupt_uebrigeStrassen_Codelisten_V1_1.Codelisten;
+
+	CLASS inputdata_EsonROAD (EXTENDED) = END inputdata_EsonROAD;
+	CLASS inputdata_EStl86 (EXTENDED) = END inputdata_EStl86;
+	
+    CLASS inputdata_Estreet_SO (ABSTRACT)
+    EXTENDS LBK_Haupt_uebrigeStrassen_LV95_V1_1.Emission_Strasse.inputdata_Estreet =
+    END inputdata_Estreet_SO;
+
+    CLASS inputdata_tram (EXTENDED) = END inputdata_tram;
+    CLASS streetemission (EXTENDED) = END streetemission; 
+
+  END Emission_Strasse;
+
+  /** Erweiterung des MGDM-TOPIC um OID-Deklaration. Import aller Klassen.
+   */
+  TOPIC Immission_Strasse
+  EXTENDS LBK_Haupt_uebrigeStrassen_LV95_V1_1.Immission_Strasse =
+    OID AS INTERLIS.UUIDOID;
+	DEPENDS ON LBK_Haupt_uebrigeStrassen_Codelisten_V1_1.Codelisten;
+
+    CLASS affected_analysis (EXTENDED) = END affected_analysis;
+    CLASS dispersion_calculation (EXTENDED) = END dispersion_calculation;
+    CLASS noisebarrier (EXTENDED) = END noisebarrier;
+
+	/** Erweiterung Klasse pointofdetermination aus MGDM um zusaetzliche Attribute
+     */
+    CLASS pointofdetermination (EXTENDED) =
+	  /** Immissionsgrenzwert Tag [dBA]
+       */
+	  grenzwert_tag : 0 .. 100;
+	  /** Immissionsgrenzwert Nacht [dBA]
+       */
+	  grenzwert_nacht : 0 .. 100;
+	  /** Laerm-Empfindlichkeitsstufe
+       */
+	  empfindlichkeitsstufe : TEXT*4;
+	  /** wird Nationalstrassenlaerm beruecksichtigt (true) oder nicht (false)
+       */
+	  inklusive_nationalstrasse : BOOLEAN;
+    END pointofdetermination;
+
+    ASSOCIATION dispersion_calculation2pointofdetermination(EXTENDED) =
+    END dispersion_calculation2pointofdetermination;
+
+  END Immission_Strasse;
+
+END SO_AVT_Strassenlaerm_20190806.
