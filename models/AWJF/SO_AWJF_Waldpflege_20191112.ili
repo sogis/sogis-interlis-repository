@@ -1,0 +1,120 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2019-07-09 | al  | Modell für Pilot "Erfassung Web GIS Client"
+ * !! 2019-11-11 | al  | Modell Anpassung mit Aufteilung "Erfassung" und "Kontrolle"
+ * !!==============================================================================
+ */
+!!@ technicalContact=agi@so.ch
+MODEL SO_AWJF_Waldpflege_Erfassung_20191112 (de)
+AT "http://www.geo.so.ch/models/AWJF"
+VERSION "2019-11-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Waldpflege =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Waldpflege =
+      /** Geometrie der gepflegten Jungwaldflächen wird von den Gesuchstellern erfasst.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceStructure;
+      /** Bemerkung des Gesuchstellers
+       */
+      Bemerkung : MTEXT;
+      /** Abrechnungsjahr wird automatisch erfasst beim Zeitpunkt der Speicherung der Waldpflege.
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Eindeutige Nummer des Gesuchstellers
+       */
+      Gesuchnummer : MANDATORY 0 .. 9999;
+      /** Ja für Dauerwaldpflege, Nein für Jungwaldpflege
+       */
+      Dauerwald : MANDATORY BOOLEAN;
+      /** Kürzel oder Namen der Person, die die Waldpflege erfasst hat.
+       */
+      Erfasser : MANDATORY TEXT*50;
+    END Waldpflege;
+
+  END Waldpflege;
+
+END SO_AWJF_Waldpflege_Erfassung_20191112.
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2019-11-12 | al  | Erste Version des Modells "Kontrolle"
+ * !!==============================================================================
+ */
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AWJF_Waldpflege_Kontrolle_20191112 (de)
+AT "http://www.geo.so.ch/models/AWJF"
+VERSION "2019-11-11"  =
+  IMPORTS GeometryCHLV95_V1,SO_AWJF_Waldpflege_Erfassung_20191112,CHAdminCodes_V1;
+
+  TOPIC Waldpflege
+  EXTENDS SO_AWJF_Waldpflege_Erfassung_20191112.Waldpflege =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Waldpflege (EXTENDED) =
+      /** Forstkreis hat die Waldpflege akzeptiert ja / nein.
+       */
+      Kontrolle_Forstkreis : MANDATORY BOOLEAN;
+      /** Bemerkung des Forstkreises
+       */
+      Bemerkung_Forstkreis : MTEXT;
+      /** Fläche die doppelt sind. Für Berechnung an Bund wichtig.
+       */
+      Mehrfachpflege : 0 .. 999999999;
+      /** Kantonsbeitrag in CHF, Berechnung Fläche (in Aren) x 15.- oder 4.50 x Abstufung.
+       */
+      Beitrag : MANDATORY 0.00 .. 999999.99;
+      /** Name des Gesuchstellers
+       */
+      Gesuchsteller : TEXT*100;
+      /** Kategorie des Eigentümers
+       */
+      Eigentuemerart : (
+        Staat,
+        Privat,
+        oeffentlich
+      );
+      /** Bezeichnung Forstrevier
+       */
+      Forstrevier : TEXT*50;
+      /** Bezeichnung des Forstkreis
+       */
+      Forstkreis : TEXT*50;
+      Anrede : TEXT*50;
+      /** Vorname oder erster Name in der Adresszeile (z.B. Gemeinde)
+       */
+      Name1 : TEXT*50;
+      /** Nachname oder zweiter Name in der Adresszeile (z.B. Matzendorf)
+       */
+      Name2 : MTEXT*50;
+      /** Adresszusatz für Adresszeile 3 (z.B. c/o Germann Wiggli)
+       */
+      Adresszusatz : TEXT*50;
+      /** Strasse und Hausnummer
+       */
+      Strasse_Hausnummer : TEXT*50;
+      /** Postleitzahl
+       */
+      PLZ : 1000 .. 9999;
+      Ortschaft : TEXT*50;
+      Bemerkung_Stab : MTEXT;
+      /** Kreditorennummer des Gesuchstellers
+       */
+      Kreditorennummer : 100000 .. 999999;
+      /** Abstufung (50% bis 100%) der Finanzhife gemäss Waldverordnung §50
+       */
+      Abstufung_50_100 : 0.50 .. 1.00;
+      /** Fläche in Aren, wird automatisch berechnet aus der Geometrie.
+       */
+      Flaeche : 0.0 .. 999999.9;
+    END Waldpflege;
+
+  END Waldpflege;
+
+END SO_AWJF_Waldpflege_Kontrolle_20191112.
