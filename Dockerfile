@@ -18,6 +18,7 @@ COPY models/AVT /opt/repository/AVT
 COPY models/AWJF /opt/repository/AWJF
 COPY models/Gemeinden /opt/repository/Gemeinden
 COPY models/SGV /opt/repository/SGV
+COPY models/ADA /opt/repository/ADA
 
 COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/
