@@ -1,0 +1,157 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Aenderung
+ * ------------------------------------------------------------------------------
+ * 2019-11-19 | AL  | Kantonale Ergänzung des minimalen Geodatenmodells
+ *            |     | Waldgrenzen_LV95_V1_1
+ * ==============================================================================
+ */
+!!@ technicalContact=agi@so.ch
+!!@ IDGeoIV=157
+MODEL SO_AWJF_Statische_Waldgrenzen_20191119 (de)
+AT "http://www.geo.so.ch/models/AWJF"
+VERSION "2019-11-19"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Art_Waldgrenze = (
+      Nutzungsplanung_in_Bauzonen,
+      Nutzungsplanung_ausserhalb_Bauzonen,
+      anderes_Verfahren,
+      Einzelfeststellung
+    );
+
+    Dokumententyp = (
+      Verfuegung,
+      Bericht,
+      RRB,
+      Waldfeststellungsplan
+    );
+
+    Rechtsstatus = (
+      inKraft,
+      /** Noch nicht in Kraft, eine Änderung ist in Vorbereitung.
+       */
+      laufendeAenderungen,
+      aufgehoben
+    );
+
+    Verbindlichkeit = (
+      /** Eigentümerverbindlich, im Verfahren der Nutzungsplanung festgelegt.
+       */
+      Nutzungsplanfestlegung,
+      /** Eigentümerverbindlich, in einem anderen Verfahren festgelegt.
+       */
+      orientierend,
+      /** Informationsinhalt
+       */
+      hinweisend,
+      /** Nicht eigentümerverbindlich, sie umfassen Qualitäten, Standards und dergleichen, die zu berücksichtigen sind.
+       */
+      wegleitend
+    );
+
+  TOPIC Dokumente =
+
+    CLASS Dokument =
+      /** Offizieller Titel des Dokuments.
+       */
+      OffiziellerTitel : MANDATORY TEXT;
+      Abkuerzung : TEXT*12;
+      /** Offizielle Nummer z.B. RRB-Nr.
+       */
+      OffizielleNr : TEXT*20;
+      /** Kantonskürzel falls Vorschrift des Kantons oder der Gemeinde. Falls die Angabe fehlt, ist es eine Vorschrift des Bundes.
+       */
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      /** BFSNr falls eine Vorschrift der Gemeinde. Falls die Angabe fehlt, ist es eine Vorschrift des Kantons oder des Bundes.
+       */
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Datum, ab dem dieses Dokument in Auszügen erscheint.
+       */
+      publiziert_ab : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY SO_AWJF_Statische_Waldgrenzen_20191119.Rechtsstatus;
+      /** Verweis auf das Element im Web.
+       */
+      Text_im_Web : TEXT;
+      /** Erläuternder Text oder Bemerkungen.
+       */
+      Bemerkungen : MTEXT;
+      /** Art des Dokuments. Der Wert wird im MGDM unter dem Attribut "Titel" abgebildet.
+       */
+      Typ : MANDATORY SO_AWJF_Statische_Waldgrenzen_20191119.Dokumententyp;
+      /** Datum der Archivierung. Dokumente sind nicht mehr gültig.
+       */
+      Datum_Archivierung : INTERLIS.XMLDate;
+      /** Name der Firma, welche die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum wann die Daten erfasst sind.
+       */
+      Datum_Erfassung : INTERLIS.XMLDate;
+    END Dokument;
+
+  END Dokumente;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON SO_AWJF_Statische_Waldgrenzen_20191119.Dokumente;
+
+    CLASS Typ =
+      /** Bezeichnung der Waldgrenze.
+       */
+      Bezeichnung : MANDATORY TEXT*80;
+      /** Abgekürzte Bezeichnung.
+       */
+      Abkuerzung : TEXT*10;
+      /** Nutzungsplanfestlegung, orientierend, hinweisend oder wegleitend.
+       */
+      Verbindlichkeit : MANDATORY SO_AWJF_Statische_Waldgrenzen_20191119.Verbindlichkeit;
+      /** Erläuternder Text oder Bemerkungen.
+       */
+      Bemerkungen : MTEXT;
+      /** Art der Waldgrenze.
+       */
+      Art : MANDATORY SO_AWJF_Statische_Waldgrenzen_20191119.Art_Waldgrenze;
+    END Typ;
+
+    CLASS Waldgrenze_Linie =
+      /** Geometrie als 2D-Linienzug.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      Rechtsstatus : MANDATORY SO_AWJF_Statische_Waldgrenzen_20191119.Rechtsstatus;
+      /** Datum, ab dem die Waldgrenze in Auszügen erscheint.
+       */
+      publiziert_ab : MANDATORY INTERLIS.XMLDate;
+      /** Erläuternder Text oder Bemerkungen.
+       */
+      Bemerkungen : MTEXT;
+      /** Name der Firma, welche die Daten erfasst hat.
+       */
+      Erfasser : TEXT*80;
+      /** Datum wann die Daten erfasst sind.
+       */
+      Datum_Erfassung : INTERLIS.XMLDate;
+      /** Datum der Archivierung. Daten sind nicht mehr gültig.
+       */
+      Datum_Archivierung : INTERLIS.XMLDate;
+      /** Datum der Genehmigung.
+       */
+      genehmigt_am : INTERLIS.XMLDate;
+      Nummer : TEXT*80;
+    END Waldgrenze_Linie;
+
+    ASSOCIATION Typ_Dokument =
+      Dokumente (EXTERNAL) -- {0..*} SO_AWJF_Statische_Waldgrenzen_20191119.Dokumente.Dokument;
+      Festlegung (EXTERNAL) -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Waldgrenze_Linie;
+      Waldgrenze_Typ -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+END SO_AWJF_Statische_Waldgrenzen_20191119.
