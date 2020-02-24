@@ -1,0 +1,83 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Änderung
+ *  ------------------------------------------------------------------------------
+ * 2019-09-05 | al  | Initialversion Publikationsmodell
+ * 2020-02-24 | an  | - Mehr Attribute gemäss Edit-Modell auf "Mandatory" gesetzt
+ *                  | - Leeres Topic "Stand_Gueterregulierung" entfernt
+ *                  | - Textlängen tw. erhöht mit Anpassung an Edit-Modell
+ * ==============================================================================
+ */
+MODEL SO_ALW_Strukturverbesserungen_Publikation_20190905 (de)
+AT "http://www.geo.so.ch/models"
+VERSION "2019-09-05"  // eugr // =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1;
+
+  TOPIC Strukturverbesserung =
+
+    CLASS Beizugsgebiet =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Datum_Nachfuehrung : INTERLIS.GregorianDate;
+      Typ : MANDATORY TEXT*30;
+      Geschaeftsnummer : TEXT*10;
+      Kantonsnummer : TEXT*40;
+      Projekttyp : MANDATORY TEXT*60;
+    END Beizugsgebiet;
+
+    CLASS Genossenschaft =
+      Typ : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*100;
+      Unterhaltsobjekte : TEXT*50;
+      Gruendungsdatum : MANDATORY INTERLIS.GregorianDate;
+      Genehmigungsdatum : MANDATORY INTERLIS.GregorianDate;
+      Reorganisationsdatum : INTERLIS.GregorianDate;
+      Aufloesungsdatum : INTERLIS.GregorianDate;
+      Bemerkung : MTEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Kantonsnummer : TEXT*10;
+      Geschaeftsnummer : TEXT*10;
+      /** ili2db.mapping=JSON
+       */
+      Dokumente : MTEXT;
+    END Genossenschaft;
+
+    CLASS Massnahme (ABSTRACT) =
+      Status : MANDATORY TEXT*20;
+      Status_Datum : MANDATORY INTERLIS.GregorianDate;
+      Bauabnahme_Datum : INTERLIS.GregorianDate;
+      WerksID : TEXT*20;
+      UnterhaltsID : TEXT*20;
+      Massnahme : MANDATORY TEXT*100;
+      Typ : TEXT*50;
+      Bautyp : TEXT*30;
+      Hoehe : 0.0 .. 50.0 [INTERLIS.m];
+      Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+      Laenge : 0.0 .. 100000000.0 [INTERLIS.m];
+      Tonnage : 0.0 .. 100.0 [Units.t];
+      Material_Wege_Bruecke_Lehenviadukt : TEXT*30;
+      Widerlager : BOOLEAN;
+      Funktionstyp_Wegbau : TEXT*30;
+      /** eMapisNr.
+       */
+      Geschaeftsnummer : TEXT*10;
+      Kantonsnummer : TEXT*40;
+      Projekttyp : MANDATORY TEXT*40;
+      Genossenschaft_Typ : MANDATORY TEXT*30;
+      Genossenschaft_Name : MANDATORY TEXT*100;
+      Punktgeometrie : GeometryCHLV95_V1.Coord2;
+      Liniengeometrie : GeometryCHLV95_V1.MultiLine;
+      Flaechengeometrie : GeometryCHLV95_V1.MultiSurface;
+      Werkeigentum : TEXT*255;
+    END Massnahme;
+
+    CLASS Stand_Gueterregulierung =
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Stand : MANDATORY TEXT*40;
+      Gemeinde_Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      Gemeindename : MANDATORY TEXT*50;
+    END Stand_Gueterregulierung;
+
+  END Strukturverbesserung;
+
+END SO_ALW_Strukturverbesserungen_Publikation_20190905.
