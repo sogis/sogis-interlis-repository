@@ -1,0 +1,502 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Änderung
+ *  ------------------------------------------------------------------------------
+ * 2019-09-05 | al  | Initialversion
+ * 2020-02-13 | an  | Einarbeitung Feedback Johannes Zehnder nach Besprechung
+ *                  | - Klasse (Abstract) "Raeumliches_Element", Aenderung folgender Attribute:
+ *                  |   * WerksID: Aenderung in Zeichenkette*20 statt Domain WerksID
+ *                  |   * UnterhaltsID: Aenderung in Zeichenkette*20 statt Domain UnterhaltsID
+ *                  | - Klasse "Wegebau_Linie", neue Attribute:
+ *                  |   * Bezeichnung (Zeichenkette 50)
+ *                  |   * Techn_Schwierigkeit (Aufzählungstyp Technische_Schwierigkeit)
+ *                  |   * Anteil_LW (Prozent)
+ *                  |   * laenge_gerundet (numerisch, soll auf 5m gerundet werden)
+ *                  | - Klasse "Projekt", Aenderung folgender Attribute:
+ *                  |   * Geschaeftsnummerdef: Aenderung in Zeichenkette*10 statt Domain Geschaeftsnummerdef
+ *                  | - Klasse "Dokument": bei Attribut "Dateipfad" Verlängerung auf 255 Zeichen
+ *                  | - Domain "Funktionstyp": Korrektur Schreibfehler
+ *                  | - Association "Beizugsgebiet_Projekt": Korrektur Schreibfehler
+ *                  | - Klassen "Genossenschaft", "Wegebau_Linie", "Werkseigentum", "Dokument", "Wiederherstellung_Punkt"
+ *                  |   und "Oekologie_Punkt": diverse Attribute gemäss QS-Dokument als MANDATORY gesetzt
+ * 2020-02-24 | an  | OID AS INTERLIS.UUIDOID bei den Topics hinzugefügt
+ * ==============================================================================
+ * 
+ * Erweiterung des Modells Strukturverbesserungen_LV95_V2. Da keine Beziehungen modelliert sind, konnte das Bundes-Modell nicht erweitert werden.
+ */
+MODEL SO_ALW_Strukturverbesserungen_20190912 (de)
+AT "http://www.geo.so.ch/models"
+VERSION "2019-09-05"  // eugr // =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1;
+
+  DOMAIN
+
+    Datum = FORMAT INTERLIS.XMLDate "1800-01-01" .. "2099-12-31";
+
+    Dokumententyp = (
+      Bericht,
+      Unterhaltsreglement,
+      Statuten,
+      Regierungsratsbeschluss,
+      Bild
+    );
+
+    Funktionstyp = (
+      Nebenwege_nicht_fahrbar,
+      Nebenwege_fahrbar,
+      Uebrige_Hauptwege,
+      Hofzufahrten,
+      Berghofzufahrten
+    );
+
+    Genossenschaften (FINAL) = (
+      Flurgenossenschaft,
+      Unterhaltsgenossenschaft,
+      Bewaesserungsgenossenschaft
+    );
+
+    Oekologie_Punkte = (
+      Einzelbaum,
+      Andere_Massnahme
+    );
+
+    Projekt (FINAL) = (
+      PRE,
+      Landumlegung,
+      Uebrige,
+      Projektinitiative,
+      Grundlagen_generell,
+      Landwirtschaftliche_Planung,
+      Gemeinschaftliche_Initiative_zur_Senkung_der_Produktionskosten
+    );
+
+    Stand = (
+      Regulierungsbeduerftige_Flaechen_vorhanden,
+      Umfassende_SV_Massnahmen_in_Arbeit,
+      Gueterregulierung_in_Arbeit,
+      Gueterregulierung_ausgefuehrt,
+      Keine_Gueterregulierung_notwendig
+    );
+
+    Technische_Schwierigkeit (FINAL) = (
+      nicht_relevant,
+      gering,
+      maessig,
+      gross
+    );
+
+    Wiederherstellung_Punkte = (
+      Holzkasten,
+      Weitere_Boeschungssicherungsmassnahmen
+    );
+
+    Beizugsgebiete (FINAL) = (
+      Alter_Bestand,
+      Neuer_Bestand,
+      uebrige
+    );
+
+    Bautyp (FINAL) = (
+      Neubau,
+      PWI,
+      Ausbau_Ersatz,
+      Wiederherstellung
+    );
+
+    Oekologische_Flaechen (FINAL) = (
+      Biotop,
+      Andere_Massnahme,
+      Perimeter_Vernetzungsprojekt,
+      Hochstammobstanlagen
+    );
+
+    Oekologie_Linien (FINAL) = (
+      Revitalisierung_Gewaesser,
+      Ausdolung_Gewaesser,
+      Hecke,
+      Waldrandaufwertung,
+      Bach_und_Ufervegetation
+    );
+
+    Oekologie_Trockenmauern (FINAL) = (
+      freistehende_Trockenmauer,
+      Terrasse_Trockenmauer
+    );
+
+    Status (FINAL) = (
+      projektiert,
+      in_Ausfuehrung,
+      ausgefuehrt,
+      sistiert,
+      untergegangen,
+      unbekannt
+    );
+
+    Wege (FINAL) = (
+      Wanderweg_bauliche_Massnahmen,
+      Viehtrieb_Reitweg,
+      Tunnel,
+      Aufhebung_von_Wegen,
+      Rasenweg,
+      Spurweg_Rasengitter,
+      Spurweg_Beton,
+      Spurweg_Bitumen,
+      Belagseinbau_auf_Kiesweg,
+      Betonweg,
+      Bituminoeser_Weg,
+      Kiesweg
+    );
+
+    Seilbahnen_Linien (FINAL) = (
+      Monorail_u_aehnliche,
+      Materialseilbahn,
+      Personenseilbahn,
+      Abbruch_Seilbahn
+    );
+
+    Seilbahnen_Punkte (FINAL) = (
+      Station,
+      Abbruch_Station
+    );
+
+    Entw_Bodenstruktur_Flaechen (FINAL) = (
+      Rutschhangstabiliserung,
+      Entwaesserung_FFF,
+      Entwaesserung_uebrige_Flaechen,
+      Aufbringung_Humus,
+      Bodenstrukturverbesserung,
+      Wiederherstellung_Kulturland
+    );
+
+    Entw_Bodenstruktur_Linien (FINAL) = (
+      Hauptleitung_Ableitung,
+      Drainageleitung_perforiert,
+      Entwaesserungsgraben
+    );
+
+    Bewaesserung_Linien (FINAL) = (
+      Stollen,
+      Kanal,
+      Verteilleitung,
+      Zuleitung_Bewaesserung
+    );
+
+    Bewaesserung_Flaechen (FINAL) = (
+      Tropfen_Mikrobewaesserung,
+      Beregnungsanlage,
+      Traditionelle_Berieselung
+    );
+
+    Bewaesserung_Punkte (FINAL) = (
+      Fassung_Entsander,
+      Pumpwerk,
+      Speicher
+    );
+
+    Wasserversorgung_Punkte (FINAL) = (
+      Grundwasserfassung,
+      Quellfassung_inkl_Brunnenstube,
+      Traenkeanlage,
+      Aufbereitungsanlage,
+      Pumpwerk,
+      Fernwirkanlage,
+      Reservoir
+    );
+
+    Elektrizitaet_Punkte (FINAL) = (
+      Trafostation,
+      Stromerzeugung
+    );
+
+    Elektrizitaet_Linien (FINAL) = (
+      Kabel_unterirdisch,
+      Abbruch_Leitung,
+      Freileitung
+    );
+
+    Hochbau_Punkte (FINAL) = (
+      Anlage_fuer_gewerblichen_Kleinbetrieb,
+      Gemeinschaftliche_Anlage_fuer_die_Verabeitung_Lagerung_und_Verkauf,
+      Gemeinschaftliche_Anlage_fuer_die_Milchverarbeitung,
+      Oekonomiegebaeude,
+      Alpgebaeude,
+      Gemeinschaftliche_Anlage_zur_Produktion_erneuerbarer_Energie_aus_Biomasse,
+      Anlage_fuer_produzierenden_Gartenbaubetrieb,
+      Anlage_zur_Diversifizierung,
+      Anlage_fuer_einheimischen_Fischfang_und_Fischzucht,
+      Anlage_fuer_Spezialkulturen,
+      Gefluegelstall,
+      Schweinestall,
+      Wohngebaeude,
+      PRE_andere_Gebaeude_und_Einrichtungen
+    );
+
+  TOPIC Stand_Gueterregulierung =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Stand_Gueterregulierung =
+      /** BFSNr. einer Gemeinde
+       */
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Stand der Güterregulierung
+       */
+      Stand : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Stand;
+    END Stand_Gueterregulierung;
+
+  END Stand_Gueterregulierung;
+
+  TOPIC RaeumlicheElemente =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*30;
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Dokumententyp;
+      Dateipfad : MANDATORY TEXT*255;
+    END Dokument;
+
+    CLASS Genossenschaft =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Genossenschaften;
+      Name : MANDATORY TEXT*100;
+      Gruendungsdatum : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Genehmigungsdatum : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Reorganisationsdatum : SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Aufloesungsdatum : SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Bemerkung : TEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Unterhaltsobjekt : TEXT*50;
+    END Genossenschaft;
+
+    CLASS Raeumliches_Element (ABSTRACT) =
+      Status : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Status;
+      Status_Datum : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Bauabnahme_Datum : SO_ALW_Strukturverbesserungen_20190912.Datum;
+      WerksID : TEXT*20;
+      UnterhaltsID : TEXT*20;
+    END Raeumliches_Element;
+
+    CLASS Werkseigentum =
+      Name : MANDATORY TEXT*50;
+      Adresse : MANDATORY TEXT*50;
+    END Werkseigentum;
+
+    CLASS Oekologie_Punkt
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Oekologie_Punkte;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Oekologie_Punkt;
+
+    CLASS Wegebau_Linie
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Wege;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      /** in Meter
+       */
+      Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      Funktionstyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Funktionstyp;
+      Bezeichnung : TEXT*50;
+      /** Angaben in Prozent (0-100)
+       */
+      Anteil_LW : 0 .. 100 [Units.Percent];
+      Techn_Schwierigkeit : SO_ALW_Strukturverbesserungen_20190912.Technische_Schwierigkeit;
+      /** auf 5m gerundet
+       */
+      laenge_gerundet : 0 .. 1000000 [INTERLIS.m];
+    END Wegebau_Linie;
+
+    CLASS Wiederherstellung_Punkt
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Wiederherstellung_Punkte;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Wiederherstellung_Punkt;
+
+    CLASS Wege_Bruecke_Lehnenviadukt
+    EXTENDS Raeumliches_Element =
+      Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+      Laenge : 0.0 .. 100000000.0 [INTERLIS.m];
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Tonnage : 0.0 .. 100.0 [Units.t];
+      Material (FINAL) : MANDATORY (
+        Beton,
+        Holz,
+        uebrige
+      );
+      Widerlager : BOOLEAN;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Wege_Bruecke_Lehnenviadukt;
+
+    CLASS Seilbahn_Linie
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Seilbahnen_Linien;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Seilbahn_Linie;
+
+    CLASS Seilbahn_Station
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Seilbahnen_Punkte;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Seilbahn_Station;
+
+    CLASS Entw_Bodenstruktur_Flaeche
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Entw_Bodenstruktur_Flaechen;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Entw_Bodenstruktur_Flaeche;
+
+    CLASS Entw_Bodenstruktur_Linie
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Entw_Bodenstruktur_Linien;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Entw_Bodenstruktur_Linie;
+
+    CLASS Entw_Bodenstruktur_Pumpwerk
+    EXTENDS Raeumliches_Element =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+    END Entw_Bodenstruktur_Pumpwerk;
+
+    CLASS Bew_Flaechen_Bewaesserung
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bewaesserung_Flaechen;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Bew_Flaechen_Bewaesserung;
+
+    CLASS Bewaesserung_Linie
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bewaesserung_Linien;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Bewaesserung_Linie;
+
+    CLASS Bewaesserung_Punkt
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bewaesserung_Punkte;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Bewaesserung_Punkt;
+
+    CLASS Wasserversorgung_Punkt
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Wasserversorgung_Punkte;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Wasserversorgung_Punkt;
+
+    CLASS WV_Leitung_Wasserversorgung
+    EXTENDS Raeumliches_Element =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+    END WV_Leitung_Wasserversorgung;
+
+    CLASS EV_Punkt
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Elektrizitaet_Punkte;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END EV_Punkt;
+
+    CLASS EV_Linie
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Elektrizitaet_Linien;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END EV_Linie;
+
+    CLASS Milchleitung_Leitung
+    EXTENDS Raeumliches_Element =
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Milchleitung_Leitung;
+
+    CLASS Milchleitung_Lokal
+    EXTENDS Raeumliches_Element =
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Milchleitung_Lokal;
+
+    CLASS Oekologie_Linie
+    EXTENDS Raeumliches_Element =
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Oekologie_Linien;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Oekologie_Linie;
+
+    CLASS Oekologie_Trockenmauer
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Oekologie_Trockenmauern;
+      Hoehe : 0.0 .. 50.0 [INTERLIS.m];
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Oekologie_Trockenmauer;
+
+    CLASS Oekologie_Flaeche
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Oekologische_Flaechen;
+      Bautyp : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Bautyp;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Oekologie_Flaeche;
+
+    CLASS Hochbau
+    EXTENDS Raeumliches_Element =
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Hochbau_Punkte;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Hochbau;
+
+    CLASS Beizugsgebiet =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Datum_Nachfuehrung : SO_ALW_Strukturverbesserungen_20190912.Datum;
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Beizugsgebiete;
+    END Beizugsgebiet;
+
+    /** Kantonale Projekte werden erfasst. In seltenen Fällen können zwei kantonale Projekte die gleiche Geschäftsnummer haben.
+     */
+    CLASS Projekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Projekttypen : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Projekt;
+      Geschaeftsnummer : TEXT*10;
+      Kantonsnummer : TEXT*40;
+      Name : TEXT*50;
+      UNIQUE Kantonsnummer;
+    END Projekt;
+
+    /** Zum Wiederherstellung_Punkt können mehrere Bilder erfasst werden z.B. bei Unwetterschäden
+     */
+    ASSOCIATION Wiederherstellungs_Punkt_Bild =
+      Wiederherstellungs_Punkt -- {1} Wiederherstellung_Punkt;
+      Bild -- {0..*} Dokument;
+    END Wiederherstellungs_Punkt_Bild;
+
+    ASSOCIATION Genossenschaft_Dokument =
+      Dokument -- {0..*} Dokument;
+      Genossenschaft -- {1..*} Genossenschaft;
+    END Genossenschaft_Dokument;
+
+    ASSOCIATION Genossenschaft_Element =
+      Genossenschaft_Element -- {0..*} Genossenschaft;
+      Element_Genossenschaft -- {0..*} Raeumliches_Element;
+    END Genossenschaft_Element;
+
+    ASSOCIATION Werkeigentum_Element =
+      Element -- {0..*} Raeumliches_Element;
+      Werkeigentum -- {0..1} Werkseigentum;
+    END Werkeigentum_Element;
+
+    ASSOCIATION Beizugsgebiet_Projekt =
+      Beizugsgebiet -- {0..*} Beizugsgebiet;
+      Projekt -- {0..*} Projekt;
+    END Beizugsgebiet_Projekt;
+
+    ASSOCIATION Projekt_Element =
+      Projekt -- {1} Projekt;
+      Massnahme -- {0..*} Raeumliches_Element;
+    END Projekt_Element;
+
+  END RaeumlicheElemente;
+
+END SO_ALW_Strukturverbesserungen_20190912.

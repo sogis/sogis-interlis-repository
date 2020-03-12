@@ -1,0 +1,98 @@
+INTERLIS 2.3;
+ 
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2019-10-01 | al  | Erstfassung
+ *  !! 2019-11-19 | ps | Ergänzung Attribut Geometrie
+ *  !! 2019-11-29 | al  | Klasse Gemeinde hinzugefügt
+ *  !!==============================================================================
+ */
+MODEL SO_AGI_Inventar_Hoheitsgrenzen_20191129 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2019-11-29"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Inventar_Hoheitsgrenzen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Gemeinde =
+      /** Gemeindenummer werden durch das Bundesamt für Statistik vergeben. Daten werden von swissBOUNDARIES3D importiert.
+       */
+      BFS_Gemeindenummer : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Kanton. Daten werden von swissBOUNDARIES3D importiert.
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Gemeindename. Daten werden von swissBOUNDARIES3D importiert.
+       */
+      Gemeindename : MANDATORY TEXT*255;
+    END Gemeinde;
+
+    /** Hauptpunkte der Kantonsgrenze.
+     */
+    CLASS Kantonsgrenzstein =
+      /** Geometrie des Kantonsgrenzsteins
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Nummer des Kantonsgrenzsteins
+       */
+      Steinnummer : MANDATORY TEXT*10;
+      /** Art der Vermarkung
+       */
+      Vermarkung : MANDATORY (
+        Kreuz,
+        Bolzen,
+        unvermarkt,
+        Stein
+      );
+      /** Mit besonderen Steinen gekennzeichnet.
+       */
+      schoener_Stein : MANDATORY BOOLEAN;
+      /** Breite und Tiefe des Steins in cm
+       */
+      Breite_Tiefe : TEXT*20;
+      /** Höche über dem Boden in cm
+       */
+      Hoehe : TEXT*20;
+      /** Jahreszahl auf dem Stein
+       */
+      Jahreszahl : INTERLIS.GregorianYear;
+      /** Wappen auf dem Stein
+       */
+      Wappen : TEXT*20;
+      /** Richungskerbe vorhanden
+       */
+      Richtungskerbe : BOOLEAN;
+      /** Datum der letzten Begehung
+       */
+      Begehung : INTERLIS.XMLDate;
+      /** Datum der letzten Unterhaltsarbeit
+       */
+      Unterhalt : INTERLIS.XMLDate;
+      Unterhaltsarbeit : (
+        Stein_repariert,
+        Stein_neu_gesetzt,
+        aufrichten,
+        ausholzen,
+        Reinigung,
+        keine
+      );
+      Bemerkung : TEXT*100;
+      /** Foto des Kantongrenzsteins
+       */
+      Foto1 : INTERLIS.URI;
+      /** Foto des Kantongrenzstein
+       */
+      Foto2 : INTERLIS.URI;
+    END Kantonsgrenzstein;
+
+    /** Ein Hoheitsgrenzstein liegt mindestens auf zwei Gemeindegrenzen.
+     */
+    ASSOCIATION Gemeinde_Hoheitsgrenzstein =
+      Stein -- {0..*} Kantonsgrenzstein;
+      Gemeinde -- {0..*} Gemeinde;
+    END Gemeinde_Hoheitsgrenzstein;
+
+  END Inventar_Hoheitsgrenzen;
+
+END SO_AGI_Inventar_Hoheitsgrenzen_20191129.
