@@ -1,0 +1,927 @@
+INTERLIS 2.3;
+
+/** !!-------------------------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung 
+ * !!-------------------------------------------------------------------------------------------------
+ * !! 2018-07-02| Noëmi Sturm    | Erstfassung 
+ * !! 2018-11-13| Noëmi Sturm    | Anpassungen gemaess Rueckmeldungen
+ * !! 2018-12-05| Noëmi Sturm    | Enumeration Bodenbelastungsgebiet geloescht 
+ * !! 2018-12-10| Noëmi Sturm    | Enumerationen in Klassen zurueckgelagert
+ * !! 2018-12-14| Noëmi Sturm    | Tippfehler korrigiert
+ * !! 2018-12-20| Noëmi Sturm    | Constraint angepasst
+ * !! 2019-01-28| Noëmi Sturm    | Datentyp von Bemerkung zu MTEXT geaendert
+ * !! 2019-03-04| Noëmi Sturm    | Mandatory Constraint angepasst
+ * !! 2020-05-04| Andrea Lüscher | Attribut "Nutzungsverbot" und "Nutzungseinschraenkung" ergänzt 
+ * !!================================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2020-05-04"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Betriebsstatus
+     */
+    Betriebsstatus = (
+      /** in Betrieb
+       */
+      in_Betrieb,
+      /** stillgelegt
+       */
+      stillgelegt,
+      /** rueckgebaut
+       */
+      rueckgebaut
+    );
+
+  CLASS schadstoffbelasteter_Boden (ABSTRACT) =
+    /** Bezeichnung der Geometrie
+     */
+    Bezeichnung : MANDATORY TEXT*200;
+    /** Status
+     */
+    Status : MANDATORY (
+      Verdachtsflaeche,
+      Belastung_nachgewiesen
+    );
+    /** Ist die Flaeche aktiv?
+     */
+    aktiv : MANDATORY BOOLEAN;
+    /** Erfassungsdatum
+     */
+    Erfassungsdatum : INTERLIS.XMLDate;
+    /** Erfasser der Daten
+     */
+    Datenerfasser : TEXT*30;
+    /** Begruendung fuer den Status inaktiv
+     */
+    Begruendung_inaktiv : (
+      Dekontamination,
+      Verdachtsflaeche_wird_Belastungsflaeche,
+      entlastende_Analysedaten,
+      grosse_Mutation,
+      anderer_Grund
+    );
+    /** Datum an dem der Status inaktiv gesetzt wurde
+     */
+    Datum_inaktiv : INTERLIS.XMLDateTime;
+    /** Bemerkung zum schadstoffbelasteten Boden
+     */
+    Bemerkung : MTEXT*2000;
+    /** Wurden Nutzungseinschraenkungen verfuegt?
+     */
+    Nutzungseinschraenkung : MANDATORY BOOLEAN;
+    Nutzungsverbot : MANDATORY BOOLEAN;
+  END schadstoffbelasteter_Boden;
+
+  CLASS Flaeche (ABSTRACT)
+  EXTENDS schadstoffbelasteter_Boden =
+    /** Geometrie der Flaeche
+     */
+    Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+  END Flaeche;
+
+  CLASS Linie_Flaeche (ABSTRACT)
+  EXTENDS schadstoffbelasteter_Boden =
+    /** Geometrie der Linie
+     */
+    Geometrie : GeometryCHLV95_V1.Line;
+    /** Geometrie als Flaeche
+     */
+    Flaechengeometrie : GeometryCHLV95_V1.MultiSurface;
+    MANDATORY CONSTRAINT (( DEFINED (Flaechengeometrie) AND NOT(DEFINED(Geometrie))) OR (DEFINED (Geometrie) AND NOT(DEFINED(Flaechengeometrie))));
+  END Linie_Flaeche;
+
+  CLASS Punkt (ABSTRACT)
+  EXTENDS schadstoffbelasteter_Boden =
+    /** Geometrie des Punkts
+     */
+    Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+  END Punkt;
+
+  TOPIC schadstoffbelastete_Boeden =
+    OID AS INTERLIS.UUIDOID;
+
+    /** durch Hopfenbau oder Rebbau belastete Boeden
+     */
+    CLASS Anbaugebiet
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Beginn der Nutzung (Jahr)
+       */
+      Nutzungsbeginn : INTERLIS.GregorianYear;
+      /** Ende der Nutzung (Jahr)
+       */
+      Nutzungsende : INTERLIS.GregorianYear;
+      /** Anbautyp
+       */
+      Anbautyp : MANDATORY (
+        Hopfenbau,
+        Rebbau
+      );
+    END Anbaugebiet;
+
+    /** Bodenbelastungsflaechen
+     */
+    CLASS Bodenbelastungsflaeche
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Verursacher
+       */
+      Verursacher : (
+        /** Bearbeitung, Impraegnation und Verarbeitung von Holz
+         */
+        Holz,
+        /** chemische Reinigung
+         */
+        chemische_Reinigung,
+        /** Eisen- und Stahlherstellung
+         */
+        Eisen_Stahlherstellung,
+        /** Eisenbahn
+         */
+        Eisenbahn,
+        /** Erzeugung und Verarbeitung von Leder
+         */
+        Erzeugung_Verarbeitung_Leder,
+        /** Flugplatz
+         */
+        Flugplatz,
+        /** Gaswerk, Kokerei, Steinkohle
+         */
+        Gaswerk_Kokerei_Steinkohle,
+        /** geogene Bodenbelastung
+         */
+        geogene_Bodenbelastung,
+        /** Herstellung anorganischer Grundstoffen und Chemikalien
+         */
+        Herstellung_anorganische_Grundstoffe_Chemikalien,
+        /** Herstellung und Verarbeitung von Glas
+         */
+        Herstellung_Verarbeitung_Glas,
+        /** Herstellung und Verarbeitung von Papier, Pappen und Textilen
+         */
+        Herstellung_Verarbeitung_Papier_Pappe_Textile,
+        /** Herstellung von Farben und Lacken
+         */
+        Herstellung_Farben_Lacke,
+        /** Herstellung von Herbiziden, Fungiziden u.ae.
+         */
+        Herstellung_Herbi_Fungizide,
+        /** Herstellung von Kunststoffen
+         */
+        Herstellung_Kunststoffe,
+        /** Herstellung von Phamazeutika
+         */
+        Herstellung_Pharmazeutika,
+        /** Hopfenbau
+         */
+        Hopfenbau,
+        /** Kehrichtverbrennungsanlage
+         */
+        Kehrichtverbrennungsanlage,
+        /** Klaerschlamm
+         */
+        Klaerschlamm,
+        /** Metallgiesserei
+         */
+        Metallgiesserei,
+        /** Metallverarbeitung
+         */
+        Metallverarbeitung,
+        /** Mineraloelverarbeitung / -lagerung
+         */
+        Mineraloel,
+        /** Muellkompost, kommunale Kehrichtdeponie, Altablagerung
+         */
+        Muell,
+        /** Oberflaechenveredelung / Haertung von Metallen
+         */
+        Oberflaechenveredelung_Haertung_Metalle,
+        /** Rebbau
+         */
+        Rebbau,
+        /** Schiessanlage
+         */
+        Schiessanlage,
+        /** Schrebergarten
+         */
+        Schrebergarten,
+        /** Siedlungsgebiet
+         */
+        Siedlungsgebiet,
+        /** Sondermuellentsorgungs- und -verbrennungsanlage
+         */
+        Sondermuell,
+        /** Korrosionsschutz
+         */
+        Korrosionsschutz,
+        /** Strasse
+         */
+        Strasse,
+        /** Uebertragungsleitungsmast
+         */
+        Uebertragungsleitungsmast,
+        /** Verarbeitung von Gummi, Kunststoffen und Asbest
+         */
+        Verarbeitung_Gummi_Kunststoffe_Asbest,
+        /** Buntmetallwerk
+         */
+        Buntmetallwerk,
+        /** Schadenfall
+         */
+        Schadenfall,
+        /** unbekannt
+         */
+        unbekannt,
+        /** Gartennutzung
+         */
+        Gartennutzung
+      );
+      /** Belastungsstufe
+       */
+      Belastungsstufe : (
+        /** Pruefwert bis Sanierungswert (PW-SW)
+         */
+        Pruefwert_bis_Sanierungswert,
+        /** Richtwert bis Pruefwert (RW-PW)
+         */
+        Richtwert_bis_Pruefwert,
+        /** Pruefwert_B bis Sanierungswert (PWB-SW)
+         */
+        Pruefwert_B_bis_Sanierungswert,
+        /** Pruefwert_A bis Pruefwert_B (PWA-PWB)
+         */
+        Pruefwert_A_bis_Pruefwert_B,
+        /** Pruefwert bis Pruefwert A (PW-PWA)
+         */
+        Pruefwert_bis_Pruefwert_A,
+        /** > Sanierungswert (>SW)
+         */
+        groesser_als_Sanierungswert
+      );
+      /** Zusatztext fuer den Pruefwert
+       */
+      Pruefwert : TEXT*50;
+      /** Anzahl der Proben
+       */
+      Probenanzahl : 0 .. 9999;
+      /** Ist ein Eintrag im Grundbuch vorhanden?
+       */
+      Grundbucheintrag : BOOLEAN;
+      /** Typ der Bodenbelastungsflaeche
+       */
+      Flaechentyp : MANDATORY (
+        Bodenbelastungsgebiet,
+        uebrige
+      );
+      MANDATORY CONSTRAINT (Flaechentyp == #uebrige AND DEFINED(Grundbucheintrag)) OR (Flaechentyp != #uebrige);
+    END Bodenbelastungsflaeche;
+
+    /** Bodenbelastungsgebiet
+     */
+    CLASS Bodenbelastungsgebiet =
+      /** Gebietsname
+       */
+      Gebietsname : MANDATORY TEXT*128;
+    END Bodenbelastungsgebiet;
+
+    CLASS Dokument =
+      /** Name des Dokuments
+       */
+      Dokumentname : MANDATORY TEXT*100;
+      /** Pfad zum Dokument
+       */
+      Dateipfad : MANDATORY TEXT*200;
+    END Dokument;
+
+    /** Eisenbahn
+     */
+    CLASS Eisenbahn
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Linie_Flaeche =
+      /** Typ der Flaeche
+       */
+      Flaechentyp : (
+        /** Bahnhofareal (Gueter und Personen)
+         */
+        Bahnhofareal,
+        /** Verdachtsstrecke entlang Gleise
+         */
+        Verdachtsstreifen_entlang_Gleise,
+        /** Tunnelstrecke
+         */
+        Tunnelstrecke
+      );
+      /** Verkehrsfrequenz der Bahn
+       */
+      Verkehrsfrequenz : (
+        /** > 50'000 GBRT
+         */
+        groesser_als_50000_GBRT,
+        /** 20'000 - 50'000 GBRT
+         */
+        GBRT_20000_50000,
+        /** < 20'000 GBRT
+         */
+        kleiner_als_20000_GBRT
+      );
+      /** Breite des Verdachtsstreifens
+       */
+      Verdachtsstreifenbreite : (
+        /** 15 m
+         */
+        m_15,
+        /** 10 m
+         */
+        m_10,
+        /** 5 m
+         */
+        m_5,
+        /** kein Verdachtsstreifen
+         */
+        kein_Verdachtsstreifen,
+        /** keine Angabe
+         */
+        keine_Angabe
+      );
+      /** Anzahl der Gleise
+       */
+      Gleisanzahl : 0 .. 10;
+      /** Bahnstrecke von
+       */
+      Strecke_von : TEXT*50;
+      /** Bahnstrecke bis
+       */
+      Strecke_bis : TEXT*50;
+    END Eisenbahn;
+
+    /** Flugplatz
+     */
+    CLASS Flugplatz
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Name des Flugplatzes
+       */
+      Flugplatzname : TEXT*50;
+    END Flugplatz;
+
+    /** durch Schrebergaerten oder Gaertnerei belastete Boeden
+     */
+    CLASS Gartenbau
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Name des Schrebergartens oder der Gaertnerei
+       */
+      Objektname : TEXT*50;
+      /** Beginn der Nutzung (Jahr)
+       */
+      Nutzungsbeginn : INTERLIS.GregorianYear;
+      /** Ende der Nutzung (Jahr)
+       */
+      Nutzungsende : INTERLIS.GregorianYear;
+      /** Art des Gartenbaus
+       */
+      Flaechentyp : MANDATORY (
+        Schrebergarten,
+        Gaertnerei
+      );
+    END Gartenbau;
+
+    /** geogene Bodenbelastung
+     */
+    CLASS Geogene_Bodenbelastung
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Raeumlicher Verschnitt mit der obersten geologischen Schicht. Holozaen ueber Pleistozaen ueber Grundschicht. Z.B. Siderolithikum
+       */
+      geologische_Einheit : TEXT*50;
+    END Geogene_Bodenbelastung;
+
+    CLASS Leitung =
+      /** Nummer der Leitung
+       */
+      Leitungsnummer : TEXT*50;
+      /** Leitung von
+       */
+      Leitung_von : TEXT*50;
+      /** Leitung bis
+       */
+      Leitung_bis : TEXT*50;
+    END Leitung;
+
+    /** militaerischer Schiessplatz
+     */
+    CLASS militaerischer_Schiessplatz
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Grundeigentuemer
+       */
+      Grundeigentuemer : TEXT*50;
+      /** Name des Schiessplatzes
+       */
+      Schiessplatzname : TEXT*50;
+      /** Laufnummer
+       */
+      Laufnummer : TEXT*50;
+      /** Baujahr
+       */
+      Baujahr : INTERLIS.GregorianYear;
+      /** Jahr der Stilllegung
+       */
+      Stilllegungsjahr : INTERLIS.GregorianYear;
+      /** Betriebsstatus
+       */
+      Betriebsstatus : (
+        dekontaminiert_durch_VBS,
+        in_Betrieb,
+        stillgelegt,
+        rueckgebaut
+      );
+      /** Waffe
+       */
+      Waffe : TEXT*50;
+      /** Laufnummer Altlasten Kanton Solothurn
+       */
+      Laufnummer_Altlasten_ktso : TEXT*255;
+      /** Laufnummer Altlasten VBS
+       */
+      Laufnummer_Altlasten_vbs : TEXT*50;
+    END militaerischer_Schiessplatz;
+
+    /** Schadstoff
+     */
+    CLASS Schadstoff =
+      /** Name des Schadstoffs
+       */
+      Schadstoffname : MANDATORY TEXT*200;
+      /** Kuerzel des Schadstoffs
+       */
+      Kuerzel : TEXT*100;
+    END Schadstoff;
+
+    /** Schiessanlage
+     */
+    CLASS Schiessanlage
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Trennkriterium
+       */
+      Trennkriterium : (
+        /** andere Schiessanlage: Einzelfallabkaerung (A Combat, Feld, Jagd, KK, Pst, Tontauben)
+         */
+        andere_Schiessanlage,
+        /** kleine 300-m-Schiessanlage: < 15'000 Schuss/Jahr
+         */
+        kleine_300_m_Schiessanlage,
+        /** mittlere 300-m-Schiessanlage: zwischen 15'000 und 40'000 Schuss/Jahr
+         */
+        mittlere_300_m_Schiessanlage,
+        /** grosse 300-m-Schiessanlage: > 40'000 Schuss/Jahr
+         */
+        grosse_300_m_Schiessanlage
+      );
+      /** Name des Schiessplatzes
+       */
+      Schiessanlagename : TEXT*50;
+      /** Baujahr
+       */
+      Baujahr : INTERLIS.GregorianYear;
+      /** Anzahl Zielscheiben
+       */
+      Scheibenanzahl : 0 .. 1000;
+      /** Schusszahl
+       */
+      Schusszahl : 0 .. 9999999;
+      /** Lage
+       */
+      Lage : (
+        Schuetzenhaus,
+        Kugelfang,
+        sonstige_Lage
+      );
+      /** Betriebsstatus
+       */
+      Betriebsstatus : SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Betriebsstatus;
+      /** Laufnummer Altlasten
+       */
+      Laufnummer_Altlasten : TEXT*50;
+      /** Sanierungsstatus der Schiessanlage
+       */
+      Sanierungsstatus : (
+        Kugelfang_saniert,
+        Kugelfang_nicht_saniert
+      );
+    END Schiessanlage;
+
+    /** Typ der Schiessanlage
+     */
+    CLASS Schiessanlagentyp =
+      /** Art der Schiessanlage
+       */
+      Art : MANDATORY TEXT*150;
+      /** Schiessdistanz
+       */
+      Schiessdistanz : 0 .. 1000;
+    END Schiessanlagentyp;
+
+    /** durch Siedlung belastete Boeden
+     */
+    CLASS Siedlungsgebiet
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+    END Siedlungsgebiet;
+
+    /** durch Stahlbruecke belasteter Boden
+     */
+    CLASS Stahlbruecke
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Name der Stahlbruecke
+       */
+      Brueckenname : TEXT*50;
+      /** Eigentuemer der Stahlbruecke
+       */
+      Eigentuemer : TEXT*50;
+      /** Brueckentyp
+       */
+      Brueckentyp : (
+        Bahnbruecke,
+        Ueberfuehrung,
+        Strassenbruecke,
+        Sonderbruecke
+      );
+      /** Betriebsstatus
+       */
+      Betriebsstatus : SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Betriebsstatus;
+    END Stahlbruecke;
+
+    /** diverse Stahlkonstruktionen ohne Stahlbruecke
+     */
+    CLASS Stahlkonstruktion
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Flaeche =
+      /** Name der Stahlkonstruktion
+       */
+      Stahlkonstruktionsname : TEXT*50;
+      /** Eigentuemer der Stahlkonstruktion
+       */
+      Eigentuemer : TEXT*50;
+      /** Typ der Stahlkonstruktion
+       */
+      Stahlkonstruktionstyp : TEXT*50;
+      /** Betriebsstatus
+       */
+      Betriebsstatus : SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Betriebsstatus;
+      /** Baujahr
+       */
+      Baujahr : INTERLIS.GregorianYear;
+    END Stahlkonstruktion;
+
+    CLASS Stahlmast
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Punkt =
+      /** Eigentuemer
+       */
+      Eigentuemer : TEXT*50;
+      /** Baujahr
+       */
+      Baujahr : INTERLIS.GregorianYear;
+      /** Nummer des Masts
+       */
+      Mastnummer : TEXT*50;
+      /** Betriebsstatus
+       */
+      Betriebsstatus : SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Betriebsstatus;
+      /** Radius des Masts
+       */
+      Radius : MANDATORY (
+        /** 10 m
+         */
+        m_10,
+        /** 25 m
+         */
+        m_25
+      );
+    END Stahlmast;
+
+    /** durch Strassen belastete Boeden
+     */
+    CLASS Strasse
+    EXTENDS SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.Linie_Flaeche =
+      /** Verkehrsfrequenz
+       */
+      Verkehrsfrequenz : (
+        /** > 40'000 DTV
+         */
+        DTV_groesser_als_40000,
+        /** 20'000 - 40'000 DTV
+         */
+        DTV_20000_40000,
+        /** 3'000 - 20'000 DTV
+         */
+        DTV_3000_20000,
+        /** 1'00 - 3'000 DTV
+         */
+        DTV_1000_3000
+      );
+      /** Breite des Verdachtsstreifens ab Fahrbahnrand
+       */
+      Verdachtsstreifenbreite : (
+        /** 15 m
+         */
+        m_15,
+        /** 10 m
+         */
+        m_10,
+        /** 5 m
+         */
+        m_5,
+        /** 0 m
+         */
+        m_0,
+        /** kein Verdachtsstreifen
+         */
+        kein_Verdachtsstreifen,
+        /** keine Angabe
+         */
+        keine_Angabe
+      );
+      /** Strassentyp
+       */
+      Strassentyp : (
+        Kantonsstrasse,
+        Nationalstrasse
+      );
+    END Strasse;
+
+    /** Transportunternehmen
+     */
+    CLASS Transportunternehmen =
+      /** Name des Transportunternehmens
+       */
+      Unternehmensname : MANDATORY TEXT*100;
+      /** Abkuerzung des Transportunternehmens
+       */
+      Abkuerzung : TEXT*20;
+    END Transportunternehmen;
+
+    ASSOCIATION Bodenbelastungsflaeche_Bodenbelastungsgebiet =
+      /** Fremdschluessel zu Bodenbelastungsgebiet
+       */
+      Bodenbelastungsgebiet -- {1} Bodenbelastungsgebiet;
+      /** Fremdschluessel zu Bodenbelastungsflaeche
+       */
+      Bodenbelastungsflaeche -- {0..*} Bodenbelastungsflaeche;
+    END Bodenbelastungsflaeche_Bodenbelastungsgebiet;
+
+    ASSOCIATION Dokument_Anbaugebiet =
+      /** Fremdschluessel zu Anbaugebiet
+       */
+      Anbaugebiet -- {0..*} Anbaugebiet;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Anbaugebiet;
+
+    ASSOCIATION Dokument_Bodenbelastungsflaeche =
+      /** Fremdschluessel zu Bodenbelastungsflaeche
+       */
+      Bodenbelastungsflaeche -- {0..*} Bodenbelastungsflaeche;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Bodenbelastungsflaeche;
+
+    ASSOCIATION Dokument_Eisenbahn =
+      /** Fremdschluessel zu Eisenbahn
+       */
+      Eisenbahn -- {0..*} Eisenbahn;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Eisenbahn;
+
+    ASSOCIATION Dokument_Flugplatz =
+      /** Fremdschluessel zu Flugplatz
+       */
+      Flugplatz -- {0..*} Flugplatz;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Flugplatz;
+
+    ASSOCIATION Dokument_Gartenbau =
+      /** Fremdschluessel zu Gartenbau
+       */
+      Gartenbau -- {0..*} Gartenbau;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Gartenbau;
+
+    ASSOCIATION Dokument_Geogene_Bodenbelastung =
+      /** Fremdschluessel zu geogene Bodenbelastung
+       */
+      Geogene_Bodenbelastung -- {0..*} Geogene_Bodenbelastung;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Geogene_Bodenbelastung;
+
+    ASSOCIATION Dokument_militaerischer_Schiessplatz =
+      /** Fremdschluessel zu militaerischer Schiessplatz
+       */
+      militaerischer_Schiessplatz -- {0..*} militaerischer_Schiessplatz;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_militaerischer_Schiessplatz;
+
+    ASSOCIATION Dokument_Schiessanlage =
+      /** Fremdschluessel zu Schiessanlage
+       */
+      Schiessanlage -- {0..*} Schiessanlage;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Schiessanlage;
+
+    ASSOCIATION Dokument_Siedlungsgebiet =
+      /** Fremdschluessel zu Siedlungsgebiet
+       */
+      Siedlungsgebiet -- {0..*} Siedlungsgebiet;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Siedlungsgebiet;
+
+    ASSOCIATION Dokument_Stahlbruecke =
+      /** Fremdschluessel zu Stahlbruecke
+       */
+      Stahlbruecke -- {0..*} Stahlbruecke;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Stahlbruecke;
+
+    ASSOCIATION Dokument_Stahlkonstruktion =
+      /** Fremdschluessel zu Stahlkonstruktion
+       */
+      Stahlkonstruktion -- {0..*} Stahlkonstruktion;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Stahlkonstruktion;
+
+    ASSOCIATION Dokument_Stahlmast =
+      /** Fremdschluessel zu Stahlmast
+       */
+      Stahlmast -- {0..*} Stahlmast;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Stahlmast;
+
+    ASSOCIATION Dokument_Strasse =
+      /** Fremdschluessel zu Strasse
+       */
+      Strasse -- {0..*} Strasse;
+      /** Fremdschluessel zu Dokument
+       */
+      Dokument -- {0..*} Dokument;
+    END Dokument_Strasse;
+
+    ASSOCIATION Leitung_Uebertragungsleitungsmasten =
+      /** Fremdschluessel auf schadstoffbelastete_Boeden_Leitung
+       */
+      Leitung -- {1} Leitung;
+      Mast -- {0..*} Stahlmast;
+    END Leitung_Uebertragungsleitungsmasten;
+
+    ASSOCIATION Schadstoff_Anbaugebiet =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Anbaugebiet
+       */
+      Anbaugebiet -- {0..*} Anbaugebiet;
+    END Schadstoff_Anbaugebiet;
+
+    ASSOCIATION Schadstoff_Bodenbelastungsflaeche =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Bodenbelastungsflaeche
+       */
+      Bodenbelastungsflaeche -- {0..*} Bodenbelastungsflaeche;
+    END Schadstoff_Bodenbelastungsflaeche;
+
+    ASSOCIATION Schadstoff_Eisenbahn =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Eisenbahn
+       */
+      Eisenbahn -- {0..*} Eisenbahn;
+    END Schadstoff_Eisenbahn;
+
+    ASSOCIATION Schadstoff_Flugplatz =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Flugplatz
+       */
+      Flugplatz -- {0..*} Flugplatz;
+    END Schadstoff_Flugplatz;
+
+    ASSOCIATION Schadstoff_Gartenbau =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Gartenbau
+       */
+      Gartenbau -- {0..*} Gartenbau;
+    END Schadstoff_Gartenbau;
+
+    ASSOCIATION Schadstoff_Geogene_Bodenbelastung =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Geogene_Bodenbelastung
+       */
+      Geogene_Bodenbelastung -- {0..*} Geogene_Bodenbelastung;
+    END Schadstoff_Geogene_Bodenbelastung;
+
+    ASSOCIATION Schadstoff_militaerischer_Schiessplatz =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu militaerischer Schiessplatz
+       */
+      militaerischer_Schiessplatz -- {0..*} militaerischer_Schiessplatz;
+    END Schadstoff_militaerischer_Schiessplatz;
+
+    ASSOCIATION Schadstoff_Schiessanlage =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Schiessanlage
+       */
+      Schiessanlage -- {0..*} Schiessanlage;
+    END Schadstoff_Schiessanlage;
+
+    ASSOCIATION Schadstoff_Siedlungsgebiet =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      Siedlungsgebiet -- {0..*} Siedlungsgebiet;
+    END Schadstoff_Siedlungsgebiet;
+
+    ASSOCIATION Schadstoff_Stahlbruecke =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Stahlbruecke
+       */
+      Stahlbruecke -- {0..*} Stahlbruecke;
+    END Schadstoff_Stahlbruecke;
+
+    ASSOCIATION Schadstoff_Stahlkonstruktion =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Stahlkonstruktion
+       */
+      Stahlkonstruktion -- {0..*} Stahlkonstruktion;
+    END Schadstoff_Stahlkonstruktion;
+
+    ASSOCIATION Schadstoff_Stahlmast =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Stahlmast
+       */
+      Stahlmast -- {0..*} Stahlmast;
+    END Schadstoff_Stahlmast;
+
+    ASSOCIATION Schadstoff_Strasse =
+      /** Fremdschluessel zu Schadstoff
+       */
+      Schadstoff -- {0..*} Schadstoff;
+      /** Fremdschluessel zu Strasse
+       */
+      Strasse -- {0..*} Strasse;
+    END Schadstoff_Strasse;
+
+    ASSOCIATION Schiessanlage_Schiessanlagentyp =
+      /** Fremdschluessel zu Schiessanlage
+       */
+      Schiessanlage -- {0..*} Schiessanlage;
+      /** Fremdschluessel zu Schiessanlagentyp
+       */
+      Schiessanlagentyp -- {1..*} Schiessanlagentyp;
+    END Schiessanlage_Schiessanlagentyp;
+
+    ASSOCIATION Transportunternehmen_Eisenbahn =
+      /** Fremdschluessel zu Transportunternehmen
+       */
+      Transportunternehmen -- {0..1} Transportunternehmen;
+      /** Fremdschluessel zu Eisenbahn
+       */
+      Eisenbahn -- {0..*} Eisenbahn;
+    END Transportunternehmen_Eisenbahn;
+
+  END schadstoffbelastete_Boeden;
+
+END SO_AFU_Verzeichnis_schadstoffbelastete_Boeden_20200504.
