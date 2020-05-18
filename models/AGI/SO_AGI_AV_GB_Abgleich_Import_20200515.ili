@@ -1,0 +1,76 @@
+INTERLIS 2.3;
+
+/** !! Modell SO_AGI_AVGB_abgleich_import
+ * !! Für den Datenimport aus der Capitastra DB
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer       | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-05-15 | bjsvwcur  | Erstfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact="agi@bd.so.ch"
+MODEL SO_AGI_AVGB_abgleich_import_20200515 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2020-05-15"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  TOPIC agi_av_gb_abgleich_import =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Tabelle in welche die Daten vom GB importiert werden
+     */
+    CLASS gb_daten =
+      bfs_nr : MANDATORY 0 .. 9999;
+      kreis_nr : MANDATORY 0 .. 9999;
+      gemeindename : MANDATORY TEXT*50;
+      grundstueckart : MANDATORY TEXT*50;
+      grundstueck_nr : MANDATORY TEXT*50;
+      grundstueck_zusatz : MANDATORY TEXT*50;
+      grundstueck_nr_3 : MANDATORY TEXT*50;
+      fuehrungsart : MANDATORY TEXT*50;
+      flaeche : MANDATORY 0.0000 .. 9999999999.9949;
+      egrid : MANDATORY TEXT*14;
+    END gb_daten;
+
+    /** Differenzen zwischen den AV-Daten und den Grundbuchdaten
+     */
+    CLASS differenzen_staging =
+      av_gem_bfs : MANDATORY 0 .. 9999;
+      av_nbident : MANDATORY TEXT*12;
+      av_gemeinde : MANDATORY TEXT*50;
+      av_nummer : MANDATORY TEXT*50;
+      av_art : MANDATORY 0 .. 99;
+      av_art_txt : MANDATORY TEXT*50;
+      av_flaeche : MANDATORY 0 .. 9999999999;
+      fuehrungsart : MANDATORY TEXT*50;
+      flaeche : MANDATORY 0.0000 .. 9999999999.9949;
+      av_lieferdatum : INTERLIS.XMLDate;
+      av_mutation_id : MANDATORY TEXT*20;
+      av_mut_beschreibung : MANDATORY TEXT*255;
+      gb_gem_bfs : MANDATORY 0 .. 9999;
+      gb_kreis_nr : MANDATORY 0 .. 9999;
+      gb_gemeinde : MANDATORY TEXT*50;
+      gb_nummer : MANDATORY TEXT*50;
+      gb_art : MANDATORY TEXT*50;
+      gb_flaeche : MANDATORY 0.0000 .. 9999999999.9949;
+      gb_fuehrungsart : MANDATORY TEXT*50;
+      gb_nbident : MANDATORY TEXT*12;
+      flaechen_differenz : MANDATORY 0.0000 .. 9999999999.9949;
+      /** 1 : 'Liegenschaft mit falscher Art', 2 : 'Grundstücke mit Flächendifferenzen', 3 : 'Grundstück kommt nur in den AV-Daten vor', 4 : 'Grundstück kommt nur in den Grundbuch-Daten vor'
+       */
+      fehlerart : MANDATORY 0 .. 9;
+      geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END differenzen_staging;
+
+    /** Anzahl Differenzen zwischen den AV-Daten und den Grundbuchdaten pro Gemeinde
+     */
+    CLASS uebersicht_des_vergleichs_staging =
+      gem_bfs : MANDATORY 0 .. 9999;
+      name : MANDATORY TEXT*50;
+      anzahl_differenzen : MANDATORY 0 .. 999999;
+      geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END uebersicht_des_vergleichs_staging;
+
+  END agi_av_gb_abgleich_import;
+
+END SO_AGI_AVGB_abgleich_import_20200515.
