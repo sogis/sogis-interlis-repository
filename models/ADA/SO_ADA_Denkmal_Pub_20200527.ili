@@ -1,0 +1,115 @@
+INTERLIS 2.3;
+
+/** !! Publikationsmodell der Denkmaeler des Kantons Solothurn.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-05-27 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_ADA_Denkmal_Pub_20200527 (de)
+AT "http://geo.so.ch/models/ADA/"
+VERSION "2020-05-27"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Punkt-Geometriestruktur
+   */
+  STRUCTURE PointStructure =
+    Point : GeometryCHLV95_V1.Coord2;
+  END PointStructure;
+
+  /** MultiPoint-Struktur (das Metaattribut ili2db.mapping stellt sicher, dass bei
+   * der Schemakonfiguration in PostGIS direkt MultiPoint-Geometrien erzeugt werden)
+   */
+  !!@ ili2db.mapping=MultiPoint
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF SO_ADA_Denkmal_Pub_20200527.PointStructure;
+  END MultiPoint;
+
+  /** Umfasst abstrakte Basis-Klassen.
+   */
+  TOPIC Basisklassen =
+
+    /** In ArtPlus gefuerte Informationen zu einem Denkmal.
+     */
+    CLASS Denkmal (ABSTRACT) =
+      /** Interner Schluessel des Denkmals in Artplus. Ist stabil und eindeutig.
+       * 
+       * ArtPlusAttribut: Objekte.ID
+       */
+      ID : MANDATORY 1 .. 2147483647;
+      /** ArtPlusAttribut: Objekt.Objektname
+       */
+      Objektname : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeindeteil
+       */
+      Gemeindeteil : TEXT*4000;
+      /** Adresse: Strassenname
+       * 
+       * ArtPlusAttribut: Objekte.Strasse
+       */
+      Adr_Strasse : TEXT*4000;
+      /** Adresse: Hausnummer und Suffix
+       * 
+       * ArtPlusAttribut: Objekte.Hausnummer
+       */
+      Adr_Hausnummer : TEXT*4000;
+      /** Code fuer die Art des Objektes. Bsp.: Schloss, Ruine, Portal, ...
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Code : TEXT*4000;
+      /** Sprechender Text fuer die Art des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Text : TEXT*4000;
+      /** Code fuer die kantonale Schutzstufe des Objektes.
+       * (geschuetzt, schuetzenswert, erhaltenswert, ...)
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Code : MANDATORY TEXT*4000;
+      /** Sprechender Text fuer die kantonale Schutzstufe des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Text : MANDATORY TEXT*4000;
+      /** Gibt an, ob das Denkmal kommunal geschuetzt ist.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutz Gemeinde
+       */
+      SchutzDurchGemeinde : MANDATORY BOOLEAN;
+      UNIQUE ID;
+    END Denkmal;
+
+  END Basisklassen;
+
+  /** Umfasst die publizierten "Nutzklassen".
+   */
+  TOPIC Denkmal =
+
+    /** Denkmal als Multipoint
+     */
+    CLASS Denkmal_Punkt
+    EXTENDS SO_ADA_Denkmal_Pub_20200527.Basisklassen.Denkmal =
+      MPunkt : MANDATORY SO_ADA_Denkmal_Pub_20200527.MultiPoint;
+    END Denkmal_Punkt;
+
+    /** Denkmal als Multipolygon
+     */
+    CLASS Denkmal_Polygon
+    EXTENDS SO_ADA_Denkmal_Pub_20200527.Basisklassen.Denkmal =
+      MPoly : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Denkmal_Polygon;
+
+  END Denkmal;
+
+END SO_ADA_Denkmal_Pub_20200527.
