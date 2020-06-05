@@ -61,7 +61,7 @@ An die bestehende Modellablage des Kantons Solothurn können weitere Modellablag
 ## Spezialfälle
 
 ### SO_FunctionsExt
-Das Modell definiert die Funktionsköpfe der selber programmierten [Zusatzfunktionen](https://github.com/sogis/ilivalidator-custom-functions). Der Namen des Modelles ist bewusst ohne Datum / versionslos gehalten. Ansonsten müsste man bei der kleinsten Änderung die Konfigurationsdateien (Toml-Files) verschiedenster Prüfungen nachführen. Es muss beobachtet werden, wie sinnvoll sich das Ganze gestalten lässt.
+Das Modell definiert die Funktionsköpfe der selber programmierten [Zusatzfunktionen](https://github.com/sogis/ilivalidator-custom-functions). Der Namen des Modelles ist bewusst ohne Datum / versionslos gehalten. Ansonsten müsste man bei der kleinsten Änderung die Konfigurationsdateien (Toml-Files) verschiedenster Prüfungen nachführen. Es muss beobachtet werden, wie sinnvoll sich das Ganze gestalten lässt. Funktionen müssen aber immer abwärtskompatibel sein, wenn nirgends was geändert werden soll.
 
 Es ist auch das erste Modell, das von einem anderen Modell (`OeREBKRMvs_V1_1_Validierung_20200605`) in unserer Modellablage importiert wird. Aus diesem Grund musste das [Gradle-Plugin](https://github.com/sogis/interlis-repository-creator) zum Erstellen der Modellablage dahingehend erweitert werden, dass es beim Kompilieren von Modellen auch lokale Verzeichnisse berücksichtigt. Diese müssen ggf. ergänzt werden (bei Bedarf).
 
