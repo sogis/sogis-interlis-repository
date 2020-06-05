@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id "ch.so.agi.gretl" version "2.0.70"
-    id "ch.so.agi.interlis-repository-creator" version "1.0.12"
+    id "ch.so.agi.interlis-repository-creator" version "1.0.14"
     id "com.bmuschko.docker-remote-api" version "4.4.1"
 }
 
@@ -120,13 +120,15 @@ pushDockerImages.dependsOn {
 
 // It will fail if repository is not ok.
 // "Process 'command '/Library/Java/JavaVirtualMachines/jdk8u192-b12/Contents/Home/bin/java'' finished with non-zero exit value 1"
+// Es muss --ilidirs verwendet werden, um das localhost-Repo als Quelle für Modell-Importe verwenden zu können (d.h. Solothurner Modelle
+// importieren Solothurner Modelle.)
 task checkInterlisRepository(type: JavaExec) {
     classpath = buildscript.configurations.classpath
     main = 'ch.interlis.ili2c.Main'
-    args  "--check-repo-ilis", "http://localhost:8080"
+    args  "--check-repo-ilis", "http://localhost:8080", "--ilidirs", "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;http://localhost:8080"
 }
 
-checkInterlisRepository.finalizedBy stopDockerContainer
+//checkInterlisRepository.finalizedBy stopDockerContainer
 
 // This is how you can grap standard out or standard error.
 /*

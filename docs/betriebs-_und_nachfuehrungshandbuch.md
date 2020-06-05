@@ -66,3 +66,9 @@ Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installie
 ```
 
 Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten. Um ungewünschte Nebeneffekte auszuschliessen, ist das `.ilicache`-Verzeichnis im Home-Verzeichnis zu löschen.
+
+### Konsolenoutput in Datei umleiten
+
+```
+java -jar /Users/stefan/apps/ili2c-5.1.1/ili2c.jar --check-repo-ilis http://localhost:8080 >> results.log 2>&1
+```

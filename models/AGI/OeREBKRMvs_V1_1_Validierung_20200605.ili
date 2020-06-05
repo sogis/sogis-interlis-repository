@@ -1,0 +1,35 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://sogis.github.io/oereb-handbuch/master.html
+CONTRACTED MODEL OeREBKRMvs_V1_1_Validierung_20200605 (de)
+AT "https://agi.so.ch"
+VERSION "2020-06-05"  =
+  IMPORTS OeREBKRMvs_V1_1,SO_FunctionsExt;
+  
+  VIEW TOPIC Vorschriften_Validierung = 
+  DEPENDS ON OeREBKRMvs_V1_1.Vorschriften;
+  
+	VIEW v_Rechtsvorschrift
+    	PROJECTION OF OeREBKRMvs_V1_1.Vorschriften.Rechtsvorschrift;
+    =
+        ALL OF Rechtsvorschrift;
+
+        !!@ name = checkLegalProvisionURL
+        !!@ ilivalid.msg = "Dokument im Attribut 'TextImWeb' wurde nicht gefunden."
+        MANDATORY CONSTRAINT SO_FunctionsExt.isHttpResourceFromOerebMultilingualUri(TextImWeb);
+    END v_Rechtsvorschrift;
+
+	VIEW v_Dokument
+    	PROJECTION OF DokumentA ~ OeREBKRMvs_V1_1.Vorschriften.Dokument;
+    =
+        ALL OF DokumentA;
+
+        !!@ name = checkDocumentURL
+        !!@ ilivalid.msg = "Dokument im Attribut 'TextImWeb' wurde nicht gefunden."
+        MANDATORY CONSTRAINT SO_FunctionsExt.isHttpResourceFromOerebMultilingualUri(TextImWeb);
+    END v_Dokument;
+
+  END Vorschriften_Validierung;
+END OeREBKRMvs_V1_1_Validierung_20200605.
+  
