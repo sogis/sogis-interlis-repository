@@ -12,22 +12,6 @@ AT "http://www.geo.so.ch/models/AFU"
 VERSION "2020-04-29"  =
   IMPORTS GeometryCHLV95_V1;
 
-  TOPIC Base =
-
-    /** Hilfsstruktur zwecks Definition von Json "Array of Integer"
-     */
-    STRUCTURE IntStruct =
-      Integer : MANDATORY 0 .. 2147483647;
-    END IntStruct;
-
-    /** Hilfsstruktur zwecks Definition von Json "Array of Text"
-     */
-    STRUCTURE Text100Struct =
-      Text : MANDATORY TEXT*100;
-    END Text100Struct;
-
-  END Base;
-
   TOPIC Igel =
     OID AS INTERLIS.UUIDOID;
 
@@ -53,7 +37,7 @@ VERSION "2020-04-29"  =
        */
       Typ_Betrieb_Code : 0 .. 999;
       /** Name in IGEL Rest-Service: TypBetrieb
-       * In menschenlesbare Strings Ã¼bersetzte Werte der Int-Codes
+       * In menschenlesbare Strings übersetzte Werte der Int-Codes
        */
       Typ_Betrieb_Text : MTEXT*100;
       /** Adressteile Strasse und Hausnummer
@@ -80,17 +64,15 @@ VERSION "2020-04-29"  =
       /** Name in IGEL Rest-Service: DatumAktuellsteErhebung
        */
       AktuellsteErhebung : INTERLIS.XMLDate;
-      /** Liste aller vorhandenen Abwasserformen der Haushalte.
+      /** Liste aller vorhandenen Abwasserformen der Haushalte. 
        * Json-Array der Int-Codewerte.
        * Name in IGEL Rest-Service: HaushaltAbwasserAbleitungen
        */
-      !!@ ili2db.mapping=JSON
-      AbwasserAbleitungen_Codes : BAG {0..*} OF SO_AFU_Igel_Publikation_20200429.Base.IntStruct;
+      AbwasserAbleitungen_Codes : TEXT*100;
       /** Menschenlesbare Uebersetzungen von AbwasserAbleitungen_Codes.
-       * Json-Array von Strings.
+       * Json-Array von Strings
        */
-      !!@ ili2db.mapping=JSON
-      AbwasserAbleitungen_Texte : BAG {0..*} OF SO_AFU_Igel_Publikation_20200429.Base.Text100Struct;
+      AbwasserAbleitungen_Texte : TEXT*512;
       /** Name in IGEL Rest-Service: HaushaltAbwasserTotal [m3]
        */
       Abwasser_Total : 0.000 .. 999999.000;
@@ -113,10 +95,9 @@ VERSION "2020-04-29"  =
        * Name in IGEL Rest-Service: Typ
        */
       Typ_Standort_Text : MTEXT*100;
-      /** Json-Array der einem Standort zugeordneten Stall-Ids.
+      /** Json-Array der ID's der zugeordneten Staelle
        */
-      !!@ ili2db.mapping=JSON
-      Stall_Ids : BAG {0..*} OF SO_AFU_Igel_Publikation_20200429.Base.IntStruct;
+      Stall_Ids : TEXT*20;
     END Standort;
 
     CLASS Stall =
@@ -161,6 +142,9 @@ VERSION "2020-04-29"  =
        * Name in IGEL Rest-Service: Aufstallung
        */
       Aufstallung_Text : MTEXT*100;
+      /** Name und Vorname des Bewirtschafters des Standortes. (Identisch mit Standort.Name_Bewirtschafter)
+       */
+      Stao_Name_Bewirtschafter : MTEXT*401;
     END Stall;
 
   END Igel;
