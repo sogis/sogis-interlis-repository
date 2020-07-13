@@ -1,0 +1,382 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------------------
+ *  !! 2020-01-31 | MS | Initialversion
+ *  !! 2020-04-06 | MS | Bugfix
+ *  !! 2020-04-08 | MS | Bugfix
+ *  !! 2020-05-06 | MS | Bugfix
+ *  !! 2020-07-13 | AL | neue Attribute "Eiszeit_Unterboden", "_Oberboden", "Gemeinde_aktuell" 
+ *  !!===========================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Bodenprofilstandorte_Publikation_20200713.uml
+MODEL SO_AFU_Bodenprofilstandorte_Publikation_20200713 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2020-07-13"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  /** Daten kommen aus dem nationalen Bodeninformationssystem NABODAT (Modell: NABODAT_ErgebnisseBodenbelastung_Punktdaten_LV95_V1_1). Das Publikationsmodell wird benoetigt fuer die Erstellung des Solothurner Bodenprofilblatts.
+   */
+  TOPIC Bodenprofilstandorte =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Bodenfarbe
+     */
+    STRUCTURE Farbe =
+      /** Farbton (Munsell) Zahl (Original: farbe)
+       */
+      Farbtonzahl : 0 .. 100;
+      /** Farbton (Munsell) Text (Original: farbe)
+       */
+      Farbton : TEXT*20;
+      /** Farbton (Munsell) Helligkeit (Original: farbe)
+       */
+      Farbton_Helligkeit : 0 .. 100;
+      /** Farbe (Munsell) Intensität (Original: Farbe)
+       */
+      Farbton_Intensitaet : 0 .. 100;
+    END Farbe;
+
+    STRUCTURE Gefuege =
+      /** Gefügeform Code
+       */
+      Gefuegeform : TEXT*20;
+      /** Gefügeform Text
+       */
+      Gefuegeform_Text : TEXT*200;
+      /** Gefügegrösse Code
+       */
+      Gefuegegroesse : TEXT*20;
+      /** Gefügegrösse Text
+       */
+      Gefuegegroesse_Text : TEXT*200;
+    END Gefuege;
+
+    /** Boden Untertyp
+     */
+    STRUCTURE Untertyp =
+      /** Boden Untertyp Code
+       */
+      Untertyp : TEXT*200;
+      /** Boden Untertyp Text
+       */
+      Untertyp_Text : TEXT*400;
+    END Untertyp;
+
+    /** Horizontbeschreibung
+     */
+    STRUCTURE Horizont =
+      /** Tiefe des Horizonts
+       */
+      Tiefe : 0 .. 100000;
+      /** Gefüge
+       */
+	  !!@ili2db.mapping=JSON
+      Gefuege : BAG {0..*} OF SO_AFU_Bodenprofilstandorte_Publikation_20200713.Bodenprofilstandorte.Gefuege;
+      /** Im Feld gemessener Zustand der organischen Substanz in % (Original: f34)
+       */
+      Zustand_Organische_Substanz : 0 .. 100;
+      /** Im Labor gemessener Zustand der organischen Substanz in % (Original: f33)
+       */
+      Zustand_Organische_Substanz_Labor : 0 .. 100;
+      /** Im Feld gemessener Tongehalt in % (Original: f36)
+       */
+      Tongehalt : 0 .. 100;
+      /** Im Labor gemessener Tongehalt in % (Original: f35)
+       */
+      Tongehalt_Labor : 0 .. 100;
+      /** Im Feld gemessener Schluffgehalt in % (Original: f38)
+       */
+      Schluffgehalt : 0 .. 100;
+      /** Im Labor gemessener Schluffgehalt in % (Original: f37)
+       */
+      Schluffgehalt_Labor : 0 .. 100;
+      /** Im Feld gemessener Sandgehalt in % (Original: f40)
+       */
+      Sandgehalt : 0 .. 100;
+      /** Im Labor gemessener Sandgehalt in % (Original: f39)
+       */
+      Sandgehalt_Labor : 0 .. 100;
+      /** Anteil Kies (0.2 - 5cm) in Vol. % (Original: f41)
+       */
+      Kies : 0 .. 100;
+      /** Anteil Steine (> 5cm) in Vol. % (Original: f42)
+       */
+      Steine : 0 .. 100;
+      /** Kalkgehalt in % (Original: f45)
+       */
+      Kalk : 0 .. 100;
+      /** CaCO2 gehalt in % (Original: f44)
+       */
+      Kalk_Labor : 0 .. 100;
+      /** Ph-Wert
+       */
+      Ph_Wert : 0 .. 100;
+      /** CaCl2-Wert
+       */
+      CaCl2_Wert : 0 .. 100;
+      /** Farbe (Munsell)
+       */
+	  !!@ili2db.mapping=JSON 
+      Farbe : BAG {0..*} OF SO_AFU_Bodenprofilstandorte_Publikation_20200713.Bodenprofilstandorte.Farbe;
+    END Horizont;
+
+    /** Bodenprofilstandort
+     */
+    CLASS Bodenprofilstandort =
+      /** Höhe über Meer. Original: f58
+       */
+      Hoehe : 0 .. 1400;
+      /** Exposition Codeid. Original: f59
+       */
+      Exposition : TEXT*5;
+      /** Exposition Text. codetext_de
+       */
+      Exposition_Text : TEXT*50;
+      /** Klimaeignungszone. Original: f60. Codeid
+       */
+      Klimaeignungszone : TEXT*5;
+      /** Klimaeignungszone Text. codetext_de
+       */
+      Klimaeignungszone_Text : TEXT*100;
+      /** Vegetation Codeid. Original f61 (Vegetation aktuell)
+       */
+      Vegetation : TEXT*20;
+      /** Vegetation Text. codetext_de
+       */
+      Vegetation_Text : TEXT*100;
+      /** Ausgangsmaterial oben Codeid. Original: f62
+       */
+      Ausgangsmaterial_oben : TEXT*20;
+      /** Ausgangsmaterial oben codetext_de.
+       */
+      Ausgangsmaterial_oben_Text : TEXT*100;
+      /** Ausgangsmaterial Unten Code (Original: f63)
+       */
+      Ausgangsmaterial_unten : TEXT*20;
+      Ausgangsmaterial_unten_Text : TEXT*200;
+      /** Eiszeit codetext_de. Original: code_ausgangsmaterial_2
+       */
+      Eiszeit_Oberboden : TEXT*20;
+      /** Eiszeit codetext_de.
+       */
+      Eiszeit_Oberboden_Text : TEXT*100;
+      /** Landschaftselement Codeid. Original: f64
+       */
+      Landschaftselement : TEXT*20;
+      /** Landschaftselement codetext_de.
+       */
+      Landschaftselement_Text : TEXT*200;
+      /** Kleinrelief Codeid. Original: f65
+       */
+      Kleinrelief : TEXT*20;
+      /** Kleinrelief codetext_de
+       */
+      Kleinrelief_Text : TEXT*200;
+      /** Gemeindename
+       */
+      Gemeinde : TEXT*50;
+      /** Flurname
+       */
+      Flurname : TEXT*100;
+      /** BFS Nummer der Gemeinde
+       */
+      BFS_Nummer : 0 .. 9999;
+      /** Profilnummer, zusammengesetzt aus BFSNummer_Ersterfassung und Profilnummer
+       */
+      Profilnummer : MANDATORY TEXT*100;
+      /** BFS Nummer der Gemeinde bei Erfassung
+       */
+      BFS_Nummer_Erfassung : 0 .. 9999;
+      /** E- und N-Koordinaten. Original: f13 und f14
+       */
+      Koordinaten : TEXT*17;
+      /** Profilbezeichnung
+       */
+      Profilbezeichnung : TEXT*50;
+      /** Klassifikationssystem Codeid. Original: f1 (Datenschluessel)
+       */
+      Klassifikationssystem : TEXT*20;
+      /** Klassifikationssystem codetext_de.
+       */
+      Klassifikationssystem_Text : TEXT*200;
+      /** Profilart Codeid. Original: f3 (Profilart)
+       */
+      Erhebungsart : TEXT*20;
+      /** Erhebungsart codetext_de.
+       */
+      Erhebungsart_Text : TEXT*200;
+      /** Probenehmer. Original: f4 (Pedologe)
+       */
+      Probenehmer : TEXT*200;
+      /** Erhebungsdatum. Original: f5 (Aufnahmedaten)
+       */
+      Erhebungsdatum : INTERLIS.XMLDate;
+      /** Bodentyp Code (Original: f16)
+       */
+      Bodentyp : TEXT*20;
+      /** Bodentyp Text (Original: bodentyp)
+       */
+      Bodentyp_Text : TEXT*200;
+      /** Boden Untertyp Code (Original: f18)
+       */
+      !!@ili2db.mapping=JSON
+	  Untertyp : BAG {0..*} OF SO_AFU_Bodenprofilstandorte_Publikation_20200713.Bodenprofilstandorte.Untertyp;
+      /** Skelettgehalt Oberboden Code (Original: f19)
+       */
+      Skelettgehalt_Oberboden : TEXT*20;
+      /** Skelettgehalt Oberboden Text (Original: skelettoberbod)
+       */
+      Skelettgehalt_Oberboden_Text : TEXT*200;
+      /** Skelettgehalt Unterboden Code (Original: f20)
+       */
+      Skelettgehalt_Unterboden : TEXT*20;
+      /** Skelettgehalt Unterboden Text (Original: Skelettunterbod)
+       */
+      Skelettgehalt_Unterboden_Text : TEXT*200;
+      /** Feinkoernung Oberboden Code (Original: f21)
+       */
+      Feinerdekoernung_Oberboden : TEXT*20;
+      /** Feinerdekoernung Oberboden Text (Original: feinerdeoberbod)
+       */
+      Feinerdekoernung_Oberboden_Text : TEXT*200;
+      /** Feinerdekoernung Unterboden Code (Original: f22)
+       */
+      Feinerdekoernung_Unterboden : TEXT*20;
+      /** Feinerdekoernung Unterboden Text (Original: feinerdeunterbod)
+       */
+      Feinerdekoernung_Unterboden_Text : TEXT*200;
+      /** Bodenwasserhaushaltsgruppe Code (Original: f23)
+       */
+      Bodenwasserhaushaltsgruppe : TEXT*20;
+      /** Bodenwasserhaushaltsgruppe Text (Original: wasserhh)
+       */
+      Bodenwasserhaushaltsgruppe_Text : TEXT*200;
+      /** Pflanzengründigkeit Code (Original: f24)
+       */
+      Pflanzengruendigkeit : TEXT*20;
+      /** Pflanzengründigkeit in cm  (Original: pngruendigkcm)
+       */
+      Pflanzengruendigkeitswert : TEXT*20;
+      /** Pflanzengründigkeit in cm Text (Original: pflanzengruendigk)
+       */
+      Pflanzengruendigkeitswert_Text : TEXT*200;
+      /** Neigung in % (Original: f25)
+       */
+      Neigung : TEXT*20;
+      /** Gelaendeform Code (Original: f26)
+       */
+      Gelaendeform : TEXT*20;
+      /** Gelaendeform Text (Original: gelaendefrm)
+       */
+      Gelaendeform_Text : TEXT*200;
+      /** Name des Bildes (filename)  mit der Topografieskizze (original: topografie)
+       */
+      Topografieskizze : INTERLIS.URI;
+      /** Geometrie
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Profilfoto (filename) (Original: foto)
+       */
+      Profilfoto : URI;
+      /** Profilskizze (filename) (Original: profilskizze_bild)
+       */
+      Profilskizze : URI;
+      /** Horizonte
+       */
+	  !!@ili2db.mapping=JSON 
+      Horizonte : BAG {0..*} OF SO_AFU_Bodenprofilstandorte_Publikation_20200713.Bodenprofilstandorte.Horizont;
+      /** Bemerkung
+       */
+      Bemerkung : TEXT*20000;
+      /** Bemerkung zur Erhebung
+       */
+      Bemerkung_Erhebung : TEXT*20000;
+      /** Krumenzustand Code (Original: f66)
+       */
+      Krumenzustand : TEXT*20;
+      /** Krumenzustand Text
+       */
+      Krumenzustand_Text : TEXT*200;
+      /** Limitierungen Code (Original: limitierung)
+       */
+      Limitierungen : TEXT*20;
+      /** Limitierungen Text
+       */
+      Limitierungen_Text : TEXT*200;
+      /** Nutzungsbeschränkung Code
+       */
+      Nutzungsbeschraenkung : TEXT*20;
+      /** Nutzungsbeschränkung Text
+       */
+      Nutzungsbeschraenkung_Text : TEXT*200;
+      /** Melioration Festegestellt Code
+       */
+      Melioration_Festgestellt : TEXT*20;
+      /** Melioration Festegestellt Text
+       */
+      Melioration_Festgestellt_Text : TEXT*200;
+      /** Melioration Empfohlen Code
+       */
+      Melioration_Empfohlen : TEXT*20;
+      /** Melioration Empfohlen Text
+       */
+      Melioration_Empfohlen_Text : TEXT*200;
+      /** Düngereinsatz Fest Code
+       */
+      Duengereinsatz_Fest : TEXT*20;
+      /** Düngereinsatz Fest Text
+       */
+      Duengereinsatz_Fest_Text : TEXT*200;
+      /** Düngereinsatz Flüssig Code
+       */
+      Duengereinsatz_Fluessig : TEXT*20;
+      /** Düngereinsatz Flüssig Text
+       */
+      Duengereinsatz_Fluessig_Text : TEXT*200;
+      /** Fruchtbarkeitsstufe Code
+       */
+      Fruchtbarkeitsstufe : TEXT*20;
+      /** Fruchtbarkeitsstufe Text
+       */
+      Fruchtbarkeitsstufe_Text : TEXT*200;
+      /** Bodenpunktezahl (Originalwert: Bodenprofilwert)
+       */
+      Bodenpunktezahl : 0 .. 100;
+      /** Nutzungseignung Code
+       */
+      Nutzungseignung : TEXT*20;
+      /** Nutzungseignung Text
+       */
+      Nutzungseignung_Text : TEXT*200;
+      /** Eignungsklasse Code
+       */
+      Eignungsklasse : TEXT*20;
+      /** Eignungsklasse Text
+       */
+      Eignungsklasse_Text : TEXT*200;
+      /** Humusform Code
+       */
+      Humusform : TEXT*20;
+      /** Humusform Text
+       */
+      Humusform_text : TEXT*200;
+      /** Produktionsfaehigkeitsstufe Code
+       */
+      Produktionsfaehigkeitsstufe : TEXT*20;
+      /** Produktionsfaehigkeitsstufe Text
+       */
+      Produktionsfaehigkeitsstufe_Text : TEXT*200;
+      /** Produktionsfaehigkeit Punkte
+       */
+      Produktionsfaehigkeit_Punkte : 0 .. 100;
+      Eiszeit_Unterboden : TEXT*20;
+      Eiszeit_Unterboden_Text : TEXT*100;
+      Gemeinde_aktuell : TEXT*50;
+    END Bodenprofilstandort;
+
+  END Bodenprofilstandorte;
+
+END SO_AFU_Bodenprofilstandorte_Publikation_20200713.
