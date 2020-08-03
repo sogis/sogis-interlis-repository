@@ -1,0 +1,57 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2020-08-06 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_ARP_Fledermausfundorte_Publikation_20200806 (de)
+AT "http://www.geo.so.ch/models/ARP"
+VERSION "2020-08-06"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Fledermausfundorte =
+
+    /** Fundorte der Fledermäuse.
+     */
+    CLASS Fledermausfundort =
+      /** Identifikator des Quartiers oder der Beobachtung
+       */
+      Identifikator : MANDATORY TEXT*11;
+      /** Fundorttyp
+       */
+      Typ : MANDATORY (
+        Beobachtung,
+        Quartier
+      );
+      /** Deutsche Bezeichnung der Fledermausarten (kommasepariert).
+       */
+      Art : TEXT;
+      /** HTTP-Link zur swissbat-Webanwendung
+       */
+      swissbat_link : MANDATORY INTERLIS.URI;
+      /** Status des Quartiers
+       */
+      Quartierstatus : (
+        /** Quartier existiert nicht mehr
+         */
+        zerstoert,
+        /** letzte 10 Jahre nur Negativkontrollen
+         */
+        verwaist,
+        /** letzte 3 Jahre nur Negativkontrollen
+         */
+        inaktiv,
+        aktiv
+      );
+      /** Koordinate des Quartiers resp. der Beobachtung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      MANDATORY CONSTRAINT ((Typ == #Quartier) AND DEFINED(Quartierstatus)) OR (Typ == #Beobachtung);
+    END Fledermausfundort;
+
+  END Fledermausfundorte;
+
+END SO_ARP_Fledermausfundorte_Publikation_20200806.
