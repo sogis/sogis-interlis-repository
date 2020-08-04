@@ -1,0 +1,87 @@
+INTERLIS 2.3;
+
+/** !!----------------------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!---------------------------------------------------------------------------------------------
+ *  !! 2020-08-04 | al  | Ersterfassung; Jagdreviere werden durch das Volkswirtschaftsdepartement   
+ *  !!                  | für eine Dauer von acht Jahren verpachtet. Die Abgrenzung ist Bestandteil     
+ *  !!                  | des Vertrages.  
+ *  !!=============================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AWJF/SO_AWJF_Jagdreviere_Jagdbanngebiete_202000804.uml
+MODEL SO_AWJF_Jagdreviere_Jagdbanngebiete_202000804 (de)
+AT "https://agi.so.ch"
+VERSION "2020-08-04"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  /** Besonders ausgewiesene, geschützte Lebensräume, die dem Schutz und der Erhaltung von seltenen und bedrohten, wildlebenden Säugetieren und Vögeln dienen. In den Jagdbanngebieten ist die Jagd verboten.
+   */
+  TOPIC Jagdbanngebiete =
+
+    /** Besonders ausgewiesene, geschützte Lebensräume.
+     */
+    CLASS Jagdbanngebiete =
+      /** Fläche des Banngebietes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Nummer des Jagdbanngebietes
+       */
+      Nummer : MANDATORY 1 .. 1000;
+      /** Name des Jagdbanngebietes
+       */
+      Name : MANDATORY TEXT*50;
+      /** Art des Jagdbanngebietes
+       */
+      Art : (
+        /** Wasser- und Zugvogelreservate von nationaler Bedeutung
+         */
+        national,
+        /** Kantonales Jagdbanngebiet für Vogelwelt
+         */
+        Vogelwelt,
+        /** Kantonales Jagdbanngebiet
+         */
+        Kantonal
+      );
+    END Jagdbanngebiete;
+
+  END Jagdbanngebiete;
+
+  /** Jagdreviere durch das Volkswirtschaftsdepartement für eine Dauer von acht Jahren verpachtet. Die Abgrenzung ist Bestandteil des Vertrages.
+   * Bei Jagdbanngebiete gibt es keine Jagdreviere.
+   */
+  TOPIC Jagdreviere =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Hegering =
+      Name : TEXT*20;
+    END Hegering;
+
+    /** Reviere
+     */
+    CLASS Jagdreviere =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Nummer des Jagdreviers
+       */
+      Nummer : 1 .. 100;
+      /** Name des Jagdreviers
+       */
+      Name : MANDATORY TEXT*50;
+      /** Name des Pächters
+       */
+      Pacht : TEXT*100;
+    END Jagdreviere;
+
+    ASSOCIATION Hegering_Jagdrevier =
+      /** Zu einem Hegering gehören mehrere Jagdreviere
+       */
+      Jagdrevier_Hegering -- {1..*} Jagdreviere;
+      /** Jagdreviere gehören zu einem Hegering
+       */
+      Hegering_Jagdrevier -- {1} Hegering;
+    END Hegering_Jagdrevier;
+
+  END Jagdreviere;
+
+END SO_AWJF_Jagdreviere_Jagdbanngebiete_202000804.
