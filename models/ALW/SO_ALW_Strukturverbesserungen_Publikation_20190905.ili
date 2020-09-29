@@ -1,15 +1,18 @@
 INTERLIS 2.3;
 
 /** ------------------------------------------------------------------------------
- * Version    | wer | Ã„nderung
+ * Version    | wer | Änderung
  *  ------------------------------------------------------------------------------
  * 2019-09-05 | al  | Initialversion Publikationsmodell
- * 2020-02-24 | an  | - Mehr Attribute gemÃ¤ss Edit-Modell auf "Mandatory" gesetzt
+ * 2020-02-24 | an  | - Mehr Attribute gemäss Edit-Modell auf "Mandatory" gesetzt
  *                  | - Leeres Topic "Stand_Gueterregulierung" entfernt
- *                  | - TextlÃ¤ngen tw. erhÃ¶ht mit Anpassung an Edit-Modell
- *                  | - OID AS INTERLIS.UUIDOID bei TOPIC hinzugefÃ¼gt
+ *                  | - Textlängen tw. erhöht mit Anpassung an Edit-Modell
+ *                  | - OID AS INTERLIS.UUIDOID bei TOPIC hinzugefügt
+ * 2020-09-25 | an  | - Umbenennung Klasse "Stand_Gueterregulierung" -> "Gemeinde"
+ *                  | - Neues Attribut "Flurreglemente" in Klasse "Gemeinde" (JSON)
  * ==============================================================================
  */
+!!@ technicalContact="agi@bd.so.ch"
 MODEL SO_ALW_Strukturverbesserungen_Publikation_20190905 (de)
 AT "http://www.geo.so.ch/models"
 VERSION "2019-09-05"  // eugr // =
@@ -26,6 +29,16 @@ VERSION "2019-09-05"  // eugr // =
       Kantonsnummer : TEXT*40;
       Projekttyp : MANDATORY TEXT*60;
     END Beizugsgebiet;
+
+    CLASS Gemeinde =
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Gemeindename : MANDATORY TEXT*50;
+      Gemeinde_Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      Stand_Gueterregulierung : MANDATORY TEXT*40;
+      /** ili2db.mapping=JSON
+       */
+      Flurreglemente : MTEXT;
+    END Gemeinde;
 
     CLASS Genossenschaft =
       Typ : MANDATORY TEXT*30;
@@ -44,7 +57,7 @@ VERSION "2019-09-05"  // eugr // =
       Dokumente : MTEXT;
     END Genossenschaft;
 
-    CLASS Massnahme (ABSTRACT) =
+    CLASS Massnahme =
       Status : MANDATORY TEXT*20;
       Status_Datum : MANDATORY INTERLIS.GregorianDate;
       Bauabnahme_Datum : INTERLIS.GregorianDate;
@@ -71,14 +84,10 @@ VERSION "2019-09-05"  // eugr // =
       Liniengeometrie : GeometryCHLV95_V1.MultiLine;
       Flaechengeometrie : GeometryCHLV95_V1.MultiSurface;
       Werkeigentum : TEXT*255;
+      /** ili2db.mapping=JSON
+       */
+      Dokumente : MTEXT;
     END Massnahme;
-
-    CLASS Stand_Gueterregulierung =
-      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
-      Stand : MANDATORY TEXT*40;
-      Gemeinde_Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
-      Gemeindename : MANDATORY TEXT*50;
-    END Stand_Gueterregulierung;
 
   END Strukturverbesserung;
 
