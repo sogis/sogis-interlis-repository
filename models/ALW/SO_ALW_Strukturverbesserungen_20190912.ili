@@ -1,7 +1,7 @@
 INTERLIS 2.3;
 
 /** ------------------------------------------------------------------------------
- * Version    | wer | Ã„nderung
+ * Version    | wer | Änderung
  *  ------------------------------------------------------------------------------
  * 2019-09-05 | al  | Initialversion
  * 2020-02-13 | an  | Einarbeitung Feedback Johannes Zehnder nach Besprechung
@@ -10,21 +10,28 @@ INTERLIS 2.3;
  *                  |   * UnterhaltsID: Aenderung in Zeichenkette*20 statt Domain UnterhaltsID
  *                  | - Klasse "Wegebau_Linie", neue Attribute:
  *                  |   * Bezeichnung (Zeichenkette 50)
- *                  |   * Techn_Schwierigkeit (AufzÃ¤hlungstyp Technische_Schwierigkeit)
+ *                  |   * Techn_Schwierigkeit (Aufzählungstyp Technische_Schwierigkeit)
  *                  |   * Anteil_LW (Prozent)
  *                  |   * laenge_gerundet (numerisch, soll auf 5m gerundet werden)
  *                  | - Klasse "Projekt", Aenderung folgender Attribute:
  *                  |   * Geschaeftsnummerdef: Aenderung in Zeichenkette*10 statt Domain Geschaeftsnummerdef
- *                  | - Klasse "Dokument": bei Attribut "Dateipfad" VerlÃ¤ngerung auf 255 Zeichen
+ *                  | - Klasse "Dokument": bei Attribut "Dateipfad" Verlängerung auf 255 Zeichen
  *                  | - Domain "Funktionstyp": Korrektur Schreibfehler
  *                  | - Association "Beizugsgebiet_Projekt": Korrektur Schreibfehler
  *                  | - Klassen "Genossenschaft", "Wegebau_Linie", "Werkseigentum", "Dokument", "Wiederherstellung_Punkt"
- *                  |   und "Oekologie_Punkt": diverse Attribute gemÃ¤ss QS-Dokument als MANDATORY gesetzt
- * 2020-02-24 | an  | OID AS INTERLIS.UUIDOID bei den Topics hinzugefÃ¼gt
+ *                  |   und "Oekologie_Punkt": diverse Attribute gemäss QS-Dokument als MANDATORY gesetzt
+ * 2020-02-24 | an  | OID AS INTERLIS.UUIDOID bei den Topics hinzugefügt
+ * 2020-09-23 | an  | - Neue Klasse "Gemeinde_Flurreglement"
+ *                  | - Neue Assoziation "Gemeinde_Flurreglement_Dokument"
+ *                  | - Umbenennung Domain "Dokumententyp" zu "Dokumenttyp"
+ *                  | - Erweiterung der Domain "Dokumenttyp"
+ *                  | - Neue Assoziation zwischen "Dokument" und "Raeumliches_Element"
+ *                  | - Diverse Display-Namen mit Umlauten umgesetzt bei Domainen
  * ==============================================================================
  * 
  * Erweiterung des Modells Strukturverbesserungen_LV95_V2. Da keine Beziehungen modelliert sind, konnte das Bundes-Modell nicht erweitert werden.
  */
+!!@ technicalContact="agi@bd.so.ch"
 MODEL SO_ALW_Strukturverbesserungen_20190912 (de)
 AT "http://www.geo.so.ch/models"
 VERSION "2019-09-05"  // eugr // =
@@ -34,17 +41,25 @@ VERSION "2019-09-05"  // eugr // =
 
     Datum = FORMAT INTERLIS.XMLDate "1800-01-01" .. "2099-12-31";
 
-    Dokumententyp = (
-      Bericht,
+    Dokumenttyp = (
+      Flurreglement,
       Unterhaltsreglement,
       Statuten,
       Regierungsratsbeschluss,
-      Bild
+      !!@ ili2db.dispName = "Verfügung"
+      Verfuegung,
+      Bericht,
+      Bild,
+      Plan,
+      Weiteres
     );
 
     Funktionstyp = (
+      !!@ ili2db.dispName = "Nebenwege (nicht fahrbar)"
       Nebenwege_nicht_fahrbar,
+      !!@ ili2db.dispName = "Nebenwege (fahrbar)"
       Nebenwege_fahrbar,
+      !!@ ili2db.dispName = "übrige Hauptwege"
       Uebrige_Hauptwege,
       Hofzufahrten,
       Berghofzufahrten
@@ -53,80 +68,123 @@ VERSION "2019-09-05"  // eugr // =
     Genossenschaften (FINAL) = (
       Flurgenossenschaft,
       Unterhaltsgenossenschaft,
+      !!@ ili2db.dispName = "Bewässerungsgenossenschaft"
       Bewaesserungsgenossenschaft
     );
 
     Oekologie_Punkte = (
       Einzelbaum,
+      !!@ ili2db.dispName = "Andere Massnahme"
       Andere_Massnahme
     );
 
     Projekt (FINAL) = (
       PRE,
       Landumlegung,
+      !!@ ili2db.dispName = "übrige"
       Uebrige,
       Projektinitiative,
+      !!@ ili2db.dispName = "Grundlagen generell"
       Grundlagen_generell,
+      !!@ ili2db.dispName = "landwirtschaftliche Planung"
       Landwirtschaftliche_Planung,
+      !!@ ili2db.dispName = "gemeinschaftliche Initiative zur Senkung der Produktionskosten"
       Gemeinschaftliche_Initiative_zur_Senkung_der_Produktionskosten
     );
 
     Stand = (
+      !!@ ili2db.dispName = "regulierungsbedürftige Flächen vorhanden"
       Regulierungsbeduerftige_Flaechen_vorhanden,
+      !!@ ili2db.dispName = "umfassende SV-Massnahmen in Arbeit"
       Umfassende_SV_Massnahmen_in_Arbeit,
+      !!@ ili2db.dispName = "Güterregulierung in Arbeit"
       Gueterregulierung_in_Arbeit,
+      !!@ ili2db.dispName = "Güterregulierung ausgeführt"
       Gueterregulierung_ausgefuehrt,
+      !!@ ili2db.dispName = "Keine Güterregulierung notwendig"
       Keine_Gueterregulierung_notwendig
     );
 
     Technische_Schwierigkeit (FINAL) = (
+      !!@ ili2db.dispName = "nicht relevant"
       nicht_relevant,
       gering,
+      !!@ ili2db.dispName = "mässig"
       maessig,
       gross
     );
 
     Wiederherstellung_Punkte = (
       Holzkasten,
+      !!@ ili2db.dispName = "weitere Böschungssicherungsmassnahmen"
       Weitere_Boeschungssicherungsmassnahmen
     );
 
     Beizugsgebiete (FINAL) = (
+      !!@ ili2db.dispName = "Alter Bestand"
       Alter_Bestand,
+      !!@ ili2db.dispName = "Neuer Bestand"
       Neuer_Bestand,
+      !!@ ili2db.dispName = "übrige"
       uebrige
     );
+
+  TOPIC Stand_Gueterregulierung =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Stand_Gueterregulierung =
+      /** BFSNr. einer Gemeinde
+       */
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Stand der Güterregulierung
+       */
+      Stand : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Stand;
+    END Stand_Gueterregulierung;
+
+  END Stand_Gueterregulierung;
+
+  DOMAIN
 
     Bautyp (FINAL) = (
       Neubau,
       PWI,
+      !!@ ili2db.dispName = "Ausbau oder Ersatz"
       Ausbau_Ersatz,
       Wiederherstellung
     );
 
     Oekologische_Flaechen (FINAL) = (
       Biotop,
+      !!@ ili2db.dispName = "Andere Massnahme"
       Andere_Massnahme,
+      !!@ ili2db.dispName = "Perimeter Vernetzungsprojekt"
       Perimeter_Vernetzungsprojekt,
       Hochstammobstanlagen
     );
 
     Oekologie_Linien (FINAL) = (
+      !!@ ili2db.dispName = "Revitalisierung Gewässer"
       Revitalisierung_Gewaesser,
+      !!@ ili2db.dispName = "Ausdolung Gewässer"
       Ausdolung_Gewaesser,
       Hecke,
       Waldrandaufwertung,
+      !!@ ili2db.dispName = "Bach- und Ufervegetation"
       Bach_und_Ufervegetation
     );
 
     Oekologie_Trockenmauern (FINAL) = (
+      !!@ ili2db.dispName = "freistehende Trockenmauer"
       freistehende_Trockenmauer,
+      !!@ ili2db.dispName = "Terrasse (Trockenmauer)"
       Terrasse_Trockenmauer
     );
 
     Status (FINAL) = (
       projektiert,
+      !!@ ili2db.dispName = "in Ausführung"
       in_Ausfuehrung,
+      !!@ ili2db.dispName = "ausgeführt"
       ausgefuehrt,
       sistiert,
       untergegangen,
@@ -134,44 +192,62 @@ VERSION "2019-09-05"  // eugr // =
     );
 
     Wege (FINAL) = (
+      !!@ ili2db.dispName = "Wanderweg (bauliche Massnahmen)"
       Wanderweg_bauliche_Massnahmen,
+      !!@ ili2db.dispName = "Viehtrieb oder Reitweg"
       Viehtrieb_Reitweg,
       Tunnel,
+      !!@ ili2db.dispName = "Aufhebung von Wegen"
       Aufhebung_von_Wegen,
       Rasenweg,
+      !!@ ili2db.dispName = "Spurweg (Rasengitter)"
       Spurweg_Rasengitter,
+      !!@ ili2db.dispName = "Spurweg (Beton)"
       Spurweg_Beton,
+      !!@ ili2db.dispName = "Spurweg (Bitumen)"
       Spurweg_Bitumen,
+      !!@ ili2db.dispName = "Belagseinbau auf Kiesweg"
       Belagseinbau_auf_Kiesweg,
       Betonweg,
+      !!@ ili2db.dispName = "Bituminöser Weg"
       Bituminoeser_Weg,
       Kiesweg
     );
 
     Seilbahnen_Linien (FINAL) = (
+      !!@ ili2db.dispName = "Monorail und ähnliche"
       Monorail_u_aehnliche,
       Materialseilbahn,
       Personenseilbahn,
+      !!@ ili2db.dispName = "Seilbahn im Abbruch"
       Abbruch_Seilbahn
     );
 
     Seilbahnen_Punkte (FINAL) = (
       Station,
+      !!@ ili2db.dispName = "Station im Abbruch"
       Abbruch_Station
     );
 
     Entw_Bodenstruktur_Flaechen (FINAL) = (
       Rutschhangstabiliserung,
+      !!@ ili2db.dispName = "Entwässerung FFF"
       Entwaesserung_FFF,
+      !!@ ili2db.dispName = "Entwässerung übrige Flächen"
       Entwaesserung_uebrige_Flaechen,
+      !!@ ili2db.dispName = "Aufbringung Humus"
       Aufbringung_Humus,
       Bodenstrukturverbesserung,
+      !!@ ili2db.dispName = "Wiederherstellung Kulturland"
       Wiederherstellung_Kulturland
     );
 
     Entw_Bodenstruktur_Linien (FINAL) = (
+      !!@ ili2db.dispName = "Hauptleitung (Ableitung)"
       Hauptleitung_Ableitung,
+      !!@ ili2db.dispName = "Drainageleitung perforiert"
       Drainageleitung_perforiert,
+      !!@ ili2db.dispName = "Entwässerungsgraben"
       Entwaesserungsgraben
     );
 
@@ -179,16 +255,20 @@ VERSION "2019-09-05"  // eugr // =
       Stollen,
       Kanal,
       Verteilleitung,
+      !!@ ili2db.dispName = "Zuleitung Bewässerung"
       Zuleitung_Bewaesserung
     );
 
     Bewaesserung_Flaechen (FINAL) = (
+      !!@ ili2db.dispName = "Tropfen-Mikrobewässerung"
       Tropfen_Mikrobewaesserung,
       Beregnungsanlage,
+      !!@ ili2db.dispName = "Traditionelle Berieselung"
       Traditionelle_Berieselung
     );
 
     Bewaesserung_Punkte (FINAL) = (
+      !!@ ili2db.dispName = "Fassung Entsander"
       Fassung_Entsander,
       Pumpwerk,
       Speicher
@@ -196,7 +276,9 @@ VERSION "2019-09-05"  // eugr // =
 
     Wasserversorgung_Punkte (FINAL) = (
       Grundwasserfassung,
+      !!@ ili2db.dispName = "Quellfassung inkl. Brunnenstube"
       Quellfassung_inkl_Brunnenstube,
+      !!@ ili2db.dispName = "Tränkeanlage"
       Traenkeanlage,
       Aufbereitungsanlage,
       Pumpwerk,
@@ -210,50 +292,60 @@ VERSION "2019-09-05"  // eugr // =
     );
 
     Elektrizitaet_Linien (FINAL) = (
+      !!@ ili2db.dispName = "Kabel unterirdisch"
       Kabel_unterirdisch,
+      !!@ ili2db.dispName = "Leitung im Abbruch"
       Abbruch_Leitung,
       Freileitung
     );
 
     Hochbau_Punkte (FINAL) = (
+      !!@ ili2db.dispName = "Anlage für gewerblichen Kleinbetrieb"
       Anlage_fuer_gewerblichen_Kleinbetrieb,
-      Gemeinschaftliche_Anlage_fuer_die_Verabeitung_Lagerung_und_Verkauf,
+      !!@ ili2db.dispName = "Gemeinschaftliche Anlage für die Verarbeitung Lagerung und Verkauf"
+      Gemeinschaftliche_Anlage_fuer_die_Verarbeitung_Lagerung_und_Verkauf,
+      !!@ ili2db.dispName = "Gemeinschaftliche Anlage für die Milchverarbeitung"
       Gemeinschaftliche_Anlage_fuer_die_Milchverarbeitung,
+      !!@ ili2db.dispName = "Ökonomiegebäude"
       Oekonomiegebaeude,
+      !!@ ili2db.dispName = "Alpgebäude"
       Alpgebaeude,
+      !!@ ili2db.dispName = "Gemeinschaftliche Anlage zur Produktion erneuerbarer Energie aus Biomasse"
       Gemeinschaftliche_Anlage_zur_Produktion_erneuerbarer_Energie_aus_Biomasse,
+      !!@ ili2db.dispName = "Anlage für produzierenden Gartenbaubetrieb"
       Anlage_fuer_produzierenden_Gartenbaubetrieb,
+      !!@ ili2db.dispName = "Anlage zur Diversifizierung"
       Anlage_zur_Diversifizierung,
+      !!@ ili2db.dispName = "Anlage für einheimischen Fischfang und Fischzucht"
       Anlage_fuer_einheimischen_Fischfang_und_Fischzucht,
+      !!@ ili2db.dispName = "Anlage für Spezialkulturen"
       Anlage_fuer_Spezialkulturen,
+      !!@ ili2db.dispName = "Geflügelstall"
       Gefluegelstall,
+      !!@ ili2db.dispName = "Schweinestall"
       Schweinestall,
+      !!@ ili2db.dispName = "Wohngebäude"
       Wohngebaeude,
+      !!@ ili2db.dispName = "PRE andere Gebäude und Einrichtungen"
       PRE_andere_Gebaeude_und_Einrichtungen
     );
-
-  TOPIC Stand_Gueterregulierung =
-    OID AS INTERLIS.UUIDOID;
-
-    CLASS Stand_Gueterregulierung =
-      /** BFSNr. einer Gemeinde
-       */
-      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
-      /** Stand der GÃ¼terregulierung
-       */
-      Stand : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Stand;
-    END Stand_Gueterregulierung;
-
-  END Stand_Gueterregulierung;
 
   TOPIC RaeumlicheElemente =
     OID AS INTERLIS.UUIDOID;
 
     CLASS Dokument =
       Titel : MANDATORY TEXT*30;
-      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Dokumententyp;
+      Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Dokumenttyp;
       Dateipfad : MANDATORY TEXT*255;
     END Dokument;
+
+    /** An diese Gemeindeklasse können Flurreglement-Dokumente angehängt werden. Die Gemeindegeometrien werden hier nicht gespeichert werden. Sie können verknüpft werden.
+     */
+    CLASS Gemeinde_Flurreglement =
+      /** BFSNr. einer Gemeinde
+       */
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+    END Gemeinde_Flurreglement;
 
     CLASS Genossenschaft =
       Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Genossenschaften;
@@ -311,6 +403,33 @@ VERSION "2019-09-05"  // eugr // =
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
     END Wiederherstellung_Punkt;
 
+    /** Zuordnung Flurreglement-Dokumente zu Gemeinden.
+     */
+    ASSOCIATION Gemeinde_Flurreglement_Dokument =
+      Dokument -- {0..*} Dokument;
+      Gemeinde_Flurreglement -- {1..*} Gemeinde_Flurreglement;
+    END Gemeinde_Flurreglement_Dokument;
+
+    ASSOCIATION Genossenschaft_Dokument =
+      Dokument -- {0..*} Dokument;
+      Genossenschaft -- {1..*} Genossenschaft;
+    END Genossenschaft_Dokument;
+
+    ASSOCIATION Genossenschaft_Element =
+      Genossenschaft_Element -- {0..*} Genossenschaft;
+      Element_Genossenschaft -- {0..*} Raeumliches_Element;
+    END Genossenschaft_Element;
+
+    ASSOCIATION Raeumliches_Element_Dokument =
+      Rauemliches_Element -- {1..*} Raeumliches_Element;
+      Dokument -- {0..*} Dokument;
+    END Raeumliches_Element_Dokument;
+
+    ASSOCIATION Werkeigentum_Element =
+      Element -- {0..*} Raeumliches_Element;
+      Werkeigentum -- {0..1} Werkseigentum;
+    END Werkeigentum_Element;
+
     CLASS Wege_Bruecke_Lehnenviadukt
     EXTENDS Raeumliches_Element =
       Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
@@ -325,6 +444,13 @@ VERSION "2019-09-05"  // eugr // =
       Widerlager : BOOLEAN;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
     END Wege_Bruecke_Lehnenviadukt;
+
+    /** Zum Wiederherstellung_Punkt können mehrere Bilder erfasst werden z.B. bei Unwetterschäden
+     */
+    ASSOCIATION Wiederherstellungs_Punkt_Bild =
+      Wiederherstellungs_Punkt -- {1} Wiederherstellung_Punkt;
+      Bild -- {0..*} Dokument;
+    END Wiederherstellungs_Punkt_Bild;
 
     CLASS Seilbahn_Linie
     EXTENDS Raeumliches_Element =
@@ -454,7 +580,7 @@ VERSION "2019-09-05"  // eugr // =
       Typ : MANDATORY SO_ALW_Strukturverbesserungen_20190912.Beizugsgebiete;
     END Beizugsgebiet;
 
-    /** Kantonale Projekte werden erfasst. In seltenen FÃ¤llen kÃ¶nnen zwei kantonale Projekte die gleiche GeschÃ¤ftsnummer haben.
+    /** Kantonale Projekte werden erfasst. In seltenen Fällen können zwei kantonale Projekte die gleiche Geschäftsnummer haben.
      */
     CLASS Projekt =
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
@@ -464,28 +590,6 @@ VERSION "2019-09-05"  // eugr // =
       Name : TEXT*50;
       UNIQUE Kantonsnummer;
     END Projekt;
-
-    /** Zum Wiederherstellung_Punkt kÃ¶nnen mehrere Bilder erfasst werden z.B. bei UnwetterschÃ¤den
-     */
-    ASSOCIATION Wiederherstellungs_Punkt_Bild =
-      Wiederherstellungs_Punkt -- {1} Wiederherstellung_Punkt;
-      Bild -- {0..*} Dokument;
-    END Wiederherstellungs_Punkt_Bild;
-
-    ASSOCIATION Genossenschaft_Dokument =
-      Dokument -- {0..*} Dokument;
-      Genossenschaft -- {1..*} Genossenschaft;
-    END Genossenschaft_Dokument;
-
-    ASSOCIATION Genossenschaft_Element =
-      Genossenschaft_Element -- {0..*} Genossenschaft;
-      Element_Genossenschaft -- {0..*} Raeumliches_Element;
-    END Genossenschaft_Element;
-
-    ASSOCIATION Werkeigentum_Element =
-      Element -- {0..*} Raeumliches_Element;
-      Werkeigentum -- {0..1} Werkseigentum;
-    END Werkeigentum_Element;
 
     ASSOCIATION Beizugsgebiet_Projekt =
       Beizugsgebiet -- {0..*} Beizugsgebiet;
