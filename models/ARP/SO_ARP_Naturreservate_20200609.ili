@@ -3,8 +3,8 @@ INTERLIS 2.3;
 /** !!------------------------------------------------------------------------------ 
  * !! Version    | wer | Änderung 
  * !!------------------------------------------------------------------------------ 
- * !! 2017-02-01 | Noëmi Sturm  | Erstfassung 
- * !! 2017-03-30 | Noëmi Sturm  | diverse kleinere Anpassungen
+ * !! 2017-02-01 | Noëmi Sturm   | Erstfassung 
+ * !! 2017-03-30 | Noëmi Sturm   | diverse kleinere Anpassungen
  * !! 2017-04-19 | Noëmi Sturm   | Erweiterung Class Zustaendiger
  * !! 2017-05-26 | Noëmi Sturm   | Anpassung Zustaendiger
  * !! 2017-12-04 | Noëmi Sturm   | neue Class Pflanze & Korrektur Zustaendiger
@@ -17,17 +17,18 @@ INTERLIS 2.3;
  * !! 2018-03-08 | Noëmi Sturm   | Mandatory Constraint hinzugefügt,
  * !!                            | OffizielleNr und Datum hinzugefügt
  * !! 2018-03-09 | Noëmi Sturm   | Foto, Objektblatt und Pflanzenliste aus 
- * !!                            | dokumenttyp entfernt
+ * !!                            | Dokumenttyp entfernt
  * !! 2018-04-04 | Noëmi Sturm   | Dateiname zu Dateipfad geändert
  * !! 2018-08-29 | Noëmi Sturm   | Attributnamen geändert, Mandatory Constraint entfernt,
  * !!                            | Mandatory Constraint dazugefügt
- * !! 2020-06-09 | Andrea Lüscher| Attribut Einzelschutz hinzugefügt
+ * !! 2020-06-09 | Andrea Lüscher| Attribut Einzelschutz hinzugefügt und neue Klasse
+ * !!                            | Erhebung eingeführt anstelle Eigenschaften der Assoziation 
  * !!==============================================================================
  */
 !!@ technicalContact=mailto:agi@bd.so.ch
-!!@ furtherInformation=http://www.geo.so.ch/models/ARP/SO_ARP_Naturreservate_20200609.uml
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Naturreservate_20200609.uml
 MODEL SO_ARP_Naturreservate_20200609 (de)
-AT "http://www.geo.so.ch/models/ARP"
+AT "https://arp.so.ch"
 VERSION "2020-06-09"  =
   IMPORTS GeometryCHLV95_V1;
 
@@ -45,7 +46,7 @@ VERSION "2020-06-09"  =
   TOPIC Reservate =
     OID AS INTERLIS.UUIDOID;
 
-    /** Dokumente auf welche sich die kantonalen Naturreservate stuetzen, oder welche die in der Datenbank verwalteten Daten ergaenzen.
+    /** Dokumente auf welche sich die kantonalen Naturreservate stützen, oder welche die in der Datenbank verwalteten Daten ergänzen.
      */
     CLASS Dokument =
       /** Bezeichnung des Dokuments
@@ -57,7 +58,7 @@ VERSION "2020-06-09"  =
       /** Typ des Dokuments
        */
       Typ : MANDATORY SO_ARP_Naturreservate_20200609.dokumenttyp;
-      /** Rechtsstatus des Dokuments. in Kraft / laufende Aenderung
+      /** Rechtsstatus des Dokuments. in Kraft / laufende Änderung
        */
       Rechtsstatus : MANDATORY (
         laufendeAenderung,
@@ -69,13 +70,22 @@ VERSION "2020-06-09"  =
       /** Dient das Dokument als Rechtsvorschrift? ja/nein
        */
       Rechtsvorschrift : MANDATORY BOOLEAN;
-      /** Offizielle Nummer  des Dokuments
+      /** Offizielle Nummer des Dokuments
        */
       OffizielleNr : TEXT*20;
       UNIQUE Dateipfad, Typ;
       MANDATORY CONSTRAINT ((Typ  == #RRB OR Typ == #Sonderbauvorschriften OR Typ == #Gestaltungsplan) AND DEFINED (publiziertAb))  OR   ((Typ  == #Kommunale_Inventare OR Typ == #Bericht OR Typ == #Pflegekonzept) AND NOT(DEFINED (publiziertAb)));
       MANDATORY CONSTRAINT ((Rechtsvorschrift) AND DEFINED (OffizielleNr))  OR   (NOT(Rechtsvorschrift) AND NOT(DEFINED (OffizielleNr)));
     END Dokument;
+
+    CLASS Erhebung =
+      /** Jahr der Erhebung
+       */
+      Jahr : INTERLIS.GregorianYear;
+      /** Name des Projekts
+       */
+      Projekt : MANDATORY TEXT*300;
+    END Erhebung;
 
     /** in kantonalen Naturreservaten erhobenen Pflanzen
      */
@@ -109,7 +119,7 @@ VERSION "2020-06-09"  =
       /** Reservatsbeschreibung
        */
       Beschreibung : MTEXT*10000;
-      /** Rechtsstatus des Reservats. in Kraft / laufende Aenderung
+      /** Rechtsstatus des Reservats. in Kraft / laufende änderung
        */
       Rechtsstatus : MANDATORY (
         laufendeAenderung,
@@ -136,7 +146,7 @@ VERSION "2020-06-09"  =
       /** Beschreibung des Teilgebiets
        */
       Beschreibung : MANDATORY MTEXT*10000;
-      /** Rechtsstatus des Teilgebiets. in Kraft / laufende Aenderung
+      /** Rechtsstatus des Teilgebiets. in Kraft / laufende Änderung
        */
       Rechtsstatus : MANDATORY (
         laufendeAenderung,
@@ -150,72 +160,67 @@ VERSION "2020-06-09"  =
       Datum : MANDATORY INTERLIS.XMLDate;
     END Teilgebiet;
 
-    /** Auflistung der fuer die Reservate zustaendigen Personen/Organisationen
+    /** Auflistung der für die Reservate zuständigen Personen/Organisationen
      */
     CLASS Zustaendiger =
       /** Name der Organisation
        */
       Organisation : TEXT*200;
-      /** Vor- und Nachname der zustaendigen Person
+      /** Vor- und Nachname der zuständigen Person
        */
       Zustaendigername : TEXT*200;
-      /** Adresse der zustaendigen Person
+      /** Adresse der zuständigen Person
        */
       Adresse : MTEXT*200;
-      /** Telefonnummer der zustaendigen Person
+      /** Telefonnummer der zuständigen Person
        */
       Telefon : TEXT*20;
-      /** E-mailadresse der zustaendigen Person
+      /** E-mailadresse der zuständigen Person
        */
       Email : TEXT*100;
       MANDATORY CONSTRAINT (DEFINED(Organisation) AND DEFINED (Zustaendigername))  OR   (NOT(DEFINED(Organisation)) AND DEFINED (Zustaendigername)) OR (DEFINED(Organisation) AND NOT(DEFINED (Zustaendigername)));
     END Zustaendiger;
 
+    /** Beziehung Pflanze zu Erhebung
+     */
+    ASSOCIATION Pflanze_Erhebung =
+      Pflanze -- {0..*} Pflanze;
+      Erhebung -- {0..*} Erhebung;
+    END Pflanze_Erhebung;
+
+    /** Beziehung Reservat zu Dokument
+     */
     ASSOCIATION Reservat_Dokument =
-      /** Fremdschluessel zu reservate_dokument
-       */
       Dokument -- {0..*} Dokument;
-      /** Fremdschluessel zu reservate_reservat
-       */
       Reservat -- {1..*} Reservat;
     END Reservat_Dokument;
 
+    /** Beziehung Reservat zum Teilgebiet
+     */
     ASSOCIATION Reservat_Teilgebiet =
       Teilgebiet_Reservat -- {1..*} Teilgebiet;
-      /** Fremdschluessel zu reservate_reservat
-       */
       Reservat -- {1} Reservat;
     END Reservat_Teilgebiet;
 
+    /** Zuweisung wer zuständig ist für das Reservat
+     */
     ASSOCIATION Reservat_Zustaendiger =
-      /** Fremdschluessel zu reservate_zustaendiger
-       */
       Zustaendiger -- {0..*} Zustaendiger;
-      /** Fremdschluessel zu reservate_reservat
-       */
       Reservat -- {0..*} Reservat;
-      /** Ist der/die Zustaendige verantwortlich fuer die Pflege? ja/nein
+      /** Ist der/die Zuständige verantwortlich für die Pflege? ja/nein
        */
       Pflege : MANDATORY BOOLEAN;
-      /** Ist der/die Zustaendige fuer die Aufsicht zustaendig? ja/nein
+      /** Ist der/die Zuständige für die Aufsicht zuständig? ja/nein
        */
       Aufsicht : MANDATORY BOOLEAN;
     END Reservat_Zustaendiger;
 
-    ASSOCIATION Teilgebiet_Pflanze =
-      /** Fremdschluessel zu reservate_teilgebiet
-       */
+    /** Beziehung Teilgebiet zu Erhebung
+     */
+    ASSOCIATION Teilgebiet_Erhebung =
       Teilgebiet -- {0..*} Teilgebiet;
-      /** Fremdschluessel zu reservate_pflanze
-       */
-      Pflanze -- {0..*} Pflanze;
-      /** Jahr der Erhebung
-       */
-      Erhebungsjahr : INTERLIS.GregorianYear;
-      /** Name des Erhebungsprojekts
-       */
-      Erhebungsprojekt : MANDATORY TEXT*15;
-    END Teilgebiet_Pflanze;
+      Erhebung -- {0..*} Erhebung;
+    END Teilgebiet_Erhebung;
 
   END Reservate;
 
