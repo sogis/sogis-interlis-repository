@@ -1,0 +1,136 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2020-10-02 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ furtherInformation="http://geo.so.ch/models/AGI/SO_AGI_GB2AV_Controlling_20201002.uml"
+MODEL SO_AGI_GB2AV_Controlling_20201002 (de)
+AT "https://agi.so.ch"
+VERSION "2020-10-01"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Controlling =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Berechnung der Differenz (Delta) zwischen Vollzug einer Mutation im Grundbuch und Nachführung in den Daten der amtlichen Vermessung.
+     */
+    CLASS GB2AV_Vollzugsmeldung_Delta =
+      /** Mutationsnummer
+       */
+      Mutationsnummer : MANDATORY TEXT*255;
+      /** Nummerierungsbereich
+       */
+      NBIdent : MANDATORY TEXT*255;
+      /** Differenz in Tagen
+       */
+      Delta : MANDATORY 0 .. 1000000;
+      /** Status der Mutation im Grundbuch gemäss Vollzugsmeldung
+       */
+      GB_Status : TEXT*255;
+      /** Bemerkungen aus der Vollzugsmeldung
+       */
+      GB_Bemerkungen : MTEXT*255;
+      /** Datum des Grundbucheintrages
+       */
+      GB_Grundbucheintrag : INTERLIS.XMLDate;
+      /** Datum des Eintrages im Tagebuch
+       */
+      GB_Tagebucheintrag : INTERLIS.XMLDate;
+      /** Nummer des Tagebuchbelegs
+       */
+      GB_Tagebuchbeleg : MTEXT*255;
+      /** Beschreibung der Mutation aus der amtlichen Vermessung (lsnachfuerhung.beschreibung)
+       */
+      AV_Beschreibung : TEXT*255;
+      /** Gueltigkeit der Mutation in den Daten der amtlichen Vermessung (lsnachfuerhung.gueltigkeit)
+       */
+      AV_Gueltigkeit : TEXT*255;
+      /** Datum des Eintrags der vollzogenen Mutation in den Daten der amtlichen Vermessung
+       */
+      AV_GueltigerEintrag : INTERLIS.XMLDate;
+      /** Datum des Grundbucheintrags in den Daten der amtlichen Vermessung
+       */
+      AV_GBEintrag : INTERLIS.XMLDate;
+      /** Zuständiger Nachführungsgeometer (resp. Firma)
+       */
+      AV_Firma : TEXT*255;
+      /** Name des ursprünglichen Datasets der Vollzugsmeldung.
+       */
+      Datasetname : MANDATORY TEXT*1024;
+      /** Geometrien der betroffen Grundstücke (als Multipolygon)
+       */
+      Perimeter : GeometryCHLV95_V1.MultiSurface;
+      /** Art des Grundstückes
+       */
+      Grundstuecksart : MANDATORY TEXT*255;
+      UNIQUE Datasetname,Grundstuecksart;
+    END GB2AV_Vollzugsmeldung_Delta;
+
+    /** Meldung des Grundbuchs an die amtliche Vermessung
+     */
+    STRUCTURE Vollzugsmeldung =
+      /** Mutationsnummer
+       */
+      Nummer : MANDATORY TEXT*255;
+      /** Nummerierungsbereich
+       */
+      NBIdent : MANDATORY TEXT*255;
+      /** Status der Mutation im Grundbuch
+       */
+      Status : TEXT*255;
+      /** Bemerkungen zu der Mutation
+       */
+      Bemerkungen : TEXT*1024;
+      /** Datum des Eintrags im Grundbuch
+       */
+      Grundbucheintrag : INTERLIS.XMLDate;
+      /** Datum des Eintrags im Tagebuch
+       */
+      Tagebucheintrag : INTERLIS.XMLDate;
+      /** Tagebuchbelegsnummer
+       */
+      Tagebuchbeleg : TEXT*255;
+      /** Name des Datasets
+       */
+      Datasetname : MANDATORY TEXT*1024;
+    END Vollzugsmeldung;
+
+    /** Mutationen der amtlichen Vermessung ans Grundbuch inkl. Vollzugsmeldungen
+     */
+    CLASS AV2GB_Mutationen =
+      /** Mutationsnummer
+       */
+      Mutationsnummer : MANDATORY TEXT*255;
+      /** Nummerierungsbereich
+       */
+      NBIdent : MANDATORY TEXT*255;
+      /** Beschrieb der Mutation
+       */
+      Beschrieb : TEXT*1024;
+      /** Name des mitgeschickten PDF
+       */
+      Dateinameplan : TEXT*1024;
+      /** Datum der technischen Fertigstellung der Mutation
+       */
+      EndeTechnBereit : INTERLIS.XMLDate;
+      !!@ ili2db.mapping="JSON"
+      Meldungen : BAG {0..*} OF SO_AGI_GB2AV_Controlling_20201002.Controlling.Vollzugsmeldung;
+      /** Ist Mutation im Grundbuch eingetragen (vollzogen)?
+       */
+      Grundbucheintrag : BOOLEAN;
+      /** Perimeter der Mutation
+       */
+      Perimeter : GeometryCHLV95_V1.MultiSurface;
+      /** Typ der Mutation
+       */
+      IstProjektmutation : MANDATORY TEXT*255;
+      UNIQUE Dateinameplan;
+    END AV2GB_Mutationen;
+
+  END Controlling;
+
+END SO_AGI_GB2AV_Controlling_20201002.
