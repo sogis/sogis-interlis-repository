@@ -10,6 +10,11 @@ INTERLIS 2.3;
  *                  | - OID AS INTERLIS.UUIDOID bei TOPIC hinzugefügt
  * 2020-09-25 | an  | - Umbenennung Klasse "Stand_Gueterregulierung" -> "Gemeinde"
  *                  | - Neues Attribut "Flurreglemente" in Klasse "Gemeinde" (JSON)
+ * 2020-11-06 | an  | - Datumsattribute von GregorianDate nach XMLDate gewechselt
+ *                  | - Attribute die Zusammenzug mehrerer Objekte beinhalten
+ *                  |   umgewandelt in Plural
+ *                  | - "Schöne" Displaynamen für Attribute hinzugefügt
+ *                  | - Korrektur illi2db.mapping=JSON für Dokumentstrukturen
  * ==============================================================================
  */
 !!@ technicalContact="agi@bd.so.ch"
@@ -23,10 +28,17 @@ VERSION "2019-09-05"  // eugr // =
 
     CLASS Beizugsgebiet =
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      Datum_Nachfuehrung : INTERLIS.GregorianDate;
+      !!@ ili2db.dispName = "Datum Nachführung"
+      Datum_Nachfuehrung : INTERLIS.XMLDate;
+      !!@ ili2db.dispName = "Typ des Beizugsgebiets"
       Typ : MANDATORY TEXT*30;
-      Geschaeftsnummer : TEXT*10;
-      Kantonsnummer : TEXT*40;
+      /** Zusammenzug aller Geschäftsnummern der verknüpften Projekte.
+       */
+      !!@ ili2db.dispName = "Geschäftsnummern"
+      Geschaeftsnummern : TEXT*10;
+      /** Zusammenzug aller Kantonsnummern der verknüpften Projekte.
+       */
+      Kantonsnummern : TEXT*40;
       Projekttyp : MANDATORY TEXT*60;
     END Beizugsgebiet;
 
@@ -34,58 +46,75 @@ VERSION "2019-09-05"  // eugr // =
       BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
       Gemeindename : MANDATORY TEXT*50;
       Gemeinde_Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      !!@ ili2db.dispName = "Stand Güterregulierung"
       Stand_Gueterregulierung : MANDATORY TEXT*40;
-      /** ili2db.mapping=JSON
-       */
       Flurreglemente : MTEXT;
     END Gemeinde;
 
     CLASS Genossenschaft =
+      !!@ ili2db.dispName = "Typ der Genossenschaft"
       Typ : MANDATORY TEXT*30;
       Name : MANDATORY TEXT*100;
       Unterhaltsobjekte : TEXT*50;
-      Gruendungsdatum : MANDATORY INTERLIS.GregorianDate;
-      Genehmigungsdatum : MANDATORY INTERLIS.GregorianDate;
-      Reorganisationsdatum : INTERLIS.GregorianDate;
-      Aufloesungsdatum : INTERLIS.GregorianDate;
+      !!@ ili2db.dispName = "Gründungsdatum"
+      Gruendungsdatum : MANDATORY INTERLIS.XMLDate;
+      Genehmigungsdatum : MANDATORY INTERLIS.XMLDate;
+      Reorganisationsdatum : INTERLIS.XMLDate;
+      !!@ ili2db.dispName = "Auflösungdatum"
+      Aufloesungsdatum : INTERLIS.XMLDate;
       Bemerkung : MTEXT*255;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      Kantonsnummer : TEXT*10;
-      Geschaeftsnummer : TEXT*10;
-      /** ili2db.mapping=JSON
+      /** Zusammenzug aller Kantonsnummern der verknüpften Projekte.
        */
+      Kantonsnummern : TEXT*10;
+      /** Zusammenzug aller Geschäftsnummern der verknüpften Projekte.
+       */
+      !!@ ili2db.dispName = "Geschäftsnummern"
+      Geschaeftsnummern : TEXT*10;
       Dokumente : MTEXT;
     END Genossenschaft;
 
     CLASS Massnahme =
       Status : MANDATORY TEXT*20;
-      Status_Datum : MANDATORY INTERLIS.GregorianDate;
-      Bauabnahme_Datum : INTERLIS.GregorianDate;
+      !!@ ili2db.dispName = "Datum der Statusänderung"
+      Status_Datum : MANDATORY INTERLIS.XMLDate;
+      !!@ ili2db.dispName = "Datum der Bauabnahme"
+      Bauabnahme_Datum : INTERLIS.XMLDate;
       WerksID : TEXT*20;
       UnterhaltsID : TEXT*20;
       Massnahme : MANDATORY TEXT*100;
+      !!@ ili2db.dispName = "Typ der Massnahme"
       Typ : TEXT*50;
+      !!@ ili2db.dispName = "Bautyp der Massnahme"
       Bautyp : TEXT*30;
+      !!@ ili2db.dispName = "Höhe [m]"
       Hoehe : 0.0 .. 50.0 [INTERLIS.m];
+      !!@ ili2db.dispName = "Fahrbahnbreite [m]"
       Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+      !!@ ili2db.dispName = "Länge [m]"
       Laenge : 0.0 .. 100000000.0 [INTERLIS.m];
+      !!@ ili2db.dispName = "Tonnage [t]"
       Tonnage : 0.0 .. 100.0 [Units.t];
+      !!@ ili2db.dispName = "Material der Brücke / des Lehnenviadukts"
       Material_Wege_Bruecke_Lehenviadukt : TEXT*30;
+      !!@ ili2db.dispName = "Widerlager (Brücke)"
       Widerlager : BOOLEAN;
+      !!@ ili2db.dispName = "Funktionstyp des Weges"
       Funktionstyp_Wegbau : TEXT*30;
       /** eMapisNr.
        */
+      !!@ ili2db.dispName = "Geschäftsnummer"
       Geschaeftsnummer : TEXT*10;
       Kantonsnummer : TEXT*40;
       Projekttyp : MANDATORY TEXT*40;
+      !!@ ili2db.dispName = "Typ der Genossenschaft"
       Genossenschaft_Typ : MANDATORY TEXT*30;
+      !!@ ili2db.dispName = "Name der Genossenschaft"
       Genossenschaft_Name : MANDATORY TEXT*100;
       Punktgeometrie : GeometryCHLV95_V1.Coord2;
       Liniengeometrie : GeometryCHLV95_V1.MultiLine;
       Flaechengeometrie : GeometryCHLV95_V1.MultiSurface;
       Werkeigentum : TEXT*255;
-      /** ili2db.mapping=JSON
-       */
       Dokumente : MTEXT;
     END Massnahme;
 
