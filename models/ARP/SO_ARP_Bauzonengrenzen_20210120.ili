@@ -1,0 +1,46 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2021-01-20 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ furtherInformation="http://geo.so.ch/models/ARP/SO_ARP_Bauzonengrenzen_20210120.uml"
+MODEL SO_ARP_Bauzonengrenzen_20210120 (de)
+AT "https://arp.so.ch"
+VERSION "2021-01-21"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Bauzonengrenzen =
+
+    /** Bauzonengrenze. Aggregiert aus kantonalen Zonentypen 110 - 190 und 430 - 439.
+     */
+    CLASS Bauzonengrenze =
+      /** Zonentyp
+       */
+      Zonentyp : MANDATORY (
+        /** Reservezone
+         */
+        !!@ ili2db.dispName = "Reservezone"
+        Reservezone,
+        /** Bauzone
+         */
+        !!@ ili2db.dispName = "Bauzone"
+        Bauzone
+      );
+      /** Aussengrenze der Bauzonen
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Gemeindenummer
+       */
+      BFSNr : MANDATORY 0 .. 9999;
+      /** Geometrien der Bauzonengrenzen dürfen sich nicht überlappen.
+       */
+      SET CONSTRAINT INTERLIS.areAreas(ALL, UNDEFINED, >> Geometrie);
+    END Bauzonengrenze;
+
+  END Bauzonengrenzen;
+
+END SO_ARP_Bauzonengrenzen_20210120.
