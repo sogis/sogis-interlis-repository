@@ -1,0 +1,74 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2021-02-05 | PS  | Erstfassung: ein Modell für Erfassung und Publikation
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AVT_Oeffentlicher_Verkehr_20210205 (de)
+AT "http://geo.so.ch/models/AVT"
+VERSION "2021.02.05"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Art des Verkehrsmittels
+     */
+    Verkehrsmittel = (
+      Bus,
+      Bahn,
+      Schiff,
+      Seilbahn
+    );
+
+  TOPIC Oeffentlicher_Verkehr =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Haltestellen des öffentlichen Verkehrs im Kanton Solothurn.
+     */
+    CLASS Haltestelle =
+      /** Bezeichnung der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Dienststellendokumentation öV-Schweiz (DiDok)
+       */
+      DiDok : 0 .. 100000000;
+      /** Art des Verkehrsmittels
+       */
+      Verkehrsmittel : MANDATORY SO_AVT_Oeffentlicher_Verkehr_20210205.Verkehrsmittel;
+      /** Das Attribut wird für die jährliche Aktualisierung der öV-Güteklassen benötigt
+       */
+      Kategorie : MANDATORY (
+        I,
+        II,
+        III,
+        IV,
+        Va,
+        Vb,
+        VI,
+        keine
+      );
+      /** Geometrie der Haltestelle
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+    END Haltestelle;
+
+    /** Streckennetz der Transportunternehmungen (Bahn und Bus). Linien welche den Kanton verlassen und wieder betreten, sind auch ausserhalb der Kantonsgrenzen erfasst.
+     */
+    CLASS Netz =
+      /** Typ der Strecke
+       */
+      Verkehrsmittel : MANDATORY SO_AVT_Oeffentlicher_Verkehr_20210205.Verkehrsmittel;
+      /** Verläuft der Streckeabschnitt in einem Tunnel? ja/nein
+       */
+      Tunnel : MANDATORY BOOLEAN;
+      /** Geometrie des Streckennetz
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Netz;
+
+  END Oeffentlicher_Verkehr;
+
+END SO_AVT_Oeffentlicher_Verkehr_20210205.
