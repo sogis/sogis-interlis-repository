@@ -22,6 +22,8 @@ INTERLIS 2.3;
 !! 2019-03-21 | SZ  | Fehler korrigiert bei Verbindlichkeit. OffiziellerTitel
 !!                  | muss vorhanden sein. Version/Name des Modells bleibt 
 !!                  | gleich.
+!! 2021-02-26 | SZ  | Prüfung, ob Geometrie grösser 0.001 m2. Wird nur als Warnung geloggt.
+!!                  | Version und Name des Modells nicht geändert.
 !!============================================================================== 
 
 CONTRACTED MODEL SO_Nutzungsplanung_20171118_Validierung_20190129 (de)
@@ -55,6 +57,28 @@ VERSION "2019-01-29"  =
   VIEW TOPIC Nutzungsplanung_Validierung =
   DEPENDS ON SO_Nutzungsplanung_20171118.Nutzungsplanung;
   
+    VIEW v_Grundnutzung
+        PROJECTION OF SO_Nutzungsplanung_20171118.Nutzungsplanung.Grundnutzung;
+    = 
+        ALL OF Grundnutzung;
+         
+        !!@ name = checkMinimumFlaeche
+        !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+        MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+        
+    END v_Grundnutzung;
+
+    VIEW v_Ueberlagernd_Flaeche
+        PROJECTION OF SO_Nutzungsplanung_20171118.Nutzungsplanung.Ueberlagernd_Flaeche;
+    = 
+        ALL OF Ueberlagernd_Flaeche;
+         
+        !!@ name = checkMinimumFlaeche
+        !!@ ilivalid.msg = "Fläche der Geometrie ist kleiner 0.01 m2."
+        MANDATORY CONSTRAINT SO_FunctionsExt.area(Geometrie) > 0.01;
+        
+    END v_Ueberlagernd_Flaeche;
+    
     VIEW v_Typ_Grundnutzung
     	PROJECTION OF SO_Nutzungsplanung_20171118.Nutzungsplanung.Typ_Grundnutzung;
     =
