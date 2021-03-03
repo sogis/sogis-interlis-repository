@@ -1,0 +1,85 @@
+INTERLIS 2.3;
+
+/** !! Publikationsmodell fuer den Gewaesserschutz.
+ * !! Umfasst Zonen und Areale sowie die Bereiche
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-01-15 | OJ  | Initial erstellt.
+ * !! 2021-03-03 | MS | Bugfix Bezeichnung in Dokument-JSON
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AfU_Gewaesserschutz_Publikation_20210303 (de)
+AT "http://geo.so.ch/models/AFU/"
+VERSION "2021-03-03"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  TOPIC Gewaesserschutz =
+
+    DOMAIN
+
+      /** Moegliche Typen der Schutzzonen und Areale. Ein Areal hat immer den Typ "Areal"
+       */
+      ZoneUndAreal_Typ = (
+        S1,
+        S2,
+        S3,
+        S3_Plus,
+        Areal,
+        Sm,
+        Sh,
+        S3Zu
+      );
+
+      /** Moegliche Typen eines Gewaesserschutzbereiches
+       */
+      Bereich_Typ = (
+        Ao,
+        Au,
+        Zo,
+        Zu,
+        UB
+      );
+
+    /** Struktur der publizierten Informationen zum Dokument einer Zone / eines Areals.
+     */
+    STRUCTURE Dokument =
+      /** Im Kontext der Zone / des Areals treffende und kurze Bezeichnung des Dokumentes. Beispiel: "RRB 2012/18"
+       */
+      Bezeichnung : MANDATORY TEXT*1000;
+      /** Link auf das Dokument
+       */
+      URL : MANDATORY URI;
+    END Dokument;
+
+    /** Anlage zum Waermen / Kuehlen von Gebaeuden mittels Waermetauscher in Boden oder Wasser. Eine Anlage umfasst 0-n Bohrungen.
+     */
+    CLASS Zone_Areal =
+      /** Typ der Zone oder des Areals
+       */
+      Typ : MANDATORY ZoneUndAreal_Typ;
+      /** Gibt an, ob die Flaeche Gesetzeskonform oder Altrechtlich ist
+       */
+      Gesetzeskonform : MANDATORY BOOLEAN;
+      /** Datum, seit welchem die Zone resp. das Areal rechtskraeftig ist
+       */
+      Rechtskraftdatum : INTERLIS.XMLDate;
+      /** Verweise auf Dokumente (RRB, Reglemente, Plaene, ...)
+       */
+      !!@ ili2db.mapping=JSON
+      Dokumente : BAG {0..*} OF SO_AfU_Gewaesserschutz_Publikation_20210303.Gewaesserschutz.Dokument;
+      /** (Single-) Polygon der Zone / des Areals
+       */
+      Polygon : MANDATORY GeometryCHLV95_V1.Surface;
+    END Zone_Areal;
+
+    /** Typ der Zone oder des Areals
+     */
+    CLASS Bereich =
+      Polygon : MANDATORY GeometryCHLV95_V1.Surface;
+      Typ : MANDATORY Bereich_Typ;
+    END Bereich;
+
+  END Gewaesserschutz;
+
+END SO_AfU_Gewaesserschutz_Publikation_20210303.
