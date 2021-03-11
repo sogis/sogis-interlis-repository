@@ -1,0 +1,162 @@
+INTERLIS 2.3;
+
+/** Modell für die Publikation der Auswertungen aus Daten der Nutzungsplanung und
+ * Amtlichen Vermessung, wie z.B. Aggregationen Nutzungszonen pro Gemeinde, 
+ * Bauzonenstatistik, etc.
+ * 
+ * ----------------------------------------------------------------------------------------------
+ * Version    | wer | Änderung
+ * ----------------------------------------------------------------------------------------------
+ * 2021-01-26 | an  | Initialversion Publikationsmodell
+ * 2021-01-28 | an  | Einarbeitung Feedback V. Burki und S. Ziegler
+ *                  | - Umbenennung des Modells von SO_ARP_Bauzonenstatistik_Publikation_20210126
+ *                  |   zu SO_ARP_Auswertungen_Nutzungsplanung_Publikation_20210126
+ *                  | - neuer TOPIC "Auswertung_Grundnutzungszonen" eingeführt
+ *                  | - Umbenennung "Parzelle" zu "Liegenschaft", oder abgekürzt "LS"
+ *                  | - Kürzung von Klassen- und Attributnamen
+ */
+!!@ technicalContact="agi@bd.so.ch"
+MODEL SO_ARP_Auswertungen_Nutzungsplanung_Publikation_20210126 (de)
+AT "https://agi.so.ch/"
+VERSION "2021-01-26"  =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1;
+
+  TOPIC Auswertungen_Grundnutzungszonen =
+
+    /** Nutzungszonen aggregiert und pro Gemeinde ausgegeben. Pro Kombination Grundnutzung und Gemeinde werden die Anzahl der Gebäude, summierte Gebäudefläche, Durchschnittsfläche, Minimal und Maximalfläche zur Verfügung gestellt.
+     */
+    !!@ ili2db.dispName = "Grundnutzungszone aggregiert pro Gemeinde"
+    CLASS Grundnutzungszone_aggregiert_pro_Gemeinde =
+      Gemeindename : MANDATORY TEXT*255;
+      /** BFS-Nr der Gemeinde
+       */
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Typ Grundnutzung kantonal
+       */
+      Grundnutzung_Typ_Kt : TEXT*255;
+      /** Fläche in m2, aggregiert nach Gemeinde und Typ Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Fläche Zone aggregiert"
+      Flaeche_Zone_aggregiert : MANDATORY 0 .. 999999999 [Units.m2];
+      /** Anzahl Gebäude aggregiert pro Gemeinde und Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Anzahl Gebäude"
+      Anzahl_Gebaeude : MANDATORY 0 .. 9999;
+      /** Durchschnittsfläche der Gebäude in m2 (gerundet auf ganze Zahlen), aggregiert pro Gemeinde und Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Fläche Gebäude Durchschnitt"
+      Flaeche_Gebaeude_Durchschnitt : 0 .. 99999 [Units.m2];
+      /** Aufsummierte Fläche der Gebäude in m2 (gerundet auf ganze Zahlen), aggregiert pro Gemeinde und Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Fläche Gebäude Summe"
+      Flaeche_Gebaeude_Summe : 0 .. 999999 [Units.m2];
+      /** Minimale Fläche des kleinsten Gebäudes in m2 (gerundet auf ganze Zahlen), aggregiert pro Gemeinde und Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Fläche Gebäude Minimum"
+      Flaeche_Gebaeude_Minimum : 0 .. 99999 [Units.m2];
+      /** Fläche des grössten Gebäudes in m2 (gerundet auf ganze Zahlen), aggregiert pro Gemeinde und Grundnutzung kantonal
+       */
+      !!@ ili2db.dispName = "Fläche Gebäude Maximum"
+      Flaeche_Gebaeude_Maximum : 0 .. 99999 [Units.m2];
+    END Grundnutzungszone_aggregiert_pro_Gemeinde;
+
+  END Auswertungen_Grundnutzungszonen;
+
+  TOPIC Bauzonenstatistik =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      Bebauungsstand = (
+        bebaut,
+        unbebaut,
+        !!@ ili2db.dispName = "teilweise bebaut"
+        teilweise_bebaut
+      );
+
+    !!@ ili2db.dispName = "Bebauungsstand pro Gemeinde und Nutzungszone"
+    CLASS Bebauungsstand_pro_Gemeinde =
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Gemeindename : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Grundnutzung Typ kantonal"
+      Grundnutzung_Typ_Kt : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung von Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen"
+      bebaut_mit_Zonen_ohne_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung von Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen"
+      unbebaut_mit_Zonen_ohne_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung von Zonen- und Liegenschaftsgrenzen"
+      bebaut_mit_Zonen_und_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung von Zonen- und Liegenschaftsgrenzen"
+      unbebaut_mit_Zonen_und_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen in Prozent"
+      bebaut_mit_Zonen_ohne_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
+      !!@ ili2db.dispName = "Flächen unbebaut - mit Berücksichtigung Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen in Prozent"
+      unbebaut_mit_Zonen_ohne_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
+      !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung Zonen- und Liegenschaftsgrenzen in Prozent"
+      bebaut_mit_Zonen_und_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
+      !!@ ili2db.dispName = "Flächen unbebaut - mit Berücksichtigung Zonen- und Liegenschaftsgrenzen in Prozent"
+      unbebaut_mit_Zonen_und_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
+    END Bebauungsstand_pro_Gemeinde;
+
+    /** Flächen nach Gemeinde, Typ Grundnutzung und Bebauungsstand. Flächen in m2. Mit Berücksichtigung der Zonengrenzen, ohne Berücksichtigung der Liegenschaftsgrenzen.
+     */
+    !!@ ili2db.dispName = "Bebauungsstand - mit Berücksichtigung von Zonengrenzen, ohne Berücksichtigung von Liegenschaftsgrenzen"
+    CLASS Bebauungsstand_mit_Zonen_ohne_LSGrenzen =
+      !!@ ili2db.dispName = "Grundnutzung Typ kantonal"
+      Grundnutzung_Typ_Kt : MANDATORY TEXT*255;
+      /** Fläche ist bebaut oder unbebaut. Wert teilweise_bebaut ist nicht erlaubt in dieser Tabelle.
+       */
+      Bebauungsstand : MANDATORY Bebauungsstand;
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Gemeindename : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0 .. 999999999 [Units.m2];
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Bebauungsstand_mit_Zonen_ohne_LSGrenzen;
+
+    /** Flächen nach Gemeinde, Typ Grundnutzung und Bebauungsstand. Flächen in m2. Mit Berücksichtigung der Zonengrenzen und Liegenschaftsgrenzen.
+     */
+    !!@ ili2db.dispName = "Bebauungsstand - mit Berücksichtigung von Liegenschafts- und Zonengrenzen"
+    CLASS Bebauungsstand_mit_Zonen_und_LSGrenzen =
+      !!@ ili2db.dispName = "Grundnutzung Typ kantonal"
+      Grundnutzung_Typ_Kt : MANDATORY TEXT*255;
+      /** Fläche ist bebaut oder unbebaut. Wert teilweise_bebaut ist nicht erlaubt in dieser Tabelle.
+       */
+      Bebauungsstand : MANDATORY Bebauungsstand;
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Gemeindename : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0 .. 999999999 [Units.m2];
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Bebauungsstand_mit_Zonen_und_LSGrenzen;
+
+    /** Weist für jede Liegenschaft den Bebauungsstand, die Nutzungszone und Gemeinde aus. Falls eine Liegenschaft mit mehr als einer Zone überlappt, wird sie an der Zonengrenze aufgesplittet.
+     */
+    !!@ ili2db.dispName = "Liegenschaften nach Bebauungsstand"
+    CLASS Liegenschaft_nach_Bebauungsstand =
+      EGRIS_EGRID : TEXT*20;
+      Nummer : MANDATORY TEXT*12;
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      Gemeindename : MANDATORY TEXT*255;
+      /** Ein Typ pro Liegenschaft. Bei mehreren Grundnutzungen wird an der Zonengrenze gesplittet.
+       */
+      !!@ ili2db.dispName = "Grundnutzung Typ kantonal"
+      Grundnutzung_Typ_Kt : MANDATORY TEXT*255;
+      /** Fläche der Liegenschaft in m2.
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0 .. 999999999 [Units.m2];
+      /** bebaut, unbebaut oder teilweise bebaut
+       */
+      Bebauungsstand : MANDATORY Bebauungsstand;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Liegenschaft_nach_Bebauungsstand;
+
+  END Bauzonenstatistik;
+
+END SO_ARP_Auswertungen_Nutzungsplanung_Publikation_20210126.
