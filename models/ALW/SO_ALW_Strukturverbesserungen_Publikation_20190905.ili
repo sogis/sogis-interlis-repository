@@ -36,9 +36,17 @@ INTERLIS 2.3;
  * 2021-02-01 | an  | - Kardinalität der "Dokumente"-Attribute auf 0..* gesetzt
  *                  |   für BAG OF Strukturen
  * 2021-02-12 | an  | - Klasse "Gemeinde": neues Attribut "Anzahl_Flurreglemente"
- * ==============================================================================
+ * 2021-05-25 | an  | - Klasse "Projekt": neues Attribut "Name"
+ *                  | - Klasse "Genossenschaft": Attribut "Name" verlängert auf 255 Zeichen
+ *                  | - Klasse "Genossenschaft": Attribut "Gruendungsdatum" nicht mehr MANDATORY
+ *                  | - Klasse "Genossenschaft": Attribut "Unterhaltsobjekte" umbenannt auf
+ *                  |     auf "Unterhaltsobjekt" (Singular)
+ *                  | - Klasse "Gemeinde": Attribut "Gemeindename" verlängert auf 100 Zeichen
+ *                  | - Klasse "Massnahme": Attribute "Material_Wege_Bruecke_Lehenviadukt" und
+ *                  |     und "Funktionstyp_Wegbau" verlängert
+ * ==============================================================================================
  */
-!!@ technicalContact="agi@bd.so.ch"
+!!@ technicalContact=agi@bd.so.ch
 MODEL SO_ALW_Strukturverbesserungen_Publikation_20190905 (de)
 AT "http://www.geo.so.ch/models"
 VERSION "2019-09-05"  // eugr // =
@@ -49,13 +57,10 @@ VERSION "2019-09-05"  // eugr // =
 
     CLASS Beizugsgebiet =
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      !!@ ili2db.dispName = "Datum Nachführung"
       Datum_Nachfuehrung : INTERLIS.XMLDate;
-      !!@ ili2db.dispName = "Typ des Beizugsgebiets"
       Typ : MANDATORY TEXT*30;
       /** Zusammenzug aller Geschäftsnummern der verknüpften Projekte.
        */
-      !!@ ili2db.dispName = "Geschäftsnummern"
       Geschaeftsnummern : TEXT*255;
       /** Zusammenzug aller Kantonsnummern der verknüpften Projekte.
        */
@@ -79,29 +84,24 @@ VERSION "2019-09-05"  // eugr // =
 
     CLASS Gemeinde =
       BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
-      Gemeindename : MANDATORY TEXT*50;
+      Gemeindename : MANDATORY TEXT*100;
       Gemeinde_Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      !!@ ili2db.dispName = "Stand Güterregulierung"
       Stand_Gueterregulierung : MANDATORY TEXT*40;
-      !!@ ili2db.mapping="JSON"
+      !!@ ili2db.mapping=JSON
       Flurreglemente : BAG {0..*} OF SO_ALW_Strukturverbesserungen_Publikation_20190905.Strukturverbesserung.Dokument;
       /** Anzahl angehängte Flurreglemente
        */
-      !!@ ili2db.dispName = "Anzahl Flurreglemente"
       Anzahl_Flurreglemente : MANDATORY 0 .. 1000;
     END Gemeinde;
 
     CLASS Genossenschaft =
-      !!@ ili2db.dispName = "Typ der Genossenschaft"
       Typ : MANDATORY TEXT*30;
-      Name : MANDATORY TEXT*100;
+      Name : MANDATORY TEXT*255;
       Adresse : TEXT*255;
-      Unterhaltsobjekte : TEXT*50;
-      !!@ ili2db.dispName = "Gründungsdatum"
-      Gruendungsdatum : MANDATORY INTERLIS.XMLDate;
+      Unterhaltsobjekt : TEXT*50;
+      Gruendungsdatum : INTERLIS.XMLDate;
       Genehmigungsdatum : MANDATORY INTERLIS.XMLDate;
       Reorganisationsdatum : INTERLIS.XMLDate;
-      !!@ ili2db.dispName = "Auflösungdatum"
       Aufloesungsdatum : INTERLIS.XMLDate;
       Bemerkung : MTEXT*255;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
@@ -110,56 +110,41 @@ VERSION "2019-09-05"  // eugr // =
       Kantonsnummern : TEXT*255;
       /** Zusammenzug aller Geschäftsnummern der verknüpften Projekte.
        */
-      !!@ ili2db.dispName = "Geschäftsnummern"
       Geschaeftsnummern : TEXT*255;
-      !!@ ili2db.mapping="JSON"
+      !!@ ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ALW_Strukturverbesserungen_Publikation_20190905.Strukturverbesserung.Dokument;
     END Genossenschaft;
 
     CLASS Massnahme =
       Status : MANDATORY TEXT*20;
-      !!@ ili2db.dispName = "Datum der Statusänderung"
       Status_Datum : MANDATORY INTERLIS.XMLDate;
-      !!@ ili2db.dispName = "Datum der Bauabnahme"
       Bauabnahme_Datum : INTERLIS.XMLDate;
       WerksID : TEXT*20;
       UnterhaltsID : TEXT*20;
       Massnahme : MANDATORY TEXT*100;
       /** Wenn in einer Massnahmen kein Attribut Typ vorhanden ist, dann muss der Klassenname der Massnahme als Typ übernommen werden in der Migration.
        */
-      !!@ ili2db.dispName = "Typ der Massnahme"
       Typ : TEXT*50;
-      !!@ ili2db.dispName = "Bautyp der Massnahme"
       Bautyp : TEXT*30;
-      !!@ ili2db.dispName = "Höhe [m]"
       Hoehe : 0.0 .. 50.0 [INTERLIS.m];
-      !!@ ili2db.dispName = "Fahrbahnbreite [m]"
       Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
-      !!@ ili2db.dispName = "Länge [m]"
       Laenge : 0.0 .. 100000000.0 [INTERLIS.m];
-      !!@ ili2db.dispName = "Tonnage [t]"
       Tonnage : 0.0 .. 100.0 [Units.t];
-      !!@ ili2db.dispName = "Material der Brücke / des Lehnenviadukts"
-      Material_Wege_Bruecke_Lehenviadukt : TEXT*30;
-      !!@ ili2db.dispName = "Widerlager (Brücke)"
+      Material_Wege_Bruecke_Lehenviadukt : TEXT*100;
       Widerlager : BOOLEAN;
-      !!@ ili2db.dispName = "Funktionstyp des Weges"
-      Funktionstyp_Wegbau : TEXT*30;
+      Funktionstyp_Wegbau : TEXT*60;
       /** eMapisNr.
        */
-      !!@ ili2db.dispName = "Geschäftsnummer"
       Geschaeftsnummer : TEXT*10;
       Kantonsnummer : TEXT*40;
       Projekttyp : MANDATORY TEXT*40;
-      !!@ ili2db.dispName = "Typ der Genossenschaft"
       Genossenschaft_Typ : TEXT*500;
-      !!@ ili2db.dispName = "Name der Genossenschaft"
       Genossenschaft_Name : TEXT*1000;
       Punktgeometrie : GeometryCHLV95_V1.Coord2;
       Liniengeometrie : GeometryCHLV95_V1.MultiLine;
       Flaechengeometrie : GeometryCHLV95_V1.MultiSurface;
       Werkeigentum : TEXT*255;
-      !!@ ili2db.mapping="JSON"
+      !!@ ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ALW_Strukturverbesserungen_Publikation_20190905.Strukturverbesserung.Dokument;
     END Massnahme;
 
