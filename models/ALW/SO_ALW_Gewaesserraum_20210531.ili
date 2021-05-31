@@ -1,0 +1,79 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2021-05-31 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ furtherInformation="http://geo.so.ch/models/ALW/SO_ALW_Gewaesserraum_20210531.uml"
+MODEL SO_ALW_Gewaesserraum_20210531 (de)
+AT "https://alw.so.ch"
+VERSION "2021-05-31"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Gewaesserraum =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Gewässerraum des Kantons Solothurn. In Gebieten ohne rechtskräftigen Gewässerraum wird die Ökormorphologie als Basis verwendet.
+     */
+    !!@ ili2db.dispName = "Gewässerraum"
+    CLASS Gewaesserraum =
+      /** Geometrie
+       */
+      !!@ ili2db.dispName = "Geometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+      /** Rechtsstatus
+       */
+      !!@ ili2db.dispName = "Rechtsstatus"
+      Rechtsstatus : MANDATORY (
+        !!@ ili2db.dispName = "hinweisend"
+        hinweisend,
+        !!@ ili2db.dispName = "in Kraft"
+        in_Kraft
+      );
+      /** Massgebend für FFF-Berechnung
+       */
+      !!@ ili2db.dispName = "für FFF massgebend"
+      FFF_massgebend : MANDATORY BOOLEAN;
+      /** Gemeindenummer / BFS-Nummer
+       */
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Herkunft des Gewässerraums
+       */
+      !!@ ili2db.dispName = "Herkunft"
+      Herkunft : MANDATORY (
+        !!@ ili2db.dispName = "Nutzungsplanung"
+        Nutzungsplanung,
+        !!@ ili2db.dispName = "Nutzungsplanung. Nicht Gewässerraum im engeren Sinn."
+        Nutzungsplanung_nicht_Gewaesserraum_im_engeren_Sinn,
+        !!@ ili2db.dispName = "Baulinien Nutzungsplanung ausserhalb Bauzonen"
+        Baulinien_Nutzungsplanung_ausserhalb_Bauzone,
+        !!@ ili2db.dispName = "Baulinien Nutzungsplanung innerhalb Bauzonen"
+        Baulinien_Nutzungsplanung_innerhalb_Bauzone,
+        !!@ ili2db.dispName = "Ökomorphologie"
+        Oekomorphologie,
+        !!@ ili2db.dispName = "Ökomorphologie. Gewässerraum abweichend von Raumbedarf."
+        Oekomorphologie_abweichend_Raumbedarf,
+        !!@ ili2db.dispName = "Stehendes Gewässer > 50a"
+        stehendes_Gewaesser_groesserf_50a
+      );
+      /** Entspricht dem Attribut publiziert_ab in der Nutzungsplanung.
+       */
+      !!@ ili2db.dispName = "Rechtskraftdatum"
+      Rechtskraftdatum : MANDATORY INTERLIS.XMLDate;
+      /** Bemerkung
+       */
+      !!@ ili2db.dispName = "Bemerkung"
+      Bemerkung : TEXT*200;
+      /** Erstellungsdatum
+       */
+      !!@ ili2db.dispName = "Erstellungsdatum"
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+    END Gewaesserraum;
+
+  END Gewaesserraum;
+
+END SO_ALW_Gewaesserraum_20210531.
