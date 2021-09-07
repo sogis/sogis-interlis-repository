@@ -14,6 +14,13 @@ INTERLIS 2.3;
  *                  | - neuer TOPIC "Auswertung_Grundnutzungszonen" eingeführt
  *                  | - Umbenennung "Parzelle" zu "Liegenschaft", oder abgekürzt "LS"
  *                  | - Kürzung von Klassen- und Attributnamen
+ * 2021-09-07 | an  | Diverse Ergänzungen für Liegenschaftszuteilung und Bebauungsstand pro Gemeinde
+ *                  | - Klasse "Bebauungsstand_pro_Gemeinde": 4 zusätzliche Attribute für bebaut
+ *                  |   und unbebaut aus der Liegenschaftszuteilung (ganze Liegenschaftsfläche
+ *                  |   wird bebaut/unbebaut zugewiesen; keine Teilflächen von Liegenschaften)
+ *                  | - Klasse "Liegenschafts_nach_Bebauungsstand": neue Attribute
+ *                  |   "Flaeche_beschnitten", "Flaeche_unbebaut" und "Geometrieart_Liegenschaft"
+ *                  | - neue Klasse "Uebersteuerung_Bebauungsstand" (Punkt innerhalb Liegenschaft)
  */
 !!@ technicalContact="agi@bd.so.ch"
 MODEL SO_ARP_Auswertungen_Nutzungsplanung_Publikation_20210126 (de)
@@ -75,6 +82,22 @@ VERSION "2021-01-26"  =
         teilweise_bebaut
       );
 
+      /** Gibt an, ob die Liegenschaftsfläche im Originalzustand oder beschnitten ist.
+       */
+      Geometrieart_Liegenschaft = (
+        original,
+        beschnitten
+      );
+
+    /** Bebauungsstand pro Gemeinde und Zonentyp.
+     * 
+     * Gerechnet in 3 Varianten:
+     * - Mit Berücksichtigung Zonengrenzen, ohne Liegenschaftsgrenzen
+     * - Mit Berücksichtung Zonen- und Liegenschaftsgrenzen
+     * - Aus der Liegenschaftszuteilung (LS bebaut oder unbebaut)
+     * 
+     * Die ersten beiden Varianten weisen auf der Liegenschaft Teilflächen aus, die dritte Variante weist die gesamte Liegenschaft als bebaut oder unbebaut aus.
+     */
     !!@ ili2db.dispName = "Bebauungsstand pro Gemeinde und Nutzungszone"
     CLASS Bebauungsstand_pro_Gemeinde =
       !!@ ili2db.dispName = "BFS-Nr"
@@ -90,6 +113,12 @@ VERSION "2021-01-26"  =
       bebaut_mit_Zonen_und_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
       !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung von Zonen- und Liegenschaftsgrenzen"
       unbebaut_mit_Zonen_und_LSGrenzen : MANDATORY 0 .. 999999999 [Units.m2];
+      /** Flächen aggregiert aus Bebauungsstand Liegenschaft.
+       */
+      !!@ ili2db.dispName = "Flächen bebaut - aus Liegenschaftszuteilung"
+      bebaut_aus_Liegenschaftszuteilung : MANDATORY 0 .. 999999999;
+      !!@ ili2db.dispName = "Flächen unbebaut - aus Liegenschaftszuteilung"
+      unbebaut_aus_Liegenschaftszuteilung : MANDATORY 0 .. 999999999;
       !!@ ili2db.dispName = "Flächen bebaut - mit Berücksichtigung Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen in Prozent"
       bebaut_mit_Zonen_ohne_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
       !!@ ili2db.dispName = "Flächen unbebaut - mit Berücksichtigung Zonengrenzen ohne Berücksichtigung Liegenschaftsgrenzen in Prozent"
@@ -98,7 +127,22 @@ VERSION "2021-01-26"  =
       bebaut_mit_Zonen_und_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
       !!@ ili2db.dispName = "Flächen unbebaut - mit Berücksichtigung Zonen- und Liegenschaftsgrenzen in Prozent"
       unbebaut_mit_Zonen_und_LSGrenzen_proz : MANDATORY 0 .. 100 [Units.Percent];
+      !!@ ili2db.dispName = "Flächen bebaut - aus Liegenschaftszuteilung in Prozent"
+      bebaut_aus_Liegenschaftszuteilung_proz : MANDATORY 0 .. 100;
+      !!@ ili2db.dispName = "Flächen unbebaut - aus Liegenschaftszuteilung in Prozent"
+      unbebaut_aus_Liegenschaftszuteilung_proz : MANDATORY 0 .. 100;
     END Bebauungsstand_pro_Gemeinde;
+
+    /** Mittels Punktzentroiden kann der Bebauungsstand einzelner Liegenschaften übersteuert werden. Die Mastertabelle befindet sich in der SOGIS-DB: digizone.bebauung - die Daten werden nächtlich via Gretljob in die PUB-DB übertragen.
+     */
+    !!@ ili2db.dispName = "Übersteuerung Bebauungsstand"
+    CLASS Uebersteuerung_Bebauungsstand =
+      bebaut : MANDATORY BOOLEAN;
+      /** Punktgeometrie
+       */
+      !!@ ili2db.dispName = "Punktgeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Uebersteuerung_Bebauungsstand;
 
     /** Flächen nach Gemeinde, Typ Grundnutzung und Bebauungsstand. Flächen in m2. Mit Berücksichtigung der Zonengrenzen, ohne Berücksichtigung der Liegenschaftsgrenzen.
      */
@@ -134,7 +178,7 @@ VERSION "2021-01-26"  =
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
     END Bebauungsstand_mit_Zonen_und_LSGrenzen;
 
-    /** Weist für jede Liegenschaft den Bebauungsstand, die Nutzungszone und Gemeinde aus. Falls eine Liegenschaft mit mehr als einer Zone überlappt, wird sie an der Zonengrenze aufgesplittet.
+    /** Weist für jede Liegenschaft den Bebauungsstand, die Nutzungszone und Gemeinde aus. Falls eine Liegenschaft mit mehr als einer Zone überlappt, wird sie an der Zonengrenze aufgesplittet. Ebenso werden die Liegenschaften auf die Bauzonen im Siedlungsgebiet beschnitten, da es etliche Liegenschaften gibt die weit in die Landwirtschaftszone hineinragen.
      */
     !!@ ili2db.dispName = "Liegenschaften nach Bebauungsstand"
     CLASS Liegenschaft_nach_Bebauungsstand =
@@ -147,13 +191,21 @@ VERSION "2021-01-26"  =
        */
       !!@ ili2db.dispName = "Grundnutzung Typ kantonal"
       Grundnutzung_Typ_Kt : MANDATORY TEXT*255;
+      /** bebaut, unbebaut oder teilweise bebaut
+       */
+      Bebauungsstand : MANDATORY Bebauungsstand;
       /** Fläche der Liegenschaft in m2.
        */
       !!@ ili2db.dispName = "Fläche"
       Flaeche : MANDATORY 0 .. 999999999 [Units.m2];
-      /** bebaut, unbebaut oder teilweise bebaut
+      /** Liegenschaftsfläche beschnitten auf Bauzone im Siedlungsgebiet
        */
-      Bebauungsstand : MANDATORY Bebauungsstand;
+      Flaeche_beschnitten : MANDATORY 0 .. 999999999 [Units.m2];
+      /** Fläche unbebaut - aus Methode der Berücksichtigung Zonen- und Liegenschaftsgrenzen
+       */
+      Flaeche_unbebaut : MANDATORY 0 .. 999999999 [Units.m2];
+      !!@ ili2db.dispName = "Geometrieart der Liegenschaft"
+      Geometrieart_Liegenschaft : MANDATORY Geometrieart_Liegenschaft;
       Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
     END Liegenschaft_nach_Bebauungsstand;
 
