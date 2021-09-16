@@ -4,7 +4,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN touch /var/run/nginx.pid && \
   chgrp -R 0 /var/run/nginx.pid && \
-  chgrp -R g=u /var/cache/nginx
+  chmod -R g=u /var/cache/nginx
 
 RUN mkdir -p /opt/repository/
 
