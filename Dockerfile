@@ -1,10 +1,10 @@
-FROM nginxinc/nginx-unprivileged:stable
+FROM nginx:stable
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-#RUN touch /var/run/nginx.pid && \
-#  chown -R www-data:www-data /var/run/nginx.pid && \
-#  chown -R www-data:www-data /var/cache/nginx
+RUN touch /var/run/nginx.pid && \
+  chgrp -R 0 /var/run/nginx.pid && \
+  chgrp -R g=u /var/cache/nginx
 
 RUN mkdir -p /opt/repository/
 
