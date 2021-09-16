@@ -1,9 +1,10 @@
-FROM nginx:stable
+FROM nginx:mainline-alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN touch /var/run/nginx.pid && \
   chgrp -R 0 /var/run/nginx.pid && \
+  chgrp -R 0 /var/cache/nginx && \
   chmod -R g=u /var/cache/nginx
 
 RUN mkdir -p /opt/repository/
@@ -27,4 +28,4 @@ COPY ilimodels.xml /opt/repository/
 
 COPY version.txt /opt/repository/
 
-USER www-data
+USER 11200
