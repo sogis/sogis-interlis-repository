@@ -1,0 +1,1505 @@
+INTERLIS 2.3;
+
+/** !!---------------------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!--------------------------------------------------------------------------------------------
+ * !! 2021-03-15 | Lorenz Eugster  | Ersterfassung; Modell dient zum Import der Daten von GELAN
+ * !!============================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ALW/SO_ALW_Landwirtschaft_Tierhaltung_20210315.uml
+MODEL SO_ALW_Landwirtschaft_Tierhaltung_20210426 (de)
+AT "https://alw.so.ch"
+VERSION "2021-03-15"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  /** Betriebs- und Strukturdaten des Agrarinformationssystems GELAN.
+   * Die Daten umfassen sämtliche Informationen von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter, als Lebensmittelverarbeiter oder als Systembenutzer aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+   * 
+   * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+   */
+  TOPIC Betriebsdaten_Strukturdaten =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Die Betriebsverwaltung des Agrarinformationssystems GELAN umfasst die Betriebseinheiten. 
+     * 
+     * Die Betriebsverwaltung umfasst sämtliche Unternehmen von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter, als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Betrieb =
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Kantonale Betriebsnummer; numerischer Teil der KTIDB im Bundessystem AGIS
+       */
+      Betriebsnummer : MANDATORY 100000 .. 9999999;
+      /** Selbstgewählter Namen für den Betrieb
+       */
+      Betriebsname : TEXT*100;
+      /** Betriebstyp gemäss Agrardatensystem GELAN.
+       * 
+       * Anerkannt nach LBV, AGIS-Bund Code 01;
+       * Betriebsgemeinschaft, AGIS-Bund Code 06;
+       * Biogasanlage, AGIS-Bund Code 17;
+       * Gemeinschaftsweidebetriebe, AGIS-Bund Code 04;
+       * GS Betrieb, AGIS-Bund Code 99;
+       * Kompostieranlage, AGIS-Bund Code 17;
+       * LBV ohne DZ, AGIS-Bund Code 01;
+       * nicht kommerzielle Tierhaltung, AGIS-Bund Code 15;
+       * nicht LBV (übrige), AGIS-Bund Code 01;
+       * Sömmerungsbetrieb, AGIS-Bund Code 05;
+       * Schlachthof, AGIS-Bund Code 12;
+       * Tierschauen, AGIS-Bund Code 13;
+       * Viehhandelsunternehmen, AGIS-Bund Code 09;
+       * Wanderherde, AGIS-Bund Code 10;
+       * 
+       * Information: AGIS Bund gibt für Betriebsform folgende mögliche Werte vor. Mögliche Werte:
+       * - 01=Betrieb (=Ganzjahresbetrieb)
+       * - 02=Produktionsstätte
+       * - 04=Gemeinschaftsweidebetrieb
+       * - 05=Sömmerungsbetrieb
+       * - 06=Betriebsgemeinschaft
+       * - 09=Viehhandelsunternehmen
+       * - 10=Wanderherde
+       * - 11=Tierklinik
+       * - 12=Schlachtbetriebe
+       * - 13=Viehmärkte, Viehauktionen, Viehausstellungen und ähnliche Veranstaltungen
+       * - 14=Betriebszweiggemeinschaft
+       * - 15=Nichtkommerzielle Tierhaltung
+       * - 16=ÖLN-Gemeinschaft (*)
+       * - 17=Vergärungs- und Kompostierungsanlage (*)
+       * - 20=Tierhaltung
+       * - 99=Nicht zugeteilt (*)
+       * * Auf dieser Betriebsform kann keine TVD-Nummer vergeben werden
+       */
+      Betriebstyp : MANDATORY TEXT*50;
+      /** Codierung der Betriebstypen im Agrarinformationssystem GELAN:
+       * 30101=Anerkannt nach LBV;
+       * 30102=Betriebsgemeinschaft;
+       * 30166=Biogasanlage;
+       * 30140=Gemeinschaftsweidebetriebe;
+       * 30150=GS Betrieb;
+       * 30165=Kompostieranlage;
+       * 30105=LBV ohne DZ;
+       * 30111=nicht kommerzielle Tierhaltung;
+       * 30110=nicht LBV (übrige);
+       * 30135=Sömmerungsbetrieb;
+       * 30125=Schlachthof;
+       * 30130=Tierschauen;
+       * 30155=Viehhandelsunternehmen;
+       * 30160=Wanderherde
+       */
+      Betriebstyp_Code : MANDATORY 100 .. 99999;
+      /** Datenherr des Betriebs innerhalb des Agrarinformationssystems GELAN
+       */
+      Mandant : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Betriebsstatus; kann aktiv oder passiv sein. Datenexport erfolgt nur für aktive Betriebe.
+       */
+      Status_Betrieb : MANDATORY TEXT*10;
+      /** Gemeindenamen der Standortgemeinde des Hauptstandortes als Marker für das Betriebszentrum
+       */
+      Gemeinde_Haupstandort : MANDATORY TEXT*100;
+      /** Gemeindenummer (BfS) des Hauptstandortes
+       */
+      BfS_Nummer_Haupstandort : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Gemeinde des Betriebssitzes als Marker für die Verwaltungszuständigkeit
+       */
+      Gemeinde_Betriebssitz : TEXT*100;
+      /** Gemeindenummer (BfS) des Betriebssitzes
+       */
+      BfS_Nummer_Betriebssitz : CHAdminCodes_V1.CHMunicipalityCode;
+      /** BUR-Nummer wird durch das Bundesunternehmensregister vergeben. Bei Bewirtschafterwechsel bleibt die BUR-Nummer bestehen. Das Betriebs- und Unternehmensregister (BUR) umfasst alle Unternehmen und Betriebe des privaten und öffentlichen Rechts, die in der Schweiz domiziliert sind und eine wirtschaftliche Tätigkeit ausüben. Das BUR dient dem BFS als Adressregister für die statistischen Erhebungen bei Unternehmen und Arbeitsstätten. Auch andere Ämter der Bundesverwaltung und zahlreiche Kantone verwenden das BUR zu statistischen oder administrativen Zwecken.
+       */
+      BUR_Registernummer_Betrieb : TEXT*20;
+      /** UID: Jedem Unternehmen in der Schweiz wurde eine einheitliche Identifikationsnummer zugeteilt. Die UID hat das Format CHE-123.456.789 und die MWST-Nummer setzt sich zusammen aus der UID mit dem Zusatz "MWST"
+       */
+      UID : TEXT*20;
+      /** Marker für Datenverwaltung ohne Meldung an Bundessystem AGIS. Für die Datenmeldung ist der Wohnsitzkanton des Bewirtschafters zuständig; entsprechend werden Betriebe mit Wohnsitz ausserhalb Kanton aber mit Standort innerhalb Kanton mit diesem Marker versehen.
+       */
+      Sperre_AGIS_Datenmeldung : MANDATORY BOOLEAN;
+      /** Betriebsnummer KTIDB im Bundessystem AGIS (z.B. SOB130452 ) Entspricht der kantonalen Betriebsnummer mit einem Präfix aus Kantonskürzel und Buchstabe je nach Betreibstyp.
+       */
+      Betriebsnummer_AGIS : TEXT*25;
+      /** Betrieb ist in einer Betriebszweiggemeinschaft mit einem anderen Betrieb verbunden
+       */
+      Betriebszweiggemeinschaft : INTERLIS.BOOLEAN;
+      UNIQUE Betriebsnummer;
+    END Betrieb;
+
+    /** Die Kulturen (Flächenobjekte) des Agrarinformatinssystems GELAN zeigen, welche Kulturflächen von welchem Betrieb aus bewirtschaftet werden. Die zu erfassenden Kulturpolygone müssen innerhalb der dem Bewirtschafter zugeteilten Bewirtschaftungseinheiten liegen und zeigen damit die detaillierte Nutzung der jeweiligen Bewirtschaftungseinheit.
+     * Die Kulturpolygone werden im Agrardatensystem GELAN mit der Bodenbedeckung verschnitten um die, für die effektive Bewirtschaftung massgebende Fläche zu ermitteln.
+     * 
+     * Die Ebene Kulturen umfasst sämtliche Nutzungsflächen von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter oder als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Kultur_Flaechen =
+      /** Geometrie des Kulturpolygons
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** GELAN-Identifikator des Kulturpolygons. Im Agrarinformatinssystem GELAN bezeichnet als GEOID.
+       */
+      Kultur_ID : MANDATORY 1 .. 9999999;
+      /** Code der Kultur im Agrarinformationssystem GELAN (gemäss Kulturenkatalog des entsprenden Jahres).
+       */
+      Kulturcode_GELAN : 500 .. 999999;
+      /** Kulturbezeichnung im Agrarinformationssystem GELAN (gemäss Kulturenkatalog des entsprenden Jahres).
+       */
+      Kulturart : TEXT*100;
+      /** Datenherr der Kultur (innerhalb einer Bewirtschaftungseinheit) innerhalb der Agrardatenverwaltung GELAN
+       */
+      Mandant_Kultur : CHAdminCodes_V1.CHCantonCode;
+      /** Code der administrativen Zonenzugehörigkeit der zugeordneten Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Die Zone der Bewirtschaftungseinheit ist für die Kultur massgebend.
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Kultur_Code : 0 .. 999;
+      /** Beinhaltet die administrative Zonenzugehörigkeit der zugeordneten Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Die Zone der Bewirtschaftungseinheit ist für die Kultur massgebend.
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Kultur_Text : TEXT*20;
+      /** Marker für Ausschluss von Direktzahlungen für alte Bauzonen, wenn zusammenhängende Bewirtschaftung unter 25 Aren, und für alle neuen Bauzonen ab 2014.
+       */
+      ohne_DZ_Bauzone : BOOLEAN;
+      /** ID der Bewirtschaftungseinheit im Agrarinformationssystem GELAN, welche für die Kultur massgebend ist.
+       */
+      BewE_ID : TEXT*20;
+      /** Gemeindenummer (BfS) der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat. Die Kultur übernimmt diese Gemeinde.
+       */
+      BfS_Nummer_Kultur : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Gemeinde der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat. die Kultur übernimmt diese Gemeinde.
+       */
+      Gemeinde_Kultur : TEXT*100;
+      /** Kulturfläche in Aren anrechenbar als innerhalb der "Landwirtschaftlichen Nutzfläche"
+       */
+      Flaeche_Land_in_LN : 0.00 .. 99999.99;
+      /** Kulturfläche in Aren anrechenbar als ausserhalb der "Landwirtschaftlichen Nutzfläche"
+       */
+      Flaeche_Land_ausserhalb_LN : 0.00 .. 99999.99;
+      /** Baumzahl des Kulturpolygons
+       */
+      Baumzahl : 0 .. 99999;
+      /** Datum Beginn der Laufdauer als BFF1-Element.
+       */
+      BFF1_Datum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Marker Neuanmeldung von BFF1-Flächen für ein Qualitäts-Attest BFF2.
+       */
+      BFF2_Neuanmeldung : BOOLEAN;
+      /** Massgebende Fläche mit BFF2-Qualität in Aren.
+       */
+      BFF2_Flaeche : 0.00 .. 99999.99;
+      /** Datum der letzten Qualitäts-Attestierung der Fläche.
+       */
+      BFF2_Datum_Attest : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Massgebende Fläche mit Vertrag bei der Naturschutzfachstelle (NHG-Vertrag) in Aren.
+       */
+      Naturschutzvertrag_Flaeche : 0.00 .. 99999.99;
+      /** Marker für Kulturflächen BFF1 welche zu über 90% in einem Vertrag mit der Naturschutzfachstelle (NHG) eingebunden ist.
+       */
+      NHG_massgebend : BOOLEAN;
+      /** Marker Neuanmeldung von BFF1-Flächen in ein Vernetzungsprojekt.
+       */
+      Vernetzung_Neuanmeldung : BOOLEAN;
+      /** Marker Vernetzung bestätigt; BFF1 ist damit in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_bestaetigt : BOOLEAN;
+      /** Marker Vernetzung abgelehnt. BFF1 wird damit nicht in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_abgelehnt : BOOLEAN;
+      /** Marker Vernetzung massgebend; BFF1 ist in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_massgebend : BOOLEAN;
+      /** Massgebende Fläche mit Vereinbarung im Vernetzungsprojekt in Aren.
+       */
+      Vernetzung_Flaeche : 0.00 .. 99999.99;
+      /** Datum Beginn der Laufdauer im Vernetzungsvertrag.
+       */
+      Vernetzung_Datum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Für die Vernetzung gewählte Nutzungsvariante
+       */
+      Vernetzung_Nutzungsvariante : TEXT*100;
+      /** Projektbezeichnung. Kantonskürzel plus Nummer oder Projektkürzel.
+       */
+      Projekt : TEXT*20;
+      /** Name des Projektes oder der Projektregion.
+       */
+      Projektbezeichnung : TEXT*50;
+      /** Nummer des Massnahmengebietes innerhalb des Projektperimeters (der Vernetzungsprojekte). Entspricht Sekundärcode des Polygons innerhalb aller Massnahmengebiete (Datenfeld mgtfk im System GELAN).
+       */
+      Massnahmengebiete_Nummer : 1 .. 9999999;
+      /** Name oder Bezeichnung des Massnahmengebietes innerhalb des Projektperimeters (der Vernetzungsprojekte).
+       */
+      Massnahmengebiete_Name : TEXT*100;
+    END Kultur_Flaechen;
+
+    /** Die Kulturen (Punktobjekte) des Agrarinformatinssystems GELAN zeigen, welche Punktobjekte (Bäume) von welchem Betrieb aus bewirtschaftet werden. Die zu erfassenden Objektpunkte (Bäume) müssen innerhalb der dem Bewirtschafter zugeteilten Bewirtschaftungseinheiten liegen und zeigen damit die detaillierte Nutzung der jeweiligen Bewirtschaftungseinheit.
+     * 
+     * Die Ebene Kulturen umfasst sämtliche Nutzungsflächen von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter oder als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Kultur_Punktelemente =
+      /** Punktgeometrie oder Kooridnaten des Baumes bzw. des Kulturpunktes.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** GELAN-Identifikator des Kultur-Punktgeometrie. Im Agrarinformatinssystem GELAN bezeichnet als GEOID.
+       */
+      Kultur_ID : MANDATORY 1 .. 9999999;
+      /** Code der Kultur im Agrarinformationssystem GELAN (gemäss Kulturenkatalog des entsprenden Jahres).
+       */
+      Kulturcode_GELAN : 500 .. 999999;
+      /** Kulturbezeichnung im Agrarinformationssystem GELAN (gemäss Kulturenkatalog des entsprenden Jahres).
+       */
+      Kulturart : TEXT*100;
+      /** Datenherr der Kultur (innerhalb einer Bewirtschaftungseinheit) innerhalb der Agrardatenverwaltung GELAN
+       */
+      Mandant_Kultur : CHAdminCodes_V1.CHCantonCode;
+      /** Code der administrativen Zonenzugehörigkeit der zugeordneten Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Die Zone der Bewirtschaftungseinheit ist für die Kultur massgebend.
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Kultur_Code : 0 .. 999;
+      /** Beinhaltet die administrative Zonenzugehörigkeit der zugeordneten Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Die Zone der Bewirtschaftungseinheit ist für die Kultur massgebend.
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Kultur_Text : TEXT*20;
+      /** Marker für Ausschluss von Direktzahlungen für alte Bauzonen, wenn zusammenhängende Bewirtschaftung unter 25 Aren, und für alle neuen Bauzonen ab 2014.
+       */
+      ohne_DZ_Bauzone : BOOLEAN;
+      /** ID der Bewirtschaftungseinheit im Agrarinformationssystem GELAN, welche für die Kultur massgebend ist.
+       */
+      BewE_ID : TEXT*20;
+      /** Gemeindenummer (BfS) der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat. Die Kultur übernimmt diese Gemeinde.
+       */
+      BfS_Nummer_Kultur : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Gemeinde der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat. die Kultur übernimmt diese Gemeinde.
+       */
+      Gemeinde_Kultur : TEXT*100;
+      /** Kulturfläche in Aren anrechenbar als innerhalb der "Landwirtschaftlichen Nutzfläche"
+       */
+      Flaeche_Land_in_LN : 0.00 .. 99999.99;
+      /** Kulturfläche in Aren anrechenbar als ausserhalb der "Landwirtschaftlichen Nutzfläche"
+       */
+      Flaeche_Land_ausserhalb_LN : 0.00 .. 99999.99;
+      /** Baumzahl; bei Punktgeometrie wird die Baumzahl jeweil mit 1 eingetragen.
+       */
+      Baumzahl : 0 .. 99999;
+      /** Datum Beginn der Laufdauer als BFF1-Element.
+       */
+      BFF1_Datum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Marker Neuanmeldung von BFF1-Flächen für ein Qualitäts-Attest BFF2.
+       */
+      BFF2_Neuanmeldung : BOOLEAN;
+      /** Massgebende Fläche mit BFF2-Qualität in Aren.
+       */
+      BFF2_Flaeche : 0.00 .. 99999.99;
+      /** Datum der letzten Qualitäts-Attestierung der Fläche.
+       */
+      BFF2_Datum_Attest : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Massgebende Fläche mit Vertrag bei der Naturschutzfachstelle (NHG-Vertrag) in Aren.
+       */
+      Naturschutzvertrag_Flaeche : 0.00 .. 99999.99;
+      /** Marker für Kulturflächen BFF1 welche zu über 90% in einem Vertrag mit der Naturschutzfachstelle (NHG) eingebunden ist.
+       */
+      NHG_massgebend : BOOLEAN;
+      /** Marker Neuanmeldung von BFF1-Flächen in ein Vernetzungsprojekt.
+       */
+      Vernetzung_Neuanmeldung : BOOLEAN;
+      /** Marker Vernetzung bestätigt; BFF1 ist damit in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_bestaetigt : BOOLEAN;
+      /** Marker Vernetzung abgelehnt; BFF1 wird damit nicht in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_abgelehnt : BOOLEAN;
+      /** Marker Vernetzung massgebend; BFF1 ist in einen Vernetzungsvertrag eingebunden.
+       */
+      Vernetzung_massgebend : BOOLEAN;
+      /** Massgebende Fläche mit Vereinbarung im Vernetzungsprojekt in Aren.
+       */
+      Vernetzung_Flaeche : 0.00 .. 99999.99;
+      /** Datum Beginn der Laufdauer im Vernetzungsvertrag.
+       */
+      Vernetzung_Datum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Für die Vernetzung gewählte Nutzungsvariante
+       */
+      Vernetzung_Nutzungsvariante : TEXT*100;
+      /** Projektbezeichnung. Kantonskürzel plus Nummer oder Projektkürzel.
+       */
+      Projekt : TEXT*20;
+      /** Name des Projektes oder der Projektregion.
+       */
+      Projektbezeichnung : TEXT*50;
+      /** Nummer des Massnahmengebietes innerhalb des Projektperimeters (der Vernetzungsprojekte).
+       */
+      Massnahmengebiete_Nummer : 1 .. 9999999;
+      /** Name oder Bezeichnung des Massnahmengebietes innerhalb des Projektperimeters (der Vernetzungsprojekte).
+       */
+      Massnahmengebiete_Name : TEXT*100;
+    END Kultur_Punktelemente;
+
+    /** Der Kulturenkatalog im Agrardatensystem GELAN listet sämtliche Kulturen inklusive Codierung und Verwendung auf.
+     */
+    CLASS Kulturenkatalog =
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Codierung der Kultur im Agrarinformationssystem GELAN
+       */
+      Kulturcode_GELAN : 500 .. 999999;
+      /** Codierung der Kultur gemäss Agrarinformationssystem AGIS des Bundes.
+       */
+      Kulturcode_Bund : 500 .. 999;
+      /** Bezeichnung der Kultur im Agrarinformationssystem GELAN in Kurzform.
+       */
+      Kulturart_kurz : TEXT*20;
+      /** Bezeichnung der Kultur im Agrarinformationssystem GELAN in Standardlänge.
+       */
+      Kulturart_mittel : TEXT*60;
+      /** Bezeichnung der Kultur im Agrarinformationssystem GELAN in voller Länge.
+       */
+      Kulturart : TEXT*100;
+      /** Kodierung der Verwendung des Kulturcodes im Agrarinformationssystem GELAN [Datenfeld logDFC9010C im System GELAN]:
+       * - DK_BEWE = Detailkultur zu BEWE-Restfläche
+       * - DK_BEWE_Abgabe = Detailkultur zu BEWE-Restfläche für Landabgabe
+       * - DK_rgK = Detailkultur zu räumlich geführter Kultur
+       * - rgAK FL = räumlich geführte aggregierte Kultur Fläche
+       * - rgBK = räumlich geführte Baumkultur Punkt oder Fläche
+       * - rgEK FL=DK FL = räumlich geführte Einzelkultur Fläche (auch Detailkultur für diese rgK)
+       */
+      Verwendung_Code : TEXT*20;
+      /** Bezeichnung der Verwendung des Kulturcodes im Agrarinformationssystem GELAN [Datenfeld logDFCBEZ im System GELAN]:
+       * - DK_BEWE = Detailkultur zu BEWE-Restfläche
+       * - DK_BEWE_Abgabe = Detailkultur zu BEWE-Restfläche für Landabgabe
+       * - DK_rgK = Detailkultur zu räumlich geführter Kultur
+       * - rgAK FL = räumlich geführte aggregierte Kultur Fläche
+       * - rgBK = räumlich geführte Baumkultur Punkt oder Fläche
+       * - rgEK FL=DK FL = räumlich geführte Einzelkultur Fläche (auch Detailkultur für diese rgK)
+       */
+      Verwendung_Text : TEXT*100;
+      /** Kodierung betreffed Zuordnung des Flächenwerts einer Kultur  [Datenfeld logFTY9010C im System GELAN]:
+       * - ALN = Kulturfläche wird als innerhalb der LN gerechnet
+       * - ILN = Kulturfläche wird als ausserhalb der LN gerechnet
+       * - Bäume = Die Kultur wird als Anzahl Bäume gerechnet
+       */
+      Masseinheiten : TEXT*10;
+      /** Kodierung der Erfassungseinheit:
+       * - Anzahl
+       * - Fläche
+       */
+      Erfassungseinheit : TEXT*10;
+      /** Marker, ob Kultur als Spezialkultur gilt.
+       */
+      Spezialkultur : BOOLEAN;
+      /** Marker ob Kultur im Rahmen der Direktzahlungen für Hanglagebeiträge berechtigt ist.
+       */
+      Hanglage : BOOLEAN;
+      /** Berechtigungstyp für Biodiversitätsförderflächen (BFF):
+       * - BFF berechtigt
+       * - BFF nur Anrechnung
+       * - kein BFF
+       */
+      BFF_Berechtigung : TEXT*20;
+    END Kulturenkatalog;
+
+    /** Standortverwaltung des Agrarinformationssystems GELAN umfasst die Standorte eines Betriebes. 
+     * 
+     * Die Standortverwaltung umfasst sämtliche Standorte von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter, als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Standorte =
+      /** Geometrie bzw Koordinaten des Standortes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Standortnummer im Agrarinformationssystem GELAN; numerischer Teil der Standort-ID im Bundessystem AGIS
+       */
+      Standortnummer : MANDATORY 100000 .. 9999999;
+      /** Selbstgewählter Namen für den Standort im Agrarinformationssystem GELAN.
+       */
+      Standortname : TEXT*50;
+      /** Standorttyp:
+       * Allgemein;
+       * Bienenstand;
+       * Fischzucht;
+       * Schlachthof;
+       * Tierstandort ohne TVD;
+       * Tierstandort TVD;
+       * Tierstandort TVD leerstehend;
+       * 
+       * Betriebstyp gemäss AGIS Bund:
+       * Anerkannt nach LBV;
+       * Betriebsgemeinschaft;
+       * Biogasanlage;
+       * Gemeinschaftsweidebetriebe;
+       * GS Betrieb;
+       * Kompostieranlage;
+       * LBV ohne DZ;
+       * nicht kommerzielle Tierhaltung;
+       * nicht LBV (übrige);
+       * Sömmerungsbetrieb;
+       * Schlachthof;
+       * Tierschauen;
+       * Viehhandelsunternehmen;
+       * Wanderherde;
+       * 
+       * AGIS Bund gibt für Betriebsform folgende mögliche Werte vor:
+       * Mögliche Werte:
+       * - 01 = Betrieb (=Ganzjahresbetrieb)
+       * - 02 = Produktionsstätte
+       * - 04 = Gemeinschaftsweidebetrieb
+       * - 05 = Sömmerungsbetrieb
+       * - 06 = Betriebsgemeinschaft
+       * - 09 = Viehhandelsunternehmen
+       * - 10 = Wanderherde
+       * - 11 = Tierklinik
+       * - 12 = Schlachtbetriebe
+       * - 13 = Viehmärkte, Viehauktionen, Viehausstellungen und ähnliche Veranstaltungen
+       * - 14 = Betriebszweiggemeinschaft
+       * - 15 = Nichtkommerzielle Tierhaltung
+       * - 16 = ÖLN-Gemeinschaft (*)
+       * - 17 = Vergärungs- und Kompostierungsanlage (*)
+       * - 20 = Tierhaltung
+       * - 99 = Nicht zugeteilt (*)
+       * * Auf dieser Betriebsform kann keine TVD-Nummer vergeben werden
+       */
+      Standorttyp : MANDATORY TEXT*50;
+      /** Status des Standortes; kann aktiv oder passiv sein. Datenexport erfolgt nur für aktive Standorte.
+       */
+      Status_Standort : MANDATORY TEXT*10;
+      /** Markierter Standort gilt als Hauptstandort für den Betrieb
+       */
+      Hauptstandort : MANDATORY BOOLEAN;
+      /** Gemeindenummer (BfS) des Standortes
+       */
+      BfS_Nummer_Standort : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Gemeinde des Standortes
+       */
+      Gemeinde_Standort : TEXT*100;
+      /** Standortnummer der Tierverkehrsdatenbank
+       */
+      TVD_Nummer : 1000000 .. 99999999;
+      /** Beinhaltet den Status der TVD-Nummer.
+       * Mögliche Werte gemäss AGIS Bund:
+       * - 0 = TVD-Nr ist inaktiv
+       * - 1 = TVD-Nr ist aktiv
+       */
+      TVD_aktiv : TEXT*10;
+      /** Kantonale Nummer für den Bienenstand (Standorttyp=Bienenstand)
+       */
+      Bienenstand_Nummer : 1 .. 999999999;
+      /** Marker zur Unterscheidung von ganzjährigen und saisonalen Bienenstandorten
+       */
+      Bienenstandort_saisonal : BOOLEAN;
+      /** BUR-Nummer wird durch das Bundesunternehmensregister vergeben. Bei Bewirtschafterwechsel bleibt die BUR-Nummer bestehen.
+       * Das Betriebs- und Unternehmensregister (BUR) umfasst alle Unternehmen und Betriebe des privaten und öffentlichen Rechts, die in der Schweiz domiziliert sind und eine wirtschaftliche Tätigkeit ausüben. Das BUR dient dem BFS als Adressregister für die statistischen Erhebungen bei Unternehmen und Arbeitsstätten. Auch andere Ämter der Bundesverwaltung und zahlreiche Kantone verwenden das BUR zu statistischen oder administrativen Zwecken.
+       */
+      BUR_Registernummer_Standort : TEXT*20;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Rindvieh ist.
+       */
+      Gattung_Rindvieh : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Tieren der Pferdegattung (Pferde, Esel etc.) ist.
+       */
+      Gattung_Equiden : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Schafen ist.
+       */
+      Gattung_Schafe : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Ziegen ist.
+       */
+      Gattung_Ziegen : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Schweinen ist.
+       */
+      Gattung_Schweine : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Geflügel (Hausgeflügel) ist.
+       */
+      Gattung_Gefluegel : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Wild in Gehegen (Paarhufer) ist.
+       */
+      Gattung_Wild : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Tierhaltung mit Neuweltkameliden (Lamas, Alpakas) ist.
+       */
+      Gattung_Neuweltkameliden : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform eine Bienenhaltung ist.
+       */
+      Gattung_Bienen : MANDATORY BOOLEAN;
+      /** Gibt an, ob die Betriebsform ein Aquakulturbetrieb ist.
+       */
+      Gattung_Fische : MANDATORY BOOLEAN;
+      /** Standortnummer im Bundessystem AGIS (z.B. SOS131447 ) Entspricht der kantonalen Standort-ID mit einem Präfix aus Kantonskürzel und Buchstabe je nach Betreibstyp.
+       */
+      Standortnummer_AGIS : TEXT*25;
+      UNIQUE Standortnummer;
+    END Standorte;
+
+    /** Die Ebene Summe_Tiere_Flächen entspricht dem Betriebsspiegel auf Stufe Betrieb im Agrarinformationssystem GELAN.
+     *  
+     * Dieser Betriebsspiegel umfasst die wichtigsten Betriebsinformationen von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter, als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Summe_Tiere_Flaechen =
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Code der administrativen Zonenzugehörigkeit des Betriebs (Zone, in welcher der Betrieb den grössten Flächenanteil hat. Betriebe ohne landwirtschaftliche Nutzfläche werden jener Zone zugewiesen, in welcher das Betriebszentrum liegt).
+       * 
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=Betriebsform auf angestammten Flächen im Ausland (nur für Sömmerungsbetriebe)
+       * - 79=Betriebsform auf nicht angestammten Flächen im Ausland (nur für Sömmerungsbetriebe)
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Betrieb_Code : 0 .. 999;
+      /** Zonenbezeichnung (administrativen Zonenzugehörigkeit) des Betriebs (Zone, in welcher der Betrieb den grössten Flächenanteil hat. Betriebe ohne landwirtschaftliche Nutzfläche werden jener Zone zugewiesen, in welcher das Betriebszentrum liegt).
+       * 
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=Betriebsform auf angestammten Flächen im Ausland (nur für Sömmerungsbetriebe)
+       * - 79=Betriebsform auf nicht angestammten Flächen im Ausland (nur für Sömmerungsbetriebe)
+       * - 99=Nicht zugeteilt
+       */
+      Zone_Betrieb_Text : TEXT*20;
+      /** Standardarbeitskraftbedarf berechnet anhand der Betriebsdaten gemäss den Faktoren in der Landwirtschaftlichen Begriffsverordnung LBV.
+       */
+      SAK_Betrieb : 0.000 .. 999.999;
+      /** Anmeldung für die Betriebsmassnahme ÖLN (Ökologischer Leistungsnachweis)gemäss Direktzahlungsverordnung
+       */
+      Programm_OeLN : BOOLEAN;
+      /** Anmeldung für die Betriebsmassnahme BIO (Biologischer Landbau)gemäss Direktzahlungsverordnung
+       */
+      Programm_Bio : BOOLEAN;
+      /** Unterscheidung bei Betrieben mit Biolandbau in folgende Typen:
+       * - Bio Gesamtbetrieb
+       * - Bio nur Dauerkulturen
+       * - Bio Umstellung
+       */
+      Programm_Biotyp : TEXT*20;
+      /** Totalsumme der Grossvieheinheiten (GVE) des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung LBV.
+       */
+      Total_GVE_Betrieb : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Rindvieh des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Rindvieh : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Pferdegattung des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Equiden : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Schafe des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Schafe : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Ziegen des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Ziegen : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Schweine des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Schweine : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) Geflügel des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_Gefluegel : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) übrige Raufutterverzehrer (Alpakas, Lamas, Wild in Gehege) des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_andere_Raufutter : 0.000 .. 999.999;
+      /** Totalsumme der Grossvieheinheiten (GVE) andere Tiere (Kaninchen, etc.) des Betriebs berechnet nach den Faktoren gemäss Art. 27 der Landwirtschaftlichen Begriffsverordnung.
+       */
+      Total_GVE_andere_Tiere : 0.000 .. 999.999;
+      /** Totalsumme der Landwirtschaftlichen Nutzfläche des Betriebs in Aren berechnet nach den Vorgaben der Direktzahlungsverordnung.
+       */
+      Total_LN_Betrieb : 0.00 .. 99999.99;
+      /** Totalsumme der düngbaren Fläche des Betriebs in Aren.
+       */
+      Total_Flaeche_duengbar : 0.00 .. 99999.99;
+      /** Totalsumme der Biodiversitätsförderfläche Qualität 1 des Betriebs in Aren berechnet nach den Vorgaben der Direktzahlungsverordnung.
+       */
+      Total_Flaeche_BFF1 : 0.00 .. 99999.99;
+      /** Totalsumme der Ackerfläche des Betriebs in Aren. Die Ackerfläche umfasst die offene Ackerfläche und die Kunstwiesen (Grünland in geregelter Fruchtfolge).
+       */
+      Total_Ackerflaeche : 0.00 .. 99999.99;
+      /** Totalsumme der offenen Ackerfläche des Betriebs in Aren. Die offene Ackerfläche zusammen mit den Kunstwiesen (Grünland in geregelter Fruchtfolge) ergeben die gesamte Ackerfläche.
+       */
+      Total_offene_Ackerflache : 0.00 .. 99999.99;
+    END Summe_Tiere_Flaechen;
+
+    /** Die Bewirtschaftungseinheiten des Agrarinformatinssystems GELAN zeigen, welche Bewirtschaftungseinheiten von welchem Betrieb aus bewirtschaftet werden. Die Summe aller Bewirtschaftungseinheiten eines Betriebes ergibt die Betriebsfläche. Die Bewirtschaftungseinheiten sind nutzungsunabhängig.
+     * Die Bewirtschaftungseinheit bildet zusammen mit der Bodenbedeckung im Agrardatensystem GELAN die Grundlage für die Erfassung der räumlich geführten Kulturen.
+     * 
+     * Die Ebene Bewirtschaftungseinheit umfasst sämtliche Bewirtschaftungseinheiten von Akteuren, welche als Bewirtschafter von Flächen, als Tierhalter oder als Lebensmittelverarbeiter aufgrund von Bundes- oder Kantonsmassnahmen für den Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS Bewirtschaftungseinheit =
+      /** Geometrie der Bewirtschaftungseinheit
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** ID der Bewirtschaftungseinheit im Agrarinformationssystem GELAN
+       */
+      BewE_ID : MANDATORY TEXT*20;
+      /** Selbstgewählter Name der Bewirtschaftungseinheit im Agrarinformationssystem GELAN
+       */
+      BewE_Name : TEXT*30;
+      /** Typ der Bewirtschaftungseinheiten (analog den Betriebstypen):
+       * 30101=Anerkannt nach LBV;
+       * 30102=Betriebsgemeinschaft;
+       * 30140=Gemeinschaftsweidebetriebe;
+       * 30150=GS Betrieb;
+       * 30105=LBV ohne DZ;
+       * 30111=nicht kommerzielle Tierhaltung;
+       * 30110=nicht LBV (übrige);
+       * 30135=Sömmerungsbetrieb;
+       * 30130=Tierschauen
+       */
+      BewE_Typ : TEXT*50;
+      /** Codierung der Bewirtschaftungseinheiten (analog den Betriebstypen):
+       * 30101=Anerkannt nach LBV;
+       * 30102=Betriebsgemeinschaft;
+       * 30140=Gemeinschaftsweidebetriebe;
+       * 30150=GS Betrieb;
+       * 30105=LBV ohne DZ;
+       * 30111=nicht kommerzielle Tierhaltung;
+       * 30110=nicht LBV (übrige);
+       * 30135=Sömmerungsbetrieb;
+       * 30130=Tierschauen
+       */
+      BewE_Typ_Code : 100 .. 99999;
+      /** Code der administrativen Zonenzugehörigkeit der Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_BewE_Code : 0 .. 999;
+      /** Zonenbezeichnung (administrative Zonenzugehörigkeit) der Bewirtschaftungseinheit (Zone, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat).
+       * Mögliche Werte:
+       * - 31=Talzone
+       * - 41=Hügelzone
+       * - 51=Bergzone 1
+       * - 52=Bergzone 2
+       * - 53=Bergzone 3
+       * - 54=Bergzone 4
+       * - 61=Sömmerungsgebiet,
+       * - 77=angestammten Flächen im Ausland
+       * - 79=nicht angestammten Flächen im Ausland
+       * - 99=Nicht zugeteilt
+       */
+      Zone_BewE_Text : TEXT*20;
+      /** Ausschluss von Direktzahlungen für alte Bauzonen, wenn zusammenhängende Bewirtschaftung unter 25 Aren, und für alle neuen Bauzonen ab 2014.
+       */
+      Ohne_DZ_Bauzone : BOOLEAN;
+      /** Datenherr der Bewirtschaftungseinheit innerhalb des Agrarinformationssystems GELAN
+       */
+      Mandant_BewE : CHAdminCodes_V1.CHCantonCode;
+      /** Pflanzenbaulich produktive Fläche der Bewirtschaftungseinheit in Aren.
+       */
+      pflanzenbauliche_Flaeche : MANDATORY 0.00 .. 999999999.99;
+      /** Mit Waldbestockung oder übriger Bestockung (aber ohne landwirtschaftliche Hecken) belegte Fläche der Bewirtschaftungseinheit in Aren.
+       */
+      bestockte_Flaeche : MANDATORY 0.00 .. 999999999.99;
+      /** Unproduktive Fläche der Bewirtschaftungseinheit in Aren.
+       */
+      unproduktive_Flaeche : MANDATORY 0.00 .. 999999999.99;
+      /** Totalfläche der Geometrie der Bewirtschaftungseinheit in Aren.
+       */
+      Total_Flaeche : 0.00 .. 999999999.99;
+      /** Betriebsnummer KTIDB im Bundessystem AGIS (z.B. SOB130452 ) Entspricht der kantonalen Betriebsnummer mit einem Präfix aus Kantonskürzel und Buchstabe je nach Betreibstyp.
+       */
+      Betriebsnummer_AGIS : TEXT*25;
+      /** Gemeindenummer (BfS) der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat.
+       */
+      BfS_Nummer_BewE : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Gemeinde der Bewirtschaftungseinheit. Gemeinde, in welcher die Beirtschaftungseinheit den grössten Flächenanteil hat
+       */
+      Gemeinde_BewE : TEXT*100;
+      /** Status der Bewirtschaftungseinheit; kann aktiv oder passiv sein. Datenexport erfolgt nur für aktive Bewirtschaftungseinheiten.
+       */
+      BewE_aktiv : BOOLEAN;
+      UNIQUE BewE_ID;
+    END Bewirtschaftungseinheit;
+
+    /** Personenverwaltung des Agrarinformationssystems GELAN.
+     * 
+     * Die Personenverwaltung umfasst sämtliche Personen, welche als Bewirtschafter von Flächen, als Tierhalter, als Lebensmittelverarbeiter oder als Systembenutzer aufgrund von Bundes- oder Kantonsmassnahmen für den gesamten Vollzug massgebend sind.
+     * 
+     * Datenschutzvorgaben: Alle mit der Durchführung der Erhebung und Bearbeitung betrauten Personen sind verpflichtet, die im Erhebungsmaterial enthaltenen Angaben nach den Grundsätzen des Datenschutzgesetzes zu behandeln. Folgende Stellen benutzen die für ihre Aufgaben notwendigen Daten aus dem Agrarinformationssystem des Kantons: Kantonale Verwaltungen für Landwirtschaft,  Veterinärwesen, Wald, Jagd & Fischerei, Raumplanung, Umwelt, Lebensmittelsicherheit und Statistik, Bundesämter für Landwirtschaft, Statistik und Umwelt, Bundesamt für Lebensmittelsicherheit und Veterinärwesen, Bundesamt für wirtschaftliche Landesversorgung, Eidg. Zollverwaltung, TSM Treuhand GmbH (Verwaltung Milcheinlieferungen), Kantonale Laboratorien, Tierverkehrsdatenbank. Weitere Stellen können nach Prüfung einer Datenbezugsvereinbarung Daten aus dem Agrarinformatinssystem, im Rahmen der Datenschutzgesetzgebung, für spezifische Aufgaben verwenden (z.B. Hochschulen & Forschungsanstalten).
+     */
+    CLASS GELAN_Person =
+      /** Personennummer in der Personenverwaltung des Agrarinformationssystems GELAN
+       */
+      PID_GELAN : MANDATORY 200000 .. 9999999;
+      /** Gemeindenummer BfS der Wohnsitzgemeinde; Ausland=9999
+       */
+      BfS_Nummer_Wohnsitz : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindenamen der Wohnsitzgemeinde
+       */
+      Gemeinde_Wohnsitz : TEXT*100;
+      /** Kombination der Namenszeilen (Gesamtname für natürliche und überige Personen)
+       */
+      Name_Vorname : TEXT*100;
+      /** Name bei natürlichen Personen, Namensteil 1 bei übrigen Personen
+       */
+      Name : MANDATORY TEXT*32;
+      /** Bindestrich für Allianznamen aus Name und Zweitname
+       */
+      Name_Trennzeichen : TEXT*1;
+      /** Zweiter Teil des Allianznamens bei natürlichen Personen, zweiter Namensteil bei übrigen Personen
+       */
+      Zweitname : TEXT*32;
+      /** Vorname bei natürlichen Personen
+       */
+      Vorname : TEXT*32;
+      /** Strasse der Gebäudeadressierung ohne Nummer
+       */
+      Adresse_Strasse : TEXT*60;
+      /** Nummer der Gebäudeadressierung
+       */
+      Adresse_Hausnummer : TEXT*12;
+      /** Nummer des Postfachs
+       */
+      Postfachnummer : TEXT*20;
+      /** Postleitzahl; bei Postleitzahlen ausserhalb der Schweiz allenfalls mit Präfix
+       */
+      PLZ : TEXT*10;
+      /** Ortschaft zur Postleitzahl; bei Ortschaften ausserhalb der Schweiz allenfalls Präfix und Postleitzahl in Ortschaft integriert.
+       */
+      Ortschaft : MANDATORY TEXT*60;
+      /** Anredetext für Adressierung (z.B. Herr, Frau, Betriebsgemeinschaft,...)
+       */
+      Anrede : TEXT*30;
+      /** Briefanredetext
+       */
+      Briefanrede : TEXT*40;
+      /** Sprachecode in Buchstabenform
+       * -D=Deutsch
+       * -F=Französisch
+       */
+      Sprache : TEXT*3;
+      /** Telefon Privat
+       */
+      Telefon_Privat : TEXT*40;
+      /** Telefon Geschäft
+       */
+      Telefon_Geschaeft : TEXT*40;
+      /** Telefon Mobil
+       */
+      Telefon_Mobil : TEXT*40;
+      /** Mailadresse
+       */
+      Mailadresse : TEXT*50;
+      /** Geburtsdatum bei natürlichen Personen, Gründungsdatum bei übrigen Personen
+       */
+      Geburtsdatum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Sterbedatum bei natürlichen Personen, Enddatum bei übrigen Personen
+       */
+      Enddatum : FORMAT INTERLIS.XMLDate "1582-1-1" .. "2099-12-31";
+      /** Neue Sozialversicherungsnummer bei natürlichen Personen. Bei übrigen Personen mit 999 beginnende systemgenerierte Nummer aus Agrarinformationssystem GELAN.
+       */
+      Sozialversicherungsnummer : TEXT*16;
+      /** Nat. Pers = Natürliche Person;
+       * Uebr. Pers = übrige Person; jurisitische Personen sind übrige Personen
+       */
+      Personen_Typ : MANDATORY TEXT*12;
+      /** Rechtsform der Person: aktuell folgende mögliche Werte:
+       * - <keine>
+       * - AG
+       * - Bund (Betrieb)
+       * - Einfache Gesellschaft
+       * - Erbengemeinschaft
+       * - Familienstiftung
+       * - Gemeinde (Betrieb)
+       * - Genossenschaft
+       * - GmbH
+       * - Kanton (Betrieb)
+       * - Kollektivgesellschaft
+       * - Kommandit-AG
+       * - Kommanditgesellschaft
+       * - Natürliche Person
+       * - Oeff-rechtl.
+       * - Öffentliche Anstalten
+       * - Öff-rechtl. Körperschaft
+       * - Staatl. Landeskirche
+       * - Stiftung
+       * - Verein
+       * 
+       * Gemäss AGIS Bund folgende mögliche Werte
+       * - 01=Natürliche Person 
+       * - 02=Einfache Gesellschaft 
+       * - 03=Kollektivgesellschaft 
+       * - 04=Kommanditgesellschaft 
+       * - 05=Kommanditaktiengesellschaft 
+       * - 06=Aktiengesellschaft 
+       * - 07=Gesellschaft mit beschränkter Haftung 
+       * - 08=Genossenschaft 
+       * - 09=Verein, Vereinigung 
+       * - 10=Stiftung 
+       * - 24=Öffentlich-rechtliche Körperschaft (Verwaltung) 
+       * - 25=Staatlich anerkannte Landeskirche 
+       * - 30=Bund (Betrieb) 
+       * - 31=Kanton (Betrieb) 
+       * - 32=Bezirk (Betrieb) 
+       * - 33=Gemeinde (Betrieb) 
+       * - 34=Öffentlich-rechtliche Körperschaft (Betrieb)
+       */
+      Rechtsform : TEXT*50;
+      /** Typ der Zahlverbindung:
+       * -IBAN Nummer
+       * - Bankkonto
+       * - Postkonto
+       * - Zahlungsanweisung
+       * - (Leer)
+       */
+      Typ_Zahlverbindung : TEXT*20;
+      /** IBAN (International Bank Account Number) ist die europäische Norm zur Darstellung einer Kontonummer.
+       */
+      IBAN : TEXT*21;
+      /** Prüftext zur IBAN-Nummer bzw. zur Kontoverbindung
+       */
+      Prueftext_IBAN : TEXT*30;
+      /** Bezeichnung des Finanzinstitutes; Bankname
+       */
+      Bank : TEXT*50;
+      /** Die BC-Nummer (Bankenclearing-Nummer) dient in der Schweiz und in Liechtenstein zur Identifizierung der Finanzinstitute, die am SIC (Swiss Interbank Clearing AG) oder am euroSIC angeschlossen sind.
+       */
+      Clearing : 200 .. 99999;
+      /** Bankkonto-Bezeichnung
+       */
+      Bankkonto : TEXT*30;
+      /** Postkonto-Bezeichnung
+       */
+      Postkonto : TEXT*30;
+      /** Personennummer aus GELAN der Konto-Begünstigten Person
+       */
+      PID_Beguenstigter : 200000 .. 9999999;
+      /** Vollständiger Name der begünstigten Person zur Kontoverbindung
+       */
+      Beguenstigter : TEXT*100;
+      /** Datenherr der Person innerhalb Personenverwaltung GELAN
+       */
+      Mandant_Personenverwaltung : CHAdminCodes_V1.CHCantonCode;
+      /** Personen-ID aus GELAN der Person, welche bei Juristischen Personen und Personengesellschaften als Ansprechperson gilt.
+       */
+      PID_Ansprechperson : 200000 .. 9999999;
+      UNIQUE PID_GELAN;
+    END GELAN_Person;
+
+    /** Informationen des Betriebes, welche aus den Agrardaten betriebsbezogen ermittelt wurden. Jeder Betrieb hat genau ein "Eckdatenblatt/Betriebsspiegel".
+     */
+    ASSOCIATION Betrieb_Betriebsinfos =
+      Betrieb -- {1} Betrieb;
+      Betriebsinfos -- {0..1} Summe_Tiere_Flaechen;
+    END Betrieb_Betriebsinfos;
+
+    /** Ein Betrieb kann mehrerer Standorte haben, aber jeder Standort gehört zu genau 1 Betrieb.
+     */
+    ASSOCIATION Betrieb_Standort =
+      Standort_Betrieb -- {0..*} Standorte;
+      Betrieb_Standort -- {1} Betrieb;
+    END Betrieb_Standort;
+
+    /** Eine Bewirtschaftungseinheit ist immer genau einem Betrieb oder einer Produktionsstätte zugordnet.
+     */
+    ASSOCIATION BewE_Betrieb =
+      Betrieb -- {1} Betrieb;
+      Bewirtschaftungseinheit -- {0..*} Bewirtschaftungseinheit;
+    END BewE_Betrieb;
+
+    ASSOCIATION BewE_Kulturflaechen =
+      Bewirtschaftungseinheit -- {1} Bewirtschaftungseinheit;
+      Kultur_Flaechen -- {0..*} Kultur_Flaechen;
+    END BewE_Kulturflaechen;
+
+    /** Eine Bewirtschaftungseinheit kann mehrerer Kulturen haben, aber jede Kultur gehört zu genau 1 Bewirtschaftungseinheit.
+     */
+    ASSOCIATION BewE_Kulturpunkte =
+      Bewirtschaftungseinheit -- {1} Bewirtschaftungseinheit;
+      Kultur_Punkte -- {0..*} Kultur_Punktelemente;
+    END BewE_Kulturpunkte;
+
+    /** Eine Person kann mehrere Betriebe haben, aber jeder Betrieb hat nur eine Person (BewirtschafterIn des Betriebs)
+     */
+    ASSOCIATION Person_Betrieb =
+      Person -- {1} GELAN_Person;
+      Betrieb -- {0..*} Betrieb;
+    END Person_Betrieb;
+
+  END Betriebsdaten_Strukturdaten;
+
+  /** Abgrenzung der Qualität BFF2 für Biodiversitätsförderflächen im Agrarinformationssystems GELAN. Naturschutzverträge welche ins Agrarinforamtionssystem GELAN importiert wurden, werden in diesem Thema mit entsprechender Typisierung abgebildet.
+   * Die Qualitätspolygone werden unabhängig von den Bewirtschaftungseinheiten und den Kulturpolygonen erfasst.
+   */
+  TOPIC BFF_Qualitaet =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Abgrenzung der Qualität BFF2 für Biodiversitätsförderflächen im Agrarinformationssystems GELAN. Naturschutzverträge welche ins Agrarinforamtionssystem GELAN importiert wurden, werden in diesem Thema mit entsprechender Typisierung abgebildet.
+     * Die Qualitätspolygone werden unabhängig von den Bewirtschaftungseinheiten und den Kulturpolygonen erfasst.
+     */
+    CLASS BFF_Qualitaet =
+      /** Geometrie des BFF2- oder NAtur-Polygons
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Datenherr des Betriebs innerhalb der Agrardatenverwaltung GELAN
+       */
+      Mandant : CHAdminCodes_V1.CHCantonCode;
+      /** Identifikator GELAN des Polygons
+       */
+      BFF_Qualitaet_ID : 1 .. 9999999;
+      /** Kodierung Qualitätstyp (typcd im System GELAN):
+       * 42000 = BFF2 DZV
+       * 42005 = Natur NS-Verträge
+       * 42010 = BFF2 Sömmerung
+       * 
+       * Strukturierte Darstellung (GELAN):
+       * 
+       * typcd 42000 = BFF2 DZV
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42040 = Q Struktur
+       *     --strukturcd 42045 = Q Flora
+       *     --strukturcd 42046 = Q Struktur & Flora
+       *   -artcd 42061 = Weide (BE)
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42070 = Bäume
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42075 = Reben
+       *     --strukturcd 42035 = Q normal
+       * 
+       * typcd 42005 = Natur NS-Verträge
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42048 = BFF exklusive
+       * 
+       * typcd 42010 = BFF2 Sömmerung
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42030 = keine Angabe
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       */
+      Qualitaetstyp_Code : 42000 .. 42010;
+      /** Kodierung Qualitäts-Variante (strukturcd im System GELAN):
+       * 42030 = keine Angabe
+       * 42031 = kein BFF-Ausschluss (bei TWW ohne Vertrag)
+       * 42035 = Q normal
+       * 42040 = Q Struktur
+       * 42045 = Q Flora
+       * 42046 = Q Struktur & Flora
+       * 42048 = BFF exklusive (Standard für Naturpolygone; BFF wird durch überlagerung mit BFF2-Polygon erwirkt)
+       * 42049 = Q aus Natur Inv.
+       * 
+       * Strukturierte Darstellung (GELAN):
+       * 
+       * typcd 42000 = BFF2 DZV
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42040 = Q Struktur
+       *     --strukturcd 42045 = Q Flora
+       *     --strukturcd 42046 = Q Struktur & Flora
+       *   -artcd 42061 = Weide (BE)
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42070 = Bäume
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42075 = Reben
+       *     --strukturcd 42035 = Q normal
+       * 
+       * typcd 42005 = Natur NS-Verträge
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42048 = BFF exklusive
+       * 
+       * typcd 42010 = BFF2 Sömmerung
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42030 = keine Angabe
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       */
+      Qualitaetsvariante_Code : 42030 .. 42049;
+      /** Kodierung Kulturtyp (artcd im System GELAN):
+       * 42050 = unbestimmt
+       * 42055 = Wiese
+       * 42060 = Weide
+       * 42061 = Weide (BE)
+       * 42065 = Hecken
+       * 42070 = Bäume
+       * 42075 = Reben
+       * 
+       * Strukturierte Darstellung (GELAN):
+       * 
+       * typcd 42000 = BFF2 DZV
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42040 = Q Struktur
+       *     --strukturcd 42045 = Q Flora
+       *     --strukturcd 42046 = Q Struktur & Flora
+       *   -artcd 42061 = Weide (BE)
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42070 = Bäume
+       *     --strukturcd 42035 = Q normal
+       *   -artcd 42075 = Reben
+       *     --strukturcd 42035 = Q normal
+       * 
+       * typcd 42005 = Natur NS-Verträge
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42055 = Wiese
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42060 = Weide
+       *     --strukturcd 42048 = BFF exklusive
+       *   -artcd 42065 = Hecken
+       *     --strukturcd 42048 = BFF exklusive
+       * 
+       * typcd 42010 = BFF2 Sömmerung
+       *   -artcd 42050 = unbestimmt
+       *     --strukturcd 42030 = keine Angabe
+       *     --strukturcd 42049 = Q aus Natur Inv.
+       */
+      Kulturtyp_Code : 42050 .. 42075;
+      /** Marker ob Polygonüberlagerung zulässig ist (ulacd im System GELAN).
+       */
+      Polygonueberlagerung : BOOLEAN;
+      /** Kodierung ob Baumpolygon (baumcd im System GELAN)
+       * 0: Kein Baumpolygon für BFF2/Natur
+       * 1: Baumpolygon für BFF2/Natur
+       */
+      Baumpolygon : BOOLEAN;
+      /** Datum Erstattest zur Feststellung der BFF2-Qualität
+       */
+      Datum_Erstattest : INTERLIS.XMLDate;
+      /** Massgebende Anzahl Bäume für BFF2-Qualität innerhalb des BFF2-Polygons.
+       * Hinweis: z.B. Wiesen- und Weidepolygone haben Baumzahl =0.
+       */
+      Anzahl__Baeume : 0 .. 99999;
+      /** Prozentanteil der Qualität am BFF-Qualitäts-Polygon. Prozentanteile werden nur auf Sömmerungsflächen erhoben.
+       */
+      Qualitaetsanteil : 0.0001 .. 9999.9999;
+      /** Bruttofläche des BFF2/Natur-Qualitäts-Polygon
+       */
+      Bruttoflaeche : 0.0001 .. 99999.9999;
+      /** Nettofläche der BFF2/Natur-Qualität
+       */
+      Nettoflaeche : 0.0001 .. 99999.9999;
+      /** Statuscode bei Sömmerungsflächen (statuscd im System GELAN)
+       */
+      Status_Code : 1 .. 9999999;
+      /** Datum letzte Kontrolle oder der letzten BFF2-Attesterneuerung (vdatum im System GELAN)
+       */
+      Datum_Kontrolle : INTERLIS.XMLDate;
+      /** Personennummer in der Personenverwaltung GELAN der Person welche den Datensatz bearbeitet hat (Datenfeld upu im System GELAN).
+       */
+      Bearbeiter_PID : 200000 .. 9999999;
+      /** Datum (Update-Datum) der letzten Modifikation (Datenfeld upd im System GELAN)
+       */
+      letzte_Aenderung : INTERLIS.XMLDate;
+      /** Bemerkungen
+       */
+      Bemerkung : TEXT*50;
+      /** Infofeld als aggregation aus den drei Infofeldern im Agrarinforamtionssystem GELAN (mit Semkiolon aggregierte Felder RES1, RES2 und RES3 im System GELAN)
+       */
+      Infofeld : TEXT*300;
+      UNIQUE BFF_Qualitaet_ID;
+    END BFF_Qualitaet;
+
+  END BFF_Qualitaet;
+
+  /** Informationen zur Datenlieferung aus dem Agrarinformationssystem GELAN
+   */
+  TOPIC Datentransfer =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Informationen zur Datenlieferung
+     */
+    CLASS Datenbestand =
+      /** Datum der Lieferung
+       */
+      Lieferdatum : INTERLIS.XMLDate;
+      /** Firma oder Diensstelle die die Daten liefert
+       */
+      Lieferant : TEXT*100;
+    END Datenbestand;
+
+  END Datentransfer;
+
+  /** Basislayer zur Ausscheidung von pflanzenbaulich nutzbarem Land (GELAN: LAND), bestockten Flächen ohne landwirtschaftliche Hecken (GELAN: WALD) und unproduktiven und nicht humusierten Flächen (GELAN: UNPROD). Im MGDM Bund wird dieses Thema als "Permieter LN und Sömmerung" bezeichnet.
+   */
+  TOPIC GELAN_Bodenbedeckung =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Basislayer zur Ausscheidung von pflanzenbaulich nutzbarem Land (GELAN: LAND), bestockten Flächen ohne landwirtschaftliche Hecken (GELAN: WALD) und unproduktiven und nicht humusierten Flächen (GELAN: UNPROD). Im MGDM Bund wird dieses Thema als "Permieter LN und Sömmerung" bezeichnet.
+     */
+    CLASS Bodenbedeckung =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugjahr : INTERLIS.GregorianYear;
+      /** Datenherr der Bewirtschaftungseinheit innerhalb der Agrardatenverwaltung GELAN
+       */
+      Mandant : CHAdminCodes_V1.CHCantonCode;
+      /** Kodierung der aggregierten Bodenbedeckung:
+       * 41001=LAND
+       * 41002=UNPROD
+       * 41003=WALD
+       */
+      Bodenbedeckung_Code : 41001 .. 41003;
+      /** Text zur Kodierung der aggregierten Bodenbedeckung:
+       * 41001=LAND
+       * 41002=UNPROD
+       * 41003=WALD
+       */
+      Bodenbedeckung_Text : TEXT*10;
+      /** Jahr der Bodenbedeckung GELAN
+       */
+      Bodenbedeckung_Jahr : INTERLIS.GregorianYear;
+      /** Art der Basisdaten, welche für die Bodenbedeckung GELAN verwendet wurden.
+       */
+      Basisdaten : TEXT*200;
+      /** Herkunft der Daten, welche für die Erstellung der Bodenbedeckung GELAN verwendet wurden.
+       */
+      Herkunft : TEXT*200;
+      /** Datum der erstmaligen Verwendung der Bodenbedeckungseinheit
+       */
+      Datum_erste_Verwendung : INTERLIS.XMLDate;
+      /** Kantonsnummer zur Bodenbedeckungseinheit(Datenfeld kt_id im System GELAN)
+       */
+      Kanton_Nummer : 0 .. 99;
+      /** Kantonsname zur Bodenbedeckungseinheit(Datenfeld kt_name im System GELAN)
+       */
+      Kanton_Name : TEXT*50;
+      /** Interne Bemerkung der GIS-Administration GELAN
+       */
+      Bemerkung_Erstellung : TEXT*50;
+      /** Importdatum der Basisdaten in die GELAN_Bodenbedeckung
+       */
+      Datum_Erstellung : INTERLIS.XMLDate;
+      /** Quelle/Quelldatei welche für die Erstellung der Bodenbedeckung GELAN verwendet wurde.
+       */
+      Quelle_Erstellung : TEXT*250;
+      /** Infofeld als aggregation aus den drei Infofeldern im Agrarinforamtionssystem GELAN (mit Semkiolon aggregierte Felder RES1, RES2 und RES3 im System GELAN)
+       */
+      Infofeld : TEXT*250;
+    END Bodenbedeckung;
+
+    /** Korrekturen, welche erfasst wurden für die Produktion des Basislayers zur Ausscheidung von pflanzenbaulich nutzbarem Land (GELAN: LAND), bestockten Flächen ohne landwirtschaftliche Hecken (GELAN: WALD) und unproduktiven und nicht humusierten Flächen (GELAN: UNPROD). Im MGDM Bund wird dieses Thema als "Permieter LN und Sömmerung" bezeichnet.
+     */
+    CLASS Bodenbedeckung_Uebersteuerung =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Datenherr der Bewirtschaftungseinheit innerhalb der Agrardatenverwaltung GELAN
+       */
+      Mandant : CHAdminCodes_V1.CHCantonCode;
+      /** Kodierung der aggregierten Bodenbedeckung:
+       * 41001=LAND
+       * 41002=UNPROD
+       * 41003=WALD
+       */
+      Bodenbedeckung_Code : 41001 .. 41003;
+      /** Text zur Kodierung der aggregierten Bodenbedeckung:
+       * 41001=LAND
+       * 41002=UNPROD
+       * 41003=WALD
+       */
+      Bodenbedeckung_Text : TEXT*10;
+      /** Kodierung des Übersteuerungstyps:
+       * 41101=temporär
+       * 41102=permanent
+       */
+      Uebersteuerungstyp_Code : 41101 .. 41102;
+      /** Text zu Kodierung des Übersteuerungstyps:
+       * 41101=temporär
+       * 41102=permanent
+       */
+      Uebersteuerungstyp_Text : TEXT*20;
+      /** Kodierung der Verarbeitung
+       */
+      Verarbeitung_Code : 1 .. 9999999;
+      /** Kodierung der Herkunft.
+       */
+      Herkunft_Code : 1 .. 9999999;
+      /** Text zur Kodierung der Herkunft
+       */
+      Herkunft_Text : TEXT*200;
+      /** Kodierung des Überstuerungsgrundes:
+       * 41131 = Kiesgrube / Deponie
+       * 41132 = Kiesgrube renaturiert / Deponie aufgehoben
+       * 41134 = Ausscheidung vor Ort
+       * 41135 = Einsprache Bewirtschafter
+       * 41137 = Hofraum
+       * 41138 = Fehler Waldausscheidung
+       * 41139 = Bauzone
+       * 41140 = Reben
+       * 41142 = Golfplatz
+       * 41143 = Fussballplatz
+       * 41144 = Fehler Bodenbedeckung (AV / Attribut)
+       * 41146 = (Leer)
+       * 41147 = (Leer)
+       */
+      Ueberstuerungsgrund_Code : 41131 .. 41199;
+      /** Text zur Kodierung des Überstuerungsgrundes:
+       * 41131 = Kiesgrube / Deponie
+       * 41132 = Kiesgrube renaturiert / Deponie aufgehoben
+       * 41134 = Ausscheidung vor Ort
+       * 41135 = Einsprache Bewirtschafter
+       * 41137 = Hofraum
+       * 41138 = Fehler Waldausscheidung
+       * 41139 = Bauzone
+       * 41140 = Reben
+       * 41142 = Golfplatz
+       * 41143 = Fussballplatz
+       * 41144 = Fehler Bodenbedeckung (AV / Attribut)
+       * 41146 = (Leer)
+       * 41147 = (Leer)
+       */
+      Ueberstuerungsgrund_Text : TEXT*50;
+      /** Bemerkung zur Übersteuerung (erfasst durch ALW)
+       */
+      Bemerkung : TEXT*100;
+      /** Interne Bemerkung der GIS-Administration GELAN
+       */
+      Bemerkung_Erstellung : TEXT*70;
+      /** Importdatum in Basislayer GELAN_Bodenbedeckung
+       */
+      Datum_Erstellung : INTERLIS.XMLDate;
+      /** Quelle/Quelldatei welche im Agrarinformationsystem GELAN verwendet wurde.
+       */
+      Quelle_Erstellung : TEXT*250;
+      /** Personennummer in der Personenverwaltung des Agrarinformationssystems GELAN der Person, welche den Datensatz bearbeitet hat (Datenfeld upu im System GELAN).
+       */
+      Bearbeiter_PID : 200000 .. 9999999;
+      /** Datum (Update-Datum) der letzten Modifikation (Datenfeld upd im System GELAN)
+       */
+      letzte_Aenderung : INTERLIS.XMLDate;
+    END Bodenbedeckung_Uebersteuerung;
+
+  END GELAN_Bodenbedeckung;
+
+  /** Perimeter der Vernetzungsprojekte und -massnahmen aus dem Agrarinformationssystem GELAN
+   */
+  TOPIC Massnahmen_Perimeter =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Massnahmengebiete der Vernetzungsprojekte im Agrarinformationssystem GELAN
+     */
+    CLASS Vernetzung_Massnahmengebiete =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Datenherr des Massnahmengebietes innerhalb des Agrarinformationssystems GELAN
+       */
+      Mandant : CHAdminCodes_V1.CHCantonCode;
+      /** Primärcode des Polygons innerhalb aller Massnahmengebiete (Datenfeld mgvpk im System GELAN)
+       */
+      Massnahmengebiet_Code : 1 .. 9999999;
+      /** Codewert des zugeörigen Projektperimeters (Datenfeld ppvfk im Systm GELAN)
+       */
+      Projektperimeter_Code : 1 .. 9999999;
+      /** Sekundärcode des Polygons innerhalb aller Massnahmengebiete (Datenfeld mgtfk im System GELAN)
+       */
+      Teilgebiet_Code : 1 .. 9999999;
+      /** Name des Massnahmengebietes (Datenfeld Bemerkung im System GELAN)
+       */
+      Massnahmengebiet_Text : TEXT*60;
+      /** Interne Bemerkung der GIS-Administration GELAN
+       */
+      Bemerkung_Erstellung : TEXT*50;
+      /** Importdatum (im Agrarinformationssystem GELAN)
+       */
+      Datum_Erstellung : INTERLIS.XMLDate;
+      /** Quelle/Quelldatei welche im Agrarinformationsystem GELAN verwendet wurde.
+       */
+      Quelle_Erstellung : TEXT*200;
+      /** Bemerkungen Infofeld 1
+       */
+      Infofeld_1 : TEXT*20;
+      /** Bemerkungen Infofeld 2
+       */
+      Infofeld_2 : TEXT*20;
+      /** Bemerkungen Infofeld 3
+       */
+      Infofeld_3 : TEXT*250;
+      /** Bezeichnung des Massnahmengebietes
+       */
+      Bezeichnung_Massnahmengebiet : TEXT*60;
+      /** Pflanzenbaulich produktive Fläche des Massnahmengebietes in Aren.
+       */
+      pflanzenbauliche_Flaeche : 0.00 .. 999999.99;
+      /** Mit Waldbestockung oder übriger Bestockung belegte Fläche des Massnahmengebietes in Aren.
+       */
+      bestockte_Flaeche : 0.00 .. 999999.99;
+      /** Unproduktive Fläche des Massnahmengebietes in Aren.
+       */
+      unproduktive_Flaeche : 0.00 .. 999999.99;
+    END Vernetzung_Massnahmengebiete;
+
+    /** Projektperimeter der Vernetzungsprojekte im Agrarinformationssystem GELAN
+     */
+    CLASS Vernetzung_Projektperimeter =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bezugsjahr der Daten (bei jahresbezogenem Datensatz)
+       */
+      Bezugsjahr : INTERLIS.GregorianYear;
+      /** Datenherr des Projektperimeters innerhalb der Agrarinformationssystems GELAN
+       */
+      Mandant : CHAdminCodes_V1.CHCantonCode;
+      /** Primärcode des Projektperimeters (Datenfeld pkppv im System GELAN)
+       */
+      Projektperimeter_Code : 1 .. 9999999;
+      /** ID des Projektperimeters (Datenfeld id_pp im System GELAN)
+       */
+      Projektperimeter_ID : 1 .. 9999999;
+      /** Gruppierungs-ID des Projektperimeters (Datenfeld idfach im System GELAN)
+       */
+      Projektperimeter_Gruppen_ID : TEXT;
+      /** Vorjahres Primärcode des Perimeters (Datenfeld fkvj im System GELAN)
+       */
+      Vorjahrescode_Perimeter : 1 .. 9999999;
+      /** Status des Projektperimeters (Datenfeld ppstat im System GELAN):
+       * - provisorisch
+       * - genehmigt
+       */
+      Status_Projektperimeter : TEXT*20;
+      /** Genehmigungsdatum Projektperimeter (Datenfeld ppgendat im System GELAN)
+       */
+      Genehmigungsdatum : INTERLIS.XMLDate;
+      /** Namenscode; Name steht im Attribut "Bemerkung" (Datenfeld namcd im System GELAN)
+       */
+      Perimetername_Code : 1 .. 9999999;
+      /** Personennummer in der Personenverwaltung GELAN der Person welche den Datensatz bearbeitet hat (Datenfeld upu im System GELAN).
+       */
+      Bearbeiter_PID : 200000 .. 9999999;
+      /** Datum (Update-Datum) der letzten Modifikation (Datenfeld upd im System GELAN)
+       */
+      letzte_Aenderung : INTERLIS.XMLDate;
+      /** Name des Projektperimeters (Datenfeld Bemerkung im System GELAN)
+       */
+      Projektperimeter_Text : TEXT*60;
+      /** Interne Bemerkung der GIS-Administration GELAN
+       */
+      Bemerkung_Erstellung : TEXT*50;
+      /** Importdatum (im Agrarinformationssystem GELAN)
+       */
+      Datum_Erstellung : INTERLIS.XMLDate;
+      /** Quelle/Quelldatei welche im Agrarinformationsystem GELAN verwendet wurde.
+       */
+      Quelle_Erstellung : TEXT*200;
+      /** Bemerkungen Infofeld 1
+       */
+      Infofeld_1 : TEXT*20;
+      /** Bemerkungen Infofeld 2
+       */
+      Infofeld_2 : TEXT*20;
+      /** Bemerkungen Infofeld 3
+       */
+      Infofeld_3 : TEXT*250;
+    END Vernetzung_Projektperimeter;
+
+    ASSOCIATION Perimeter_Massnahmengebiete =
+      Projektperimeter -- {1} Vernetzung_Projektperimeter;
+      Massnahmengebiet -- {0..*} Vernetzung_Massnahmengebiete;
+    END Perimeter_Massnahmengebiete;
+
+  END Massnahmen_Perimeter;
+
+END SO_ALW_Landwirtschaft_Tierhaltung_20210426.
