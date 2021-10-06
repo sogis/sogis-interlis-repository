@@ -16,6 +16,13 @@ plugins {
     id "com.bmuschko.docker-remote-api" version "4.4.1"
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'ch.interlis:ili2c-tool:5.2.3'
+        force 'ch.interlis:ili2c-core:5.2.3'    
+    }
+}
+
 apply from: "$rootDir/gradle/versioning.gradle"
 
 import ch.so.agi.gretl.tasks.*
@@ -121,7 +128,8 @@ pushDockerImages.dependsOn {
 // It will fail if repository is not ok.
 // "Process 'command '/Library/Java/JavaVirtualMachines/jdk8u192-b12/Contents/Home/bin/java'' finished with non-zero exit value 1"
 // Es muss --ilidirs verwendet werden, um das localhost-Repo als Quelle für Modell-Importe verwenden zu können (d.h. Solothurner Modelle
-// importieren Solothurner Modelle.)
+// importieren Solothurner Modelle.). Aber das produktive Repo darf (sollte) nicht verwendet werden. Das kann aber wohl nicht definitiv 
+// unterbunden werden (?).
 task checkInterlisRepository(type: JavaExec) {
     classpath = buildscript.configurations.classpath
     main = 'ch.interlis.ili2c.Main'
