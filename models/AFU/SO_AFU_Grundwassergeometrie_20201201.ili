@@ -1,0 +1,148 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------ 
+ *  !! Version    | wer | Aenderung 
+ *  !!------------------------------------------------------------------------------ 
+ *  !! 2020-12-01 | PS  | Erstfassung 
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AFU_Grundwassergeometrie_20201201 (de)
+AT "https://geo.so.ch/models/AFU"
+VERSION "2020-11-05"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Grundwassergeometrien(ABSTRACT) =
+
+    /** Abstrakte Klasse Grundwasser
+     */
+    CLASS Grundwasser (ABSTRACT) =
+      /** Geometrie der Klasse Grundwasser
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Grundwassermächtigkeit in Meter
+       */
+      Maechtigkeit : MANDATORY (
+        !!@ ili2db.dispName = "2-10m"
+        m_2_10,
+        !!@ ili2db.dispName = "10-20m"
+        m_10_20,
+        !!@ ili2db.dispName = "20-30m"
+        m_20_30,
+        !!@ ili2db.dispName = "30-40m"
+        m3_0_40,
+        !!@ ili2db.dispName = "40-50m"
+        m_40_50,
+        !!@ ili2db.dispName = ">50m"
+        m_groesser_50
+      );
+    END Grundwasser;
+
+    /** Grundwasser Wasseramt: minimaler Flurabstand  in m (konservativ). Zeigt minimal zu erwartenden Flurabstand ("Trockentiefe") bei HGW an.
+     */
+    CLASS Grundwasser_Wasseramt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Flurabstand in m
+       */
+      Grid_Code : MANDATORY -9999 .. 34;
+    END Grundwasser_Wasseramt;
+
+    /** Grobe Darstellung eines mittleren bis tiefen Grundwasserspiegels
+     */
+    CLASS Grundwasserspiegel_Mittel_Tief =
+      /** Geometrie des mittleren Grundwasserspiegels
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Grundwasserspiegels
+       */
+      Kote : 0 .. 500;
+    END Grundwasserspiegel_Mittel_Tief;
+
+    /** Der Datenlayer beschreibt die Höhenlinien (Isohypsen) der Oberläche des Grundwasserstauers (Aquiclude) im 10m-Abstand und stellt im groben Massstab die Untergrenze der regionalen Grundwasserleiter dar. Die Isolinien wurden durch Kompilation sämtlicher bekannter und auswertbarer Bohrprofile etc. mittels Interpolation der Einzelstandorte ermittelt.
+     */
+    CLASS Grundwasserstauer =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Lage des Grundwasserstauers in m ü.M.
+       */
+      Kote : MANDATORY 0 .. 500;
+    END Grundwasserstauer;
+
+    /** Begrenzung Grundwasserstrom bei höchstem Grundwasserstand
+     */
+    CLASS Grundwasserstrom_Begrenzung_HGW =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Legende
+       */
+      Symbol : 1 .. 1;
+      /** Kürzel des Bearbeiters
+       */
+      Bearbeiter : TEXT*10;
+      /** Datum der Bearbeitung
+       */
+      Bearbeitung : FORMAT INTERLIS.XMLDate "1999-1-1" .. "2000-12-12";
+    END Grundwasserstrom_Begrenzung_HGW;
+
+    /** Abstrakte Klasse der Grundwasserisohypsen
+     */
+    CLASS Isohypse (ABSTRACT) =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Unterscheidung in 10m-, 2m- und 1m- (Zwischen-) Isohypsen
+       */
+      Kurventyp : MANDATORY (
+        !!@ ili2db.dispName = "1"
+        ein_Meter,
+        !!@ ili2db.dispName = "2"
+        zwei_Meter,
+        !!@ ili2db.dispName = "10"
+        zehn_Meter
+      );
+      /** Grundwassergleichen in m ü.M.
+       */
+      Kote : MANDATORY 0 .. 500 [INTERLIS.m];
+      /** Bearbeiter
+       */
+      Bearbeiter : TEXT*10;
+      /** Erfassungsdatum
+       */
+      Erfassung : MANDATORY FORMAT INTERLIS.XMLDate "1998-1-1" .. "2006-12-31";
+    END Isohypse;
+
+    /** Grundwassermächtigkeit und -ausdehnung (TGW)
+     */
+    CLASS Grundwasser_Maechtigkeit
+    EXTENDS Grundwasser =
+    END Grundwasser_Maechtigkeit;
+
+    /** Mittelstand Grundwasser (MGW)
+     */
+    CLASS Grundwasser_Mittelstand
+    EXTENDS Grundwasser =
+    END Grundwasser_Mittelstand;
+
+    /** Tiefstand Grundwasser (TGW)
+     */
+    CLASS Grundwasser_Tiefstand
+    EXTENDS Grundwasser =
+    END Grundwasser_Tiefstand;
+
+    /** Grundwasserisohypsen bei hoechstem Grundwasserstand (HGW)
+     */
+    CLASS Isohypse_Hoechster_Grundwasserstand
+    EXTENDS Isohypse =
+    END Isohypse_Hoechster_Grundwasserstand;
+
+    /** Grundwasserisohypsen bei mittlerem Grundwasserstand (MGW)
+     */
+    CLASS Isohypse_Mittlerer_Grundwasserstand
+    EXTENDS Isohypse =
+    END Isohypse_Mittlerer_Grundwasserstand;
+
+    /** Grundwasserisohypsen bei tiefem Grundwasserstand (TGW)
+     */
+    CLASS Isohypse_Tiefer_Grundwasserstand
+    EXTENDS Isohypse =
+    END Isohypse_Tiefer_Grundwasserstand;
+
+  END Grundwassergeometrien;
+
+END SO_AFU_Grundwassergeometrie_20201201.

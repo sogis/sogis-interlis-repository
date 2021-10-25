@@ -1,0 +1,777 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-08-31 | PS  | Erstfassung: 1 Modell für Erfassung und Publikation
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AFU_Geologie_20200831 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2020-08-31"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Ausbildung des Festgesteins
+     */
+    Ausbildung_Festgestein = (
+      fest,
+      bankig,
+      massig,
+      wechselnd,
+      !!@ ili2db.dispName = "mit Karstfüllung"
+      mit_Karstfuellung,
+      !!@ ili2db.dispName = "blättrig"
+      blaettrig,
+      knauerig,
+      schiefrig,
+      unbekannt
+    );
+
+    Ausbildung_Lockergestein = (
+      Kies,
+      Sand,
+      Silt,
+      Ton,
+      Lehm,
+      Torf,
+      !!@ ili2db.dispName = "Moräne"
+      Moraene,
+      Seekreide,
+      unbekannt
+    );
+
+    /** Name der Eiszeit
+     */
+    Eiszeit = (
+      unbekannt,
+      /** vor 115'000 - 10'000 Jahren
+       */
+      Wuerm,
+      /** vor 300'000 - 130'000 Jahren
+       */
+      Riss,
+      /** vor 460'000 - 400'000 Jahren
+       */
+      Mindel,
+      /** vor 600'000 - 800'000 Jahren
+       */
+      Guenz
+    );
+
+    /** Geologische Formation
+     */
+    geologische_Formation = (
+      Bundsandstein,
+      !!@ ili2db.dispName = "Unterer Muschelkalk"
+      Unterer_Muschelkalk,
+      !!@ ili2db.dispName = "Mittlerer Muschelkalk (Anhydritgruppe)"
+      Mittlerer_Muschelkalk_Anhydritgruppe,
+      !!@ ili2db.dispName = "Oberer Muschelkalk"
+      Oberer_Muschelkalk,
+      Lettenkohle,
+      !!@ ili2db.dispName = "Mittlerer Keuper"
+      Mittlerer_Keuper,
+      !!@ ili2db.dispName = "Rhät"
+      Rhaet,
+      !!@ ili2db.dispName = "Arietenkalk"
+      Arietenkalk,
+      !!@ ili2db.dispName = "Opalinus-Ton"
+      Opalinus_Ton,
+      !!@ ili2db.dispName = "Passwang-Formation"
+      Passwang_Formation,
+      !!@ ili2db.dispName = "Hauptrogenstein-Formation"
+      Hauptrogenstein_Formation,
+      !!@ ili2db.dispName = "Callovien"
+      Callovien,
+      !!@ ili2db.dispName = "Wildegg-Formation"
+      Wildegg_Formation,
+      !!@ ili2db.dispName = "Bärschwil-Formation"
+      Baerschwil_Formation,
+      !!@ ili2db.dispName = "Pichoux-Formation"
+      Pichoux_Formation,
+      !!@ ili2db.dispName = "St.Ursanne-Formation"
+      St_Ursanne_Formation,
+      !!@ ili2db.dispName = "Villigen-Formation"
+      Villigen_Formation,
+      !!@ ili2db.dispName = "Balsthal-Formation"
+      Balsthal_Formation,
+      !!@ ili2db.dispName = "Vellerat- und Courgenay-Formation"
+      Vellerat_und_Courgenay_Formation,
+      !!@ ili2db.dispName = "Twannbach-Formation"
+      Twannbach_Formation,
+      !!@ ili2db.dispName = "Reuchenette-Formation"
+      Reuchenette_Formation,
+      Siderolithikum,
+      !!@ ili2db.dispName = "Untere Süsswassermolasse (Mittelland)"
+      Untere_Suesswassermolasse_Mittelland,
+      !!@ ili2db.dispName = "Untere Raurachische Molasse"
+      Untere_Raurachische_Molasse,
+      !!@ ili2db.dispName = "Obere Meeresmolasse"
+      Obere_Meeresmolasse,
+      !!@ ili2db.dispName = "Obere Süsswassermolasse"
+      Obere_Suesswassermolasse,
+      !!@ ili2db.dispName = "Günz"
+      Guenz,
+      Mindel,
+      !!@ ili2db.dispName = "Riss"
+      Riss,
+      !!@ ili2db.dispName = "Würm"
+      Wuerm,
+      !!@ ili2db.dispName = "Pleistozän undifferenziert"
+      Pleistozaen_undifferenziert,
+      Postglazial
+    );
+
+    /** Geologische Schichtgliederung
+     */
+    geologische_Schichtgliederung = (
+      !!@ ili2db.dispName = "Aarwanger Molasse (Blättermolasse)"
+      Aarwanger_Molasse_Blaettermolasse,
+      !!@ ili2db.dispName = "Ältere (höhere) Deckenschotter"
+      Aeltere_hoehere_Deckenschotter,
+      !!@ ili2db.dispName = "Alluvionen Randbereich"
+      Alluvionen_Randbereich,
+      !!@ ili2db.dispName = "Alluvionen undifferenziert"
+      Alluvionen_undifferenziert,
+      !!@ ili2db.dispName = "Anceps Athleta-Schichten"
+      Anceps_Athleta_Schichten,
+      Anhydritdolomit,
+      !!@ ili2db.dispName = "'Aquitanien' undifferenziert"
+      Aquitanien_undifferenziert,
+      Arietenkalk,
+      !!@ ili2db.dispName = "Aufschüttung, aufgefüllte Grube, Deponie"
+      Aufschuettung_aufgefuellte_Grube_Deponie,
+      Bachschutt,
+      !!@ ili2db.dispName = "Basiskonglomerat / Muschelsandstein ('Burdigalien')"
+      Basiskonglomerat_Muschelsandstein_Burdigalien,
+      !!@ ili2db.dispName = "Birmenstorfer-Schichten"
+      Birmenstorfer_Schichten,
+      !!@ ili2db.dispName = "Blagdeni-Schichten"
+      Blagdeni_Schichten,
+      !!@ ili2db.dispName = "Bohnerz-Formation"
+      Bohnerz_Formation,
+      !!@ ili2db.dispName = "Boninger Süsswasserkalk"
+      Boninger_Suesswasserkalk,
+      Bundsandstein,
+      !!@ ili2db.dispName = "'Burdigalien' undifferenziert"
+      Burdigalien_undifferenziert,
+      !!@ ili2db.dispName = "Calcaires sableux"
+      Calcaires_sableux,
+      !!@ ili2db.dispName = "Callovien-Tone"
+      Callovien_Tone,
+      !!@ ili2db.dispName = "'Chattien' undifferenziert"
+      Chattien_undifferenziert,
+      !!@ ili2db.dispName = "Crenularis-Schichten"
+      Crenularis_Schichten,
+      !!@ ili2db.dispName = "Dalle nacrée"
+      Dalle_nacree,
+      !!@ ili2db.dispName = "Delémontien (Delsberger Kalke)"
+      Delemontien_Delsberger_Kalke,
+      !!@ ili2db.dispName = "Deltaablagerungen und Dünen"
+      Deltaablagerungen_und_Duenen,
+      !!@ ili2db.dispName = "Effinger-Schichten"
+      Effinger_Schichten,
+      !!@ ili2db.dispName = "Elsässer Molasse"
+      Elsaesser_Molasse,
+      Esitherienschiefer,
+      !!@ ili2db.dispName = "Ferrugineus-Oolith"
+      Ferrugineus_Oolith,
+      Fischschiefer,
+      Foraminiferenmergel,
+      Gansinger_Dolomit,
+      !!@ ili2db.dispName = "Gehängelehm"
+      Gehaengelehm,
+      !!@ ili2db.dispName = "Gehängeschutt"
+      Gehaengeschutt,
+      !!@ ili2db.dispName = "Geissberg-Schichten"
+      Geissberg_Schichten,
+      Gipskeuper,
+      Grenzdolomit,
+      !!@ ili2db.dispName = "Günsberg-Schichten"
+      Guensberg_Schichten,
+      !!@ ili2db.dispName = "Hauptmumienbank / Steinebach-Schichten"
+      Hauptmumienbank_Steinebach_Schichten,
+      !!@ ili2db.dispName = "'Helvetien' undifferenziert"
+      Helvetien_undifferenziert,
+      !!@ ili2db.dispName = "Hochterrassenschotter (Grösste Vergletscherung)"
+      Hochterrassenschotter_Groesste_Vergletscherung,
+      !!@ ili2db.dispName = "Höhenschotter"
+      Hoehenschotter,
+      !!@ ili2db.dispName = "Holzflue-Schichten"
+      Holzflue_Schichten,
+      Homomyenmergel,
+      !!@ ili2db.dispName = "Humeralis-Kalk"
+      Humeralis_Kalk,
+      !!@ ili2db.dispName = "Humphriesi-Schichten"
+      Humphriesi_Schichten,
+      !!@ ili2db.dispName = "Jüngere (tiefere) Deckenschotter"
+      Juengere_tiefere_Deckenschotter,
+      !!@ ili2db.dispName = "Junge Alluvionen"
+      Junge_Alluvionen,
+      Juranagelfluh,
+      !!@ ili2db.dispName = "Kalkbänke in den Effinger-Schichten"
+      Kalkbaenke_in_den_Effinger_Schichten,
+      !!@ ili2db.dispName = "Kalksandstein-Serie (-Aquitanien-)"
+      Kalksandstein_Serie_Aquitanien,
+      Kalktuff,
+      !!@ ili2db.dispName = "Kimmeridge-Kalke"
+      Kimmeridge_Kalke,
+      !!@ ili2db.dispName = "Laufen-Schichten"
+      Laufen_Schichten,
+      !!@ ili2db.dispName = "Letzi-Schichten"
+      Letzi_Schichten,
+      !!@ ili2db.dispName = "Lias undifferenziert"
+      Lias_undifferenziert,
+      !!@ ili2db.dispName = "Liesberg-Schichten"
+      Liesberg_Schichten,
+      !!@ ili2db.dispName = "Löss"
+      Loess,
+      !!@ ili2db.dispName = "Macrocephalus-Schichten"
+      Macrocephalus_Schichten,
+      Meeressand,
+      !!@ ili2db.dispName = "Meletta-Schichten (Septarienton)"
+      Meletta_Schichten_Septarienton,
+      !!@ ili2db.dispName = "Mergelband in den Günsberg-Schichten"
+      Mergelband_in_den_Guensbergschichten,
+      !!@ ili2db.dispName = "Moräne (Grösste Vergletscherung)"
+      Moraene_Groesste_Vergletscherung,
+      !!@ ili2db.dispName = "Moräne (Grosse Vergletscherung I/II)"
+      Moraene_Grosse_Vergletscherung_I_II,
+      !!@ ili2db.dispName = "Moräne Riss auct. undifferenziert"
+      Moraene_Riss_auct_undifferenziert,
+      !!@ ili2db.dispName = "Moräne undifferenziert"
+      Moraene_undifferenziert,
+      !!@ ili2db.dispName = "Moräne verschwemmt"
+      Moraene_verschwemmt,
+      !!@ ili2db.dispName = "Moräne Würm undifferenziert"
+      Moraene_Wuerm_undifferenziert,
+      !!@ ili2db.dispName = "Moränenwall, Drumlin"
+      Moraenenwall_Drumlin,
+      !!@ ili2db.dispName = "Moränenwall, Drumlin (Grösste Vergletscherung)"
+      Moraenenwall_Drumlin_Groesste_Vergletscherung,
+      !!@ ili2db.dispName = "Moränenwall, Drumlin (Grosse Vergletscherung I/II)"
+      Moraenenwall_Drumlin_Grosse_Vergletscherung_I_II,
+      !!@ ili2db.dispName = "Murchisonae-Schichten"
+      Murchisonae_Schichten,
+      !!@ ili2db.dispName = "Natica-Schichten"
+      Natica_Schichten,
+      Niederterrassenschotter,
+      !!@ ili2db.dispName = "Obere Bunte Mergel"
+      Obere_Bunte_Mergel,
+      !!@ ili2db.dispName = "Obere Bunte Molasse ('Aquitanien')"
+      Obere_Bunte_Molasse_Aquitanien,
+      !!@ ili2db.dispName = "Obere Meeresmolasse undifferenziert"
+      Obere_Meeresmolasse_undifferenziert,
+      !!@ ili2db.dispName = "Obere Süsswassermolasse undifferenziert"
+      Obere_Suesswassermolasse_undifferenziert,
+      !!@ ili2db.dispName = "Obere Sulfatzone"
+      Obere_Sulfatzone,
+      !!@ ili2db.dispName = "Oberer Hauptrogenstein"
+      Oberer_Hauptrogenstein,
+      !!@ ili2db.dispName = "Oberer Trochitenkalk"
+      Oberer_Trochitenkalk,
+      !!@ ili2db.dispName = "Oligozän-Miozän undifferenziert"
+      Oligozaen_Miozaen_undifferenziert,
+      !!@ ili2db.dispName = "Olten-Schichten (Oltener Korallenkalk)"
+      Olten_Schichten_Oltener_Korallenkalk,
+      !!@ ili2db.dispName = "Opalinus-Ton"
+      Opalinus_Ton,
+      !!@ ili2db.dispName = "Orbicularis-Mergel"
+      Orbicularis_Mergel,
+      !!@ ili2db.dispName = "Periglazialer Verwitterungsschutt"
+      Periglazialer_Verwitterungsschutt,
+      !!@ ili2db.dispName = "Pichoux-Kalke"
+      Pichoux_Kalke,
+      !!@ ili2db.dispName = "Plateauschotter, Rinnenschotte"
+      Plateauschotter_Rinnenschotter,
+      Plattenkalk,
+      !!@ ili2db.dispName = "Polygene Nagelfluh ('Helvetien')"
+      Polygene_Nagelfluh_Helvetien,
+      !!@ ili2db.dispName = "Postglazial undifferenziert"
+      Postglazial_undifferenziert,
+      !!@ ili2db.dispName = "Postglaziale Schotter"
+      Postglaziale_Schotter,
+      !!@ ili2db.dispName = "Randglaziale Schotter (Grosse Vergletscherung I/II)"
+      Randglaziale_Schotter_Grosse_Vergletscherung_I_II,
+      !!@ ili2db.dispName = "Randglaziale Schotter i.A."
+      Randglaziale_Schotter_i_A,
+      !!@ ili2db.dispName = "Randglaziale Schotter und Sander des Solothurner Stadiums"
+      Randglaziale_Schotter_und_Sander_des_Solothurner_Stadiums,
+      !!@ ili2db.dispName = "Rauracien-Korallenkalke"
+      Rauracien_Korallenkalke,
+      !!@ ili2db.dispName = "Renggeri-Tone (Oxford-Tone)"
+      Renggeri_Tone_Oxford_Tone,
+      !!@ ili2db.dispName = "Rhät-Sandstein"
+      Rhaet_Sandstein,
+      !!@ ili2db.dispName = "Rückzugsschotter des Wangener Stadiums"
+      Rueckzugsschotter_des_Wangener_Stadiums,
+      !!@ ili2db.dispName = "Rückzugsschotter (Grosse Vergletscherung I/II)"
+      Rueckzugsschotter_Grosse_Vergletscherung_I_II,
+      !!@ ili2db.dispName = "Rückzugsschotter undifferenziert"
+      Rueckzugsschotter_undifferenziert,
+      Rutschungen,
+      Salzschichten,
+      !!@ ili2db.dispName = "Sauzei-Schichten"
+      Sauzei_Schichten,
+      Schilfsandstein,
+      !!@ ili2db.dispName = "Schotter Riss auct. undifferenziert"
+      Schotter_Riss_auct_undifferenziert,
+      !!@ ili2db.dispName = "Schotter undifferenziert"
+      Schotter_undifferenziert,
+      !!@ ili2db.dispName = "Schotter Würm undifferenziert"
+      Schotter_Wuerm_undifferenziert,
+      Schwemmkegel,
+      Schwemmlehm,
+      !!@ ili2db.dispName = "See- und Flussablagerungen"
+      See_und_Flussablagerungen,
+      Seeablagerungen,
+      !!@ ili2db.dispName = "Seelandschotter (Ältere)"
+      Seelandschotter_aeltere,
+      !!@ ili2db.dispName = "Sowerbyi-Schichten"
+      Sowerbyi_Schichten,
+      !!@ ili2db.dispName = "Spät- bis postglaziale Schotter"
+      Spaet_bis_postglaziale_Schotter,
+      !!@ ili2db.dispName = "Spätglaziale Seeablagerungen"
+      Spaetglaziale_Seeablagerungen,
+      !!@ ili2db.dispName = "Stauschotter des Solothurner Stadiums"
+      Stauschotter_des_Solothurner_Stadiums,
+      !!@ ili2db.dispName = "Süsswasserkalke"
+      Suesswasserkalke,
+      !!@ ili2db.dispName = "Süsswassermergel"
+      Suesswassermergel,
+      !!@ ili2db.dispName = "Terrain à chailles"
+      Terrain_a_chailles,
+      Torf,
+      !!@ ili2db.dispName = "Trigonodus-Dolomit"
+      Trigonodus_Dolomit,
+      !!@ ili2db.dispName = "Twannbach-Formation undifferenziert"
+      Twannbach_Formation_undifferenziert,
+      !!@ ili2db.dispName = "Untere Bunte Mergel"
+      Untere_Bunte_Mergel,
+      !!@ ili2db.dispName = "Untere Bunte Molasse ('Chattien')"
+      Untere_Bunte_Molasse_Chattien,
+      !!@ ili2db.dispName = "Untere Raurachische Molasse undifferenziert"
+      Untere_Raurachische_Molasse_undifferenziert,
+      !!@ ili2db.dispName = "Untere Süsswassermolasse undifferenziert"
+      Untere_Suesswassermolasse_undifferenziert,
+      !!@ ili2db.dispName = "Untere Sulfatzone"
+      Untere_Sulfatzone,
+      Unterer_Hauptrogenstein,
+      !!@ ili2db.dispName = "Unterer Trochitenkalk"
+      Unterer_Trochitenkalk,
+      !!@ ili2db.dispName = "Varians-Schichten"
+      Varians_Schichten,
+      !!@ ili2db.dispName = "Vellerat und Courgenay-Formation undifferenziert"
+      Vellerat_und_Courgenay_Formation_undifferenziert,
+      !!@ ili2db.dispName = "Verena-Schichten"
+      Verena_Schichten,
+      !!@ ili2db.dispName = "Verlandungsbildungen undifferenziert"
+      Verlandungsbildungen_undifferenziert,
+      !!@ ili2db.dispName = "Verwitterungsschicht über dem 'Aquitanien'"
+      Verwitterungsschicht_ueber_dem_Aquitanien,
+      !!@ ili2db.dispName = "Verwitterungsschicht über dem 'Burdigalien'"
+      Verwitterungsschicht_ueber_dem_Burdigalien,
+      Vogesenschotter,
+      !!@ ili2db.dispName = "Vorstossschotter (Grosse Vergletscherung I/II)"
+      Vorstossschotter_Grosse_Vergletscherung_I_II,
+      !!@ ili2db.dispName = "Vorstossschotter i. A."
+      Vorstossschotter_i_A,
+      !!@ ili2db.dispName = "Wangener-Schichten"
+      Wangener_Schichten,
+      Wellendolomit,
+      Wellenmergel,
+      !!@ ili2db.dispName = "Wettinger-Schichten / Äquivalent Badener Schichten"
+      Wettinger_Schichten_Aequivalent_Badener_Schichten,
+      !!@ ili2db.dispName = "Wynauer Süsswasserkalk"
+      Wynauer_Suesswasserkalk
+    );
+
+    /** Geologische Serie
+     */
+    geologische_Serie = (
+      Dogger,
+      Lias,
+      Malm,
+      !!@ ili2db.dispName = "Eozän"
+      Eozaen,
+      !!@ ili2db.dispName = "Miozän"
+      Miozaen,
+      !!@ ili2db.dispName = "Oligozän"
+      Oligozaen,
+      Bundsandstein,
+      Keuper,
+      Muschelkalk,
+      !!@ ili2db.dispName = "Holozän"
+      Holozaen,
+      !!@ ili2db.dispName = "Pleistozän"
+      Pleistozaen
+    );
+
+    /** Geologisches System
+     */
+    geologisches_System = (
+      !!@ ili2db.dispName = "Tertiär"
+      Tertiaer,
+      !!@ ili2db.dispName = "Quartär"
+      Quartaer,
+      Trias,
+      Jura
+    );
+
+    Grundwasserfuehrung_Maechtigkeit = (
+      !!@ ili2db.dispName = "-"
+      unbekannt,
+      !!@ ili2db.dispName = "ungesättigt"
+      ungesaettigt,
+      !!@ ili2db.dispName = "gesättigt, < 2 m"
+      gesaettigt_kleiner_2m,
+      !!@ ili2db.dispName = "gesättigt, 2 - 5 m"
+      gesaettigt_2_bis_5m,
+      !!@ ili2db.dispName = "gesättigt, 5 - 10 m"
+      gesaettigt_5_bis_10m,
+      !!@ ili2db.dispName = "gesättigt, 10 - 20 m"
+      gesaettigt_10_bis_20m,
+      !!@ ili2db.dispName = "gesättigt, 20 - 30 m"
+      gesaettigt_20_bis_30m,
+      !!@ ili2db.dispName = "gesättigt, 30 - 40 m"
+      gesaettigt_30_bis_40m,
+      !!@ ili2db.dispName = "gesättigt, > 40 m"
+      gesaettigt_groesser_40m,
+      !!@ ili2db.dispName = "gesättigt, Mächtigkeit undifferenziert"
+      gesaettigt_Maechtigkeit_undifferenziert
+    );
+
+    Kohaesion = (
+      !!@ ili2db.dispName = "0 - 5"
+      kleiner_5,
+      !!@ ili2db.dispName = "5 - 10"
+      zwischen_5_und_10,
+      !!@ ili2db.dispName = "10 - 15"
+      zwischen_10_und_15,
+      !!@ ili2db.dispName = "15 - 20"
+      zwischen_15_und_20,
+      !!@ ili2db.dispName = "> 20"
+      groesser_20,
+      unbekannt
+    );
+
+    Lithologie = (
+      !!@ ili2db.dispName = "-"
+      unbekannt,
+      Konglomerat,
+      Sandstein,
+      !!@ ili2db.dispName = "Mergeliger Sandstein"
+      Mergeliger_Sandstein,
+      Muschelsandstein,
+      Tonstein,
+      Siltstein,
+      Mergel,
+      Kalk,
+      Mergelkalk,
+      Dolomit,
+      Gips,
+      Anhydrit,
+      Brekzie,
+      !!@ ili2db.dispName = "Boluston / Huppererde"
+      Boluston_Huppererde,
+      !!@ ili2db.dispName = "Süsswasserkalk"
+      Suesswasserkalk,
+      kiesig,
+      sandig,
+      siltig,
+      tonig,
+      lehmreich,
+      !!@ ili2db.dispName = "mit org. Material"
+      mit_org_Material,
+      torfig,
+      variabel,
+      undifferenziert
+    );
+
+    Material = (
+      !!@ ili2db.dispName = "0 - 0.5 m"
+      zwischen_0_und_0_5m,
+      !!@ ili2db.dispName = "0.5 - 2 m"
+      zwischen_0_5_und_2m,
+      !!@ ili2db.dispName = "2 - 5 m"
+      zwischen_2_und_5m,
+      !!@ ili2db.dispName = "5 - 10 m"
+      zwischen_5_und_10m,
+      !!@ ili2db.dispName = "10 - 20 m"
+      zwischen_10_und_20m,
+      !!@ ili2db.dispName = "> 20 m"
+      groesser_20m,
+      unbekannt
+    );
+
+    Reibungswinkel = (
+      !!@ ili2db.dispName = "< 25°"
+      kleiner_25,
+      !!@ ili2db.dispName = "25 - 30°"
+      zwischen_25_und_30,
+      !!@ ili2db.dispName = "30 - 35°"
+      zwischen_30_und_35,
+      !!@ ili2db.dispName = "> 35°"
+      groesser_35,
+      unbekannt
+    );
+
+    Wasserdurchlaessigkeit = (
+      !!@ ili2db.dispName = "sehr klein (< 1x10-5 m/s)"
+      sehr_klein,
+      !!@ ili2db.dispName = "klein und einheitlich (1x10-5 bis 2x10-4 m/s)"
+      klein_und_einheitlich,
+      !!@ ili2db.dispName = "klein und uneinheitlich (1x10-5 bis 2x10-4 m/s)"
+      klein_und_uneinheitlich,
+      !!@ ili2db.dispName = "mittel und einheitlich (2x10-4 bis 2x10-3 m/s)"
+      mittel_und_einheitlich,
+      !!@ ili2db.dispName = "mittel und uneinheitlich (2x10-4 bis 2x10-3 m/s)"
+      mittel_und_uneinheitlich,
+      !!@ ili2db.dispName = "gross und einheitlich (> 2x10-3 m/s)"
+      gross_und_einheitlich,
+      !!@ ili2db.dispName = "gross und uneinheitlich (> 2x10-3 m/s)"
+      gross_und_uneinheitlich,
+      !!@ ili2db.dispName = "gross, Karst"
+      gross_Karst,
+      undifferenziert
+    );
+
+    Grundwassertyp = (
+      !!@ ili2db.dispName = "-"
+      unbekannt,
+      ungespannt,
+      gespannt,
+      artesisch,
+      !!@ ili2db.dispName = "ungespannt in tieferer Lage"
+      ungespannt_in_tieferer_Lage,
+      !!@ ili2db.dispName = "gespannt in tieferer Lage"
+      gespannt_in_tieferer_Lage,
+      !!@ ili2db.dispName = "artesisch in tieferer Lage"
+      artesisch_in_tieferer_Lage
+    );
+
+  TOPIC Geologie =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Abrisskanten, Flussrinnen, Nackentäler, Terrassenränder
+     */
+    CLASS Abrisskanten =
+      /** Geometrie der Abrisskanten, Flussrinnen, Nackentäler und Terrassenränder
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Art der Struktur
+       */
+      Typ : MANDATORY (
+        Abrisskante,
+        Nackental,
+        Abflussrinne,
+        Terrassenrand
+      );
+    END Abrisskanten;
+
+    /** Abstrakte Klasse Geologische_Schicht
+     */
+    CLASS Geologische_Schicht (ABSTRACT) =
+      /** Geologisches System (von ...)
+       */
+      System1 : MANDATORY SO_AFU_Geologie_20200831.geologisches_System;
+      /** Geologisches System (bis ...)
+       */
+      System2 : MANDATORY SO_AFU_Geologie_20200831.geologisches_System;
+      /** Geologische Serie (von...)
+       */
+      Serie1 : MANDATORY SO_AFU_Geologie_20200831.geologische_Serie;
+      /** Geologische Serie (bis...)
+       */
+      Serie2 : MANDATORY SO_AFU_Geologie_20200831.geologische_Serie;
+      /** Geologische Formation (von...)
+       */
+      Formation1 : MANDATORY SO_AFU_Geologie_20200831.geologische_Formation;
+      /** Geologische Formation (bis...)
+       */
+      Formation2 : MANDATORY SO_AFU_Geologie_20200831.geologische_Formation;
+      /** Geologische Schichtgliederung (von... bis...)
+       */
+      Schichtgliederung : MANDATORY SO_AFU_Geologie_20200831.geologische_Schichtgliederung;
+      /** Ausbildung des Festgesteins
+       */
+      Ausbildung_Festgestein : SO_AFU_Geologie_20200831.Ausbildung_Festgestein;
+      /** Lithologie des Festgesteins
+       */
+      Lithologie_Festgestein : SO_AFU_Geologie_20200831.Lithologie;
+      /** Sackung etc. des Festgesteins
+       */
+      Sackung_Festgestein : (
+        anstehend,
+        verrutscht,
+        versackt
+      );
+      /** Ausbildung des Lockergesteins
+       */
+      Ausbildung_Lockergestein : SO_AFU_Geologie_20200831.Ausbildung_Lockergestein;
+      /** Lithologie des Lockergesteins
+       */
+      Lithologie_Lockergestein : SO_AFU_Geologie_20200831.Lithologie;
+      /** Lithologie des Lockergesteins
+       */
+      Lithologie1 : SO_AFU_Geologie_20200831.Lithologie;
+      /** Lithologie des Lockergesteins
+       */
+      Lithologie2 : SO_AFU_Geologie_20200831.Lithologie;
+      /** Verkittungsgrad des Lockergesteins
+       */
+      Verkittungsgrad_Lockergestein : (
+        verkittet,
+        !!@ ili2db.dispName = "z.T. verkittet"
+        zT_verkittet,
+        !!@ ili2db.dispName = "nicht verkittet"
+        nicht_verkittet
+      );
+      /** Wasserdurchlässigkeit
+       */
+      Wasserdurchlaessigkeit : MANDATORY SO_AFU_Geologie_20200831.Wasserdurchlaessigkeit;
+      /** Art des Grundwassers
+       */
+      Grundwasser_Art : MANDATORY (
+        Kluft,
+        Karst,
+        Gipskarst,
+        Poren,
+        !!@ ili2db.dispName = "?"
+        unbekannt
+      );
+      /** Grundwasserführung und Mächtigkeit
+       */
+      Grundwasserfuehrung_Maechtigkeit : SO_AFU_Geologie_20200831.Grundwasserfuehrung_Maechtigkeit;
+      /** Druck- und Lageverhältnisse des Grundwassers
+       */
+      Grundwassertyp : SO_AFU_Geologie_20200831.Grundwassertyp;
+      /** Reibungswinkel des Lockergesteins bzw. Verwitterungsprodukte
+       */
+      Reibungswinkel_Lockergestein : MANDATORY SO_AFU_Geologie_20200831.Reibungswinkel;
+      /** Kohäsion [kN/m2] des Lockergestein bzw. Verwitterungsproduktes
+       */
+      Kohaesion_Lockergestein : MANDATORY SO_AFU_Geologie_20200831.Kohaesion;
+      /** Reibungswinkel des unverwitterten Festgesteins
+       */
+      Reibungswinkel_Festgestein : SO_AFU_Geologie_20200831.Reibungswinkel;
+      /** Kohäsion [kN/m2] des unverwitterten Festgesteins
+       */
+      Kohaesion_Festgestein : SO_AFU_Geologie_20200831.Kohaesion;
+      /** Mächtigkeit des beschriebenen Materials
+       */
+      Maechtigkeit_Material : MANDATORY SO_AFU_Geologie_20200831.Material;
+      /** Fehlendes (nicht beschriebenes) Material bis zum nächsten Layer
+       */
+      Fehlendes_Material_bis_naechster_Layer : SO_AFU_Geologie_20200831.Material;
+      /** Geometrie der geologischen Schicht
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Geologische_Schicht;
+
+    /** Aufnahme der Dolinen und Höhlen
+     */
+    CLASS Karstformen =
+      /** Punktgeometrie der Karstform
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Art der Struktur
+       */
+      Typ : MANDATORY (
+        !!@ ili2db.dispName = "Karstphänomen, undifferenziert"
+        Karstphaenomen_undifferenziert,
+        !!@ ili2db.dispName = "Höhle"
+        Hoehle,
+        Doline,
+        !!@ ili2db.dispName = "Höhle, aktiv"
+        Hoehle_aktiv
+      );
+    END Karstformen;
+
+    /** Punktbezogene, aber für ihre Umgebung repräsentative Messungen des Einfallens geologischer Schichten, angegeben mit den Werten für Richtung (Azimut) und Betrag des Einfallens
+     */
+    CLASS Schichtfallen =
+      /** Punktgeometrie der Schichtfallen
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Kennzeichnung der Sonderfälle der horizontalen, vertikalen und überkippten Schichtlagerung
+       */
+      Typ : MANDATORY (
+        !!@ ili2db.dispName = "vertikal - Schichtneigung 90°"
+        vertikal_Schichtneigung_90,
+        !!@ ili2db.dispName = "horizontal - Orientierung des Einfallens nicht messbar"
+        horizontal_Orientierung_Einfall_nicht_messbar,
+        !!@ ili2db.dispName = "überkippt - Schichten steiler als 90° aufgerichtet"
+        ueberkippt_Schichten_steiler_90_aufgerichtet,
+        !!@ ili2db.dispName = "geneigt - Schichtneigung 1-89°"
+        geneigt_Schichtneigung_1_89
+      );
+      /** Orientierung des Einfallens. Wertebereich 0-360°:
+       * 90° = Ost,
+       * 180° = Süd
+       * 270° = West
+       */
+      Orientierung_Einfall : MANDATORY 0 .. 360;
+      /** Winkelbetrag des Einfallens; Wertebereich 0-90°; die grafische Darstellung des Fallbetrages ist nicht implementiert.
+       */
+      Winkelbetrag_Einfall : MANDATORY 0 .. 90;
+    END Schichtfallen;
+
+    /** Beobachtete und vermutete tektonische Strukturen: Verwerfungen, Überschiebungen, Synklinal- und Antiklinalachsen
+     */
+    CLASS Tektonische_Strukturen =
+      /** Geometrie der tektonischen Struktur
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Art der tektonischen Struktur
+       */
+      Typ : (
+        Antiklinalachse,
+        Synklinalachse,
+        !!@ ili2db.dispName = "Überschiebung"
+        Ueberschiebung,
+        !!@ ili2db.dispName = "Überschiebung, vermutet"
+        Ueberschiebung_vermutet,
+        !!@ ili2db.dispName = "rheintalische Verwerfung"
+        rheintalische_Verwerfung,
+        !!@ ili2db.dispName = "rheintalische Verwerfung, vermutet"
+        rheintalische_Verwerfung_vermutet,
+        Verwerfung,
+        !!@ ili2db.dispName = "Verwerfung, vermutet"
+        Verwerfung_vermutet
+      );
+    END Tektonische_Strukturen;
+
+    /** Flächendeckende Aufnahme der abgedeckten Schichten aus dem Trias, dem Jura und dem Tertiär. Geologischer, hydrogeologischer und geotechnischer Datensatz.
+     */
+    CLASS Grundschicht
+    EXTENDS Geologische_Schicht =
+      /** Maximalwinkel
+       */
+      Maximalwinkel : MANDATORY 0 .. 360;
+      /** Mittlerer Winkel
+       */
+      Mittlerer_Winkel : MANDATORY 0 .. 360;
+      /** Minimalwinkel
+       */
+      Minimalwinkel : MANDATORY 0 .. 360;
+    END Grundschicht;
+
+    /** Aufnahme der obersten Lage des Holozäns von mindestens 0.5 m Mächtigkeit. Geologischer, hydrogeologischer und geotechnischer Datensatz.
+     */
+    CLASS Holozaen
+    EXTENDS Geologische_Schicht =
+    END Holozaen;
+
+    /** Aufnahme der obersten Lage des Pleistozäns von mindestens 0.5 m Mächtigkeit. Geologischer, hydrogeologischer und geotechnischer Datensatz.
+     */
+    CLASS Pleistozaen
+    EXTENDS Geologische_Schicht =
+    END Pleistozaen;
+
+  END Geologie;
+
+END SO_AFU_Geologie_20200831.
