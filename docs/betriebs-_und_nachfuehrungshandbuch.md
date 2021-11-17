@@ -79,5 +79,5 @@ Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Mod
 ### Konsolenoutput in Datei umleiten
 
 ```
-java -jar /Users/stefan/apps/ili2c-5.1.1/ili2c.jar --check-repo-ilis http://localhost:8080 --ilidirs "%ILI_DIR;http://models.interlis.ch/;%JAR_DIR" >> results.log 2>&1
+java -jar /Users/stefan/apps/ili2c-5.2.3/ili2c.jar --trace --check-repo-ilis http://localhost:8080 --ilidirs "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;http://localhost:8080" >> results.log 2>&1
 ```
