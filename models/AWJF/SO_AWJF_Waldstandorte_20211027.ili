@@ -1,0 +1,143 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2021-10-27 | ps  | Ersterfassung
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AWJF_Waldstandorte_20211027 (de)
+AT "http://geo.so.ch/models/AWJF/"
+VERSION "2021-10-27"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  TOPIC Waldstandorte =
+
+    /** Darstellung der potentiellen natürlichen Waldvegetation über das gesamte Waldgebiet des Kantons Solothurn (dargestellt in Form der potentiellen natürlichen Schlusswaldstandorte). Die Waldstandorte sind charakterisiert durch bestimmte Kombinationen von "Zeigerpflanzengruppen" und sind so ein ganzheitlicher Ausdruck der jeweiligen Standortseigenschaften.
+     */
+    CLASS Waldstandort =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Fläche des Waldstandorts
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Area : MANDATORY 0.00 .. 10000000.00 [Units.m2];
+      /** Massstab
+       * 1 = < 1: 2'500
+       * 2 = 1: 2'500
+       * 3 = 1: 5'000
+       * 4 = 1: 10'000
+       * 5 = 1: 25'000
+       * 6 = 1: 50'000
+       */
+      Massstab : MANDATORY 0 .. 6;
+      Autor : (
+        !!@ ili2db.dispName = "A"
+        EnumElement90,
+        !!@ ili2db.dispName = "B"
+        Kaufmann,
+        !!@ ili2db.dispName = "C"
+        Froehlicher,
+        !!@ ili2db.dispName = "D"
+        Borer,
+        !!@ ili2db.dispName = "W"
+        Waldmaske
+      );
+      /** Kartierung:
+       * Letzte beiden Ziffern des Kartierungsjahres (z.B. 80 = 1980)
+       * Waldmaske 1:25'000 = 98
+       */
+      Kartierung : MANDATORY 0 .. 98;
+      /** Standorteinheiten aus Kartierung (Alte Gesellschaftsbezeichnung und Übernahme von den Grundlagenkarten)
+       * Anpassungen:
+       * * = +
+       * [ ] = ()
+       * Spezialfälle:
+       * 98 = keine Attributierung vorhanden
+       * 99 = nicht bestockte Fläche
+       * 101 = Rutsche
+       */
+      Standorteinheit_Kartierung : TEXT*20;
+      /** Korrigierte Standorteinheiten (Burnand 1997)
+       */
+      Standorteinheit_korrigiert : TEXT*20;
+      /** Bereinigte Standorteinheiten (Kaufmann 2015)
+       */
+      Standorteinheit_bereinigt : TEXT*20;
+      /** Standorteinheit Schweiz
+       */
+      Standorteinheit_NaiS : TEXT*20;
+      Bezirk : (
+        /** 0
+         */
+        !!@ ili2db.dispName = "0"
+        nicht_zugeordnet,
+        /** 1
+         */
+        !!@ ili2db.dispName = "Gäu"
+        Gaeu,
+        /** 2
+         */
+        !!@ ili2db.dispName = "2"
+        Thal,
+        /** 3
+         */
+        !!@ ili2db.dispName = "3"
+        Bucheggberg,
+        /** 4
+         */
+        !!@ ili2db.dispName = "4"
+        Dorneck,
+        /** 5
+         */
+        !!@ ili2db.dispName = "Gösgen"
+        Goesgen,
+        /** 6
+         */
+        Wasseramt,
+        /** 7
+         */
+        Lebern,
+        /** 8
+         */
+        Olten,
+        /** 9
+         */
+        Solothurn,
+        /** 10
+         */
+        Thierstein
+      );
+      /** Standort im Wald: ja/nein
+       */
+      Wald : (
+        !!@ ili2db.dispName = "1"
+        Ja,
+        !!@ ili2db.dispName = "0"
+        Nein
+      );
+      /** Standorteinheit nach E+K, erweitert
+       */
+      Grundeinheit : TEXT*10;
+      /** Name der Stanorteinheit
+       */
+      Legende : TEXT*200;
+      /** CMYK-Farbcode
+       */
+      Farbcode : TEXT*20;
+      /** Waldverbände und Unterverbände
+       */
+      Verband : TEXT*100;
+      /** Ertragsklasse nach Wuchskraft
+       */
+      Ertragsklasse : MANDATORY 0 .. 6;
+      /** Jährlicher Zuwachs pro Hektare
+       */
+      Zuwachs : MANDATORY 0 .. 13;
+      /** Minimaler Laubholz-Anteil
+       */
+      Minimaler_Laubholzanteil : MANDATORY 0 .. 1;
+    END Waldstandort;
+
+  END Waldstandorte;
+
+END SO_AWJF_Waldstandorte_20211027.
