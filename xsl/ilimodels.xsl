@@ -51,13 +51,21 @@
 
             <details>
                 <summary>
-                    <xsl:value-of select="ili:Name"/>
+                    <span><xsl:value-of select="ili:Name"/></span>
                     &#160;
-                    <a>
-                        <xsl:attribute name='class'>black-link</xsl:attribute>
-                        <xsl:attribute name='href' select="ili:File"/>
-                        <i style="vertical-align: -5px;" class="material-icons">launch</i>
-                    </a>
+                    <span>
+                        <i>
+                            <xsl:attribute name='class'>material-icons</xsl:attribute>
+                            <xsl:attribute name='style'>vertical-align: -5px;</xsl:attribute>
+                            <a>
+                                <xsl:attribute name='class'>icon-link</xsl:attribute>
+                                <xsl:attribute name='href' select="ili:File" />
+                                launch
+                            </a>
+                        </i>
+
+
+                    </span>
 
                 </summary>
                 <p>
