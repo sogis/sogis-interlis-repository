@@ -28,7 +28,8 @@
                     <i style="line-height:40px; vertical-align:middle;" class="material-icons md-18">home</i>
                     <ul class="breadcrumb">
                         <li><a href="https://agi.so.ch">Home</a></li>
-                        <li class="active">Datenmodelle</li>
+                        <li><a href=".">Modellablage</a></li>
+                        <li class="active">ilimodels.xml</li>
                     </ul>
                 </div>
 
@@ -75,6 +76,10 @@
                                 <xsl:attribute name="href">
                                     <xsl:value-of select="ili:File"/>
                                 </xsl:attribute>
+                                <xsl:attribute name="target">
+                                    <xsl:text>_blank</xsl:text>
+                                </xsl:attribute>
+
                                 launch
                             </xsl:element>
                         </i>
