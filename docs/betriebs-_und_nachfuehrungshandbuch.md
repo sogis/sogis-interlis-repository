@@ -71,7 +71,7 @@ Es ist auch das erste Modell, das von einem anderen Modell (`OeREBKRMvs_V1_1_Val
 Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installiert sein):
 
 ```
-./gradlew createIliModelsXml validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer
+./gradlew createIliModelsXml addXslDeclaration validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer
 ```
 
 Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten. Um ungewünschte Nebeneffekte auszuschliessen, ist das `.ilicache`-Verzeichnis im Home-Verzeichnis zu löschen.

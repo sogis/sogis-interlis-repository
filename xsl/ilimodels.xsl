@@ -54,15 +54,31 @@
                     <span><xsl:value-of select="ili:Name"/></span>
                     &#160;
                     <span>
+                        <!--
                         <i>
                             <xsl:attribute name='class'>material-icons</xsl:attribute>
                             <xsl:attribute name='style'>vertical-align: -5px;</xsl:attribute>
                             <a>
                                 <xsl:attribute name='class'>icon-link</xsl:attribute>
-                                <xsl:attribute name='href' select="ili:File" />
+                                <xsl:attribute name='href' select="concat('./', ili:File)" />
                                 launch
                             </a>
                         </i>
+                        -->
+                        <i>
+                            <xsl:attribute name='class'>material-icons</xsl:attribute>
+                            <xsl:attribute name='style'>vertical-align: -5px;</xsl:attribute>
+                            <xsl:element name="a">
+                                <xsl:attribute name="class">
+                                    <xsl:text>icon-link</xsl:text>
+                                </xsl:attribute>
+                                <xsl:attribute name="href">
+                                    <xsl:value-of select="ili:File"/>
+                                </xsl:attribute>
+                                launch
+                            </xsl:element>
+                        </i>
+
 
 
                     </span>
@@ -104,21 +120,29 @@
                                 <tr>
                                     <td>Fachamt:</td>
                                     <td>
-                                        <a>
-                                            <xsl:attribute name='class'>default-link</xsl:attribute>
-                                            <xsl:attribute name='href' select="ili:Issuer"/>
+                                        <xsl:element name="a">
+                                            <xsl:attribute name="class">
+                                                <xsl:text>default-link</xsl:text>
+                                            </xsl:attribute>
+                                            <xsl:attribute name="href">
+                                                <xsl:value-of select="ili:Issuer"/>
+                                            </xsl:attribute>
                                             <xsl:value-of select="ili:Issuer"/>
-                                        </a>
+                                        </xsl:element>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Technischer Kontakt:</td>
                                     <td>
-                                        <a>
-                                            <xsl:attribute name='class'>default-link</xsl:attribute>
-                                            <xsl:attribute name='href' select="ili:technicalContact"/>
+                                        <xsl:element name="a">
+                                            <xsl:attribute name="class">
+                                                <xsl:text>default-link</xsl:text>
+                                            </xsl:attribute>
+                                            <xsl:attribute name="href">
+                                                <xsl:value-of select="ili:technicalContact"/>
+                                            </xsl:attribute>
                                             <xsl:value-of select="ili:technicalContact"/>
-                                        </a>
+                                        </xsl:element>
                                     </td>
                                 </tr>
                             </tbody>

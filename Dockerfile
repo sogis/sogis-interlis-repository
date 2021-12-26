@@ -29,4 +29,9 @@ COPY ilimodels.xml /opt/repository/
 
 COPY version.txt /opt/repository/
 
+COPY xsl/ilimodels.xsl /opt/repository
+COPY xsl/ilimodels.css /opt/repository
+COPY xsl/fonts.css /opt/repository
+COPY xsl/Logo.png /opt/repository
+
 USER 11200
