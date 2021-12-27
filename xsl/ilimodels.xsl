@@ -37,9 +37,36 @@
                     Datenmodelle Kanton Solothurn
                 </div>
 
+                <div>
+                    <input type="text" id="myInput" onkeyup="filterFnc()" placeholder="Search for models..." />
+                </div>
+
                 <xsl:apply-templates select="ili:TRANSFER/ili:DATASECTION/ili:IliRepository09.RepositoryIndex" />
 
             </div>
+
+            <script>
+            <![CDATA[
+            function filterFnc() {
+                var input, filter, details, summary, i, txtValue;
+                input = document.getElementById("myInput");
+                filter = input.value.toUpperCase();
+                details = document.getElementsByTagName("details");
+                for (i=0; i<details.length; i++) {
+                    summary = details[i].getElementsByTagName("summary")[0];
+                    if (summary) {
+                        txtValue = summary.textContent || summary.innerText
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            details[i].style.display = "";
+                        } else {
+                            details[i].style.display = "none";
+                        }
+                    }
+                } 
+            }
+            ]]>
+            </script>
+
         </body>
         </html>
 
@@ -55,17 +82,6 @@
                     <span><xsl:value-of select="ili:Name"/></span>
                     &#160;
                     <span>
-                        <!--
-                        <i>
-                            <xsl:attribute name='class'>material-icons</xsl:attribute>
-                            <xsl:attribute name='style'>vertical-align: -5px;</xsl:attribute>
-                            <a>
-                                <xsl:attribute name='class'>icon-link</xsl:attribute>
-                                <xsl:attribute name='href' select="concat('./', ili:File)" />
-                                launch
-                            </a>
-                        </i>
-                        -->
                         <i>
                             <xsl:attribute name='class'>material-icons</xsl:attribute>
                             <xsl:attribute name='style'>vertical-align: -5px;</xsl:attribute>
@@ -83,11 +99,7 @@
                                 launch
                             </xsl:element>
                         </i>
-
-
-
                     </span>
-
                 </summary>
                 <p>
                     <div style="overflow-x:auto;">
@@ -158,7 +170,6 @@
                 </p>
             </details>
 
-            <hr/>
 
         </xsl:for-each>
     </xsl:template>

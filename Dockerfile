@@ -33,5 +33,6 @@ COPY xsl/ilimodels.xsl /opt/repository
 COPY xsl/ilimodels.css /opt/repository
 COPY xsl/fonts.css /opt/repository
 COPY xsl/Logo.png /opt/repository
+COPY xsl/searchicon.png /opt/repository
 
 USER 11200
