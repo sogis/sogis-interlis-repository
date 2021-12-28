@@ -113,7 +113,7 @@
                                     <td>Beschreibung:</td><td>&#8212;</td>
                                 </tr>
                                 <tr>
-                                    <td>Version:</td><td>2021-10-12</td>
+                                    <td>Version:</td><td><xsl:value-of select="ili:Version"/></td>
                                 </tr>
                                 <tr>
                                     <td>Abhängigkeiten:</td>
