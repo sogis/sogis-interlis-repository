@@ -29,6 +29,8 @@ COPY ilimodels.xml /opt/repository/
 
 COPY version.txt /opt/repository/
 
+COPY ilismeta /opt/repository/ilismeta
+
 COPY xsl/ilimodels.xsl /opt/repository
 COPY xsl/ilimodels.css /opt/repository
 COPY xsl/fonts.css /opt/repository
