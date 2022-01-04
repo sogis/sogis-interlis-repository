@@ -1,0 +1,85 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2020-09-18 | sz  | Ersterfassung
+ *  !! 2022-01-04 | sc | Korrektur Modelname
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AGI_Gebaeudeadressen_Publikation_20220104 (de)
+AT "https://agi.so.ch"
+VERSION "2022-01-04"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Gebaeudeadressen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Offizielle Gebäudeadresse
+     */
+    CLASS Adresse =
+      /** Eidgenössischer Gebäudeadressidentifikator
+       */
+      EGAID : MANDATORY 100000000 .. 900000000;
+      /** Strassendentifikator
+       */
+      ESID : MANDATORY 0 .. 90000000;
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      EGID : MANDATORY 1 .. 900000000;
+      /** Eidgenössischer Eingangsidentifikator
+       */
+      EDID : MANDATORY 0 .. 99;
+      /** Strassenname / Lokalisationsname
+       */
+      Strassenname : TEXT;
+      /** Hausnummer
+       */
+      Nummer : TEXT*12;
+      /** Gebäudename
+       */
+      Gebaeudename : TEXT*50;
+      /** Postleitzahl (4-stellig)
+       */
+      PLZ4 : 1000 .. 9999;
+      /** Postleitzahl (6-stellig)
+       */
+      PLZ6 : 100000 .. 999999;
+      /** Ortschaftsname
+       */
+      Ortschaft : TEXT*40;
+      /** Gemeindenummer (BfS-Nummer)
+       */
+      BFSNr : MANDATORY TEXT*20;
+      /** Status
+       */
+      Status (FINAL) : MANDATORY (
+        abgebrochen,
+        real,
+        geplant
+      );
+      /** Offizielle Gebäudeadresse?
+       */
+      offiziell : MANDATORY INTERLIS.BOOLEAN;
+      /** Ist Gebäudeadresse zuverlässig?
+       */
+      zuverlaessig : MANDATORY INTERLIS.BOOLEAN;
+      /** Datum der letzten Änderung
+       */
+      letzteAenderung : MANDATORY INTERLIS.XMLDateTime;
+      /** Punktgeometrie der Gebaeudeadresse
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      
+      UNIQUE EGAID;
+      UNIQUE ESID, EGID, EDID;
+      
+      !! Jede Adresse muss entweder eine Hausnummer oder einen Gebäudenamen haben.
+      MANDATORY CONSTRAINT
+         DEFINED (Nummer) OR DEFINED (Gebaeudename);
+    END Adresse;
+
+  END Gebaeudeadressen;
+
+END SO_AGI_Gebaeudeadressen_Publikation_20220104.
