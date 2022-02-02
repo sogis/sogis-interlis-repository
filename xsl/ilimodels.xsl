@@ -16,7 +16,7 @@
         <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
         </head>
-        <body>
+        <body onload="readQueryParam()">
             <div id="container">
                 <div class="logo">
                     <div>
@@ -47,6 +47,20 @@
 
             <script>
             <![CDATA[
+            function readQueryParam() {
+                console.log("fubar");
+                const queryString = window.location.search;
+                console.log(queryString);
+                const urlParams = new URLSearchParams(queryString);
+                const query = urlParams.get('q');
+                console.log(query);
+
+                if (query != null || query != "") {
+                    document.getElementById("myInput").value = query;
+                    filterFnc();
+                }
+            }
+
             function filterFnc() {
                 var input, filter, details, summary, i, txtValue;
                 input = document.getElementById("myInput");
