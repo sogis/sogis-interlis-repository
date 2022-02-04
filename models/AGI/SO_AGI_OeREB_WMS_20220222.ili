@@ -1,0 +1,162 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2022-02-22 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AGI_OeREB_WMS_20220222 (de)
+AT "https://geo.so.ch/models/AGI"
+VERSION "2022-02-22"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Abstrakte Basisklasse für die gemeinsamen Attribute von Eigentumsbeschränkungen.
+   */
+  CLASS WMS_Basis (ABSTRACT) =
+    /** Aussage der Eigentumsbeschränkung
+     */
+    LegendeText : MANDATORY TEXT;
+    /** Die Dokumente der Eigentumsbeschränkung als JSON-String codiert
+     */
+    Dokumente : MANDATORY MTEXT;
+    /** Artcode der Eigentumsbeschränkung
+     */
+    ArtCode : MANDATORY TEXT;
+    /** Artcodeliste der Eigentumsbeschränkung
+     */
+    ArtCodeliste : MANDATORY TEXT;
+    /** Thema der Eigentumsbeschränkung
+     */
+    Thema : MANDATORY TEXT;
+    /** Subthema der Eigentumsbeschränkung
+     */
+    SubThema : TEXT;
+    /** Status, ob diese Eigentumsbeschränkung in Kraft ist
+     */
+    Rechtsstatus : MANDATORY TEXT;
+    /** Zuständige Stelle für die Geobasisdaten (Originaldaten)
+     */
+    ZustaendigeStelle : MANDATORY TEXT;
+    /** Verweis auf die Website des Amtes
+     */
+    AmtImWeb : MANDATORY INTERLIS.URI;
+    /** Datum, ab dem diese Eigentumsbeschränkung in Auszügen erscheint
+     */
+    publiziertAb : MANDATORY INTERLIS.XMLDate;
+    /** Datum, an dem diese Eigentumsbeschränkung letztmalig in Auszügen erscheint
+     */
+    publiziertBis : INTERLIS.XMLDate;
+  END WMS_Basis;
+
+  /** Erweiterte Klasse mit Flächengeometrien
+   */
+  CLASS WMS_Flaeche (ABSTRACT)
+  EXTENDS WMS_Basis =
+    /** Fläche der Eigentumsbeschränkung
+     */
+    Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+  END WMS_Flaeche;
+
+  /** Erweiterte Klasse mit Liniengeometrien
+   */
+  CLASS WMS_Linie (ABSTRACT)
+  EXTENDS WMS_Basis =
+    /** Liniengeometrie der Eigentumsbeschränkung
+     */
+    Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+  END WMS_Linie;
+
+  /** Erweiterte Klasse mit Punktgeometrien
+   */
+  CLASS WMS_Punkt (ABSTRACT)
+  EXTENDS WMS_Basis =
+    /** Punktgeometrie der Eigentumsbeschränkung
+     */
+    Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+  END WMS_Punkt;
+
+  TOPIC WMS =
+
+    /** Belastete Standorte
+     */
+    CLASS Belastete_Standorte
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Belastete_Standorte;
+
+    /** Einzelschutz (Fläche)
+     */
+    CLASS Einzelschutz_Flaeche
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Einzelschutz_Flaeche;
+
+    /** Einzelschutz (Punkte)
+     */
+    CLASS Einzelschutz_Punkt
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Punkt =
+    END Einzelschutz_Punkt;
+
+    /** Grundwasserschutzareale
+     */
+    CLASS Grundwasserschutzareale
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Grundwasserschutzareale;
+
+    /** Grundwasserschutzzonen
+     */
+    CLASS Grundwasserschutzzonen
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Grundwasserschutzzonen;
+
+    /** Lärmempfindlichkeitsstufen
+     */
+    CLASS Laermempfindlichkeitsstufen
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Laermempfindlichkeitsstufen;
+
+    /** Nutzungsplanung: Baulinien
+     */
+    CLASS Nutzungsplanung_Baulinien
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Linie =
+    END Nutzungsplanung_Baulinien;
+
+    /** Nutzungsplanung: Grundnutzung
+     */
+    CLASS Nutzungsplanung_Grundnutzung
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Nutzungsplanung_Grundnutzung;
+
+    /** Nutzungsplanung: überlagernde Flächen
+     */
+    CLASS Nutzungsplanung_ueberlagernd_Flaeche
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Flaeche =
+    END Nutzungsplanung_ueberlagernd_Flaeche;
+
+    /** Nutzungsplanung: überlagernde Linien
+     */
+    CLASS Nutzungsplanung_ueberlagernd_Linie
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Linie =
+    END Nutzungsplanung_ueberlagernd_Linie;
+
+    /** Nutzungsplanung: überlagernde Punkt
+     */
+    CLASS Nutzungsplanung_ueberlagernd_Punkt
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Punkt =
+    END Nutzungsplanung_ueberlagernd_Punkt;
+
+    /** Waldabstandslinien
+     */
+    CLASS Waldabstandslinien
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Linie =
+    END Waldabstandslinien;
+
+    /** Waldgrenzen
+     */
+    CLASS Waldgrenzen
+    EXTENDS SO_AGI_OeREB_WMS_20220222.WMS_Linie =
+    END Waldgrenzen;
+
+  END WMS;
+
+END SO_AGI_OeREB_WMS_20220222.
