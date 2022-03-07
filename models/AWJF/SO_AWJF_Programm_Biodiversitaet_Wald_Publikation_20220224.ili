@@ -1,0 +1,217 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Aenderung
+ * ------------------------------------------------------------------------------
+ * 2018-01-17 | ps  | Erstfassung Modell SO_AWJF_Biotopbaeume_Publikation_20190107
+ * 2019-01-01 | ps  | Modelländerung
+ * 2020-03-30 | AL  | Ergänzung mit Biotopsfläche. Name des Modells geändert zu
+ *                    SO_AWJF_Foerderprogramm_Biodiversitaet_Publikation_20200330
+ * 2020-05-19 | AL  | Biotopfläche haben mehrere Zielgruppen
+ * 2022-04-24 | AL  | Anpassung an das Programm Biodiveristät im Wald 2021-2032
+ *                  | -  Attribute bei CLASS Biotopflaeche angepasst
+ *                  | -  neue CLASS Baumartenvielfalt
+ *                  | -  neuer Name des Modells SO_AWJF_Programm_Biodiversitaet_Wald_Publikation_20220224
+ * ==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AWJF_Programm_Biodiversitaet_Wald_Publikation_20220224 (de)
+AT "http://geo.so.ch/models/AWJF"
+VERSION "2020-05-26"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Biodiversitaet_Wald =
+
+    CLASS Baumartenvielfalt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Name der Vereinbarung. Besteht aus Art der Massnahmenart, Vertragsjahr, Gemeinde und Laufnummer.
+       */
+      Biotop_id : MANDATORY TEXT*50;
+      /** Kategorie der abgeltungsberechtigten Fördermassnahmen Waldbiodiversität.
+       */
+      Massnahme : MANDATORY TEXT*100;
+      /** Waldeigentümer
+       */
+      Waldeigentuemer : MANDATORY TEXT*100;
+      /** Weitere Notizen
+       */
+      Bemerkung : TEXT*200;
+      /** Spezielle Beobachtungen.
+       */
+      Besonderheiten : TEXT*200;
+      /** Handelt es sich um eine einmalige forstliche Massnahme oder dauert das Projekt mehrere Jahre?
+       */
+      Vereinbarungsart : MANDATORY TEXT*100;
+      /** Jahr wo die Vereinbarung endet.
+       */
+      Vereinbarungsende : INTERLIS.GregorianYear;
+      /** Ort, wo die Unterlagen zum Projekt abgelegt sind.
+       */
+      Vertragsspeicherort : TEXT*200;
+      /** Stand der Projektumsetzung
+       */
+      Projektstatus : MANDATORY TEXT*100;
+      /** Jahr der Projektumsetzung oder Initialisierung (bei Mehrjahresvereinbarungen)
+       */
+      Jahr_Projektumsetzung : INTERLIS.GregorianYear;
+      /** AWJF-Code-Nr. (Kreditor)
+       */
+      Gesuchsnummer : TEXT*20;
+      /** Jahr der Auszahlung
+       */
+      Jahr_Auszahlung : INTERLIS.GregorianYear;
+      /** Wieviele Bäume wurden im Rahmen des Projekts gepflanzt?
+       */
+      Anzahl_Pflanzung : 0 .. 10000;
+      /** Welche Baumart(en) wurden gepflanzt?
+       */
+      Art_Pflanzung : TEXT*500;
+      /** Wieviele Bäume wurden im Rahmen des Projekts freigestellt?
+       */
+      Anzahl_Freistellung : 0 .. 10000;
+      /** Welche Baumart(en) wurden freigestellt?
+       */
+      Art_Freistellung : TEXT*500;
+      /** Die Massnahmen werden in der Regel einem Revier freigegeben, das die Massnahmen im gesamten Revier ausführen kann. Dieses Attribut gibt den Hinweis, ob die Verortung in der Karte genau stimmt oder "Stellvertretend" fürs ganze Revier oder Gemeinde ist.
+       */
+      Geltungsgebiet : MANDATORY TEXT*100;
+    END Baumartenvielfalt;
+
+    /** Biotopbäume sind lebende Bäume, die aufgrund ihrer Art oder Beschaffenheit eine besondere Bedeutung für Fauna und Flora haben.
+     */
+    CLASS Biotopbaum =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Baum Id
+       */
+      Baum_id : MANDATORY TEXT*50;
+      /** Baumkategorie
+       */
+      Baumkategorie : MANDATORY TEXT*100;
+      /** Jahr der Inventur
+       */
+      Inventur_Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Wirtschaftszone
+       */
+      Wirtschaftszone : MANDATORY TEXT*100;
+      /** Gesuchsnummer DB-Besitzer (AWJF lokal)
+       */
+      Gesuchsnummer : 1 .. 10000;
+      /** Waldeigentuemer
+       */
+      Waldeigentuemer_Code : TEXT*100;
+      /** Baumart gemaess Liste des WSL
+       */
+      Baumart : MANDATORY TEXT*100;
+      /** Brusthoehendurchmesser in cm
+       */
+      BHD : 1 .. 900;
+      /** Baumhoehe in Meter
+       */
+      Baumhoehe : 0 .. 100 [INTERLIS.m];
+      /** Betriebsart (Waldfunktionen)
+       */
+      Betriebsart : TEXT*100;
+      /** Merkmal 1
+       */
+      Merkmal_1 : TEXT*300;
+      /** Beschreibung Merkmal 1
+       */
+      Beschreibung_Merkmal_1 : TEXT*200;
+      /** Merkmal 2
+       */
+      Merkmal_2 : TEXT*300;
+      /** Beschreibung  Merkmal 2
+       */
+      Beschreibung_Merkmal_2 : TEXT*200;
+      /** Merkmal 3
+       */
+      Merkmal_3 : TEXT*300;
+      /** Beschreibung Merkmal 3
+       */
+      Beschreibung_Merkmal_3 : TEXT*200;
+      /** Forstliche Massnahmen
+       */
+      Massnahmen : TEXT*200;
+      /** Besonderheiten
+       */
+      Besonderheiten : TEXT*200;
+      /** Allgemeine Bemerkungen
+       */
+      Bemerkungen : TEXT*200;
+      /** 1: Teilprogramm ABER NICHT Inventar, die nicht im Teilprogramm sind
+       * 2: Teilprogramm UND Inventar
+       * 3: NICHT Teilprogramm, ABER Inventar inklusive Teilprogramm im Inventar
+       */
+      TP_Inventar : MANDATORY TEXT*100;
+      /** Auszahlung Beitrag erfolgt: Ja/Nein
+       */
+      Auszahlung_Beitrag : BOOLEAN;
+      /** Auszahlungsjahr
+       */
+      Auszahlung_Beitrag_Jahr : INTERLIS.GregorianYear;
+      UNIQUE Baum_id;
+    END Biotopbaum;
+
+    /** Projektfläche mit Waldbiodiversitätsmassnahmen.
+     */
+    CLASS Waldbiodiversitaetsflaeche =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Name der Vereinbarung. Besteht aus Art der Massnahmenart, Vertragsjahr, Gemeinde und Laufnummer.
+       */
+      Biotop_id : MANDATORY TEXT*50;
+      /** Kategorie der abgeltungsberechtigten Fördermassnahmen Waldbiodiversität.
+       */
+      Massnahme : MANDATORY TEXT*100;
+      /** Nähere Umschreibung des Attributs "Zielgruppe".
+       */
+      Projektziel : TEXT*100;
+      /** Wann wird/wurde die erste forstliche Massnahme ausgeführt?
+       */
+      Erster_Eingriff : INTERLIS.GregorianYear;
+      /** Waldeigentümer
+       */
+      Waldeigentuemer : MANDATORY TEXT*100;
+      /** Wann wurde der letzte Eingriff ausgeführt?
+       */
+      Letzter_Eingriff : INTERLIS.GregorianYear;
+      /** Weitere Notizen
+       */
+      Bemerkung : TEXT*200;
+      /** Spezielle Beobachtungen.
+       */
+      Besonderheiten : TEXT*200;
+      /** Handelt es sich um eine einmalige forstliche Massnahme oder dauert das Projekt mehrere Jahre?
+       */
+      Vereinbarungsart : MANDATORY TEXT*100;
+      /** Jahr wo die Vereinbarung endet.
+       */
+      Vereinbarungsende : INTERLIS.GregorianYear;
+      /** Ort, wo die Unterlagen zum Projekt abgelegt sind.
+       */
+      Vertragsspeicherort : TEXT*200;
+      /** Stand der Projektumsetzung
+       */
+      Projektstatus : MANDATORY TEXT*100;
+      /** Zwei Herangehensweisen für Waldbiodiversität: Aktiv oder passiv.
+       */
+      Massnahmeart : TEXT*100;
+      /** Jahr der Projektumsetzung oder Initialisierung (bei Mehrjahresvereinbarungen)
+       */
+      Jahr_Projektumsetzung : INTERLIS.GregorianYear;
+      /** AWJF-Code-Nr. (Kreditor)
+       */
+      Gesuchsnummer : TEXT*20;
+      /** Jahr der Auszahlung
+       */
+      Jahr_Auszahlung : INTERLIS.GregorianYear;
+      /** Fläche in m2
+       */
+      Flaeche : 0 .. 999999999;
+      /** Welche Tierart / welcher Lebensraum ist Gegenstand der Fördermassnahmen Waldbiodiversität
+       */
+      Zielgruppe : MTEXT*500;
+    END Waldbiodiversitaetsflaeche;
+
+  END Biodiversitaet_Wald;
+
+END SO_AWJF_Programm_Biodiversitaet_Wald_Publikation_20220224.
