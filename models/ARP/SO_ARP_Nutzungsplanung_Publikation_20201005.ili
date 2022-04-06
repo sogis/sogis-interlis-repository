@@ -20,12 +20,14 @@ INTERLIS 2.3;
  * !!                    - Grundnutzung neu Surface 
  * !!                    - neue Werte bei Rechtsstatus
  * !!                    - Name_Nummer heisst neu "Geschaefts_Nummer"
- * !!                    - neues Attribut "publiziert_bis"
+ * !!                    - neues Attribut "publiziertBis"
  * !!                    - neue Klasse Empfindlichkeitsstufen
  * !!                    - Nutzungsplanung_Beschriftung und Erschliessung_Beschriftung 
  * !!                      entfernt
  * !!                    - Anpassung der MANDATORY Attribute. Zum Zeitpunkt der 
  * !!                      Datenerfassung sind die Werte noch nicht bekannt.
+ * !!                    - Neue Attribute Typ_Code_Kt und Typ_Code_CH für einfache 
+ * !!                      Symbolisierung
  * !!==============================================================================
  */
 !!@ technicalContact=http://agi.so.ch
@@ -221,13 +223,13 @@ VERSION "2019-09-09"  =
     /** Dokumente aus Typ und Grundnutzung. Eine Hierarchie der Dokumente kann erfasst werden. Als primäres Dokument (Ursprung) gilt immer die Rechtsvorschrift (Baureglement, Zonenreglement, Sonderbauvorschrift, Gestaltungsplan etc.), dort wo die eigentumsbeschränkten Informationen festgehalten sind. Die RRBs (Hinweis) werden diesen Rechtsvorschriften zugewiesen. Ist keine Rechtsvorschrift vorhanden, so wird der Typ_Grundnutzung direkt mit dem RRB verknüpft.
      */
     STRUCTURE Dokument =
-      Dokument_ID : TEXT*16;
+      DokumentID : TEXT*16;
       /** Dokumentart z.B. Regierungsratsbeschluss, Zonenreglement, Sonderbauvorschriften, Erschliessungsplan, Gestaltungsplan.
        */
       Titel : TEXT*80;
       /** Vollständiger Titel des Dokuments, wenn der OffiziellerTitel gleich lautet wie der Titel, so ist die Planbezeichnung aus der Planliste zu übernehmen.
        */
-      Offizieller_Titel : TEXT*240;
+      OffiziellerTitel : TEXT*240;
       /** Abkürzung der Dokumentart RRB, ZR, SBV
        */
       Abkuerzung : TEXT*10;
@@ -237,7 +239,7 @@ VERSION "2019-09-09"  =
        * Gestaltungsplan: Gemeindennummer “-” Plannummer nach Planregister “-” P (für Plan) z.B. 109-31-P
        * Bei RRB ist die RRB Nr. aufzuführen (YYYY/RRB Nr.) z.B. 2001/1585
        */
-      Offizielle_Nr : TEXT*20;
+      OffizielleNr : TEXT*20;
       /** Abkürzung Kanton
        */
       Kanton : CHAdminCodes_V1.CHCantonCode;
@@ -246,17 +248,20 @@ VERSION "2019-09-09"  =
       Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Rechtsstatus des Dokuments
        */
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Vollständige Internetadresse des Dokuments auf der Dokumentenablage. Z.B. https://geo.so.ch/docs/ch.so.arp.zonenplaene/Zonenplaene_pdf/1-Solothurn/Plaene/1-102-P.pdf
        */
-      Text_im_Web : URI;
+      TextimWeb : URI;
       /** Erläuternder Text oder Bemerkungen zum Dokument.
        */
       Bemerkungen : MTEXT*240;
       Rechtsvorschrift : BOOLEAN;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
     END Dokument;
 
     DOMAIN
@@ -293,7 +298,7 @@ VERSION "2019-09-09"  =
       Datum_Erfassung : INTERLIS.XMLDate;
       /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
        */
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
       /** Name der Empfindlichkeitsstufe
        */
       Typ_Bezeichnung : TEXT*80;
@@ -308,7 +313,14 @@ VERSION "2019-09-09"  =
       /** BFS-Nr der Gemeinde
        */
       BFS_Nr : 0 .. 9999;
-      Dokumente : SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
+      !!@ili2db.mapping=JSON
+      Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
+      /** Kantonaler Code. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Empfindlichkeitsstufe;
 
     CLASS Erschliessung_Flaechenobjekt =
@@ -341,7 +353,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkung zu den einzelnen Erschliessungsobjekten.
        */
       Bemerkungen : MTEXT*240;
@@ -358,7 +370,13 @@ VERSION "2019-09-09"  =
       /** Gemeindenummer vom schweizerischen Bundesamt für Statistik (BFS-Nr.)
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Erschliessung_Flaechenobjekt;
 
     CLASS Grundnutzung =
@@ -390,7 +408,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkung zu der einzelnen Grundnutzungsgeometrie.
        */
       Bemerkungen : MTEXT*240;
@@ -400,12 +418,18 @@ VERSION "2019-09-09"  =
       /** Datum der Erfassung
        */
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** BFS-Nr der Gemeinde
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Grundnutzung;
 
     DOMAIN
@@ -440,7 +464,7 @@ VERSION "2019-09-09"  =
       Typ_Kt : MANDATORY EP_Typ_Kanton_Erschliessung_Linienobjekt;
       /** 4-stelliger kommunaler Code. Wird durch die Gemeinde vergeben. Im Objektkatalog ist definiert, welche Werte des kommunalen Codes erlaubt sind.
        */
-      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Typ_Code_kommunal : MANDATORY 1000 .. 9999;
       /** Geometrie der Erschliessungsfläche.
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Line;
@@ -452,7 +476,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkung zu den einzelnen Erschliessungsobjekten.
        */
       Bemerkungen : MTEXT*240;
@@ -464,12 +488,18 @@ VERSION "2019-09-09"  =
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
       /** Mit dem Erschliessungsobjekt verknüpfte Dokumente.
        */
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** Gemeindenummer vom schweizerischen Bundesamt für Statistik (BFS-Nr.)
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Erschliessung_Linienobjekt;
 
     /** Fläche, welche die Grundnutzung überlagert.
@@ -494,7 +524,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkungen zum einzelnen überlagernden Objekt
        */
       Bemerkungen : MTEXT*240;
@@ -504,12 +534,20 @@ VERSION "2019-09-09"  =
       /** Datum der Erfassung
        */
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** BFS-Nr der Gemeinde
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      /** Datum, an/ab dem dieses Objekt nicht mehr rechtskräftig ist.
+       */
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Ueberlagernd_Flaeche;
 
     CLASS Erschliessung_Punktobjekt =
@@ -528,7 +566,7 @@ VERSION "2019-09-09"  =
       /** Typ der Erschliessungspunktes gemäss kantonaler Erschliessungsplanung.
        */
       Typ_Kt : MANDATORY EP_Typ_Kanton_Erschliessung_Punktobjekt;
-      Typ_Code_kommunal : MANDATORY TEXT*12;
+      Typ_Code_kommunal : MANDATORY 1000 .. 9999;
       /** Geometrie der Erschliessungspunktes.
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
@@ -540,7 +578,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkung zu den einzelnen Erschliessungsobjekten.
        */
       Bemerkungen : MTEXT*240;
@@ -552,12 +590,18 @@ VERSION "2019-09-09"  =
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
       /** Mit dem Erschliessungsobjekt verknüpfte Dokumente.
        */
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** Gemeindenummer vom schweizerischen Bundesamt für Statistik (BFS-Nr.)
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Erschliessung_Punktobjekt;
 
     /** Linie, welche die Grundnutzung überlagert.
@@ -584,7 +628,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkungen zum einzelnen überlagernden Objekt
        */
       Bemerkungen : MTEXT*240;
@@ -594,12 +638,18 @@ VERSION "2019-09-09"  =
       /** Datum der Erfassung
        */
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** BFS-Nr der Gemeinde
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Ueberlagernd_Linie;
 
     /** Punkt, welcher die Grundnutzung überlagert.
@@ -626,7 +676,7 @@ VERSION "2019-09-09"  =
       Rechtsstatus : MANDATORY Rechtsstatus;
       /** Datum des Regierungsratsbeschlusses
        */
-      publiziert_ab : INTERLIS.XMLDate;
+      publiziertAb : INTERLIS.XMLDate;
       /** Bemerkung zum einzelnen überlagernden Objekt
        */
       Bemerkungen : MTEXT*240;
@@ -636,12 +686,18 @@ VERSION "2019-09-09"  =
       /** Datum der Erfassung
        */
       Datum_Erfassung : MANDATORY INTERLIS.XMLDate;
-      !!@ili2db.mapping=JSON 
+      !!@ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_ARP_Nutzungsplanung_Publikation_20201005.Nutzungsplanung.Dokument;
       /** BFS-Nr der Gemeinde
        */
       BFS_Nr : 0 .. 9999;
-      publiziert_bis : INTERLIS.XMLDate;
+      publiziertBis : INTERLIS.XMLDate;
+      /** Kantonaler Code. Ersten drei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_Kt : MANDATORY 100 .. 999;
+      /** Code CH. Ersten zwei Stellen des kommunalen Codes. Wird abgeleitet aus dem Attribut Typ_Kt.
+       */
+      Typ_Code_CH : MANDATORY 10 .. 99;
     END Ueberlagernd_Punkt;
 
   END Nutzungsplanung;
