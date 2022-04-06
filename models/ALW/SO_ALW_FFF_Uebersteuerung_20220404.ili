@@ -1,0 +1,95 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2021-05-28 | sz  | Ersterfassung
+ *  !! 2022-04-04 | ms | Spezialfall nicht mehr obligatorisch
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ALW/SO_ALW_FFF_Uebersteuerung_20220404.uml
+MODEL SO_ALW_FFF_Uebersteuerung_20220404 (de)
+AT "https://alw.so.ch"
+VERSION "2022-04-04"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Uebersteuerung =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Objekte, welche die automatisch berechneten FFF übersteuern können.
+     */
+    !!@ ili2db.dispName = "Übersteuerung"
+    CLASS Uebersteuerung =
+      /** Geometrie
+       */
+      !!@ ili2db.dispName = "Geometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+      /** Bezeichnung des Spezialfalls
+       */
+      !!@ ili2db.dispName = "Spezialfall"
+      Spezialfall : (
+        !!@ ili2db.dispName = "Golfplatz"
+        Golfplatz,
+        !!@ ili2db.dispName = "Gewässerraum"
+        Gewaesserraum,
+        !!@ ili2db.dispName = "Reservezone"
+        Reserverzone,
+        !!@ ili2db.dispName = "Gewässerschutzzone S2"
+        GSZ2,
+        !!@ ili2db.dispName = "Kiesgrube / Abbaugebiet"
+        Kiesgrube_Abbaugebiet,
+        !!@ ili2db.dispName = "VSB"
+        VSB,
+        !!@ ili2db.dispName = "übriger Spezialfall"
+        uebriger_Spezialfall
+      );
+      /** Fruchtfolgeflächekategorie
+       */
+      !!@ ili2db.dispName = "Bezeichnung"
+      Bezeichnung : MANDATORY (
+        /** keine FFF
+         */
+        !!@ ili2db.dispName = "keine FFF"
+        keine_FFF,
+        /** geeignete FFF
+         */
+        !!@ ili2db.dispName = "geeignete FFF"
+        geeignete_FFF,
+        /** bedingt geeignete FFF
+         */
+        !!@ ili2db.dispName = "bedingt geeignete FFF"
+        bedingt_geeignete_FFF
+      );
+      /** Beschreibung zum Spezialfall. Hinweise auf beschränkte Gültigkeit.
+       */
+      !!@ ili2db.dispName = "Beschreibung"
+      Beschreibung : TEXT*250;
+      /** Stand der letzten Änderung
+       */
+      !!@ ili2db.dispName = "Datenstand"
+      Datenstand : MANDATORY INTERLIS.XMLDate;
+      /** Gewichtungsfaktor der FFF gemäss Bund. Bei FFF, die nicht zu 100% anrechenbar sind, wird ein Gewichtungsfaktor festgelegt.
+       */
+      !!@ ili2db.dispName = "anrechenbar"
+      anrechenbar : MANDATORY 0.00 .. 1.00;
+      /** Kürzel, der für die Erfassung zuständige Person.
+       */
+      !!@ ili2db.dispName = "Erfassung"
+      Erfassung : TEXT*20;
+      /** Übersteuerungsfall
+       */
+      !!@ ili2db.dispName = "Fall"
+      Fall : MANDATORY (
+        /** Fläche erscheint nicht mehr im FFF-Inventar
+         */
+        ausschneiden,
+        /** Fläche übersteuer bisherige Fläche im FFF-Inventar
+         */
+        ersetzen
+      );
+    END Uebersteuerung;
+
+  END Uebersteuerung;
+
+END SO_ALW_FFF_Uebersteuerung_20220404.
