@@ -1,0 +1,245 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2022-03-23 | PS  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AFU_Abwasserbauwerke_Publikation_20220323 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2022-03-23"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Abwasserbauwerke =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Abwasserreinigungsanlage =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Verknüpfung zu Leitungen
+       */
+      Seso_Join : MANDATORY 1 .. 100;
+      Node_Fid : MANDATORY 0 .. 50000;
+      Kategorie : MANDATORY (
+        Abwasserreinigungsanlage
+      );
+      Eigentum : MANDATORY (
+        Gemeinde
+      );
+      Gemeinde : MANDATORY TEXT*50;
+    END Abwasserreinigungsanlage;
+
+    /** Abwasserbauwerke des Kantons Solothurn (SESO-Leitungen)
+     */
+    CLASS Leitungen =
+      Geometrie : GeometryCHLV95_V1.Line;
+      /** Länge
+       */
+      Laenge : MANDATORY 0.00 .. 10000.00;
+      Seso_Id : MANDATORY 1 .. 50000;
+      /** Werte in mm zwischen 100 und ca. 3000.
+       * Bei Eiprofilen wird der grössere Durchmesser angegeben.
+       * Bei Rechteckprofilen z.B. 1600.300
+       */
+      Durchmesser : MANDATORY 0.00 .. 70000.00;
+      /** Gefälle. Angaben in Promille. Der Wert wurde aus den Attributen von-hoehe und zu-hoehe ermittelt.
+       */
+      Gefaelle : MANDATORY -7.1 .. 67000.0;
+      /** 1: Schmutzwasser 2: Mischwasser 3: Sauberwasser
+       */
+      Kategorie : MANDATORY 0 .. 3;
+      /** 1: ja
+       * 2: nein
+       */
+      Druckleitung : MANDATORY 0 .. 2;
+      /** 0: bestehend
+       * 1: projektiert (wurden nur in Ausnahmen erfasst)
+       */
+      Status : MANDATORY 0 .. 1;
+      /** Angabe der Ausgangshöhe des Leitungsabschnittes. Der Wert ist mit Ausnahme von Druckleitungen immer der höhere. (siehe auch zu_hoehe)
+       */
+      Von_Hoehe : MANDATORY 0.00 .. 50000.00;
+      /** Angabe in m.ü.M weiteres siehe von_hoehe
+       */
+      Zu_Hoehe : 0.00 .. 5000.00;
+      /** Baujahr der Leitung (selten vorhanden)
+       */
+      Baujahr : INTERLIS.GregorianYear;
+      /** 0: ??? Material unbekannt
+       * 1: SBR Schleuderbetonrohr
+       * 2: SBR-GM Rockbeton, Centubrohr
+       * 3: PVC PVC-Rohr
+       * 4: PE  Rollmaplast
+       * 5: ZR
+       * 6: Et
+       * 7: STZ Steinzeug
+       * 8: POL
+       * 9: AZR
+       * 10: GUP
+       * 11: GGG Duktiles Gusseisen
+       * 12: BR Betonrohr, meist als allgemeine Bezeichnung
+       */
+      Material : MANDATORY 0 .. 12;
+      /** Vierstellige Gemeindenummer gemäss des Bundesamtes für Statistik (BfS Nummer)
+       */
+      Gemeinde : MANDATORY TEXT*50;
+      /** Meist 1, bei mehreren Teilgebieten pro Gemeinde fortlaufend nach oben
+       */
+      Teilgebiet : TEXT*2;
+      /** Datenqualität der einzelnen Arc Segmente: (muss von der Aussage her noch überarbeitet werden)
+       * 
+       * 1: Ausführungsplan
+       * 2: Übersichtsplan
+       * 3: GEP/GKP
+       * 4: Vermessung
+       * 5: Melioration
+       * 6: Projektplan
+       * 7: Leitungskataster
+       * 8: Orthofoto
+       */
+      Qualitaet : MANDATORY 0 .. 14393;
+      /** Archiv Nummer, nur bei Verwendung von Dokumenten aus dem Archiv des AfU/AWW
+       */
+      Archiv_Nr : TEXT*12;
+      /** Datum der Ersterfassung
+       */
+      Erfassung : INTERLIS.XMLDate;
+      /** Kürzel des Erfassers:
+       * kue für R. Künzle,
+       * ki für Keller Ing. AG und Digital AG
+       */
+      Erfasser : TEXT*3;
+      /** Datum der Bearbeitung
+       */
+      Bearbeitung : INTERLIS.XMLDate;
+      /** Kurzzeichen des Bearbeiters
+       */
+      Bearbeiter : TEXT*3;
+      /** Verbindung zum Oberflächengewässer:
+       * 1: ja
+       * 2: nein
+       */
+      Ofg_Connection : MANDATORY 0 .. 1;
+      /** Hilfsattribut für die Bearbeitung der Daten zur Kontrolle der Verbindung zum Oberflächengewässer.
+       */
+      Selekt : MANDATORY 0 .. 1;
+      /** Hilfsattribut für die Bearbeitung der Daten zur Kontrolle der Vebindung zum Oberflächengewässer)
+       */
+      Neg_Imp : MANDATORY -1 .. 0;
+      /** Wird in der Plotappli benötigt und errechnet sich folgendermassen:
+       * 
+       * symbol = [status x 100] + [20 + Kategorie]
+       */
+      Symbol : MANDATORY 0 .. 123;
+      /** Anzeige, ob die Verbindung zum Oberflächengewässer erfolgt ist.
+       */
+      Put_Erfolg : MANDATORY 0 .. 1;
+      /** Eigentum des Bauwerkes
+       * 1: Gemeinde
+       * 2: Abwasser-Zweckverband
+       */
+      Eigentum : MANDATORY TEXT*50;
+      Bemerkungen : TEXT*200;
+      /** Verbindungsattribut zur GRASS Netzwerktabelle aww_seso_ara_alloc. Die Netzwerkberechnung erfolgt mit dem System GRASS und dem Programm daten/aww/seso/ara_net.prg
+       */
+      Ara_Name : TEXT*50;
+    END Leitungen;
+
+    /** Abwasserbauwerke des Kantons Solothurn (SESO Schächte und Bauwerke)
+     */
+    CLASS Schaechte_und_Bauwerke =
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      Schacht_Id : TEXT*20;
+      /** KS: Kontrollschacht
+       * TS: Trennschacht
+       * MS: Messschacht
+       * PW: Pumpwerk
+       * RA: Regenauslass
+       * RB: Regenbecken
+       * FB: Fangbecken
+       * KB: Klärbecken
+       * VB: Verbundbecken
+       * RRB: Regenrückhaltebecken
+       * ARA: Abwasserreinigungsanlagen
+       * A: Auslauf
+       */
+      Kategorie_kurz : (
+        !!@ ili2db.dispName = "Auslauf"
+        A,
+        !!@ ili2db.dispName = "Abwasserreinigungsanlage"
+        ARA,
+        !!@ ili2db.dispName = "Regenrückhaltebecken"
+        RRB,
+        !!@ ili2db.dispName = "Verbundbecken"
+        VB,
+        !!@ ili2db.dispName = "Klärbecken"
+        KB,
+        !!@ ili2db.dispName = "Fangbecken"
+        FB,
+        !!@ ili2db.dispName = "Regenbecken"
+        RB,
+        !!@ ili2db.dispName = "Regenauslass"
+        RA,
+        !!@ ili2db.dispName = "Pumpwerk"
+        PW,
+        !!@ ili2db.dispName = "Messschacht"
+        MS,
+        SF,
+        !!@ ili2db.dispName = "Trennschacht"
+        TS,
+        !!@ ili2db.dispName = "Kontrollschacht"
+        KS
+      );
+      Kategorie : TEXT*50;
+      Status : (
+        projektiert,
+        bestehend
+      );
+      Teilgebiet : TEXT*2;
+      /** Datenherkunft:
+       * 1: SE-Ausf-plan
+       * 2: Uebers.plan
+       * 3: SE-GEP/GKP
+       * 4: Vermessung
+       * 5: Melioration
+       * 6: Projektplan
+       * 7: Leitungskataster
+       * 8: Orthophoto
+       * 0: unbekannt
+       */
+      Qualitaet : (
+        SE_Ausf_Plan,
+        Uebersichtsplan,
+        SE_GEP_GKP,
+        Vermessung,
+        Melioration,
+        Projektplan,
+        Leitungskataster,
+        Orthofoto,
+        unbekannt
+      );
+      /** Deckelhöhe
+       */
+      Deckelhoehe : 0.00 .. 2000.00;
+      /** Überdeckung
+       */
+      Ueberdeckung : 0 .. 1000;
+      /** Erfassungsdatum
+       */
+      Erfassung : INTERLIS.XMLDate;
+      Erfasser : TEXT*3;
+      /** Bearbeitungsdatum
+       */
+      Bearbeitung : INTERLIS.XMLDate;
+      Bearbeiter : TEXT*3;
+      /** Gemeinde oder Abwasserzweckverband
+       */
+      Eigentum : TEXT*30;
+      Bemerkungen : TEXT*100;
+      Gemeinde : TEXT*30;
+    END Schaechte_und_Bauwerke;
+
+  END Abwasserbauwerke;
+
+END SO_AFU_Abwasserbauwerke_Publikation_20220323.
