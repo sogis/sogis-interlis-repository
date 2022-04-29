@@ -1,0 +1,329 @@
+INTERLIS 2.3;
+
+/** !!-----------------------------------------------------------------------------
+ * !! Publikationsmodell für die Gewässer und abschnittbezogene
+ * !! Fliessgewässerinformationen, Teilbereich Ökomorphologie des Kt. Solothurn.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2022-04-26 | MS  | 1. Entwurf
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AFU_Gewaesser_Oekomorphologie_pub_20220426 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2022-04-26"  =
+  IMPORTS Units,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    UmfeldTyp = (
+      nicht_beurteilt,
+      Wald,
+      Dauergruenland_Wiese,
+      Ackerland_Kunstwiese,
+      befestigte_Flur_Wanderwege,
+      Siedlung_Infrastruktur
+    );
+
+    AbsturzTyp = (
+      nicht_bestimmt,
+      natuerlich,
+      kuenstlich
+    );
+
+    AbsturzMaterial = (
+      natuerlich_klein,
+      Holz,
+      Fels_Steinbloecke,
+      Beton_Steinpflaesterung,
+      andere_unbekannt,
+      Stufentreppen
+    );
+
+    BauwerkTyp = (
+      nicht_bestimmt,
+      Durchlass,
+      Bruecke,
+      Sohlrampe_rauh,
+      Sohlrampe_glatt,
+      Furt,
+      Geschieberueckhaltesperre,
+      Stauwehr,
+      Fischpass,
+      Schleuse,
+      Seitenentnahme_ohne_Wehr,
+      Streichwehr,
+      Tirolerwehr,
+      Talsperre
+    );
+
+    Klasse = (
+      natuerlich_naturnah,
+      wenig_beeintraechtigt,
+      stark_beeintraechtigt,
+      naturfremd_kuenstlich,
+      eingedolt,
+      nicht_bestimmt
+    );
+
+    Totholz = (
+      nicht_bestimmt,
+      Ansammlungen,
+      maessig,
+      kein_vereinzelt
+    );
+
+    BewAlgen = (
+      nicht_bestimmt,
+      kein_gering,
+      maessig_stark,
+      uebermaessig_wuchernd
+    );
+
+    BewMakro = (
+      nicht_bestimmt,
+      kein_gering,
+      maessig_stark,
+      uebermaessig_wuchernd
+    );
+
+    Ufer = (
+      nicht_bestimmt,
+      gewaessergerecht,
+      gewaesserfremd,
+      kuenstlich
+    );
+
+    BoeschMaterial = (
+      nicht_bestimmt,
+      Naturstein_locker,
+      Naturstein_dicht,
+      Mauer,
+      Holz,
+      Lebendverbau,
+      Betongittersteine,
+      andere
+    );
+
+    BoeschVerbau = (
+      nicht_bestimmt,
+      unverbaut,
+      punktuell,
+      maessig,
+      groessere,
+      ueberwiegend,
+      vollstaendig
+    );
+
+    SohlMaterial = (
+      nicht_bestimmt,
+      Beton_Zement,
+      Natursteine,
+      Holz,
+      Pflaesterung,
+      Betongittersteine,
+      undurchlaessig,
+      andere
+    );
+
+    SohlVerbau = (
+      nicht_bestimmt,
+      keine,
+      vereinzelt,
+      maessig,
+      groessere,
+      ueberwiegend,
+      vollstaendig
+    );
+
+    VarTiefe = (
+      nicht_bestimmt,
+      ausgepraegt,
+      eingeschraenkt,
+      keine
+    );
+
+    VarBreite = (
+      nicht_bestimmt,
+      ausgepraegt,
+      eingeschraenkt,
+      keine
+    );
+
+    BeurteilungsUferbreite = (
+        nicht_beurteilt,
+        kein_uferbereich,
+        genuegend,
+        ungenuegend
+    );
+
+  TOPIC Oekomorph =
+
+    /** Oekomorphologie der Gewässer des Kt. Solothurn.
+     */
+    CLASS Oekomorphologie =
+      /** Mittlere Sohlenbreite [m].
+       */
+      Sohlenbreite : 0.00 .. 1000.00 [INTERLIS.m];
+      /** Ist das Gewässer eingedolt?
+       */
+      Eindolung : MANDATORY BOOLEAN;
+      /** Variabilität der Wasserspiegelbreite.
+       */
+      Breitenvariabilitaet : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.VarBreite;
+      /** Variabilität der Wassertiefe.
+       * Fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      Tiefenvariabilitaet : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.VarTiefe;
+      /** Grad der Sohlenverbauung.
+       */
+      Sohlenverbauung : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.SohlVerbau;
+      /** Unterscheidung der Materialien der Sohlenverbauung.
+       */
+      Sohlmaterial : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.SohlMaterial;
+      /** Grad der Verbauung des Böschungsfusses links.
+       */
+      BoeschungsfussverbauLinks : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BoeschVerbau;
+      /** Grad der Verbauung des Böschungsfusses rechts.
+       */
+      BoeschungsfussverbauRechts : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BoeschVerbau;
+      /** Kategorien des Materials der Verbauung links.
+       * Lebendverbau, Naturstein_locker und Holz gelten als durchlässig,
+       * Betongittersteine, Naturstein_dicht, Mauer und andere gelten als
+       * undurchlässig.
+       */
+      MaterialLinks : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BoeschMaterial;
+      /** Kategorien des Materials der Verbauung rechts.
+       * Lebendverbau, Naturstein_locker und Holz gelten als durchlässig,
+       * Betongittersteine, Naturstein_dicht, Mauer und andere gelten als
+       * undurchlässig.
+       */
+      MaterialRechts : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BoeschMaterial;
+      /** Mittlere Breite Uferbereich links [m].
+       */
+      UferbreiteLinks : MANDATORY 0.00 .. 1000.00 [INTERLIS.m];
+      /** Mittlere Breite Uferbereich rechts [m].
+       */
+      UferbreiteRechts : MANDATORY 0.00 .. 1000.00 [INTERLIS.m];
+      /** Beschaffenheit des linken Ufers.
+       */
+      UferbeschaffenheitLinks : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.Ufer;
+      /** Beschaffenheit des rechten Ufers.
+       */
+      UferbeschaffenheitRechts : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.Ufer;
+      /** Ausmass des Algenbewuchs im Gewässer.
+       * Fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      Algenbewuchs : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BewAlgen;
+      /** Ausmass des Makrophytenbewuchs im Gewässer.
+       * Fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      Makrophytenbewuchs : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BewMakro;
+      /** Totholz-Menge im Gewässer.
+       * Fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      Totholz : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.Totholz;
+      /** Erfasst den Anteil der Uferlänge, rechts und links, die überhängende
+       * Vegetation aufweist.
+       * Zusätzliches Attribut des KtSO, fliesst nicht in die
+       * ökomorphologische Beurteilung ein.
+       */
+      UeberhVegetation : MANDATORY (
+        ueber_30,
+        von_5_bis_30,
+        bis_5,
+        keine
+      );
+      /** Korngösse des Materials der Sohle.
+       * Zusätzliches Attribut des KtSO, fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      DomKorngroesse : MANDATORY (
+        nicht_beurteilt,
+        Sand_Schlick_Schlamm,
+        erbsen_baumnussgross,
+        baumnuss_faustgross,
+        faust_kopfgross,
+        kopfgross,
+        Fels
+      );
+      /** Nutzungsart des Umlandes auf der linken Seite.
+       * Zusätzliches Attribut des KtSO, fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      NutzungUmlandLinks : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.UmfeldTyp;
+      /** Nutzungsart des Umlandes auf der rechten Seite.
+       * Zusätzliches Attribut des KtSO, fliesst nicht in die ökomorphologische
+       * Beurteilung ein.
+       */
+      NutzungUmlandRechts : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.UmfeldTyp;
+      /** Hat es viele natürliche Abstürze?
+       */
+      VieleNatAbstuerze : BOOLEAN;
+      /** Ökomorphologische Klasse. Berechnung gemäss Dokumentation
+       */
+      Klasse : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.Klasse; 
+      /** Beurteilung der Uferbreite Links gemäss Dokumentation 
+       */
+      BeurteilungsUferbreiteLinks : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BeurteilungsUferbreite;
+      /** Beurteilung der Uferbreite Rechts gemäss Dokumentation 
+       */
+      BeurteilungsUferbreiteRechts : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BeurteilungsUferbreite;
+      /** Minimaler Uferbereich 
+       */       
+      MinimalerUferbereich : 0.00 .. 1000.00 [INTERLIS.m];
+      /** Raumbedarf des Gewässers (Gewässerraum)
+       */
+      Raumbedarf : 0.00 .. 1000.00 [INTERLIS.m];
+      /** Datum der Erhebung des Objektes im Feld.
+       */
+      Erhebungsdatum : INTERLIS.XMLDate;
+      /** Auf die Basislinien referenzierte Geometrie.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Oekomorphologie;
+
+    /** Oekomorphologie der Gewässer des Kt. Solothurn.
+     */
+    CLASS Absturz =
+      /** Typ des Absturzes.
+       */
+      Typ : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.AbsturzTyp;
+      /** Material des Absturzes.
+       */
+      Material : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.AbsturzMaterial;
+      /** Absturzhöhe [cm].
+       */
+      Hoehe : MANDATORY 0 .. 30000 [Units.cm];
+      /** Datum der Erhebung des Objektes im Feld.
+       */
+      Erhebungsdatum : INTERLIS.XMLDate;
+      /** Auf die Basislinien referenzierte Geometrie (Punkt).
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Absturz;
+
+    CLASS Bauwerk =
+      /** Typ des Bauwerkes.
+       */
+      Typ : MANDATORY SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.BauwerkTyp;
+      /** Höhe des Bauwerks [cm].
+       */
+      Hoehe : MANDATORY 0 .. 30000 [Units.cm];
+      /** Datum der Erhebung des Objektes im Feld.
+       */
+      Erhebungsdatum : INTERLIS.XMLDate;
+      /** Auf die Basislinien referenzierte Geometrie (Punkt).
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+
+    END Bauwerk;
+  END Oekomorph;
+END SO_AFU_Gewaesser_Oekomorphologie_pub_20220426.
+
+
