@@ -1,0 +1,246 @@
+TRANSFER SIA405_mit_Erweiterungen_Aenderungen_ALW_SO; 
+
+MODEL SIA405_mit_Erweiterungen_Aenderungen_ALW_SO
+
+!! ANHANG B GEO405/INTERLIS Modellbeschreibungen in INTERLIS 
+!! *********************************************************
+!! B1 Thema Abwasser
+!! Aenderungen_ALW_SO Version V1.2
+
+
+DOMAIN 
+  !! Allgemeine Typen fuer alle SIA405 Medien 
+  INTEGER4 = [0 .. 9999]; 
+  INTEGER6 = [0 .. 999999]; 
+  REAL42 = [0.00 .. 9999.99]; 
+  Orientierung = DEGREES 0.0 360.0; 
+  Hoehecm = DIM1      -200.00    5000.00; 
+  LKoordcm = COORD2 480000.00   70000.00 
+  		    840000.00  300000.00; 
+  Genauigkeit = (unbekannt, ungenau, genau, gemaess_Ausfuehrungsplan, GPS); 
+  Status = (unbekannt, in_Betrieb, ausser_Betrieb, Reserve, tot
+           , Berechnungsvariante, geplant, Projekt, provisorisch); 
+  Zugaenglichkeit = (unbekannt, zugaenglich, nicht_zugaenglich, ueberdeckt);    
+  Zustand = (Schlecht, Beschaedigt, Leicht_beschaedigt, Keine_Maengel, Sehr_schlecht, unbekannt);
+
+TOPIC SIA405_Abwasser =
+
+
+!! Teilbereich Netzlogik 
+
+OPTIONAL TABLE Knoten = 
+      Name_Nummer: TEXT*20;
+      !! Keine Geometrie, da bei Schacht vorhanden 
+    IDENT 
+      Name_Nummer;
+    END Knoten; 
+    
+OPTIONAL TABLE Strang =
+      Anfangsknoten: -> Knoten // 1-m //;
+      Endknoten: -> Knoten // 1-m //;
+      Name_Nummer: TEXT*20; 
+      !! Keine Geometrie, da bei Leitung vorhanden 
+    IDENT
+      Name_Nummer;
+    END Strang;
+
+!! Teilbereich Basismodell 
+
+TABLE Schacht = 
+  Name_Nummer: TEXT*20;    !!GIS-Link
+  Name: OPTIONAL TEXT*20;  !!Schacht-Nr
+  Geometrie: LKoordcm; 
+  SymbolOri: OPTIONAL Orientierung; 
+  Art_Funktion: (unbekannt, Kontroll_Normschacht, Kammereinstieg 
+                , Benzin_Mineraloelabscheider, Pumpenschacht 
+                , Retensionsschacht, Versickerungsschacht, Strassenablauf 
+                , Ablauf, Roehrenschacht, Schlammfang, Klaergrube, Absetzbecken 
+                , Hofsammler, Geleiseentwaesserung, Kaliberwechsel 
+                , Gefaellsbruch, Kanalanfang, Vorflutereinlauf, Spuelstutzen); 
+  Dimension1: OPTIONAL INTEGER4;            !! in mm kleiner 
+  Dimension2: OPTIONAL INTEGER4;            !! in mm grosser
+  Deckelhoehe: OPTIONAL Hoehecm;      !! nur in Ausnahmefaellen OPTIONAL 
+  Sohlenhoehe: OPTIONAL Hoehecm;      !! nur in Ausnahmefaellen OPTIONAL 
+  Hoehenbestimmung: OPTIONAL Genauigkeit; 
+  Lagebestimmung: Genauigkeit;
+  Status: OPTIONAL Status;
+  Zugaenglichkeit: OPTIONAL Zugaenglichkeit;   !! aus Teilbereich Erweiterung
+  Eigentuemer: OPTIONAL TEXT*30;               !! aus Teilbereich Erweiterung
+  Bermerkung: OPTIONAL TEXT*50;
+  KnotenRef: OPTIONAL -> Knoten // m-c //;
+IDENT 
+  Geometrie; 
+  Name_Nummer;
+END Schacht; 
+
+TABLE Schacht_Text = 
+  SchachtRef: -> Schacht // 1-mc //; 
+  Text: TEXT*40;    !! reserviert fuer Attributtext der Tabelle Schacht 
+  TextPos: LKoordcm; 
+  TextOri: Orientierung; 
+  TextHAli: HALIGNMENT;
+  TextVAli: VALIGNMENT; 
+NO IDENT 
+END Schacht_Text; 
+
+TABLE SpezialBauwerk =
+  SchachtRef: OPTIONAL -> Schacht // 1-c //;
+  Nummer: TEXT*20; 
+  Name: OPTIONAL TEXT*30; 
+  Art_Funktion: (unbekannt, Absturzkammer, Brunnen, Duekerkammer 
+                , Fangbecken_Geschiebesammler, Hochwasserentlastung 
+                , Jauchegrube, Kammer_ohne_Funktion, Klaerbecken 
+                , Mineraloelabscheider, Pumpstation, Regenbecken 
+                , Vereinigungskammer, Verzweigungskammer, Wirbelfallkammer);
+  Lagebestimmung: Genauigkeit; 
+  Status: Status; 
+  Baujahr: OPTIONAL INTEGER4; 
+  Nennvolumen: OPTIONAL INTEGER6; !! in m3               aus Teilbereich Erweiterung
+  Zugaenglichkeit: OPTIONAL Zugaenglichkeit;          !! aus Teilbereich Erweiterung
+  Entwaesserungssystem: OPTIONAL TEXT*30;             !! aus Teilbereich Erweiterung
+  Eigentuemer: OPTIONAL TEXT*30;                      !! aus Teilbereich Erweiterung
+NO IDENT 
+END SpezialBauwerk; 
+
+TABLE SpezialBauwerk_Flaeche = 
+  SpezialBauwerkRef: -> SpezialBauwerk // 1-mc //; 
+  Geometrie: SURFACE WITH (STRAIGHTS,ARCS) VERTEX LKoordcm; 
+NO IDENT 
+END SpezialBauwerk_Flaeche; 
+
+TABLE SpezialBauwerk_Linie = 
+  SpezialBauwerkRef: -> SpezialBauwerk // 1-mc //; 
+  Geometrie: POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoordcm; 
+NO IDENT 
+END SpezialBauwerk_Linie; 
+
+TABLE SpezialBauwerk_Text = 
+  SpezialBauwerkRef: -> SpezialBauwerk // 1-mc //; 
+  Text: TEXT*40;    !! reserviert fuer Attributtext der Tabelle SpezialBauwerk 
+  TextPos: LKoordcm; 
+  TextOri: Orientierung; 
+  TextHAli: HALIGNMENT; 
+  TextVAli: VALIGNMENT; 
+NO IDENT 
+END SpezialBauwerk_Text; 
+
+TABLE Leitung = 
+  Name_Nummer: TEXT*20;    !!GIS-Link
+  Geometrie: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoordcm; 
+  Nutzungsart: (unbekannt, Regenabwasser, Rein_Kuehlabwasser, Mischabwasser
+               , Schmutzabwasser, Industrie_Chemieabwasser, Drainagenwasser); 
+  FunktionHierarchisch: (unbekannt, Hauptsammelkanal, Sammelkanal 
+                        , Sanierungsleitung, oeffentliches_Gewaesser 
+                        , Anschlussleitung_Grundstuecksentw 
+                        , Strassenentwaesserung, Saugdrain, Drainage_Rohrlos); 
+  Profilart: OPTIONAL (unbekannt, Eiprofil, Kreisprofil, Maulprofil, Rechteckprofil
+                      , offenes_Profil, Spezialprofil); 
+  Breite_Durchmesser: TEXT*5;        !! Original INTEGER4 
+  Lichte_Hoehe: OPTIONAL INTEGER4;    !! in mm 
+  Anfangshoehe: OPTIONAL Hoehecm;     !! nur in Ausnahmefaellen OPTIONAL 
+  Endhoehe: OPTIONAL Hoehecm;         !! nur in Ausnahmefaellen OPTIONAL 
+  Hoehenbestimmung: OPTIONAL Genauigkeit; 
+  Material: (unbekannt 
+            , Beton, Beton_unbekannt, Beton_armiert, Beton_vorgespannt, Beton_Fertigteil
+            , Beton_unarmiert , Beton_Ortsbeton, Beton_Schleuderbeton, Beton_Spezialzement_armiert 
+            , Beton_Spezialzement_unarmiert, Faserzement, Asbestzement, gebrannte_Steine
+            , Guss, Guss_unbekannt, Guss_Grauguss, Guss_Guss_duktil, Guss_Gussbeton
+            , GUP_Fertigteil, Kies, Kunststoff, Kunststoff_unbekannt, Kunststoff_Hartpolyethylen_HDPE, Kunststoff_Polyester_GUP
+            , Kunststoff_Polyvinilchlorid_PVC, Kunststoff_Polyvinilchlorid_hart, Kunststoff_Epoxidharz_EP
+            , Stahl, Stahl_unbekannt, Stahl_nicht_rostbestaendig, Stahl_rostbestaendig
+            , Steinzeug, Ton, Verschiedene, Zement, Kunststoff_Polyethylen_PE, Kunststoff_Polypropylen_PP);
+  Material_Einbauten: (unbekannt, Rohr_gesteckt, Rohr_stumpf, Sickerrohr, Sickerrohr_geschlitzt, Schlitz, Rinne, Rinnschale, Querrinne);
+  Lagebestimmung: Genauigkeit;
+  Status: OPTIONAL Status; 
+  Baujahr: OPTIONAL INTEGER4; 
+  Gefaelle: OPTIONAL TEXT*10;   !! Original INTEGER4  in Promillen, berechneter Wert  !! aus Teilbereich Erweiterung 
+  Laenge: OPTIONAL INTEGER6;    !! in mm, berechneter Wert                            !! aus Teilbereich Erweiterung  
+  Eigentuemer: OPTIONAL TEXT*30;                                                      !! aus Teilbereich Erweiterung  
+  Bermerkung: OPTIONAL TEXT*50;
+StrangRef: OPTIONAL -> Strang // m-c //;
+IDENT 
+ Name_Nummer;
+END Leitung; 
+
+TABLE Leitungs_Text = 
+  LeitungRef: -> Leitung // 1-mc //; 
+  Text: TEXT*40;    !! reserviert fuer Attributtext der Tabelle Leitung
+  TextPos: LKoordcm; 
+  TextOri: Orientierung; 
+  TextHAli: HALIGNMENT; 
+  TextVAli: VALIGNMENT; 
+NO IDENT 
+END Leitungs_Text; 
+
+TABLE Leitungspunkt = 
+  Name_Nummer: OPTIONAL TEXT*20; !!GIS-Link
+  Geometrie: LKoordcm; 
+  SymbolOri: OPTIONAL Orientierung; 
+  Art: (unbekannt, Spuelstutzen, Trockenwetterfallrohr, Baujahrwechsel, Kaliberwechsel 
+       , Gefaellsbruch ,Materialwechsel, Detailpunkt); 
+  Hoehe: OPTIONAL Hoehecm; 
+  Hoehenbestimmung: OPTIONAL Genauigkeit; 
+  Lagebestimmung: Genauigkeit; 
+IDENT 
+  Geometrie; 
+END Leitungspunkt; 
+
+TABLE Leitungspunkt_Text = 
+  LeitungspunktRef: -> Leitungspunkt // 1-mc //; 
+  Text: TEXT*40;    !! reserviert fuer Attributtext der Tabelle Leitungspunkt 
+  TextPos: LKoordcm; 
+  TextOri: Orientierung; 
+  TextHAli: HALIGNMENT; 
+  TextVAli: VALIGNMENT; 
+NO IDENT 
+END Leitungspunkt_Text; 
+
+  OPTIONAL TABLE Einbauten= 
+    LeitungRef: -> Leitung // c-mc, wenn Einbaute an Leitung//; 
+    SpezialBauwerkRef: -> SpezialBauwerk  // c-mc, wenn Einbaute in SpezialBauwerk //; 
+    Name_Nummer: TEXT*20; 
+    Geometrie: LKoordcm; 
+    Wirkrichtung: (mit, gegen, ohne); 
+    Art: (unbekannt, Pumpe, Schieber, Rueckstauklappe, Wirbeldrossel, Tauchwand 
+         , Trennwand, Dammbalken, Blende, Sieb_Rechen, Ueberfallkante_Streichwehr 
+         , Leapingwehr_Schaelblech, Spueleinrichtung, Messgeraet); 
+    Lage_in_Leitung: (unbekannt, unten, oben, in_Schacht, am_Leitungsanfang 
+                     , am_Leitungsende); 
+    Stellung: (unbekannt, offen, geschlossen); 
+    Hub_Hoehendifferenz: OPTIONAL REAL42; 
+    Ueberfall_Hoehe: OPTIONAL Hoehecm; 
+    Hersteller: OPTIONAL TEXT*30; 
+    Charakteristik: OPTIONAL TEXT*52;
+    Installationsdatum: OPTIONAL DATE; 
+    Letzte_Kontrolle: OPTIONAL DATE; 
+    Letzte_Aenderung: OPTIONAL DATE; 
+  NO IDENT 
+  END Einbauten; 
+
+  TABLE Einbauten_Text = 
+    EinbautenRef: -> Einbauten // 1-mc //; 
+    Text: TEXT*40;    !! reserviert fuer Attributtext der Tabelle Einbauten
+    TextPos: LKoordcm; 
+    TextOri: Orientierung; 
+    TextHAli: HALIGNMENT; 
+    TextVAli: VALIGNMENT; 
+  NO IDENT 
+  END Einbauten_Text; 
+
+  END SIA405_Abwasser. 
+
+END SIA405_mit_Erweiterungen_Aenderungen_ALW_SO.
+
+FORMAT FREE;
+
+!!FORMAT FIX WITH LINESIZE = 75, TIDSIZE = 10;
+!!Interlis-Compiler Vs 0.0 arbeitet nur mit fixem Format, so dass 
+!!die Kommentarzeichen bei FORMAT FREE zu setzen sind und
+!!bei der FORMAT FIX-Zeile entfernt werden muessen.
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+
+
