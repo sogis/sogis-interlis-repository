@@ -28,6 +28,19 @@ VERSION "2020-10-26"  =
         pauschal
       );
 
+      Bewirtschaftung_Anteile = (
+        !!@ ili2db.dispName = "zwei Drittel der Fläche"
+        zwei_drittel,
+        !!@ ili2db.dispName = "der ganzen Fläche"
+        ganze,
+        !!@ ili2db.dispName = "der halben Fläche"
+        halbe,
+        !!@ ili2db.dispName = "einem Drittel der Fläche"
+        drittel,
+        !!@ ili2db.dispName = "einem Viertel der Fläche"
+        viertel
+      );
+
       !!@ ili2db.dispName = "Faunaliste Gruppe"
       Faunaliste_Gruppe = (
         !!@ ili2db.dispName = "Heuschrecke"
@@ -92,6 +105,40 @@ VERSION "2020-10-26"  =
          */
         !!@ ili2db.dispName = "MJPNL-2020"
         MJPNL_2020
+      );
+
+      !!@ ili2db.dispName = "Strukturelement-Kategorie"
+      StrukturelementKategorie = (
+        Einzelbaum(
+          Insektenbaum
+        ),
+        !!@ ili2db.dispName = "offener Boden"
+        offener_Boden,
+        Kopfweide,
+        Steinhaufen,
+        Totholz,
+        Asthaufen,
+        Streuhaufen,
+        Gemuese_Wildstaudenbeet,
+        !!@ ili2db.dispName = "Gebüschgruppe"
+        Gebueschgruppe(
+          dornig,
+          !!@ ili2db.dispName = "essbare Beerensträucher"
+          essbare_Beerenstraeucher
+        ),
+        !!@ ili2db.dispName = "Gewässer"
+        Gewaesser(
+          !!@ ili2db.dispName = "Gewässer temporär"
+          Gewaesser_temporaer,
+          Feuchtstelle,
+          !!@ ili2db.dispName = "offener Wassergraben"
+          offener_Wassergraben
+        ),
+        Scheiterbeige,
+        !!@ ili2db.dispName = "Felsnase oder Gesteinsplatte"
+        Felsnase_Gesteinsplatte,
+        Sandlinse,
+        Trockensteinmauer
       );
 
       !!@ ili2db.dispName = "Vereinbarung Status"
@@ -366,10 +413,16 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Heckentyp Lebhag"
       Bewirtschaftung_Hecke_Typ_Lebhag : BOOLEAN;
-      /** Unterhaltsintervall (gemäss Merkblatt). Keine separate Abgeltung.
+      /** Unterhalt gemäss Merkblatt. Keine separate Abgeltung.
        */
-      !!@ ili2db.dispName = "Unterhaltsintervall"
-      Bewirtschaftung_Hecke_Unterhaltsintervall : BOOLEAN;
+      !!@ ili2db.dispName = "Unterhalt"
+      Bewirtschaftung_Hecke_Unterhalt : BOOLEAN;
+      !!@ ili2db.dispName = "Unterhaltsintervall in Jahren"
+      Bewirtschaftung_Hecke_Unterhaltsintervall : 1 .. 10;
+      !!@ ili2db.dispName = "Letzter Unterhalt (Jahr)"
+      Bewirtschaftung_Hecke_LetzterUnterhalt : 1900 .. 2100;
+      !!@ ili2db.dispName = "Anteil der zu bewirtschaftenden Fläche"
+      Bewirtschaftung_Hecke_UnterhaltAnteil : Bewirtschaftung_Anteile;
       /** Der Krautsaum wird max. 2-mal jährlich geschnitten, erste Hälfte ab 15. Juni, zweite Hälfte frühestens 6 Wochen später (gestaffelt nie vollständig mähen) 1/2 alternierend mähen. Der Krautsaum bleibt über den Winter stehen. CHF 300.- pro ha.
        */
       !!@ ili2db.dispName = "Bewirtschaftung Krautsaum"
@@ -481,6 +534,7 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Abgeltung total (Flächenbeitrag und Pauschale)"
       Abgeltung_total : MANDATORY 0.00 .. 26150.00 [Units.CHF];
+      AttributeDef125 : TEXT*20;
     END Beurteilung_Hecke;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der WBL Weide.
@@ -1476,6 +1530,31 @@ VERSION "2020-10-26"  =
       Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
     END Foto;
 
+    CLASS Strukturelement_Flaeche =
+      /** Überlappungen sind erlaubt
+       */
+      !!@ ili2db.dispName = "Flächengeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      !!@ ili2db.dispName = "Strukturelement Kategorie"
+      Strukturelement_Kategorie : MANDATORY StrukturelementKategorie;
+    END Strukturelement_Flaeche;
+
+    CLASS Strukturelement_Linie =
+      !!@ ili2db.dispName = "Liniengeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      !!@ ili2db.dispName = "Strukturelement Kategorie"
+      Strukturelement_Kategorie : MANDATORY StrukturelementKategorie;
+    END Strukturelement_Linie;
+
+    CLASS Strukturelement_Punkt =
+      /** Punktgeometrie des Strukturelements
+       */
+      !!@ ili2db.dispName = "Punktgeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      !!@ ili2db.dispName = "Strukturelement Kategorie"
+      Strukturelement_Kategorie : MANDATORY StrukturelementKategorie;
+    END Strukturelement_Punkt;
+
     ASSOCIATION Beobachtung_Fauna_Beurteilung =
       Beobachtung_Fauna -- {0..*} Beobachtung_Fauna;
       Beurteilung -- {1} Beurteilung;
@@ -1554,7 +1633,7 @@ VERSION "2020-10-26"  =
       RRB_publiziert_Ab : INTERLIS.XMLDateTime;
       !!@ ili2db.dispName = "Status der Vereinbarung"
       Status_Vereinbarung : MANDATORY Vereinbarung_Status;
-      /** alte Spalte zonencd
+      /** alte Spalte zonencd - pub | alw_zonengrenzen_pub | zonengrenzen_zonengrenze
        */
       !!@ ili2db.dispName = "Landwirtschaftliche Zone"
       Landwirtschaftliche_Zone : 0 .. 99;
@@ -1564,12 +1643,6 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Kontrollintervall"
       Kontrollintervall : MANDATORY 1 .. 10;
-      /** Pflegeintervall in Jahren
-       */
-      Unterhaltsintervall : 1 .. 20;
-      /** Jahreszahl Letzter Unterhalt
-       */
-      LetzterUnterhalt : 1900 .. 2100;
       !!@ ili2db.dispName = "Bemerkung"
       Bemerkung : MTEXT*1000;
     END Vereinbarung;
@@ -1622,6 +1695,21 @@ VERSION "2020-10-26"  =
       Beurteilung -- {0..*} Beurteilung;
       Vereinbarung -- {1} Vereinbarung;
     END Beurteilung_Vereinbarung;
+
+    ASSOCIATION Strukturelement_Flaeche_Vereinbarung =
+      Strukturelement_Flaeche -- {0..*} Strukturelement_Flaeche;
+      Vereinbarung -<#> {1} Vereinbarung;
+    END Strukturelement_Flaeche_Vereinbarung;
+
+    ASSOCIATION Strukturelement_Linie_Vereinbarung =
+      Strukturelement_Linie -- {0..*} Strukturelement_Linie;
+      Vereinbarung -<#> {1} Vereinbarung;
+    END Strukturelement_Linie_Vereinbarung;
+
+    ASSOCIATION Strukturelement_Punkt_Vereinbarung =
+      Strukturelement_Punkt -- {0..*} Strukturelement_Punkt;
+      Vereinbarung -<#> {1} Vereinbarung;
+    END Strukturelement_Punkt_Vereinbarung;
 
     /** Pro Vereinbarung gibt es nur 1 Subregion. Wenn 2 oder mehr Subregionen betroffen sind, wird die Subregion mit dem grössten Flächenanteil gewählt.
      */
