@@ -1,0 +1,120 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2022-06-07 | sz  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_ARP_Waldreservate_20220607 (de)
+AT "https://geo.so.ch/models/ARP"
+VERSION "2022-06-07"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  DOMAIN
+
+    Rechtsstatus = (
+      /** Objekt ist in Kraft
+       */
+      inKraft,
+      /** Das Objekt ist in einem Verfahren zur Änderung und entfaltet mit der öffentlichen Auflage eine rechtliche Vorwirkung.
+       */
+      AenderungMitVorwirkung,
+      /** Das Objekt ist in einem Verfahren zur Änderung, entfaltet aber noch keine Vorwirkung (Zeitpunkt vor der öffentlichen Auflage).
+       */
+      AenderungOhneVorwirkung
+    );
+
+  TOPIC Dokumente =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Die Rechtsvorschriften, die zu den Waldreservaten gehören.
+     */
+    CLASS Dokument =
+      /** Titel des Dokuments
+       */
+      Titel : MANDATORY TEXT*1024;
+      /** Abkürzung der Rechtsvorschrift
+       */
+      Abkuerzung : TEXT*100;
+      /** Offizielle Nummer des Dokumentes
+       */
+      OffizielleNr : TEXT*200;
+      /** Verweis auf das Dokument im Web
+       */
+      TextImWeb : URI;
+      /** Status, ob dieses Dokument in Kraft ist
+       */
+      Rechtsstatus : MANDATORY SO_ARP_Waldreservate_20220607.Rechtsstatus;
+      /** Datum XXXXXXX
+       */
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      /** Datum YYYYYYY
+       */
+      publiziertBis : INTERLIS.XMLDate;
+    END Dokument;
+
+  END Dokumente;
+
+  TOPIC Geobasisdaten =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_ARP_Waldreservate_20220607.Dokumente;
+
+    /** Waldreservate
+     */
+    CLASS Waldreservat =
+      /** Eindeutiger Code zur Kennzeichnung des Objekts
+       */
+      ObjNummer : MANDATORY TEXT*30;
+      /** Bezeichnung des Reservats
+       */
+      Name : MANDATORY TEXT*80;
+      /** Vertraglich festgelegte Fläche des Reservats in Hektaren
+       */
+      Obj_GesFlaeche : MANDATORY 0.0 .. 999999.0;
+      /** Technische Fläche des Reservats in Hektaren
+       */
+      Obj_GISFlaeche : 0.0 .. 999999.0;
+      /** Status, ob das Waldreservat in Kraft ist
+       */
+      Rechtsstatus : MANDATORY SO_ARP_Waldreservate_20220607.Rechtsstatus;
+    END Waldreservat;
+
+    /** Teilobjekte von Waldreservaten
+     */
+    CLASS Waldreservat_Teilobjekt =
+      /** Identifikationsnummer des Teilobjekts
+       */
+      Teilobj_Nr : MANDATORY TEXT*30;
+      /** Code zur Kennzeichnung der internationalen Schutzflächentypen
+       */
+      MCPFE_Code : MANDATORY (
+        !!@ ili2db.dispName = "Keine aktiven Eingriffe"
+        MCPFE1_1,
+        !!@ ili2db.dispName = "Minimale Eingriffe"
+        MCPFE1_2,
+        !!@ ili2db.dispName = "Biodiversitätsförderung durch gezielte Eingriffe"
+        MCPFE1_3
+      );
+      /** Technische Fläche des Teilobjekts in Hektaren
+       */
+      Obj_GISTeilobjekt : MANDATORY 0.0 .. 999999.0;
+      /** Geometrie des Objekts
+       */
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+    END Waldreservat_Teilobjekt;
+
+    ASSOCIATION WaldreservatWaldreservat_Teilobjekt =
+      WR_Teilobjekt -- {1..*} Waldreservat_Teilobjekt;
+      WR -<#> {1} Waldreservat;
+    END WaldreservatWaldreservat_Teilobjekt;
+
+    ASSOCIATION Waldreservat_Dokument =
+      Dokumente (EXTERNAL) -- {1..*} SO_ARP_Waldreservate_20220607.Dokumente.Dokument;
+      Festlegung -- {0..*} Waldreservat;
+    END Waldreservat_Dokument;
+
+  END Geobasisdaten;
+
+END SO_ARP_Waldreservate_20220607.
