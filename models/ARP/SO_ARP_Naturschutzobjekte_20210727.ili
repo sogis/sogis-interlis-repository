@@ -1,0 +1,200 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2021-07-27 | ps  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact="agi@bd.so.ch"
+MODEL SO_ARP_Naturschutzobjekte_20210727 (de)
+AT "http://geo.so.ch/models/ARP/"
+VERSION "2021-07-27"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Naturschutzobjekte =
+
+    /** Amphibienstandorte
+     */
+    CLASS Amphibienstandort =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Art des Objekts
+       */
+      Objekt : MANDATORY TEXT*100;
+      /** Stand der Arbeiten
+       */
+      Stand : MANDATORY (
+        geplant,
+        realisiert
+      );
+      /** Name des zuständigen Bauherren
+       */
+      Bauherr : MANDATORY TEXT*50;
+    END Amphibienstandort;
+
+    /** Blaue Flächen Grenchen
+     */
+    CLASS Blaue_Flaechen_Grenchen =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Blaue_Flaechen_Grenchen;
+
+    /** Flachmoore von regionaler Bedeutung (Inventare Natur und Landschaft).
+     * Erhebungen der Arbeitsgemeinschaft Naturschutz und Landschaftspflege (ANL) AG, Aarau, für das Inventar der Flachmoore von nationaler Bedeutung. Im Kanton Solothurn sind keine Flachmoore von nationaler Bedeutung vorhanden.
+     */
+    CLASS Flachmoor =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Eindeutiger Bezeichner
+       */
+      Flachmoor_ID : MANDATORY 1 .. 100;
+      /** Naturreservatsnummer für Gebiete, welche als kantonale Naturreservate geschützt sind. Lesebeispiel: 20301 = Naturreservat Nummer 2.03, Teilgebiet 1
+       */
+      Nummer : 0 .. 1000000;
+      /** Gebietsbezeichnung (in der Regel Flurnamenbezeichnung)
+       */
+      Bezeichnung : MANDATORY TEXT*200;
+    END Flachmoor;
+
+    /** Flechtenstandorte (Inventare Natur und Landschaft).
+     * Auszug aus der Datenbank Lichen der Eidgenössischen Forschungsanstalt für Wald, Schnee und Landschaft (WSL = Datenherrin), Birmensdorf. Die Daten werden dem Kanton für internen Gebrauch kostenlos zur Verfügung gestellt. Die Datenherrin liefert periodisch aktualisierte Datensätze.
+     */
+    CLASS Flechte =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Artcode : MANDATORY 1 .. 10000;
+      /** Zweiteiliger wissenschaftlicher Artname
+       */
+      Artname : MANDATORY TEXT*100;
+      /** Gefährdungsstatus in der Roten Liste der gefährdeten Flechten der Schweiz (2002)
+       */
+      !!@ ili2db.dispName = "Rote Liste Status"
+      Rote_Liste_Status : MANDATORY TEXT*50;
+      /** Schutzstatus in der eidgenössischen Natur- und Heimatschutzverordnung
+       */
+      !!@ ili2db.dispName = "Schutzstatus NHV"
+      Schutzstatus_NHV : TEXT*100;
+      /** Fundort-Kanton
+       */
+      Kanton : MANDATORY TEXT*2;
+      /** Schutzpriorität
+       */
+      !!@ ili2db.dispName = "Schutzpriorität"
+      Schutzprioritaet : TEXT*10;
+      /** Datum der Aufsammlung
+       */
+      Funddatum : INTERLIS.XMLDate;
+      /** Substrat auf welchem die Flechte gedeiht
+       */
+      Substrat : MANDATORY TEXT*100;
+      /** Lebensraum
+       */
+      Habitat : TEXT*100;
+    END Flechte;
+
+    /** KARCH-Objekte (Koordinationsstelle für Amphibien- und Reptilienschutz in der Schweiz)
+     */
+    CLASS Karch_Objekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** ID vergeben von der KARCH
+       */
+      Karch_ID : MANDATORY 1 .. 1000000;
+      Nummer : MANDATORY 1 .. 1000;
+      Objektname : MANDATORY TEXT*200;
+      /** Amphibienlaichgebiete nationaler Bedeutung (IANB) Ja/Nein
+       */
+      IANB : (
+        Ja,
+        Nein
+      );
+    END Karch_Objekt;
+
+    /** Moosstandorte (Inventare Natur und Landschaft).
+     * NISM - Naturräumliches Inventar der Schweizer Moosflora (Datenherr). Datenauszug für den Kanton Solothurn aus den Jahren 2006 und 2007 (Ergänzungen). Die Daten werden dem Kanton für internen Gebrauch kostenlos zur Verfügung gestellt. Der Datenherr liefert periodisch aktualisierte Datensätze.
+     */
+    CLASS Moos =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Gültiger Gattungsname gemäss Checkliste ('Genus' für völlig unbestimmbare Arten)
+       */
+      Genus : MANDATORY TEXT*100;
+      /** Gültiger Artname ('sp.', wenn Art nicht bestimmt werden kann)
+       */
+      Species : MANDATORY TEXT*100;
+      /** Name des Autors der Art
+       */
+      Autor : TEXT*100;
+      /** Gültiger Name der Unterart, sofern vorhanden
+       */
+      Infra : TEXT*100;
+      /** Name des Autors der Unterart
+       */
+      IAutor : TEXT*100;
+      /** In Verbindung mit 'sp.' bei der Art: bei unsicherer Bestimmung Art, die es am ehesten sein könnte
+       */
+      Cf_Bestimmung : TEXT*100;
+      /** Interne Nummer für das Taxon (Art oder Unterart)
+       */
+      Taxon_Nummer : MANDATORY 0 .. 100000;
+      /** Wenn im Anhang der Berner Konvention aufgeführt: '1'
+       */
+      Berner_Konvention : 0 .. 1;
+      /** Wenn in den Anhängen der Natur- und Heimatschutzverordnung aufgeführt: 'CH' bei gesamtschweizerisch geschützten Arten, 'K' bei kantonal zu schützenden Arten
+       */
+      NHV_Verordnung : TEXT*2;
+      /** Status nach IUCN in der Roten Liste der Moose von 2004
+       */
+      IUCN_Status_Rote_Liste : TEXT*10;
+      /** Kriterien nach IUCN, die für die Einstufung verwendet wurden
+       */
+      IUCN_Kriterien_Rote_Liste : TEXT*100;
+      /** Status in der Roten Liste der Moose Europas
+       */
+      Status_Rote_Liste_Europa : TEXT*10;
+      /** Status in der weltweiten Roten Liste der Moose (nur wenige Fälle)
+       */
+      Status_Rote_Liste_Welt : MANDATORY 0 .. 10;
+      /** Interne, eindeutige Nummer für jeden Datensatz
+       */
+      Belegnummer : 1 .. 1000000;
+      /** Name des Sammlers bei Belegen, die aus Herbarien erfasst wurden
+       */
+      Sammler_Name_Herbar : TEXT*100;
+      /** Eindeutige Nummer des beim NISM registrierten Sammlers
+       */
+      Sammler_Nummer : 1 .. 10000;
+      /** Name des registrierten Sammlers
+       */
+      Sammler_Name : TEXT*50;
+      /** Datum der Aufsammlung
+       */
+      Sammeldatum : TEXT*8;
+      /** Herbarium, in dem der gesammelte Beleg liegt, entweder Privatherbarium des Sammlers oder öffentliches Herbar, abgekürzt nach Index Herbariorum oder eigener Abkürzung
+       */
+      Herbarium : TEXT*100;
+      /** Standortsbeschreibung
+       */
+      Standort : TEXT*512;
+      /** Substrat auf dem die Pflanze wächst
+       */
+      Substrat : TEXT*512;
+      /** Nummer der im Artenschutzprojekt beschriebenen Population
+       */
+      Artenschutzprojekt_Nummer : 1 .. 1000;
+      /** Abgekürzte Kantonsbezeichnung
+       */
+      Kanton : MANDATORY TEXT*2;
+      /** Nummer der NISM-Bearbeitungsfläche (aus je den ersten beiden Stellen der Koordinaten zusammengesetzt)
+       */
+      !!@ ili2db.dispName = "Flächennummer"
+      Flaechennummer : MANDATORY 0 .. 7000;
+      /** Spanne der möglichen Höhenabweichung in Meter um die mittlere Höhe
+       */
+      Abweichung : 0 .. 1000;
+      /** Naturraum-Nummer nach NISM
+       */
+      Naturraum_Nummer : 1000 .. 10000;
+      /** Gibt an, ob der Beleg aus einer systematischen Aufnahme stammt: 'A1-A4', 'B1-B6' nach NISM, oder 'D' nach Biodiversitätsmonitoring Schweiz'
+       */
+      Standard_Beleg : TEXT*2;
+    END Moos;
+
+  END Naturschutzobjekte;
+
+END SO_ARP_Naturschutzobjekte_20210727.

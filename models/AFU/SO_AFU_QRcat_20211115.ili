@@ -1,0 +1,382 @@
+INTERLIS 2.3;
+
+/** Modell zur Bearbeitung und Auswertung von Unfallszenarien bei Betrieben mit gefährlichen Gütern.
+ */
+MODEL SO_AFU_QRcat_20211115 (de)
+AT "mailto:agi@bd.so.ch"
+VERSION "2021-11-15"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  /** Das TOPIC OnlineRisk wird in der Online-Risk Applikation bewirtschaftet und via Gretl synchronisiert. Dieses Topic enthält die für die Szenarioverwaltung und -berechnung relevanten betrieblichen und stofflichen Daten.
+   */
+  TOPIC OnlineRisk =
+
+    /** Ein Betrieb kann sich gemäss Handbuch I zur Störfallverordnung aus mehreren Betriebseinheiten (Bereich) zusammensetzen. Eine Betriebseinheit kann eine Anlage, ein Lager oder ein Umschlagsplatz sein. Je nach gewünschtem Detaillierungsgrad kann ein Betrieb in wenige grosse Betriebseinheiten oder zahlreiche kleine Betribseinheiten unterteilt werden. Eine Betriebseineit kann somit ein ganzes Gebäude, ein Stockwerk, einen Brandabschnitt, einen Raum oder nur einen Teil eines Raumes umfassen.
+     * 
+     * Die t_id entspricht der "id_bereich"
+     */
+    CLASS Bereich =
+      !!@ ili2db.dispName = "Name des Bereichs"
+      name_bereich : MANDATORY TEXT*255;
+      geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Bereich;
+
+    /** Klasse "betrieb" kombiniert mit Klasse "untersuchungseinheit" aus Onlinerisk.
+     * 
+     * Die t_id entspricht der id_betrieb im Online-Risk
+     * 
+     * Ein Betrieb im Sinne von Online-Risk ist eine als örtliche Einheit betrachtete Anlage. Bei kleinen und mittleren Betrieben ist mit dem Begriff "Betrieb" der gesamte Betrieb gemeint, bei grösseren Betrieben, deren Produktionsanlagen und Lager örtlich getrennt sind, wird mit dem Begriff "Betrieb" eine Betriebsstätte oder Filiale bezeichnet.
+     */
+    CLASS Betrieb =
+      /** Name des Betriebs
+       */
+      !!@ ili2db.dispName = "Name des Betriebs"
+      name_betrieb : MANDATORY TEXT*255;
+      /** BUR-Nummer wird durch das Bundesunternehmensregister vergeben. Das Betriebs- und Unternehmensregister (BUR) umfasst alle Unternehmen und Betriebe des privaten und öffentlichen Rechts, die in der Schweiz domiziliert sind und eine wirtschaftliche Tätigkeit ausüben. Das BUR dient dem BFS als Adressregister für die statistischen Erhebungen bei Unternehmen und Arbeitsstätten. Auch andere Ämter der Bundesverwaltung und zahlreiche Kantone verwenden das BUR zu statistischen oder administrativen Zwecken.
+       */
+      !!@ ili2db.dispName = "BUR-Nummer"
+      bur_nummer : 1 .. 1000000000;
+    END Betrieb;
+
+    CLASS Gebaeude =
+      EGID : 1 .. 100000000;
+      geometrie : GeometryCHLV95_V1.Coord2;
+      zusatz : TEXT*255;
+    END Gebaeude;
+
+    /** Stoffe in einzelnen Bereichen mit Mengen.
+     */
+    !!@ ili2db.dispName = "Stoffe im Bereich"
+    CLASS Stoff_in_Bereich =
+      !!@ ili2db.dispName = "Name des Stoffs"
+      name_stoff : MANDATORY TEXT*255;
+      /** Was ist das?
+       */
+      ms_stv : 1.0 .. 10000000.0;
+      !!@ ili2db.dispName = "Maximale Menge des Stoffs"
+      max_menge : MANDATORY 1.0 .. 10000000.0;
+    END Stoff_in_Bereich;
+
+    /** Die t_id entspricht der id_untersuchungseinheit aus Online-Risk
+     */
+    CLASS Untersuchungseinheit =
+      geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      !!@ ili2db.dispName = "Name der Untersuchungseinheit"
+      name_untersuchungseinheit : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Konsultationsabstand UE"
+      konsultations_abstand : MANDATORY 0 .. 1000 [INTERLIS.M];
+      !!@ ili2db.dispName = "Parzellen-Nr"
+      parzellen_nummer : TEXT*30;
+      !!@ ili2db.dispName = "Untersuchungseinheit aktiv"
+      aktiv : MANDATORY BOOLEAN;
+    END Untersuchungseinheit;
+
+    ASSOCIATION Bereich_Gebaeude =
+      id_bereich -- {0..*} Bereich;
+      id_gebaeude -- {1} Gebaeude;
+    END Bereich_Gebaeude;
+
+    ASSOCIATION Gebaeude_Untersuchungseinheit =
+      id_gebaeude -- {0..*} Gebaeude;
+      id_untersuchungseinheit -- {1} Untersuchungseinheit;
+    END Gebaeude_Untersuchungseinheit;
+
+    ASSOCIATION StoffInBereich_Bereich =
+      /** entspricht id_stoff im Online-Risk
+       */
+      id_stoff -- {0..*} Stoff_in_Bereich;
+      /** entspricht id_bereich im Online-Risk
+       */
+      id_bereich -- {1} Bereich;
+    END StoffInBereich_Bereich;
+
+    ASSOCIATION Untersuchungseinheit_Betrieb =
+      id_untersuchungseinheit -- {0..*} Untersuchungseinheit;
+      id_betrieb -- {1} Betrieb;
+    END Untersuchungseinheit_Betrieb;
+
+  END OnlineRisk;
+
+  /** In diesem Topic werden die Szenariodaten verwaltet und mit den betrieblichen Daten im Topic "OnlineRisk" verknüpft. Neben den Szenarien werden hier auch die Resultate von Berechnungen gespeichert, wie "Letalflaeche" und der "ToxischUnguenstigter_Sektor".
+   */
+  TOPIC QRcat =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_AFU_QRcat_20211115.OnlineRisk;
+
+    DOMAIN
+
+      !!@ ili2db.dispName = "Bevölkerungstyp"
+      Bevoelkerung_Typ = (
+        !!@ ili2db.dispName = "50% der Wohn- plus 50% der Arbeitsbevölkerung"
+        WohnUndArbeitsbevoelkerung,
+        !!@ ili2db.dispName = "100% der Arbeitsbevölkerung"
+        Arbeitsbevoelkerung,
+        !!@ ili2db.dispName = "100% der Wohnbevölkerung"
+        Wohnbevoelkerung
+      );
+
+      !!@ ili2db.dispName = "Grobe Art des Szenarios"
+      Szenario_Art = (
+        !!@ ili2db.dispName = "Brand (b)"
+        Brand,
+        !!@ ili2db.dispName = "Explosion (e)"
+        Explosion,
+        !!@ ili2db.dispName = "toxische Wolke (t)"
+        toxische_Wolke
+      );
+
+      !!@ ili2db.dispName = "Typ des Stoffes im Tox-Referenz-Szenario"
+      ToxReferenzSzenario_TypStoff = (
+        fluessig,
+        gasfoermig
+      );
+
+      !!@ ili2db.dispName = "Art der Wahrscheinlichkeit Grundhäufigkeit"
+      WK_Grundhaeufigkeit_Art = (
+        !!@ ili2db.dispName = "pro Umschlag"
+        pro_Umschlag,
+        !!@ ili2db.dispName = "pro_Jahr"
+        pro_Jahr,
+        !!@ ili2db.dispName = "pro Aktivität"
+        pro_Aktivitaet
+      );
+
+    /** Wertetabelle Korrekturfaktoren für Berechnungen (F_SMN, F_CAR, F_SIK, F_BDO).
+     * 
+     * Siehe Kapitel 5.2 "Korrekturfaktoren für Wahrscheinlichkeitsberechnung" im Dokument Register 2a "Methodik: Modul Betriebe – Bevölkerung, Abschnitt: Benutzerhandbuch "Schnittstelle Betriebe".
+     */
+    !!@ ili2db.dispName = "Korrekturfaktoren F-Werte"
+    CLASS FWert =
+      FWert : MANDATORY 0.00 .. 10.00;
+    END FWert;
+
+    /** Tabelle der Wahrscheinlichkeiten (Grundhäufigkeit) für verschiedene Detailszenarien. Ehemalige Tabelle "stbl_GHK".
+     * 
+     * Die Grundhäufigkeiten werden je nach Szenario pro Jahr, pro Aktivität, pro Umschlag oder pro Brandabschnitt und Jahr definiert.
+     * 
+     * Zudem wird in dieser Klasse verwaltet ob ASZ oder MSZ für die Berechnung verwendet wird. Für Lachenbrand, Feststoffbrand, toxische Flüssigkeiten und Gaswolkenexplosion wird ASZ benötigt, sonst MSZ.
+     */
+    !!@ ili2db.dispName = "Detailszenario (Grundhäufigkeit)"
+    CLASS Detailszenario_Grundhaeufigkeit =
+      Beschreibung : MANDATORY TEXT*255;
+      /** Grobe Art des Szenarios (z.B. "Brand"), aus ehemaliger Spalte "Szenario".
+       */
+      Szenario_Art : MANDATORY Szenario_Art;
+      /** bis zu 3-stelliger Code für Detailszenario, z.B: "lb" für Lachenbrand. Aus ehemaliger Spalte "Detailszenario".
+       */
+      !!@ ili2db.dispName = "Abkürzung Detailszenario"
+      Abkuerzung_Detailszenario : MANDATORY TEXT*3;
+      /** Kurzcode für Textbeschreibung (Verfeinerung von Detailszenario) (max 6 Buchstaben), z.B. "lb_ft4" für "Lachenbrand - freistehende Tank: Flüssigkeit mit Flammpunkt < 50°C". Aus ehemaliger Spalte "TEXTCODE".
+       */
+      Code : MANDATORY TEXT*6;
+      /** Eintretenswahrscheinlichkeit (Grundhäufigkeit). Sehr tiefe Werte zwischen Null und 1, z.B. "1.00000000e-08". Aus ehemaliger Spalte "W_GHK".
+       */
+      !!@ ili2db.dispName = "Grundhäufigkeit des Szenarios (W_GHK)"
+      Grundhaeufigkeit_Szenario : MANDATORY 0.000000000 .. 1.000000000;
+      !!@ ili2db.dispName = "Art der Wahrscheinlichkeit Grundhäufigkeit"
+      Wahrscheinlichkeit_Grundhaeufigkeit_Art : MANDATORY WK_Grundhaeufigkeit_Art;
+      /** Die Attribute "Relevant_ASZ" und "Relevant_MSZ" sind gegenseitig ausschliessend (wie bei einem Radio-Button). Hier wird für jedes Detailszenario angegeben ob zur Berechnung der ASZ (relevante Freisetzungsfläche) oder MSZ-Wert (Relevante freigesetzte Stoffmenge) herangezogen werden soll.
+       * 
+       * Aus ehemaliger Spalte "asz".
+       */
+      !!@ ili2db.dispName = "Relevant für ASZ (Freisetzungsfläche)"
+      Relevant_ASZ : MANDATORY BOOLEAN;
+      /** Die Attribute "Relevant_ASZ" und "Relevant_MSZ" sind gegenseitig ausschliessend (wie bei einem Radio-Button). Hier wird für jedes Detailszenario angegeben ob zur Berechnung der ASZ (relevante Freisetzungsfläche) oder MSZ-Wert (Relevante freigesetzte Stoffmenge) herangezogen werden soll.
+       * 
+       * Aus ehemaliger Spalte "msz".
+       */
+      !!@ ili2db.dispName = "Relevant für MSZ (Freigesetzte Stoffmenge)"
+      Relevant_MSZ : MANDATORY BOOLEAN;
+      /** Aus ehemaliger Spalte "Q_Stoff".
+       */
+      !!@ ili2db.dispName = "Relevant für Q_Stoff (Stoffspezifische Verbrennungswärme)"
+      Relevant_Q_Stoff : MANDATORY BOOLEAN;
+    END Detailszenario_Grundhaeufigkeit;
+
+    /** TODO: Constraints für Letalradius_Prozent (1 und 90)
+     */
+    CLASS Letalflaeche =
+      geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Letalradius Prozent: gültige Werte sind 1 und 90.
+       */
+      !!@ ili2db.dispName = "Letalradius Prozent"
+      Letalradius_Prozent : MANDATORY 0 .. 100;
+      Letalradius : 0.00 .. 50000.00;
+      Bevoelkerung_Typ : MANDATORY Bevoelkerung_Typ;
+      !!@ ili2db.dispName = "Bevölkerungszahl"
+      Bevoelkerung_Anzahl : 0 .. 10000;
+      Risikozahl : 0.0000000000 .. 1.0000000000;
+      Anzahl_Tote : 0.00 .. 100000.00;
+    END Letalflaeche;
+
+    /** Alle relevanten Angaben zur Verwaltung und Berechnung eines Störfall-Szenarios.
+     * 
+     * Bezüglich Stoffmengen (verwaltet im Online-Risk): Sinkt die maximale Stoffmenge unter die MSZ-Menge wird das Szenario manuell angepasst. Sonst bleibt das Szenario wie es ist.
+     */
+    CLASS Szenario =
+      /** Titel des Szenarios, ehemals title
+       */
+      !!@ ili2db.dispName = "Titel des Szenarios"
+      Szenario_Titel : MANDATORY TEXT*255;
+      geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      !!@ ili2db.dispName = "Grobe Art des Szenarios"
+      Szenario_Art : Szenario_Art;
+      /** Eintreffenswahrscheinlichkeit pro Jahr oder pro Umschlag. Wird berechnet aus der Formel "Betriebsfaktor_F_ANZ * F_CAR * F_SMN * F_SIK * F_BDO * Grundhaeufigkeit_Szenario".
+       */
+      !!@ ili2db.dispName = "Eintreffenswahrscheinlichkeit des Szenarios"
+      Wahrscheinlichkeit_Szenario : 0.0000000000 .. 1.0000000000;
+      /** Freisetzungsfläche bzw. relevante Netto-Bassinfläche des dem Störfallszenario zugrundeliegenden Betriebes oder der Betriebseinheit. Erklärungen im Kapitel 4 des Dokuments Register 2a "Methodik: Modul Betriebe – Bevölkerung, Abschnitt: Benutzerhandbuch "Schnittstelle Betriebe".
+       * 
+       * Wird abhängig von der Situation im Betrieb manuell im Szenario erfasst.
+       */
+      !!@ ili2db.dispName = "Relevante Freisetzungsfläche (ASZ)"
+      ASZ_Relevante_Freisetzungsflaeche : MANDATORY 0 .. 100000 [Units.m2];
+      /** Relevante Freisetzungsmenge des dem Störfallszenario zugrundeliegenden Stoffes. Erklärungen im Kapitel 3 des Dokuments Register 2a "Methodik: Modul Betriebe – Bevölkerung, Abschnitt: Benutzerhandbuch "Schnittstelle Betriebe".
+       * 
+       * Wird abhängig von der Situation im Betrieb manuell im Szenario erfasst.
+       */
+      !!@ ili2db.dispName = "Relevante freigesetzte Stoffmenge (MSZ)"
+      MSZ_Relevante_Freigesetzte_Stoffmenge : MANDATORY 0 .. 100000 [INTERLIS.kg];
+      /** Stoffspezifische Verbrennungswärme für Szenarien Lachenbrand, Gaswolkenexplosion und Feuerball. Einheit in MJ / kg.
+       * 
+       * Q_Stoff kann einer Tabelle entnommen werden und wird manuell im Szenario eingegeben.
+       */
+      !!@ ili2db.dispName = "Stoffspezifische Verbrennungswärme [MJ / kg]"
+      Q_Stoff_StoffspezVerbrennungswaerme : MANDATORY 0 .. 100;
+      /** Letalitätsradius 90% des Störfallereigenisses ab Freisetzungsort
+       */
+      !!@ ili2db.dispName = "LSZ 90% (Letalitätsradius 90%)"
+      LSZ_90 : MANDATORY 0.0 .. 1000.0 [INTERLIS.m];
+      /** Letalitätsradius 1% des Störfallereigenisses ab Freisetzungsort
+       */
+      !!@ ili2db.dispName = "LSZ 1% (Letalitätsradius 90%)"
+      LSZ_1 : MANDATORY 0.0 .. 5000.0 [INTERLIS.m];
+      /** Faktor Anzahl (Anzahl Tanks oder Umschläge / Aktivitäten pro Jahr)
+       */
+      !!@ ili2db.dispName = "Betriebsfaktor (F_ANZ)"
+      Betriebsfaktor_F_ANZ : MANDATORY 1 .. 10;
+    END Szenario;
+
+    /** Diese Tabelle enthält für jedes Szenario 2 toxisch ungünstigste Sektoren, jeweils für die Letalitätsbereiche 10 und 100. Die Geometrien der Sektoren überlappen sowohl innerhalb des Szenarios, können aber auch zu den Sektoren von anderen Szenarien und/oder Betrieben überlappen.
+     * 
+     * Die Sektoren werden für die 3 Bevölkerungsfälle: 100% der Wohnbevölkerung, 100% der Arbeitsbevölkerung, sowie einem Mix von je 50% gerechnet.
+     * 
+     * Entspricht ehemaliger Tabelle "betbev_sektoren", resp. View "bebev_sektoren_v" (verknpüft mit Szenario).
+     */
+    !!@ ili2db.dispName = "Toxisch ungünstigster Sektor"
+    CLASS ToxischUnguenstigster_Sektor =
+      /** Geometrie des Kreissektors
+       */
+      geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Letalradius für das 10% oder 100% Szenario.
+       */
+      Letalradius_Prozent : MANDATORY 0.00 .. 100.00;
+      /** Errechneter Letalradius für die jeweiligen Szenarien und Letalradius-Prozenttypen in Metern.
+       */
+      Letalradius : 0.00 .. 50000.00 [INTERLIS.m];
+      Bevoelkerung_Typ : MANDATORY Bevoelkerung_Typ;
+      !!@ ili2db.dispName = "Bevölkerungszahl"
+      Bevoelkerung_Anzahl : 0 .. 10000;
+      /** Risikozahl (Schadenausmass) zwischen 0 und 1.
+       */
+      !!@ ili2db.dispName = "Risikozahl (Schadenausmass)"
+      Risikozahl : 0.0000000000 .. 1.0000000000;
+      /** Anzahl Tote (Personen Schadenausmass)
+       */
+      !!@ ili2db.dispName = "Anzahl Tote"
+      Anzahl_Tote : 0.00 .. 100000.00;
+    END ToxischUnguenstigster_Sektor;
+
+    /** Tabelle mit Referenzszenarien (Ausbreitungseigenschaften) für verschiedene gasförmige und flüssige Stoffe. Ehemals Tabelle "tbl_tox_referenzszenarien".
+     */
+    CLASS ToxReferenzSzenario =
+      Stoff : MANDATORY TEXT*255;
+      /** Definiert ob Stoff gasförmig oder flüssig ist.
+       */
+      !!@ ili2db.dispName = "Typ (gasförmig oder flüssig)"
+      TypStoff : MANDATORY ToxReferenzSzenario_TypStoff;
+      /** Letalitätsradius des 90% Referenzszenarios für den jeweiligen Stoff. Einheiten in m.
+       */
+      !!@ ili2db.dispName = "LRSZ90 (90% Letalitätsradius Referenzszenario)"
+      LRSZ90_RefLetalitaetsradius : MANDATORY 0 .. 10000 [INTERLIS.M];
+      /** Letalitätsradius des 1% Referenzszenarios für den jeweiligen Stoff. Einheiten in m.
+       */
+      !!@ ili2db.dispName = "LRSZ1 (1% Letalitätsradius Referenzszenario)"
+      LRSZ1_RefLetalitaetsradius : MANDATORY 0 .. 10000 [INTERLIS.M];
+      /** Exponent für szenariospezifische Mengenkorrektur. Exponent hiess früher "bi".
+       */
+      !!@ ili2db.dispName = "bi (Exponent für szenariospezifische Mengenkorrektur)"
+      bi_StoffSpez_Exponent : MANDATORY 0.00 .. 1.00;
+      /** Stoffspezifische Letalwerte für das 90%-Szenario. Angaben in Prozent.
+       */
+      !!@ ili2db.dispName = "Letalwert 90%"
+      LW90_Letalwert : MANDATORY 0 .. 100;
+      /** Stoffspezifische Letalwerte für das 1%-Szenario. Angaben in Prozent.
+       */
+      !!@ ili2db.dispName = "Letalwert 1%"
+      LW1_Letalwert : MANDATORY 0 .. 100;
+    END ToxReferenzSzenario;
+
+    ASSOCIATION Letalflaeche_Szenario =
+      letalflaeche -- {0..*} Letalflaeche;
+      id_szenario -<#> {1} Szenario;
+    END Letalflaeche_Szenario;
+
+    ASSOCIATION Szenario_Betrieb =
+      szenario -- {0..*} Szenario;
+      id_betrieb (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Betrieb;
+    END Szenario_Betrieb;
+
+    ASSOCIATION Szenario_DetailszenarioGHK =
+      szenario -- {0..*} Szenario;
+      id_DetailszenarioGHK -- {1} Detailszenario_Grundhaeufigkeit;
+    END Szenario_DetailszenarioGHK;
+
+    ASSOCIATION Szenario_FWert_F_BDO =
+      szenario_f_bdo -- {0..*} Szenario;
+      /** Korrekturfaktor für Einwirkungen von ausserhalb Betriebsareal (externe Bedrohungen)
+       */
+      F_BDO -- {1} FWert;
+    END Szenario_FWert_F_BDO;
+
+    ASSOCIATION Szenario_FWert_F_CAR =
+      szenario_f_car -- {0..*} Szenario;
+      /** Korrekturfaktor spezifische Stoffverwendung und Betriebstyp.
+       */
+      F_CAR -- {1} FWert;
+    END Szenario_FWert_F_CAR;
+
+    ASSOCIATION Szenario_FWert_F_SIK =
+      szenario_f_sik -- {0..*} Szenario;
+      /** Korrekturfaktor Sicherheitskultur.
+       */
+      F_SIK -- {1} FWert;
+    END Szenario_FWert_F_SIK;
+
+    ASSOCIATION Szenario_FWert_F_SMN =
+      szenario_f_smn -- {0..*} Szenario;
+      /** Korrekturfaktor Sicherheitsmassnahmen
+       */
+      F_SMN -- {1} FWert;
+    END Szenario_FWert_F_SMN;
+
+    ASSOCIATION Szenario_Stoff =
+      szenario -- {0..*} Szenario;
+      /** ID des im Bereich gelagerten Stoffes
+       */
+      id_stoff (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Stoff_in_Bereich;
+    END Szenario_Stoff;
+
+    ASSOCIATION Szenario_ToxReferenzSzenario =
+      szenario -- {0..*} Szenario;
+      id_ToxReferenzSzenario -- {1} ToxReferenzSzenario;
+    END Szenario_ToxReferenzSzenario;
+
+    ASSOCIATION ToxischUnguenstigsterSektor_Szenario =
+      ToxischUnguenstigster_Sektor -- {0..*} ToxischUnguenstigster_Sektor;
+      id_szenario -<#> {1} Szenario;
+    END ToxischUnguenstigsterSektor_Szenario;
+
+  END QRcat;
+
+END SO_AFU_QRcat_20211115.

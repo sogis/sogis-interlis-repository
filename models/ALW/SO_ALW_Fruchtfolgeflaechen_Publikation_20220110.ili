@@ -1,0 +1,94 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2020-11-09 | rl  | Ersterfassung
+ *  !! 2022-01-10 | ms | BFS-Nr. rausgenommen. Statistik hinzugefuegt.
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/
+MODEL SO_ALW_Fruchtfolgeflaechen_Publikation_20220110 (de)
+AT "https://geo.so.ch/models/"
+VERSION "2022-01-10"  =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1;
+
+  DOMAIN
+
+    Gebietseinteilung = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    Spezialfaelle = (
+      Golfplatz,
+      !!@ ili2db.dispName=Gewässerraum
+      Gewaesserraum,
+      Reservezone,
+      GSZ2,
+      !!@ ili2db.dispName=Kiesgrube/Abbaugebiet
+      Kiesgrube_Abbaugebiet,
+      VSB,
+      !!@ ili2db.dispName="übriger Spezialfall"
+      uebriger_Spezialfall
+    );
+
+    /** Codes für die Bezeichnung
+     */
+    Codes (FINAL) = (
+      geeignet,
+      bedingt_geeignet
+    );
+
+    Stand = FORMAT INTERLIS.XMLDate "2020-1-1" .. "2099-12-31";
+
+  TOPIC Inventarflaechen =
+
+    CLASS Fruchtfolgeflaeche =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY SO_ALW_Fruchtfolgeflaechen_Publikation_20220110.Gebietseinteilung;
+      /** Bezeichnung der Fruchtfolgeflächen-Qualität
+       */
+      Bezeichnung : MANDATORY SO_ALW_Fruchtfolgeflaechen_Publikation_20220110.Codes;
+      /** Spezielfall Begründung
+       */
+      Spezialfall : SO_ALW_Fruchtfolgeflaechen_Publikation_20220110.Spezialfaelle;
+      /** Stand der Daten
+       */
+      Datenstand : MANDATORY TEXT*20;
+      /** Anrechenbarkeit
+       */
+      Anrechenbar : MANDATORY 0.00 .. 1.00;
+      /** Fläche in Aren
+       */
+      Area_aren : 0.00 .. 999999.99 [Units.a];
+      /** Fläche in Aren multipliziert mit der Anrechenbarkeit
+       */
+      Area_anrech : 0.00 .. 999999.99 [Units.a];
+    END Fruchtfolgeflaeche;
+
+    /** Statistik der Fruchtfolgeflaechen
+     */
+    CLASS Statistik =
+      /** Gemeindename
+       */
+      Gemeindename : MANDATORY TEXT*200;
+      /** BFS-Nummer der Gemeinde
+       */
+      BFS_Nummer : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Anrechenbarkeit
+       */
+      Anrechenbar : MANDATORY 0.00 .. 1.00;
+      /** Spezialfall
+       */
+      Spezialfall : TEXT*200;
+      /** Fläche der FFF in Aren
+       */
+      Flaeche : MANDATORY 0.00 .. 999999.99;
+      /** Anrechenbare Fläche in Aren
+       */
+      Flaeche_anrechenbar : MANDATORY 0.00 .. 999999.99;
+    END Statistik;
+
+  END Inventarflaechen;
+
+END SO_ALW_Fruchtfolgeflaechen_Publikation_20220110.

@@ -1,0 +1,61 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2022-04-22 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AGS_Religionsgemeinschaften_20220422 (de)
+AT "https://geo.so.ch/models/AGS"
+VERSION "2022-04-22"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Religionsgemeinschaften =
+
+    /** Religiöse Tradition
+     */
+    CLASS Religioese_Tradition =
+      /** Name
+       */
+      Name : MANDATORY TEXT*512;
+    END Religioese_Tradition;
+
+    /** Privatrechtlich organisierte Religionsgemeinschaft (ohne Freikirchen).
+     */
+    CLASS Religionsgemeinschaft =
+      /** Name des Vereins oder des Gebetshauses
+       */
+      Name : MANDATORY TEXT*1024;
+      /** Strassenname
+       */
+      Strasse : TEXT*512;
+      /** Hausnummer
+       */
+      Hausnummer : TEXT*20;
+      /** Postleitzahl
+       */
+      PLZ : 0 .. 9999;
+      /** Postalische Ortschaft
+       */
+      Ortschaft : TEXT*512;
+      /** Im Kanton Solothurn seit
+       */
+      ansaessig_seit : INTERLIS.GregorianYear;
+      /** Ort des Gebetshauses etc. in Landeskoordinaten
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Bemerkungen, falls z.B. keine genaue Adresse bekannt ist.
+       */
+      Bemerkungen : TEXT*1024;
+    END Religionsgemeinschaft;
+
+    ASSOCIATION Tradition_Gemeinschaft =
+      r_Tradition -- {1} Religioese_Tradition;
+      r_Gemeinschaft -- {0..*} Religionsgemeinschaft;
+    END Tradition_Gemeinschaft;
+
+  END Religionsgemeinschaften;
+
+END SO_AGS_Religionsgemeinschaften_20220422.
