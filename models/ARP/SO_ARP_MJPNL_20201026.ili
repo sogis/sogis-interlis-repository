@@ -40,6 +40,29 @@ VERSION "2020-10-26"  =
         viertel
       );
 
+      Bodeneigeinschaft = (
+        !!@ ili2db.dispName = "tonig-vernässt"
+        tonig_vernaesst,
+        lehmig,
+        steinig
+      );
+
+      !!@ ili2db.dispName = "Exposition"
+      Exposition = (
+        !!@ ili2db.dispName = "Südost"
+        Suedost,
+        !!@ ili2db.dispName = "Südwest"
+        Suedwest,
+        Nordost,
+        Nordwest,
+        Ost,
+        West,
+        !!@ ili2db.dispName = "Süd"
+        Sued,
+        Nord,
+        verschiedene
+      );
+
       !!@ ili2db.dispName = "Faunaliste Gruppe"
       Faunaliste_Gruppe = (
         !!@ ili2db.dispName = "Heuschrecke"
@@ -140,6 +163,16 @@ VERSION "2020-10-26"  =
         Trockensteinmauer
       );
 
+      !!@ ili2db.dispName = "topografische Eigenschaften"
+      Topografische_Eigenschaften = (
+        Hangfuss,
+        Steilhang,
+        Hang,
+        Kuppe,
+        Senke,
+        eben
+      );
+
       !!@ ili2db.dispName = "Vereinbarung Status"
       Vereinbarung_Status = (
         inaktiv,
@@ -151,6 +184,19 @@ VERSION "2020-10-26"  =
         !!@ ili2db.dispName = "in Vorbereitung"
         in_Vorbereitung,
         Anmeldung
+      );
+
+      Weide_BesondereStrukturen = (
+        !!@ ili2db.dispName = "Viehläger"
+        Viehlaeger,
+        Abbaustelle,
+        !!@ ili2db.dispName = "Quellaufstoss / Vernässung"
+        Quellaufstoss_Vernaessung,
+        Doline,
+        Weidmauer,
+        Lesesteinhaufen,
+        !!@ ili2db.dispName = "Felsaufschluss oder -block"
+        Felsaufschluss_Block
       );
 
       !!@ ili2db.dispName = "Weidenstruktur"
@@ -172,6 +218,14 @@ VERSION "2020-10-26"  =
         Kat_W1,
         !!@ ili2db.dispName = "Kat. W1+ (besonders artenreiche Weide)"
         Kat_W1_plus
+      );
+
+      Weidnarbe = (
+        !!@ ili2db.dispName = "grössere Anrisse"
+        groessere_Anrisse,
+        !!@ ili2db.dispName = "lückig"
+        lueckig,
+        geschlossen
       );
 
       /** Wiesenkategorie (Art / Typ), Grundlagen: Floraliste
@@ -204,6 +258,24 @@ VERSION "2020-10-26"  =
         !!@ ili2db.dispName = "Kat. I (besonders artenreiche Wiese)"
         Kat_I_besondersartenreicheWiese
       );
+
+      Wiesenstruktur = (
+        !!@ ili2db.dispName = "2-schichtig"
+        zwei_schichtig,
+        !!@ ili2db.dispName = "1-schichtig"
+        ein_schichtig,
+        dicht,
+        locker,
+        !!@ ili2db.dispName = "regelmässig"
+        regelmaessig,
+        !!@ ili2db.dispName = "unregelmässig"
+        unregelmaessig
+      );
+    STRUCTURE Bodeneigeinschaft_ = value : MANDATORY Bodeneigeinschaft; END Bodeneigeinschaft_;
+    STRUCTURE Topografische_Eigenschaften_ = value : MANDATORY Topografische_Eigenschaften; END Topografische_Eigenschaften_;
+    STRUCTURE Weide_BesondereStrukturen_ = value : MANDATORY Weide_BesondereStrukturen; END Weide_BesondereStrukturen_;
+    STRUCTURE Weidnarbe_ = value : MANDATORY Weidnarbe; END Weidnarbe_;
+    STRUCTURE Wiesenstruktur_ = value : MANDATORY Wiesenstruktur; END Wiesenstruktur_;
 
     !!@ ili2db.dispName = "Beobachtung Fauna"
     CLASS Beobachtung_Fauna =
@@ -300,6 +372,10 @@ VERSION "2020-10-26"  =
         !!@ ili2db.dispName = "Nutzungsvereinbarung"
         Nutzungsvereinbarung
       );
+
+    CLASS Abrechnung
+    EXTENDS Dokument =
+    END Abrechnung;
 
     !!@ ili2db.dispName = "Beobachtung Flora"
     CLASS Beobachtung_Flora =
@@ -606,6 +682,15 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur pro ha"
       EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY Weide_Struktur;
+      !!@ ili2db.dispName = "Bodeneigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigeinschaft_;
+      !!@ ili2db.dispName = "Weidnarbe"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.dispName = "Besondere Strukturen"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
       /** pro ha / Jahr
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung pro ha"
@@ -650,10 +735,10 @@ VERSION "2020-10-26"  =
       Erschwernis_Massnahme1_Abgeltung_ha : 0.00 .. 200.00 [Units.CHF];
       !!@ ili2db.dispName = "Erschwernis Massnahme 2"
       Erschwernis_Massnahme2_Aktiv : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "Erschwernis aufwändige Handarbeit Massnahme 2"
-      Erschwernis_Massnahme2 : MTEXT*1000;
       !!@ ili2db.dispName = "Erschwernis aufwändige Handarbeit Massnahme 2 Abgeltung ha"
       Erschwernis_Massnahme2_Abgeltung_ha : 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Erschwernis aufwändige Handarbeit Massnahme 2"
+      Erschwernis_Massnahme2 : MTEXT*1000;
       /** Erschwernis aufwendige Handarbeit Abgeltung total per ha
        */
       !!@ ili2db.dispName = "Erschwernis aufwendige Handarbeit Abgeltung total"
@@ -820,6 +905,14 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Wiesenkategorie pro ha"
       EinstufungBeurteilungIstZustand_Wiesenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 800.00 [Units.CHF];
+      !!@ ili2db.dispName = "Exposition"
+      EinstufungBeurteilungIstZustand_LageWiese_Exposition : Exposition;
+      !!@ ili2db.dispName = "Topografische Eigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_LageWiese_Topografie : BAG {0..*} OF Topografische_Eigenschaften_;
+      !!@ ili2db.dispName = "Wiesenstruktur"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Wiesenstruktur : BAG {0..*} OF Wiesenstruktur_;
       !!@ ili2db.dispName = "Bewirtschaftungsabmachungen - Schnittzeitpunkte"
       BewirtschaftAbmachung_Schnittzeitpunkte : MANDATORY BOOLEAN;
       !!@ ili2db.dispName = "Datum 1. Schnitt (Tag / Monat)"
@@ -846,6 +939,8 @@ VERSION "2020-10-26"  =
       BewirtschaftAbmachung_Herbstweide_Tierart : TEXT*60;
       !!@ ili2db.dispName = "Herbstbeweidung Anzahl Tiere"
       BewirtschaftAbmachung_Herbstweide_AnzahlTiere : 0 .. 500;
+      !!@ ili2db.dispName = "Keine Herbstweide"
+      BewirtschaftAbmachung_KeineHerbstweide : BOOLEAN;
       /** Gesamte ID-Fläche: Mähen mit Messerbalken-Mähgerät (Verzicht auf Rotationsmähwerk, bzw. Kreiselmäher)
        */
       !!@ ili2db.dispName = "Mähen mit Messerbalken-Mähgerät"
@@ -971,8 +1066,6 @@ VERSION "2020-10-26"  =
       Abgeltung_pauschal_total : MANDATORY 0.00 .. 2100.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung total (Flächenbeitrag und Pauschale)"
       Abgeltung_total : MANDATORY 0.00 .. 15000.00 [Units.CHF];
-      !!@ ili2db.dispName = "Keine Herbstweide"
-      BewirtschaftAbmachung_KeineHerbstweide : BOOLEAN;
     END Beurteilung_WBL_Wiese;
 
     !!@ ili2db.dispName = "Beurteilung Weide LN"
@@ -1044,6 +1137,13 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur pro ha"
       EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigeinschaft_;
+      !!@ ili2db.dispName = "Weidnarbe"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
       /** pro ha / Jahr
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung pro ha"
@@ -1207,6 +1307,14 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur pro ha"
       EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Bodeneigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigeinschaft_;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.dispName = "Besondere Strukturen"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
       /** pro ha / Jahr
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung pro ha"
@@ -1362,6 +1470,13 @@ VERSION "2020-10-26"  =
       /** Abgeltung Wiesenkategorie per ha (abhängig von gewählter Wiesenkategorie)
        */
       EinstufungBeurteilungIstZustand_Wiesenkategorie_Abgeltung_ha : 0.00 .. 800.00 [Units.CHF];
+      !!@ ili2db.dispName = "Exposition"
+      EinstufungBeurteilungIstZustand_LageWiese_Exposition : Exposition;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_LageWiese_Topografie : TEXT*20;
+      !!@ ili2db.dispName = "Wiesenstruktur"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Wiesenstruktur : BAG {0..*} OF Wiesenstruktur_;
       /** Heuschnitt abgesprochen
        */
       !!@ ili2db.dispName = "Heuschnitt abgesprochen"
@@ -1402,12 +1517,12 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Abgeltung Bewirtschaftungsabmachung"
       BewirtschaftAbmachung_Abgeltung_ha : MANDATORY 0 .. 350 [Units.CHF];
-      !!@ ili2db.dispName = "Erschwernis 1"
-      Erschwernis_Erschwernis1 : MANDATORY BOOLEAN;
       /** Optionale Erschwernis / aufwendige Handarbeit 1 (maximal 100 CHF pro ha/Jahr)
        */
       !!@ ili2db.dispName = "Erschwernis 1 Beschreibung"
       Erschwernis_Erschwernis1_Beschreibung : MTEXT*2000;
+      !!@ ili2db.dispName = "Erschwernis 1"
+      Erschwernis_Erschwernis1 : MANDATORY BOOLEAN;
       /** maximal 100.- CHF pro ha/Jahr
        */
       !!@ ili2db.dispName = "Erschwernis 1 Abgeltung per ha"
@@ -1564,19 +1679,6 @@ VERSION "2020-10-26"  =
       Beurteilung -- {0..*} Beurteilung;
     END Berater_Beurteilung;
 
-    /** Zuständigkeitsgebiete Mitarbeiter
-     * 
-     * TODO: Vereinbarungen
-     * 
-     * Gebietsverantwortlich vs. Programmverantwortliche
-     * 
-     * für Listen und Arbeitskarten, resp. Aufträge
-     */
-    CLASS Rayon =
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      Vereinbarungsart : MANDATORY Vereinbarungsart;
-    END Rayon;
-
     CLASS Vereinbarung
     EXTENDS Dokument =
       /** Die Vereinbarungs-Nr setzt sich wie folgt zusammen:
@@ -1680,15 +1782,6 @@ VERSION "2020-10-26"  =
                                           Fl -> Name_Deutsch;
       FF_Art: MANDATORY TEXT*50;
     END Fauna_Flora_Liste;
-
-    CLASS Abrechnung
-    EXTENDS Dokument =
-    END Abrechnung;
-
-    ASSOCIATION Berater_Rayon =
-      Berater -- {1} Berater;
-      Rayon -- {0..*} Rayon;
-    END Berater_Rayon;
 
     ASSOCIATION Beurteilung_Vereinbarung =
       Beurteilung -- {0..*} Beurteilung;
