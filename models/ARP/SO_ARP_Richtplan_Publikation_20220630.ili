@@ -1,0 +1,308 @@
+INTERLIS 2.3;
+
+/** !!-----------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2018-10-08 | NS  | Ersterfassung
+ * !! 2018-10-29 | NS  | Anpassung Attributnamen und Enumerationeintraege
+ * !! 2018-11-02 | NS  | abstrakte Klasse integriert
+ * !! 2018-12-03 | NS  | Aenderungen aus dem Erfassungsmodell uebernommen
+ * !! 2018-12-14 | NS  | Anpassung Grundnutzung zu Grundnutzung_erweitert
+ * !! 2019-02-22 | NS  | Anpassung Grundnutzung_erweitert zu Grundnutzung
+ * !! 2019-03-01 | NS  | Nationalstrasse.Autobahn_Autostrasse zu
+ *                       Nationalstrasse.Strasse umbenannt
+ *                       Ueberlagerungen bei Juraschutzzonen entfernt
+ * !! 2021-02-10 | PS  | Detailkarte neu mit ueberlagernder Linie
+ * !! 2022-06-30 | PS | neuer Objekttyp in ueberlagernder Linie: historische Verkehrswege
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_ARP_Richtplan_Publikation_20220630 (de)
+AT "http://geo.so.ch/models/ARP"
+VERSION "2022-06-30"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Kategorie der Abstimmung
+     */
+    Abstimmungskategorie = (
+      Ausgangslage,
+      Vororientierung,
+      Zwischenergebnis,
+      Festsetzung
+    );
+
+    /** Status des Objekts
+     */
+    Status = (
+      neu,
+      bestehend,
+      Erweiterung
+    );
+
+  TOPIC Detailkarten =
+
+    /** ueberlagernde Flaechen der Detailkarten
+     */
+    CLASS ueberlagernde_Flaeche =
+      /** Name der ueberlagernden Flaeche
+       */
+      Objektname : TEXT*150;
+      /** Typ der ueberlagernden Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Handlungsraum(
+          agglogepraegt,
+          laendlich,
+          urban
+        ),
+        Freizeit_Sport_Erholung,
+        naturnaher_Landschaftsraum,
+        landwirtschaftliches_Vorranggebiet
+      );
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20220630.Abstimmungskategorie;
+      /** Flaechengeometrie der ueberlagernden Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Namen der betroffenen Gemeinden
+       */
+      Gemeindenamen : TEXT*255;
+    END ueberlagernde_Flaeche;
+
+    /** ueberlagernde Linien der Detailkarten
+     */
+    CLASS ueberlagernde_Linie =
+      /** Name der ueberlagernden Flaeche
+       */
+      Objektname : MTEXT*150;
+      /** Typ der ueberlagernden Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Gewaesserstrecke_Kleinkraftwerk
+      );
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20220630.Abstimmungskategorie;
+      /** Linienengeometrie der ueberlagernden Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END ueberlagernde_Linie;
+
+    /** ueberlagernde Punkte der Detailkarten
+     */
+    CLASS ueberlagernder_Punkt =
+      /** Status des ueberlagernden Punkts
+       */
+      Status : MANDATORY SO_ARP_Richtplan_Publikation_20220630.Status;
+      /** Typ des ueberlagernden Punkts
+       */
+      Objekttyp : MANDATORY (
+        Freizeitnutzung,
+        Zentrumsstruktur(
+          Hauptzentrum,
+          Regionalzentrum,
+          Stuetzpunktgemeinde
+        )
+      );
+      /** Punktgeometrie des ueberlagernden Punkts
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Name der Gemeinde
+       */
+      Gemeindename : TEXT*150;
+    END ueberlagernder_Punkt;
+
+  END Detailkarten;
+
+  TOPIC Richtplankarte =
+
+    DOMAIN
+
+      /** Bedeutung des Objekts
+       */
+      Bedeutung = (
+        regional,
+        kantonal,
+        national
+      );
+
+      /** Stand der Planung
+       */
+      Planungsstand = (
+        in_Auflage,
+        rechtsgueltig
+      );
+
+    /** Grundnutzung des Richtplans
+     */
+    CLASS Grundnutzung =
+      /** Abstimmungskategorie
+       */
+      Abstimmungskategorie : MANDATORY SO_ARP_Richtplan_Publikation_20220630.Abstimmungskategorie;
+      /** Art der Grundnutzung
+       */
+      Grundnutzungsart : MANDATORY (
+        Gewaesser,
+        Nationalstrasse,
+        Wald,
+        Landwirtschaftsgebiet,
+        Siedlungsgebiet(
+          Wohnen_oeffentliche_Bauten,
+          Industrie_Arbeiten
+        ),
+        Reservezone
+      );
+      /** Flaechengeometrie der Grundnutzung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Auflistung der Dokumente
+       */
+      Dokumente : MTEXT;
+      /** Stand der Planung
+       */
+      Planungsstand : MANDATORY Planungsstand;
+    END Grundnutzung;
+
+    /** Geometrien, welche die Grundnutzung ueberlagern
+     */
+    CLASS ueberlagernde_Geometrie (ABSTRACT) =
+      /** Name der ueberlagernden Geometrie
+       */
+      Objektname : TEXT*150;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : MANDATORY SO_ARP_Richtplan_Publikation_20220630.Abstimmungskategorie;
+      /** Bedeutung der ueberlagernden Geometrie
+       */
+      Bedeutung : Bedeutung;
+      /** Stand der Planung
+       */
+      Planungsstand : MANDATORY Planungsstand;
+      /** Auflistung der dazugehoerigen Dokumente
+       */
+      Dokumente : MTEXT;
+      /** Status der ueberlagernden Geometrie
+       */
+      Status : MANDATORY SO_ARP_Richtplan_Publikation_20220630.Status;
+    END ueberlagernde_Geometrie;
+
+    /** Polygonthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Flaeche
+    EXTENDS ueberlagernde_Geometrie =
+      /** Nummer der ueberlagernden Flaeche
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Deponie,
+        Windenergie,
+        Naturpark,
+        kantonales_Vorranggebiet,
+        Sondernutzungsgebiet,
+        Witischutzzone,
+        kantonale_Uferschutzzone,
+        Entwicklungsgebiet_Arbeiten,
+        Grundwasserschutzzone_areal,
+        Siedlungstrennguertel,
+        kantonales_Naturreservat,
+        BLN_Gebiet,
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        Fruchtfolgeflaeche,
+        Juraschutzzone
+      );
+      /** weitere Informationen zu der ueberlagernden Flaeche
+       */
+      weitere_Informationen : TEXT*255;
+      /** Polygongeometrie der ueberlagernden Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** betroffene Gemeinden
+       */
+      Gemeindenamen : MANDATORY TEXT*1024;
+    END ueberlagernde_Flaeche;
+
+    /** Linienthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Linie
+    EXTENDS ueberlagernde_Geometrie =
+      /** Objektnummer der ueberlagernden Linie
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Linie
+       */
+      Objekttyp : MANDATORY (
+        Erdgastransportleitung,
+        Hochspannungsleitung,
+        Bahnlinie(
+          Schiene,
+          Tunnel
+        ),
+        Nationalstrasse(
+          Strasse,
+          Tunnel
+        ),
+        Kantonsstrasse,
+        Wildtierkorridor,
+        !!@ ili2db.dispName = "Historischer Verkehrsweg mit Substanz"
+        Historischer_Verkehrsweg
+      );
+      /** Liniengeometrie der ueberlagernden Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END ueberlagernde_Linie;
+
+    /** Punktthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernder_Punkt
+    EXTENDS ueberlagernde_Geometrie =
+      /** Art des ueberlagernden Punkts
+       */
+      Objekttyp : MANDATORY (
+        Schiess_Uebungsplatz,
+        Kehrrichtverbrennungsanlage,
+        Kernkraftwerk,
+        Wasserkraftwerk(
+          Aare,
+          Birs,
+          Emmenkanal
+        ),
+        Flugplatz,
+        Bahn_Bus_Haltestelle,
+        Autobahnanschluss(
+          Vollanschluss,
+          Halbanschluss
+        ),
+        oeffentliche_Bauten,
+        Umstrukturierungsgebiet,
+        Einkaufszentrum,
+        Bahnhofgebiet,
+        Arbeitszone,
+        UNESCO_Weltkulturerbe,
+        Ortsbild,
+        Freizeit_Sport_Anlage,
+        Gueterregulierung,
+        Erweiterung_Siedlungsgebiet
+      );
+      /** weitere Spezifikationen des ueberlagernden Punkts
+       */
+      Spezifikation : TEXT*255;
+      /** Geometrie des ueberlagernden Punkts
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** betroffene Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*150;
+    END ueberlagernder_Punkt;
+
+  END Richtplankarte;
+
+END SO_ARP_Richtplan_Publikation_20220630.
