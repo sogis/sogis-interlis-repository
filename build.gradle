@@ -24,6 +24,8 @@ configurations.all {
 
 apply from: "$rootDir/gradle/versioning.gradle"
 
+description = """SO!GIS INTERLIS repository"""
+
 def GROUP = "INTERLIS repository creation"
 
 import ch.so.agi.tasks.InterlisRepositoryCreator
@@ -115,8 +117,35 @@ tasks.register('checkInterlisRepository', JavaExec) {
 }
 checkInterlisRepository.finalizedBy stopContainer
 
+// local develop: 'docker buildx create --use'
+// gh action: handled by the pipeline
+task buildAndPushImages(type: Exec) {
+    def githash = getCheckedOutGitCommitHash()
+    def buildTimestamp = getTimestamp()
+
+    workingDir "$projectDir"
+    commandLine 'docker', 'buildx', 'build',
+                '--platform', 'linux/arm64,linux/amd64',
+                '--no-cache', '--force-rm', '--push',
+                '--label', "org.opencontainers.image.title=$project.description",
+                '--label', "org.opencontainers.image.version=$version",
+                '--label', "org.opencontainers.image.base.name=docker.io/nginx:mainline-alpine",
+                '--label', "org.opencontainers.image.created=$buildTimestamp", 
+                '--label', "org.opencontainers.image.revision=$githash",
+                '-t', "$DOCKER_ACCOUNT/$DOCKER_REPO:latest",
+                '-t', "$DOCKER_ACCOUNT/$DOCKER_REPO:$version.major",
+                '-t', "$DOCKER_ACCOUNT/$DOCKER_REPO:"+version.major+"."+version.minor,
+                '-t', "$DOCKER_ACCOUNT/$DOCKER_REPO:$version",
+                '-f', 'Dockerfile',  '.'
+}
+
 def getCheckedOutGitCommitHash() {
     'git log -1 --pretty=%H'.execute().text.trim()
+}
+
+def getTimestamp() {
+    def date = new Date()
+    return date.format('yyyy-MM-dd HH:mm:ss')
 }
 
 // This is how you can grep standard out or standard error.
