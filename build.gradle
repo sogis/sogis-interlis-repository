@@ -26,49 +26,10 @@ apply from: "$rootDir/gradle/versioning.gradle"
 
 def GROUP = "INTERLIS repository creation"
 
-//import ch.so.agi.gretl.tasks.*
-//import ch.so.agi.gretl.api.*
 import ch.so.agi.tasks.InterlisRepositoryCreator
 import java.text.SimpleDateFormat
-//import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-//import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-//import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-//import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
-//import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
-//import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer.ExposedPort
-//import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 
-task createIliModelsXml(type: InterlisRepositoryCreator) {
-    group = GROUP
-    description = "Create ilimodels.xml file."
-    modelsDir = file("models/")
-    dataFile = "ilimodels.xml"
-    ilismeta = true
-}
-
-//createIliModelsXml.finalizedBy versionTxt
-
-/*
-task validateIliModelsXml(type: IliValidator) {
-    description = "Validate ilimodels.xml file."
-    dataFiles = ["ilimodels.xml"]
-    logFile = "ilivalidator.log"
-}
-*/
-
-task addXslDeclaration() {
-    group = GROUP
-    description = "Add XSL declaration to ilimodels.xml"
-    doLast {
-        def file = new File("ilimodels.xml")
-        def content = file.text
-        content = content.replaceAll("\\<\\?xml(.+?)\\?\\>", "").trim();
-        content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<?xml-stylesheet type=\"text/xsl\" href=\"ilimodels.xsl\"?>\n" + content
-        file.write content
-    }
-}    
-
-task versionTxt()  {
+tasks.register('versionTxt') {
     group = GROUP
     description = "Create a version.txt file with some information about the build."
     outputs.upToDateWhen { false }
@@ -82,16 +43,43 @@ Application-name: sogis-interlis-repository
     }
 }
 
-def getCheckedOutGitCommitHash() {
-    'git log -1 --pretty=%H'.execute().text.trim()
+tasks.register('createIliModelsXml', InterlisRepositoryCreator) {
+    group = GROUP
+    description = "Create ilimodels.xml file."
+    modelsDir = file("models/")
+    dataFile = "ilimodels.xml"
+    ilismeta = true
 }
+createIliModelsXml.configure { finalizedBy versionTxt }
+
+//createIliModelsXml.finalizedBy versionTxt
+
+/*
+task validateIliModelsXml(type: IliValidator) {
+    description = "Validate ilimodels.xml file."
+    dataFiles = ["ilimodels.xml"]
+    logFile = "ilivalidator.log"
+}
+*/
+
+tasks.register('addXslDeclaration') {
+    group = GROUP
+    description = "Add XSL declaration to ilimodels.xml"
+    doLast {
+        def file = new File("ilimodels.xml")
+        def content = file.text
+        content = content.replaceAll("\\<\\?xml(.+?)\\?\\>", "").trim();
+        content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<?xml-stylesheet type=\"text/xsl\" href=\"ilimodels.xsl\"?>\n" + content
+        file.write content
+    }
+}    
 
 def DOCKER_ACCOUNT = "sogis"
 def DOCKER_REPO = "interlis-repository"
 def CONTAINER_NAME = "ilirepo"
 
 // only for testing
-task buildImage(type: Exec) {
+tasks.register('buildImage', Exec) {
     workingDir "$projectDir"
     commandLine 'docker', 'build',
                 '--no-cache', '--force-rm',
@@ -99,7 +87,7 @@ task buildImage(type: Exec) {
                 '-f', 'Dockerfile',  '.'
 }
 
-task startContainer(type: Exec){
+tasks.register('startContainer', Exec) {
     workingDir "$projectDir"
     commandLine 'docker', 'run', '-d', '--name', CONTAINER_NAME, '--rm', '-p8080:8080', "$DOCKER_ACCOUNT/$DOCKER_REPO:latest"
      
@@ -108,7 +96,7 @@ task startContainer(type: Exec){
     }
 }
 
-task stopContainer(type: Exec){
+tasks.register('stopContainer', Exec) {
     workingDir "$projectDir"
     commandLine 'docker', 'kill', CONTAINER_NAME
 }
@@ -118,15 +106,18 @@ task stopContainer(type: Exec){
 // Es muss --ilidirs verwendet werden, um das localhost-Repo als Quelle für Modell-Importe verwenden zu können (d.h. Solothurner Modelle
 // importieren Solothurner Modelle.). Aber das produktive Repo darf (sollte) nicht verwendet werden. Das kann aber wohl nicht definitiv 
 // unterbunden werden (?).
-task checkInterlisRepository(type: JavaExec) {
+tasks.register('checkInterlisRepository', JavaExec) {
     group = GROUP
     description = "Check repository with --check-repo-ilis"
     classpath = buildscript.configurations.classpath
     main = 'ch.interlis.ili2c.Main'
     args  "--check-repo-ilis", "http://localhost:8080", "--ilidirs", "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;https://vsa.ch/models;http://localhost:8080"
 }
-
 checkInterlisRepository.finalizedBy stopContainer
+
+def getCheckedOutGitCommitHash() {
+    'git log -1 --pretty=%H'.execute().text.trim()
+}
 
 // This is how you can grep standard out or standard error.
 /*
