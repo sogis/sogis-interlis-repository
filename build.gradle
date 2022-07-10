@@ -1,57 +1,62 @@
 buildscript {
     repositories {
-        maven { url "http://jars.interlis.ch" }
-        maven { url "https://repo.osgeo.org/repository/release/" }
-        jcenter()
+        maven { url "https://jars.interlis.ch" }
         mavenCentral()
     }
     dependencies {
-        classpath("ch.interlis:ili2c-tool:5.2.6")
+        classpath("ch.interlis:ili2c-tool:5.2.7")
     }
 }
 
 plugins {
-    id "ch.so.agi.gretl" version "2.0.70"
-    id "ch.so.agi.interlis-repository-creator" version "1.2.14"
-    id "com.bmuschko.docker-remote-api" version "4.4.1"
+    //id "ch.so.agi.gretl" version "2.0.70"
+    id "ch.so.agi.interlis-repository-creator" version "1.3.17"
+    //id "com.bmuschko.docker-remote-api" version "4.4.1"
 }
 
 
 configurations.all {
     resolutionStrategy {
-        force 'ch.interlis:ili2c-tool:5.2.6'
-        force 'ch.interlis:ili2c-core:5.2.6'    
+        force 'ch.interlis:ili2c-tool:5.2.7'
+        force 'ch.interlis:ili2c-core:5.2.7'    
     }
 }
 
 apply from: "$rootDir/gradle/versioning.gradle"
 
-import ch.so.agi.gretl.tasks.*
-import ch.so.agi.gretl.api.*
+def GROUP = "INTERLIS repository creation"
+
+//import ch.so.agi.gretl.tasks.*
+//import ch.so.agi.gretl.api.*
 import ch.so.agi.tasks.InterlisRepositoryCreator
 import java.text.SimpleDateFormat
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
-import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
-import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer.ExposedPort
-import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+//import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+//import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+//import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+//import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+//import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+//import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer.ExposedPort
+//import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 
 task createIliModelsXml(type: InterlisRepositoryCreator) {
+    group = GROUP
     description = "Create ilimodels.xml file."
     modelsDir = file("models/")
     dataFile = "ilimodels.xml"
     ilismeta = true
 }
 
+/*
 task validateIliModelsXml(type: IliValidator) {
     description = "Validate ilimodels.xml file."
     dataFiles = ["ilimodels.xml"]
     logFile = "ilivalidator.log"
 }
+*/
 
 task addXslDeclaration() {
+    group = GROUP
+    description = "Add XSL declaration to ilimodels.xml"
     doLast {
         def file = new File("ilimodels.xml")
         def content = file.text
@@ -62,6 +67,7 @@ task addXslDeclaration() {
 }    
 
 task versionTxt()  {
+    group = GROUP
     description = "Create a version.txt file with some information about the build."
     outputs.upToDateWhen { false }
     doLast {
@@ -78,63 +84,34 @@ def getCheckedOutGitCommitHash() {
     'git log -1 --pretty=%H'.execute().text.trim()
 }
 
-docker {
-    registryCredentials {
-        username = System.env.DOCKER_USERNAME
-        password = System.env.DOCKER_PASSWORD
+def DOCKER_ACCOUNT = "sogis"
+def DOCKER_REPO = "interlis-repository"
+
+// only for testing
+task buildImage(type: Exec) {
+    workingDir "$projectDir"
+    commandLine 'docker', 'build',
+                '--no-cache', '--force-rm',
+                '-t', "$DOCKER_ACCOUNT/$DOCKER_REPO:latest",
+                '-f', 'Dockerfile',  '.'
+}
+
+task startContainer(type: Exec){
+    workingDir "$projectDir"
+    commandLine 'docker', 'run', '--name', 'ilirepo', '--rm', '-p8080:8080', "$DOCKER_ACCOUNT/$DOCKER_REPO:latest"
+     
+    doLast { 	
+        sleep(5000)
     }
 }
 
-task buildDockerImage(type: DockerBuildImage) {
-    description = "Build docker image."
-    inputDir = project.rootDir
-    tags = ["sogis/interlis-repository:"+version, "sogis/interlis-repository:latest"]
-    labels = ["interlis-repository.created": new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), 
-            "interlis-repository.git_commit":  getCheckedOutGitCommitHash(), 
-            "interlis-repository.travis_build": version]    
-}
-
-task createDockerContainer(type: DockerCreateContainer) {
-    description = "Create docker container."
-    targetImageId buildDockerImage.getImageId()
-    portBindings = ['8080:8080']
-    exposedPorts = [new ExposedPort("tcp", [8080])]    
-}
-
-task startDockerContainer(dependsOn: 'createDockerContainer', type: DockerStartContainer) {	
-    description = "Start docker container."
-    targetContainerId createDockerContainer.getContainerId()
-
-    // Starting container != web service is ready.
-    doLast { 
-        sleep(4*1000)
+task stopContainer(type: Exec){
+    workingDir "$projectDir"
+    commandLine 'docker', 'kill', 'ilirepo'
+     
+    doLast { 	
+        sleep(10000)
     }
-}
-
-task stopDockerContainer(type: DockerStopContainer) {
-    description = "Stop running docker container."
-    targetContainerId createDockerContainer.getContainerId()
-}
-
-task pushDockerImage_One(type: DockerPushImage) {
-    description = "Push docker image to hub.docker.com."
-    imageName =  "sogis/interlis-repository:latest"
-}
-
-task pushDockerImage_Two(type: DockerPushImage) {
-    description = "Push docker image to hub.docker.com."
-    imageName =  "sogis/interlis-repository:"+version
-}
-
-task pushDockerImages() {
-    description = "Push docker images to hub.docker.com)."
-    doFirst{
-        println "Push Docker Images"
-    }
-}
-
-pushDockerImages.dependsOn {
-    tasks.findAll { task -> task.name.startsWith('pushDockerImage_') }
 }
 
 // It will fail if repository is not ok.
@@ -143,14 +120,16 @@ pushDockerImages.dependsOn {
 // importieren Solothurner Modelle.). Aber das produktive Repo darf (sollte) nicht verwendet werden. Das kann aber wohl nicht definitiv 
 // unterbunden werden (?).
 task checkInterlisRepository(type: JavaExec) {
+    group = GROUP
+    description = "Check repository with --check-repo-ilis"
     classpath = buildscript.configurations.classpath
     main = 'ch.interlis.ili2c.Main'
     args  "--check-repo-ilis", "http://localhost:8080", "--ilidirs", "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;https://vsa.ch/models;http://localhost:8080"
 }
 
-//checkInterlisRepository.finalizedBy stopDockerContainer
+checkInterlisRepository.finalizedBy stopContainer
 
-// This is how you can grap standard out or standard error.
+// This is how you can grep standard out or standard error.
 /*
 task checkInterlisRepository() {
     description = "Checks the interlis repository (ili2c --check-repo-ilis)"    
