@@ -47,17 +47,6 @@
 
             <script>
             <![CDATA[
-            function readQueryParam() {
-                const queryString = window.location.search;
-                const urlParams = new URLSearchParams(queryString);
-                const query = urlParams.get('q');
-
-                if (query != null || query != "") {
-                    document.getElementById("myInput").value = query;
-                    filterFnc();
-                }
-            }
-
             function filterFnc() {
                 var input, filter, details, summary, i, txtValue;
                 input = document.getElementById("myInput");
