@@ -1,0 +1,158 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------ 
+ *  !! Version    | wer | Aenderung 
+ *  !!------------------------------------------------------------------------------ 
+ *  !! 2022-07-29 | PS  | Ersterfassung 
+ * !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AVT_Gesamtverkehrsmodell_2015_20220729 (de)
+AT "https://geo.so.ch/models/AVT"
+VERSION "2022-07-29"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Gesamtverkehrsmodell_2015 =
+
+    /** Gesamtverkehrsmodell 2015 Passagiere öffentlicher Verkehr
+     */
+    CLASS OeV_Passagiere =
+      /** Geometrie der Oev-Strecke
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Typ des Verkehrsmittels
+       */
+      Streckentyp : MANDATORY (
+        Bahn,
+        Bus
+      );
+      /** Passagieranzahl pro Werktag 2015
+       */
+      Passagieranzahl_pro_Werktag_2015 : MANDATORY 0 .. 200000;
+      /** Passagieranzahl in Abendspitzen 2015
+       */
+      Passagieranzahl_in_Abendspitzen_2015 : MANDATORY 0 .. 50000;
+      /** Passagieranzahl pro Werktag 2040
+       */
+      Passagieranzahl_pro_Werktag_2040 : MANDATORY 0 .. 200000;
+      /** Passagieranzahl in Abendspitzen 2040
+       */
+      Passagieranzahl_in_Abendspitzen_2040 : MANDATORY 0 .. 50000;
+    END OeV_Passagiere;
+
+    /** Abstrakte Klasse Verkehrsmodell
+     */
+    CLASS Verkehrsmodell (ABSTRACT) =
+      /** Geometrie der Achse
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Name der Achse
+       */
+      Name : TEXT*100;
+      /** Strassen ID SO
+       */
+      SO_Str_Id : MANDATORY 0 .. 13000;
+      /** Eindeutiger Identifikator
+       */
+      EID : MANDATORY 0 .. 122300000;
+      /** Von Knoten
+       */
+      Von_Knoten : MANDATORY 0 .. 2100000033;
+      /** Nach Knoten
+       */
+      Nach_Knoten : MANDATORY 0 .. 2200000000;
+      /** Durchschnittlicher täglicher Verkehr
+       */
+      DTV_Gesamt : MANDATORY 0 .. 100000;
+      /** Durchschnittlicher täglicher Verkehr Personenwagen
+       */
+      DTV_Personenwagen : MANDATORY 0 .. 100000;
+      /** Durchschnittlich täglicher Verkehr Motorräder
+       */
+      DTV_Motorraeder : MANDATORY 0 .. 10000;
+      /** Durchschnittlich täglicher Verkehr Lieferwagen
+       */
+      DTV_Lieferwagen : MANDATORY 0 .. 10000;
+      /** Durchschnittlich täglicher Verkehr Lastwagen
+       */
+      DTV_Lastwagen : MANDATORY 0 .. 10000;
+      /** Durchschnittlich täglicher Verkehr Lastzüge
+       */
+      DTV_Lastzuege : MANDATORY -10 .. 10000;
+      /** Strassenneigung in %
+       */
+      Neigung_be : MANDATORY 0.0 .. 10000.0;
+      /** Modellgeschwindigkeit [Km/h]
+       */
+      Geschwindigkeit : 0 .. 120;
+      /** Länge in Metern [m]
+       */
+      Laenge : MANDATORY 0.00 .. 10000.00;
+      /** Kapazität des Abschnitts
+       */
+      Kapazitaet : MANDATORY 0 .. 200000;
+      /** Auslastung DTV [%]
+       */
+      Auslastung : MANDATORY 0 .. 1000;
+      /** Streckentyp
+       */
+      Typeno : 1 .. 100;
+      /** Abendspitzenstunden
+       */
+      ASP_Gesamt : 0 .. 10000;
+      /** Abendspitzenstunden Personenwagen
+       */
+      ASP_Personenwagen : 0 .. 10000;
+      /** Abendspitzenstunden Motorräder
+       */
+      ASP_Motorraeder : 0 .. 500;
+      /** Abendspitzenstunden Lieferwagen
+       */
+      ASP_Lieferwagen : -100 .. 1000;
+      /** Abendspitzenstunden Lastwagen
+       */
+      ASP_Lastwagen : -100 .. 1000;
+      /** Abendspitzenstunden Lastzüge
+       */
+      ASP_Lastzuege : -100 .. 1000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr
+       */
+      DWV_Gesamt : 0 .. 100000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr Personenwagen
+       */
+      DWV_Personenwagen : 0 .. 100000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr Motorräder
+       */
+      DWV_Motorraeder : 0 .. 5000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr Lieferwagen
+       */
+      DWV_Lieferwagen : 0 .. 10000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr Lastwagen
+       */
+      DWV_Lastwagen : 0 .. 10000;
+      /** Durchschnittlicher täglicher Werktags-Verkehr Lastzüge
+       */
+      DWV_Lastzuege : 0 .. 10000;
+    END Verkehrsmodell;
+
+    /** Gesamtverkehrsmodell 2015
+     */
+    CLASS Gesamtverkehrsmodell
+    EXTENDS Verkehrsmodell =
+    END Gesamtverkehrsmodell;
+
+    /** Gesamtverkehrsmodell 2015 Prognose 2025
+     */
+    CLASS Gesamtverkehrsmodell_Prognose_2025
+    EXTENDS Verkehrsmodell =
+    END Gesamtverkehrsmodell_Prognose_2025;
+
+    /** Gesamtverkehrsmodell 2015 Prognose 2040
+     */
+    CLASS Gesamtverkehrsmodell_Prognose_2040
+    EXTENDS Verkehrsmodell =
+    END Gesamtverkehrsmodell_Prognose_2040;
+
+  END Gesamtverkehrsmodell_2015;
+
+END SO_AVT_Gesamtverkehrsmodell_2015_20220729.
