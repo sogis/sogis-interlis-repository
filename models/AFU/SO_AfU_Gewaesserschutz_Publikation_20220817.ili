@@ -1,13 +1,13 @@
 INTERLIS 2.3;
 
-/** !! Publikationsmodell fuer den Gewaesserschutz.
+/** !! Publikationsmodell für den Gewässerschutz.
  * !! Umfasst Zonen und Areale sowie die Bereiche
  * !!------------------------------------------------------------------------------
- * !! Version    | wer | Aenderung
+ * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2020-01-15 | OJ  | Initial erstellt.
- * !! 2022-08-17 | al  | Anpassung bei Attribute Dokument und Attribut "Rechtsstatus"  
- * !!                    bei Zone_Areal ergänzt.
+ * !! 2022-08-17 | al  | Anpassung bei Attribute Dokument und neue Klasse
+ * !!                    Gewässerschutzbereiche und Zuströmbereiche eingefügt
  */
 !!@ technicalContact=mailto:agi@so.ch
 MODEL SO_AfU_Gewaesserschutz_Publikation_20220817 (de)
@@ -28,23 +28,47 @@ VERSION "2020-01-15"  =
       /** Moegliche Typen der Schutzzonen und Areale. Ein Areal hat immer den Typ "Areal"
        */
       ZoneUndAreal_Typ = (
+        /** Grundwasserschutzzone nach Ziff. 122 Anh. 4 GSchV
+         */
         S1,
+        /** Grundwasserschutzzone nach Ziff. 123 Anh. 4 GSchV
+         */
         S2,
+        /** Grundwasserschutzzone nach Ziff. 124 Anh. 4 GSchV
+         */
         S3,
         S3_Plus,
+        /** Grundwasserschutzareal gemäss Ziff. 13 Anh.4 GSchV
+         */
         Areal,
+        /** Grundwasserschutzzone nach Ziff. 125 Anh. 4 GSchV
+         */
         Sm,
+        /** Grundwasserschutzzone nach Ziff. 125 Anh. 4 GSchV
+         */
         Sh,
+        /** Zuströmbereich Zu anstelle einer S3 oder einer Sm in verkarsteten Gebieten; nach Ziff. 121 Anh. 4 Abs.1 Bst. b) GSchV
+         */
         S3Zu
       );
 
-      /** Moegliche Typen eines Gewaesserschutzbereiches
+      /** Mögliche Typen eines Gewässerschutzbereiches
        */
       Bereich_Typ = (
+        /** Gewässerschutzbereich nach Ziff. 112 Anh. 4 GschV
+         */
         Ao,
+        /** Gewässerschutzbereich nach Ziff. 111 Anh. 4 GschV
+         */
         Au,
+        /** Zuströmbereich nach Ziff. 114 Anh. 4 GSchV. (gem. Art. 29 besonders gefährdeter Gewässerschutzbereich)
+         */
         Zo,
+        /** Zuströmbereich nach Ziff. 113 Anh. 4 GSchV. (gem. Art. 29 besonders gefährdeter Gewässerschutzbereich)
+         */
         Zu,
+        /** Übriger Bereich
+         */
         UB
       );
 
@@ -89,14 +113,14 @@ VERSION "2020-01-15"  =
 
     /** Anlage zum Waermen / Kuehlen von Gebaeuden mittels Waermetauscher in Boden oder Wasser. Eine Anlage umfasst 0-n Bohrungen.
      */
-    CLASS Zone_Areal =
-      /** Typ der Zone oder des Areals
+    CLASS Schutzareal =
+      /** Typ des Areals
        */
       Typ : MANDATORY ZoneUndAreal_Typ;
       /** Gibt an, ob die Flaeche Gesetzeskonform oder Altrechtlich ist
        */
       Gesetzeskonform : MANDATORY BOOLEAN;
-      /** Datum, seit welchem die Zone resp. das Areal rechtskraeftig ist
+      /** Datum, seit welchem das Areal rechtskraeftig ist
        */
       Rechtskraftdatum : INTERLIS.XMLDate;
       /** Verweise auf Dokumente (RRB, Reglemente, Plaene, ...)
@@ -106,17 +130,52 @@ VERSION "2020-01-15"  =
       /** (Single-) Polygon der Zone / des Areals
        */
       Polygon : MANDATORY GeometryCHLV95_V1.Surface;
-      /** Status, ob die Zone resp. das Areal in Kraft ist.
+      /** Status, ob das Areal in Kraft ist.
        */
       Rechtsstatus : MANDATORY RechtsstatusArt;
-    END Zone_Areal;
+    END Schutzareal;
+
+    /** Anlage zum Waermen / Kuehlen von Gebaeuden mittels Waermetauscher in Boden oder Wasser. Eine Anlage umfasst 0-n Bohrungen.
+     */
+    CLASS Schutzzone =
+      /** Typ der Zone
+       */
+      Typ : MANDATORY ZoneUndAreal_Typ;
+      /** Gibt an, ob die Flaeche Gesetzeskonform oder Altrechtlich ist
+       */
+      Gesetzeskonform : MANDATORY BOOLEAN;
+      /** Datum, seit welchem die Zone rechtskraeftig ist
+       */
+      Rechtskraftdatum : INTERLIS.XMLDate;
+      /** Verweise auf Dokumente (RRB, Reglemente, Plaene, ...)
+       */
+      !!@ ili2db.mapping=JSON
+      Dokumente : BAG {0..*} OF SO_AfU_Gewaesserschutz_Publikation_20220817.Gewaesserschutz.Dokument;
+      /** (Single-) Polygon der Zone / des Areals
+       */
+      Polygon : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Status, ob die Zone in Kraft ist.
+       */
+      Rechtsstatus : MANDATORY RechtsstatusArt;
+    END Schutzzone;
+
+    CLASS Zustroembereich =
+      Polygon : GeometryCHLV95_V1.Surface;
+      /** Unterscheidung der Art der Gewässerschutzbereiche
+       */
+      Typ : Bereich_Typ;
+      Bemerkung : TEXT*200;
+    END Zustroembereich;
 
     /** Typ der Zone oder des Areals
      */
-    CLASS Bereich =
+    CLASS Gewaesserschutzbereich =
       Polygon : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Unterscheidung der Art der Gewässerschutzbereiche
+       */
       Typ : MANDATORY Bereich_Typ;
-    END Bereich;
+      Bemerkung : TEXT*200;
+    END Gewaesserschutzbereich;
 
   END Gewaesserschutz;
 
