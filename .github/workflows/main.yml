@@ -8,22 +8,55 @@ jobs:
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
       BUILD_NUMBER: ${{ github.run_number }}
+
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
         with:
-          java-version: 1.8
+          distribution: 'liberica'
+          java-version: 17
+
       - name: Build with Gradle
-        run: ./gradlew createIliModelsXml addXslDeclaration validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer 
-        #run: ./gradlew createIliModelsXml addXslDeclaration validateIliModelsXml versionTxt buildDockerImage startDockerContainer stopDockerContainer 
-      - name: Push docker image
-        run: ./gradlew pushDockerImages -i
-        if: ${{ github.ref == 'refs/heads/master' }}  
+        id: build
+        run: |
+          ./gradlew createIliModelsXml addXslDeclaration  
+          ls -la
+
+      - name: Build and start Docker container
+        run: ./gradlew buildImage startContainer 
+        if: ${{ success() }}
+
+      - name: Test repository
+        id: repocheck
+        run: ./gradlew checkInterlisRepository 
+        if: ${{ success() }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ (github.ref == 'refs/heads/master') && (github.event_name != 'pull_request') && !env.ACT }}
+
+      - name: Multi-platform build and push
+        run: ./gradlew buildAndPushImages
+        if: ${{ (github.ref == 'refs/heads/master') && (github.event_name != 'pull_request') && !env.ACT && (steps.repocheck.outcome == 'success')}}

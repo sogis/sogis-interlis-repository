@@ -4,9 +4,9 @@
 Die INTERLIS-Modellablage ist ein Docker-Image und wird in OpenShift betrieben. Die Modelle und weitere Dateien werden im Github-Repository gespeichert. Jeder Commit in das Repository löst einen Buildprozess in Travis aus. Das erste Resultat des Buildprozesses ist eine neue, nachgeführte `ilimodels.xml`-Datei. Anschliessend wird ein Docker-Image erstellt, welches die eigentliche INTERLIS-Modellablage repräsentiert, d.h. die Modelle werden immer in das Image gebrannt. Das Image resp. der Container der Testumgebung in OpenShift wird viertelstündlich nachgeführt. Die Inbetriebnahme in die Produktion muss die GDI durchführen.
 
 ## Betrieb
-TODO:
-- OpenShift...
-- test, int, prod.
+```
+docker run -p 8080:8080 sogis/interlis-repository
+```
 
 ## Nachführung
 
@@ -71,7 +71,7 @@ Es ist auch das erste Modell, das von einem anderen Modell (`OeREBKRMvs_V1_1_Val
 Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installiert sein):
 
 ```
-./gradlew createIliModelsXml addXslDeclaration validateIliModelsXml versionTxt buildDockerImage startDockerContainer checkInterlisRepository stopDockerContainer
+./gradlew ./gradlew createIliModelsXml addXslDeclaration buildImage startContainer checkInterlisRepository
 ```
 
 Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Modellablage (`--check-repo-ilis`). Bei Fehlern sollte der Gradle-Build einen Fehler melden. Bitte trotzdem den Output in der Konsole beachten. Um ungewünschte Nebeneffekte auszuschliessen, ist das `.ilicache`-Verzeichnis im Home-Verzeichnis zu löschen.
@@ -79,5 +79,5 @@ Der Task `checkInterlisRepository` überprüft mit dem INTERLIS-Compiler die Mod
 ### Konsolenoutput in Datei umleiten
 
 ```
-java -jar /Users/stefan/apps/ili2c-5.2.3/ili2c.jar --trace --check-repo-ilis http://localhost:8080 --ilidirs "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;http://localhost:8080" >> results.log 2>&1
+java -jar /Users/stefan/apps/ili2c-5.2.7/ili2c.jar --trace --check-repo-ilis http://localhost:8080 --ilidirs "%ILI_DIR;http://models.interlis.ch/;http://models.geo.admin.ch;http://localhost:8080" >> results.log 2>&1
 ```

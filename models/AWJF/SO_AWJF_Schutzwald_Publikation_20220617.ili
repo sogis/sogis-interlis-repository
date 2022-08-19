@@ -1,0 +1,283 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Aenderung
+ * ------------------------------------------------------------------------------
+ * 2022-06-17 | ps  | Ersterfassung SO_AWJF_Schutzwald_Publikation_20220617
+ * ==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AWJF_Schutzwald_Publikation_20220617 (de)
+AT "https://geo.so.ch/models/AWJF"
+VERSION "2022-06-17"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Schutzwald =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      NaiS_Code = (
+        !!@ ili2db.dispName = "Handlungsbedarf vorhanden, ohne Ansprache (Strasse etc.)"
+        Handlungsbedarf_ohne_Ansprache,
+        !!@ ili2db.dispName = "Handlungsbedarf, Dringlichkeit klein"
+        Handlungsbedarf_Dringlichkeit_klein,
+        !!@ ili2db.dispName = "Handlungsbedarf vorhanden, Dringlichkeit mittel"
+        Handlungsbedarf_Dringlichkeit_mittel,
+        !!@ ili2db.dispName = "Handlungsbedarf vorhanden, Dringlichkeit gross"
+        Handlungsbedarf_Dringlichkeit_gross,
+        !!@ ili2db.dispName = "kein Handlungsbedarf, keine Priorität"
+        kein_Handlungsbedarf,
+        !!@ ili2db.dispName = "keine Ansprache durchgeführt"
+        keine_Ansprache
+      );
+
+    /** Eingriffsflächen im Schutzwald nach Massnahme, Status und Jahr
+     */
+    CLASS Behandelte_Flaeche =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** ID der Fläche
+       */
+      ID : 0 .. 9999;
+      /** ID Schutzwaldprojekt gemäss SW
+       */
+      !!@ ili2db.dispName = "ID Schutzwaldprojekt"
+      !!@ ili2db.dispName="ID Schutzwaldprojekt gemäss SW"
+      ID_Schutzwaldprojekt : 1 .. 9999;
+      /** Schutzwaldnummer
+       */
+      !!@ ili2db.dispName = "Schutzwald Nr"
+      !!@ ili2db.dispName="Schutzwald Nr"
+      Schutzwald_Nr : TEXT*100;
+      /** Nummer der Fläche
+       */
+      !!@ ili2db.dispName = "Fläche-Nr"
+      !!@ ili2db.dispName="Nummer der Fläche"
+      Flaeche_Nr : 0 .. 9999;
+      /** Abrechnungsnummer
+       */
+      !!@ ili2db.dispName = "Abrechnungs-Nr"
+      !!@ ili2db.dispName="Abrechnungs-Nr"
+      Abrechnungs_Nr : TEXT*10;
+      Massnahme : (
+        !!@ ili2db.dispName = "Bachräumung"
+        Bachraeumung,
+        !!@ ili2db.dispName = "Holzerei"
+        Holzerei,
+        !!@ ili2db.dispName = "Holzerei (Bodenseilzug)"
+        Holzerei_Bodenseilzug,
+        !!@ ili2db.dispName = "Holzerei (Bodenseilzug und Heli)"
+        Holzerei_Bodenseilzug_Heli,
+        !!@ ili2db.dispName = "Holzerei & Pflege"
+        Holzerei_Pflege,
+        !!@ ili2db.dispName = "Holzerei, Pflege und Infrastruktur"
+        Holzerei_Pflege_Infrastruktur,
+        !!@ ili2db.dispName = "Holzerei (Seilkran)"
+        Holzerei_Seilkran,
+        !!@ ili2db.dispName = "Holzerei & Pflanzung"
+        Holzerei_Pflanzung,
+        !!@ ili2db.dispName = "keine Massnahmen"
+        keine_Massnahmen,
+        !!@ ili2db.dispName = "NaiS-konforme Pflege"
+        NaiS_konforme_Pflege,
+        !!@ ili2db.dispName = "NaiS-konforme Pflege ohne Schutzwaldprojekt"
+        NaiS_konforme_Pflege_ohne_SW_projekt,
+        !!@ ili2db.dispName = "Pflanzung"
+        Pflanzung,
+        !!@ ili2db.dispName = "Pflanzung & Infrastruktur"
+        Pflanzung_Infrastruktur,
+        !!@ ili2db.dispName = "Pflanzung & Schlagräumung"
+        Pflanzung_Schlagraeumung,
+        Pflege_Pflanzung,
+        Schutzwaldpflege,
+        !!@ ili2db.dispName = "Sturmschaeden und Pflanzung"
+        Sturmschaeden_Pflanzung
+      );
+      Status : (
+        !!@ ili2db.dispName = "ausgeführt und abgerechnet, NFA 2016-2019"
+        !!@ ili2db.dispName="ausgeführt und abgerechnet, NFA 2016-2019"
+        ausgefuehrt_abgerechnet_NFA_2016_2019,
+        !!@ ili2db.dispName = "ausgeführt und abgerechnet, NFA 2020-2025"
+        !!@ ili2db.dispName="ausgeführt und abgerechnet, NFA 2020-2025"
+        ausgefuehrt_abgerechnet_NFA_2020_2025,
+        !!@ ili2db.dispName = "ausgeführt und abgerechnet, NFA I"
+        !!@ ili2db.dispName="ausgeführt und abgerechnet, NFA I"
+        ausgefuehrt_abgerechnet_NFA_I,
+        !!@ ili2db.dispName = "ausgeführt und abgerechnet, NFA II"
+        !!@ ili2db.dispName="ausgeführt und abgerechnet, NFA II"
+        ausgefuehrt_abgerechnet_NFA_II,
+        !!@ ili2db.dispName = "ausgeführt und abgerechnet, NFA I&II"
+        !!@ ili2db.dispName="ausgeführt und abgerechnet, NFA I&II"
+        ausgefuehrt_abgerechnet_NFA_I_II,
+        geplant
+      );
+      Jahr : INTERLIS.GregorianYear;
+      /** Fläche gemessen
+       */
+      !!@ ili2db.dispName = "Fläche gemessen"
+      Flaeche_gemessen : 0.00 .. 100.00;
+      /** Fläche beitragsberechtigt
+       */
+      !!@ ili2db.dispName = "Fläche beitragsberechtigt"
+      !!@ ili2db.dispName="Fläche beitragsberechtigt"
+      Flaeche_beitragsberechtigt : 0.00 .. 100.00;
+      Bemerkung : TEXT*200;
+      Beschriftung : MTEXT*100;
+    END Behandelte_Flaeche;
+
+    /** Ausgeschiedene Schutzwälder nach Schaden- und Gefahrenpotential, Modellierung
+     */
+    CLASS Schutzwald =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Name des Forstkreises
+       */
+      Forstkreis : TEXT*50;
+      /** Name des Forstreviers
+       */
+      Forstrevier : TEXT*50;
+      /** Schutzwald-Nummer 1
+       */
+      !!@ ili2db.dispName = "Schutzwald Nr"
+      Schutzwald_Nr1 : TEXT*100;
+      /** Schutzwald-Nummer 2
+       */
+      !!@ ili2db.dispName = "Schutzwald Nr2"
+      Schutzwald_Nr2 : TEXT*100;
+      /** Sturz modelliert?
+       */
+      Sturz : BOOLEAN;
+      /** Rutschung modelliert?
+       */
+      Rutsch : BOOLEAN;
+      /** gerinnerelevante Prozesse modelliert?
+       */
+      !!@ ili2db.dispName = "gerinnerelevante Prozesse"
+      gerinnerelevante_Prozesse : BOOLEAN;
+      /** Lawine modelliert?
+       */
+      Lawine : BOOLEAN;
+      /** Schadenpotential in anderen Kantonen
+       */
+      Andere_Kt : BOOLEAN;
+      /** Unterteilung des Schadenpotentials in Objektkategorien gemäss Bundesrichtlinien
+       */
+      Objektkategorie : (
+        !!@ ili2db.dispName = "2.2 Verkehrswege von kommunaler Bedeutung, Hofzufahrten"
+        Verkehrswege_kommunal_Hofzufahrt,
+        !!@ ili2db.dispName = "2.3 Einzelgebäude"
+        Einzelgebaeude,
+        !!@ ili2db.dispName = "3.1 Kantonsstrassen / Bahnlinien"
+        Kantonsstrassen_Bahnlinien,
+        !!@ ili2db.dispName = "3.2 Geschlossene Siedlungen"
+        Geschlossene_Siedlungen,
+        !!@ ili2db.dispName = "3.3 Sonderobjekte"
+        Sonderobjekte
+      );
+      /** Name des Schadenpotentials
+       */
+      Schadenpotential : TEXT*100;
+      /** Hauptgefahrenpotential in der Schutzwaldfläche
+       */
+      Hauptgefahrenpotential : (
+        Sturz,
+        Rutschung,
+        !!@ ili2db.dispName = "gerinnerelevante Prozesse"
+        gerinnerelevante_Prozesse,
+        Lawine
+      );
+      /** Geschätzte Inensität des Hauptgefahrenpotentials
+       */
+      !!@ ili2db.dispName = "Geschätzte Intensität"
+      Intensitaet_geschaetzt : (
+        schwach,
+        mittel,
+        stark
+      );
+      Bemerkungen : MTEXT*500;
+      /** Gemeindename
+       */
+      Gemeinde : TEXT*200;
+      /** Fläche des Schutzwaldperimeters in ha
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : 0.00 .. 1000.00;
+    END Schutzwald;
+
+    /** Nais - Herleitung des Handlungsbedarfs nach Jahr (Formular)
+     */
+    CLASS Dokument =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Pdf-Dokument
+       */
+      Dokument : MANDATORY TEXT*100;
+      /** Handlungsbedarf-Dringlichkeit. (Muss mit NaiS-Code im Datenmodell_sw_info übereinstimmen)
+       */
+      !!@ ili2db.dispName="NaiS-Code"
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      !!@ ili2db.dispName = "Handungsbedarf"
+      NaiS_Code : NaiS_Code;
+      Beschreibung : TEXT*100;
+    END Dokument;
+
+    /** Informationen zum Schutzwald. Pro Schutzwald mehrere NaiS. Herleitungen des Handlungsbedarfes (Formulare) möglich
+     */
+    CLASS Schutzwald_Info =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Waldplan-ID
+       */
+      Waldplan_Id : 0 .. 1000000;
+      /** BFS Gemeindenummer
+       */
+      Gemeindenummer : 0 .. 9999;
+      /** Waldeigentümer-ID
+       */
+      !!@ ili2db.dispName = "Waldeigentümer-ID"
+      Eigentuemer_ID : 0 .. 100000;
+      /** Waldeigentümer-Text
+       */
+      !!@ ili2db.dispName = "Waldeigentümer-Text"
+      Eigentuemer_Text : TEXT*100;
+      !!@ ili2db.dispName = "Nummer des Eigentümers"
+      Eigentuemer_Nr : 0 .. 10000;
+      Waldplannummer : 500 .. 1000;
+      Waldplantyp : 1 .. 10;
+      Betriebsteil : 1 .. 10;
+      Waldplan_Info : TEXT*100;
+      Bemerkung : TEXT*100;
+      !!@ ili2db.dispName = "ID Schutzwaldinfo"
+      !!@ ili2db.dispName="ID Schutzwaldinfo"
+      ID_Schutzwaldinfo : 1 .. 10000;
+      !!@ ili2db.dispName = "Schutzwald-Nr"
+      !!@ ili2db.dispName="Schutzwald-Nr"
+      Schutzwald_Nr : TEXT*100;
+      /** Name des Schadenpotentials
+       */
+      Zieltyp : (
+        !!@ ili2db.dispName = "Sturz Entstehungsgebiet"
+        Sturz_Entstehungsgebiet,
+        !!@ ili2db.dispName = "Sturz Transitgebiet"
+        Sturz_Transitgebiet,
+        !!@ ili2db.dispName = "Sturz Ablagerungsgebiet"
+        Sturz_Ablagerungsgebiet,
+        !!@ ili2db.dispName = "Rutschung Entstehungsgebiet"
+        Rutschung_Entstehungsgebiet,
+        !!@ ili2db.dispName = "Rutschung Reserve"
+        Rutschung_Reserve,
+        !!@ ili2db.dispName = "Wald in Gerinnehaengen"
+        Wald_in_Gerinnehaengen
+      );
+      /** Handlungsbedarf-Dringlichkeit. (Muss mit NaiS-Code im Datenmodell sw_info übereinstimmen)
+       */
+      !!@ ili2db.dispName = "Handlungsbedarf"
+      !!@ ili2db.dispName="Handlungsbedarf"
+      Nais_Code : NaiS_Code;
+      /** Fläche in m2
+       */
+      Flaeche : 0.00 .. 1000000.00;
+      Zeitstand : INTERLIS.XMLDate;
+      Behandlungseinheit : TEXT*1;
+    END Schutzwald_Info;
+
+  END Schutzwald;
+
+END SO_AWJF_Schutzwald_Publikation_20220617.

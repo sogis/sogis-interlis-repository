@@ -1,0 +1,162 @@
+INTERLIS 2.3;
+
+/** Die Gefahrenhinweiskarte Störfälle stellt die für die Raumplanung risikorelevanten Anlagen und deren Konsultationsbereiche dar. Die Karte dient der in der StFV verlangten Information der Öffentlichkeit durch die Behörde und zeigt den Bau- und Planungsbehörden mögliche Konflikte zwischen der Siedlungsentwicklung und der Störfallvorsorge auf.
+ * ------------------------------------------------------------------------------
+ * Version    | wer | Aenderung
+ * ------------------------------------------------------------------------------
+ * 2022-07-11 | ps  | Ersterfassung Modell SO_AFU_Stoerfallverordnung_Publikation_20220711
+ * ==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+MODEL SO_AFU_Stoerfallverordnung_Publikation_20220711 (de)
+AT "https://geo.so.ch/models/AFU"
+VERSION "2022-07-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Stoerfallverordnung =
+
+    DOMAIN
+
+      Konsultationsbereich = (
+        !!@ ili2db.dispName = "0 m"
+        m_0,
+        !!@ ili2db.dispName = "100 m"
+        m_100,
+        !!@ ili2db.dispName = "300 m"
+        m_300
+      );
+
+    /** Puffer Betriebsareal mit Konsultationsbereich (nur wenn nicht 0)
+     */
+    CLASS Betrieb_KB =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Typ des Konsultationsbereichs
+       */
+      Typ : MANDATORY TEXT*20;
+    END Betrieb_KB;
+
+    /** Puffer Durchgangsstrassen mit Konsultationsbereich (nur wenn nicht 0)
+     */
+    CLASS Durchgangsstrasse_KB =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Typ des Konsultationsbereichs
+       */
+      Typ : MANDATORY TEXT*20;
+    END Durchgangsstrasse_KB;
+
+    /** Puffer Erdgasröhrenspeicher mit Konsultationsbereich (nur wenn nicht 0)
+     */
+    !!@ ili2db.dispName = "Erdgasröhrenspeicher_KB"
+    CLASS Erdgasroehrenspeicher_KB =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Typ des Konsultationsbereichs
+       */
+      Typ : MANDATORY TEXT*20;
+    END Erdgasroehrenspeicher_KB;
+
+    /** Puffer Nationalstrassen mit Konsultationsbereich (nur wenn nicht 0)
+     */
+    CLASS Nationalstrasse_KB =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Typ des Konsultationsbereichs
+       */
+      Typ : MANDATORY TEXT*20;
+    END Nationalstrasse_KB;
+
+    /** Enthält die Betriebe, welche der Störfallverordnung unterstellt sind.
+     */
+    CLASS Betrieb =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Puffer in Meter
+       */
+      Konsultationsbereich : MANDATORY Konsultationsbereich;
+      /** Name des Betirebs
+       */
+      Betriebsname : TEXT*200;
+    END Betrieb;
+
+    /** Betriebsareal, welches vom Konsultationsbereich StFV betroffen ist.
+     */
+    CLASS Betriebsareal =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      Konsultationsbereich : MANDATORY Konsultationsbereich;
+      /** Name des Betiebs
+       */
+      Betriebsname : MANDATORY TEXT*200;
+    END Betriebsareal;
+
+    /** Enthält die Durchgangsstrassen, welche der Störfallverordnung unterstellt sind.
+     */
+    CLASS Durchgangsstrasse =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Achse-ID
+       */
+      Achse_ID : 0 .. 10000000;
+      /** Name der Achse
+       */
+      Achsenname : TEXT*200;
+      /** Nummer der Achse
+       */
+      Achsennummer : 0 .. 100000;
+      /** Achsentyp
+       */
+      Achsentyp : (
+        !!@ ili2db.dispName = "Hauptverkehrsachse"
+        HVS,
+        !!@ ili2db.dispName = "Lokale Verbindungsstrasse"
+        LVS,
+        !!@ ili2db.dispName = "Regionale Verbindungsstrasse"
+        RVS
+      );
+      /** Darstellungs-Typ
+       */
+      Darstellung : (
+        !!@ ili2db.dispName = "nicht dargestellt"
+        nicht_dargestellt,
+        !!@ ili2db.dispName = "ausgezogene Linie"
+        ausgezogene_Linie,
+        !!@ ili2db.dispName = "gestrichelte Linie (Tunnel)"
+        gestrichelte_Linie
+      );
+      /** Puffer in Meter
+       */
+      Konsultationsbereich : MANDATORY Konsultationsbereich;
+    END Durchgangsstrasse;
+
+    /** Enthält die Erdgasröhrenspeicher, welche der Störfallverordnung unterstellt sind.
+     */
+    !!@ ili2db.dispName = "Erdgasröhrenspeicher"
+    CLASS Erdgasroehrenspeicher =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      /** Name der Anlage
+       */
+      Name : MANDATORY TEXT*100;
+      /** Puffer in Meter
+       */
+      Konsultationsbereich : MANDATORY Konsultationsbereich;
+    END Erdgasroehrenspeicher;
+
+    /** Enthält die Nationalstrassen, welche der Störfallverordnung unterstellt sind.
+     */
+    CLASS Nationalstrasse =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      /** Base-ID
+       */
+      Base_ID : MANDATORY TEXT*100;
+      /** Eigentümer
+       */
+      Eigentuemer : MANDATORY (
+        CH,
+        SO
+      );
+      /** Tunnel (ja/nein)
+       */
+      Tunnel : MANDATORY BOOLEAN;
+      /** Puffer in Meter
+       */
+      Konsultationsbereich : MANDATORY Konsultationsbereich;
+    END Nationalstrasse;
+
+  END Stoerfallverordnung;
+
+END SO_AFU_Stoerfallverordnung_Publikation_20220711.
