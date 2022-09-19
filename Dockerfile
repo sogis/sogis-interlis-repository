@@ -27,6 +27,7 @@ COPY models/AGS /opt/repository/AGS
 
 COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/
+COPY ilidata.xml /opt/repository/
 
 COPY version.txt /opt/repository/
 
