@@ -32,28 +32,28 @@ VERSION "2022-07-13"  =
       Endteufe : 0 .. 1400;
       /** Klassierung der Tektonik
        */
-      Tektonik_Klasse : TEXT*20;
+      Tektonik_Code : TEXT*20;
       /** Klassierung der Tektonik Text
        */
-      Tektonik_Klasse_Text : MTEXT;
+      Tektonik_Text : MTEXT;
       /** Formation der Felsoberfläche
        */
-      Felsoberflaechenformation_Klasse : 0 .. 999999999;
+      Felsoberflaechenformation_Code : 0 .. 999999999;
       /** Formation der Felsoberfläche Text
        */
       Felsoberflaechenformation_Text : MTEXT;
       /** Formation auf der Endtiefe
        */
-      Endtiefenformation_Klasse : 0 .. 999999999;
+      Endtiefenformation_Code : 0 .. 999999999;
       /** Formation auf der Endtiefe Text
        */
-      Endtiefenformation_Klasse_Text : MTEXT;
+      Endtiefenformation_Text : MTEXT;
       /** Qualität der Angabe
        */
-      Qualitaet_Typ : 0 .. 999999999;
+      Qualitaet_Code : 0 .. 999999999;
       /** Qualität der Angaben Text
        */
-      Qualitaet_Typ_Text : MTEXT;
+      Qualitaet_Text : MTEXT;
       /** Bemerkungen zur Qualität
        */
       Qualitaet_Bemerkungen : MTEXT;
@@ -80,18 +80,18 @@ VERSION "2022-07-13"  =
       /** Durchmesser der Bohrung in mm
        */
       Durchmesserbohrloch : 0 .. 800;
-      /** Ablenkung der Bohrung
+      /** Ablenkung der Bohrung in Grad
        */
       Ablenkung : 0 .. 360;
-      /** Ablenkung der Bohrung Text
+      /** Ablenkung der Bohrung in Grad Text
        */
       Ablenkung_Text : TEXT*2000;
       /** Qualität der Angaben
        */
-      Qualitaet_Typ : 0 .. 999999999;
+      Qualitaet_Code : 0 .. 999999999;
       /** Qualitaet der Angaben Text
        */
-      Qualitaet_Typ_Text : MTEXT;
+      Qualitaet_Text : MTEXT;
       /** Bemerkungen zur Qualität der Bohrung
        */
       Qualitaet_Bemerkung : MTEXT*1000000;
@@ -104,7 +104,9 @@ VERSION "2022-07-13"  =
       /** Datum der letzten Mutation
        */
       Mut_Date : FORMAT INTERLIS.XMLDateTime "1900-01-01T00:00:00.000" .. "2500-01-01T00:00:00.000";
-      wkb_geometry : GeometryCHLV95_V1.Coord2;
+      /** Punktgeometrie der Bohrung
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
     END Bohrung;
 
     /** Geologische Schicht
@@ -121,10 +123,10 @@ VERSION "2022-07-13"  =
       Tiefe : MANDATORY 0 .. 1000;
       /** Qualität der Angabe
        */
-      Qualitaet_Typ : 0 .. 999999999 CIRCULAR;
+      Qualitaet_Code : 0 .. 999999999 CIRCULAR;
       /** Qualität der Angaben Text
        */
-      Qualitaet_Typ_Text : MTEXT;
+      Qualitaet_Text : MTEXT;
       /** Bemerkungen zur Qualität
        */
       Qualitaet_Bemerkung : MTEXT*1000000;
@@ -174,10 +176,10 @@ VERSION "2022-07-13"  =
     CLASS Vorkommnis =
       /** Typ des Vorkommnisses
        */
-      Vorkommnis_Typ : MANDATORY 0 .. 999999999;
+      Vorkommnis_Code : MANDATORY 0 .. 999999999;
       /** Typ des Vorkommnisses Text
        */
-      Vorkommnis_Typ_Text : MANDATORY TEXT*2000;
+      Vorkommnis_Text : MANDATORY TEXT*2000;
       /** Tiefe des Vorkommnisses in m.ü.M.
        */
       Tiefe : 0 .. 500;
@@ -186,10 +188,10 @@ VERSION "2022-07-13"  =
       Bemerkung : MTEXT*1000000;
       /** Qualität der Angaben
        */
-      Qualitaet_Typ : 0 .. 999999999;
+      Qualitaet_Code : 0 .. 999999999;
       /** Qualität der Angaben Text
        */
-      Qualitaet_Typ_Text : MTEXT;
+      Qualitaet_Text : MTEXT;
       /** Bemerkungen zur Qualität
        */
       Qualitaet_Bemerkung : MTEXT*1000000;
@@ -201,25 +203,25 @@ VERSION "2022-07-13"  =
       Mut_Date : FORMAT INTERLIS.XMLDateTime "1900-01-01T00:00:00.000" .. "2500-01-01T00:00:00.000";
     END Vorkommnis;
 
-    ASSOCIATION Bohrstandort =
-      Standort_Bohrung -- {1} Standort;
-      Bohrung_Standort -- {0..*} Bohrung;
-    END Bohrstandort;
-
-    ASSOCIATION Bohrungprofil =
-      Bohrung_Bohrprofil -- {1} Bohrung;
-      Bohrprofil_Bohrung -- {0..*} Bohrprofil;
-    END Bohrungprofil;
-
-    ASSOCIATION Profilschicht =
+    ASSOCIATION Bohrprofil_Schicht =
       Bohrprofil_Schicht -- {1} Bohrprofil;
       Schicht_Bohrprofil -- {0..*} Schicht;
-    END Profilschicht;
+    END Bohrprofil_Schicht;
 
-    ASSOCIATION Profilvorkommnis =
+    ASSOCIATION Bohrprofil_Vorkommnis =
       Profil -- {1} Bohrprofil;
       Vorkommnis -- {0..*} Vorkommnis;
-    END Profilvorkommnis;
+    END Bohrprofil_Vorkommnis;
+
+    ASSOCIATION Bohrung_Bohrprofil =
+      Bohrung_Bohrprofil -- {1} Bohrung;
+      Bohrprofil_Bohrung -- {0..*} Bohrprofil;
+    END Bohrung_Bohrprofil;
+
+    ASSOCIATION Standort_Bohrung =
+      Standort_Bohrung -- {1} Standort;
+      Bohrung_Standort -- {0..*} Bohrung;
+    END Standort_Bohrung;
 
   END Grundlagedaten_Erdwaermesonden;
 
