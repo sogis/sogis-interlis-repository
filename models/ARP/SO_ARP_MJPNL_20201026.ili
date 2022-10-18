@@ -1,4 +1,4 @@
-INTERLIS 2.3;
+﻿INTERLIS 2.3;
 
 /** ------------------------------------------------------------------------------
  * Version    | wer | Änderung
@@ -24,7 +24,11 @@ VERSION "2020-10-26"  =
         !!@ ili2db.dispName = "per Hektar"
         per_ha,
         !!@ ili2db.dispName = "pauschal"
-        pauschal
+        pauschal,
+        /** z.B. per Baum
+         */
+        !!@ ili2db.dispName = "pro Stück"
+        pro_Stueck
       );
 
       Bewirtschaftung_Anteile = (
@@ -99,8 +103,8 @@ VERSION "2020-10-26"  =
         besonders_typisch,
         !!@ ili2db.dispName = "Nährstoffzeiger"
         Naehrstoffzeiger,
-        !!@ ili2db.dispName = "Nährstoffzeiger eingeschränkt"
-        Naehrstoffzeiger_eingeschraenkt,
+        !!@ ili2db.dispName = "Nährstoffzeiger eingeschränkt / Störungszeiger"
+        Naehrstoffzeiger_eingeschraenkt_Stoerungszeiger,
         !!@ ili2db.dispName = "Verbrachungszeiger"
         Verbrachungszeiger
       );
@@ -185,10 +189,12 @@ VERSION "2020-10-26"  =
         zurueckgestellt,
         aktiv,
         !!@ ili2db.dispName = "in Bearbeitung"
-        in_Bearbeitung,
+        bearbeitet,
         !!@ ili2db.dispName = "in Vorbereitung"
         in_Vorbereitung,
-        Anmeldung
+        Anmeldung,
+        !!@ ili2db.dispName = "zur Unterschrift freigegeben"
+        zur_Unterschrift_freigegeben
       );
 
       Weide_BesondereStrukturen = (
@@ -282,6 +288,10 @@ VERSION "2020-10-26"  =
     STRUCTURE Weidnarbe_ = value : MANDATORY Weidnarbe; END Weidnarbe_;
     STRUCTURE Wiesenstruktur_ = value : MANDATORY Wiesenstruktur; END Wiesenstruktur_;
 
+    CLASS Abrechnung_per_Vereinbarung =
+      AttributeDef89 : TEXT*20;
+    END Abrechnung_per_Vereinbarung;
+
     !!@ ili2db.dispName = "Beobachtung Fauna"
     CLASS Beobachtung_Fauna =
       !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
@@ -309,6 +319,12 @@ VERSION "2020-10-26"  =
       Beurteilungsfreigabe : MANDATORY BOOLEAN;
       Bemerkungen : MTEXT*2000;
       Kopie_an_Bewirtschafter : BOOLEAN;
+      !!@ ili2db.dispName = "Generische Abgeltung - Beschrieb der Leistung"
+      Abgeltung_generisch_Text : TEXT*255;
+      /** Dieser Betrag ist pauschal und kann positiv oder negativ sein (Abschlagszahlung für zuviel bezahlte Subventionen).
+       */
+      !!@ ili2db.dispName = "Abgeltung generisch Pauschalbetrag"
+      Abgeltung_generisch_Betrag : -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung;
 
     /** Damit mehrere BFS-Nr pro Attribut abgespeichert werden können
@@ -319,7 +335,7 @@ VERSION "2020-10-26"  =
     END BFS_Nr;
 
     CLASS Dokument (ABSTRACT) =
-      /** Pfad im Dateisystem oder URL.
+      /** Pfad im Dateisystem oder URL. Relativ zu Basispfad.
        */
       Dateipfad_oder_URL : MANDATORY TEXT*1000;
     END Dokument;
@@ -340,6 +356,19 @@ VERSION "2020-10-26"  =
       SRName : MANDATORY TEXT*255;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
     END UZL_Subregion;
+
+    /** Hier wird der Bewirtschafterwechsel dokumentiert
+     */
+    !!@ ili2db.dispName = "Historie der Bewirtschafter einer Vereinbarung"
+    CLASS Vereinbarung_Bewirtschafter_Historie =
+      !!@ ili2db.dispName = "Vereinbarungs-NR MJPNL"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      /** Jahr des neu zugewiesenen GELAN Bewirtschafters
+       */
+      !!@ ili2db.dispName = "Jahr des neuen Bewirtschafters"
+      Jahr_Bewirtschafterwechsel : MANDATORY 1900 .. 2100;
+    END Vereinbarung_Bewirtschafter_Historie;
 
     DOMAIN
 
@@ -374,9 +403,28 @@ VERSION "2020-10-26"  =
         Nutzungsvereinbarung
       );
 
+    /** Die Abrechnung aggregiert auf Bewirtschafter. Es werden hier die Leistungen mehrere Vereinbarungen aggregiert.
+     */
     CLASS Abrechnung
     EXTENDS Dokument =
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : MANDATORY FORMAT INTERLIS.XMLDate "1990-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      GELAN_IBAN : TEXT*20;
+      !!@ ili2db.dispName = "Betrag Total per Bewirtschafter"
+      Betrag_Total : MANDATORY -10000.00 .. 50000.00 [Units.CHF];
     END Abrechnung;
+
+    /** Es gibt nur einen Basisvertrag pro GELAN Bewirtschafter.
+     */
+    !!@ ili2db.dispName = "Basisvertrag für GELAN Person"
+    CLASS Basisvertrag
+    EXTENDS Dokument =
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY TEXT*20;
+      Datum_Vertrag : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+    END Basisvertrag;
 
     !!@ ili2db.dispName = "Beobachtung Flora"
     CLASS Beobachtung_Flora =
@@ -2143,6 +2191,28 @@ VERSION "2020-10-26"  =
       Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
     END Foto;
 
+    /** Zusammenstellung der abgerechneten Leistungen
+     */
+    !!@ ili2db.dispName = "abgerechnete Leistungen"
+    CLASS Leistungsabrechnung =
+      /** Die Beschreibung der Leistung in Textform
+       */
+      !!@ ili2db.dispName = "Leistungsbeschrieb"
+      Leistung_Beschrieb : MANDATORY TEXT*255;
+      /** Abgeltungsart: per Hektar, per Stück oder pauschal
+       */
+      !!@ ili2db.dispName = "Abgeltungssart"
+      Abgeltungssart : MANDATORY Abgeltungsart;
+      /** Betrag per Einheit (z.B. per Hektar, pro Stück, pauschal)
+       */
+      !!@ ili2db.dispName = "Betrag per Einheit"
+      Betrag_per_Einheit : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Anzahl Einheiten"
+      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Betrag in CHF total"
+      Betrag_Total : MANDATORY -10000.00 .. 20000.00 [Units.CHF];
+    END Leistungsabrechnung;
+
     !!@ ili2db.dispName = "Strukturelement Fläche"
     CLASS Strukturelement_Flaeche =
       /** Überlappungen sind erlaubt
@@ -2202,6 +2272,10 @@ VERSION "2020-10-26"  =
       GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
       !!@ ili2db.dispName = "Bewirtschaftungseinheit ID"
       GELAN_BewE_ID : MANDATORY TEXT*100;
+      /** Übersteuerung der automatischen Zuteilung des GELAN Bewirtschafters. Default: False.
+       */
+      !!@ ili2db.dispName = "Übersteuerung GELAN Bewirtschafter"
+      Uebersteuerung_Bewirtschafter : MANDATORY BOOLEAN;
       /** Wird automatisch abgefüllt von Gemeindetabelle. Kann mehrere Gemeinden (BFS-Nr) betreffen (Array of Integer)
        */
       !!@ ili2db.dispName = "BFS-Nr"
@@ -2270,8 +2344,13 @@ VERSION "2020-10-26"  =
 
     ASSOCIATION Foto_Beurteilung =
       Foto -- {0..*} Foto;
-      Beurteilung -- {1} Beurteilung;
+      Beurteilung -<#> {1} Beurteilung;
     END Foto_Beurteilung;
+
+    ASSOCIATION Leistung_Abrechnung =
+      Leistung -- {1..*} Leistungsabrechnung;
+      Abrechnung -<#> {1} Abrechnung;
+    END Leistung_Abrechnung;
 
     /** Zusammenzug von Fauna und Floraliste (für Massnahmen Artenförderung)
      */
@@ -2293,6 +2372,11 @@ VERSION "2020-10-26"  =
       Vereinbarung -- {1} Vereinbarung;
     END Beurteilung_Vereinbarung;
 
+    ASSOCIATION Leistungsabrechnung_Vereinbarung =
+      Leistungsabrechnung -- {0..*} Leistungsabrechnung;
+      Vereinbarung -<#> {1} Vereinbarung;
+    END Leistungsabrechnung_Vereinbarung;
+
     ASSOCIATION Strukturelement_Flaeche_Vereinbarung =
       Strukturelement_Flaeche -- {0..*} Strukturelement_Flaeche;
       Vereinbarung -<#> {1} Vereinbarung;
@@ -2307,6 +2391,11 @@ VERSION "2020-10-26"  =
       Strukturelement_Punkt -- {0..*} Strukturelement_Punkt;
       Vereinbarung -<#> {1} Vereinbarung;
     END Strukturelement_Punkt_Vereinbarung;
+
+    ASSOCIATION VB_Bewirtschafter_Historie =
+      Vereinbarung -<#> {1} Vereinbarung;
+      Bewirtschafter_Historie -- {0..*} Vereinbarung_Bewirtschafter_Historie;
+    END VB_Bewirtschafter_Historie;
 
     /** Pro Vereinbarung gibt es nur 1 Subregion. Wenn 2 oder mehr Subregionen betroffen sind, wird die Subregion mit dem grössten Flächenanteil gewählt.
      */
