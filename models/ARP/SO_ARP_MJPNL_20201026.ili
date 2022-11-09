@@ -31,6 +31,16 @@ VERSION "2020-10-26"  =
         pro_Stueck
       );
 
+      /** Status des Zahlungslaufes
+       */
+      !!@ ili2db.dispName = "Abrechnung Status"
+      Abrechnung_Status = (
+        bestaetigt,
+        ausbezahlt,
+        unterwegs,
+        initialisiert
+      );
+
       Bewirtschaftung_Anteile = (
         !!@ ili2db.dispName = "zwei Drittel der Fläche"
         zwei_drittel,
@@ -288,10 +298,6 @@ VERSION "2020-10-26"  =
     STRUCTURE Weidnarbe_ = value : MANDATORY Weidnarbe; END Weidnarbe_;
     STRUCTURE Wiesenstruktur_ = value : MANDATORY Wiesenstruktur; END Wiesenstruktur_;
 
-    CLASS Abrechnung_per_Vereinbarung =
-      AttributeDef89 : TEXT*20;
-    END Abrechnung_per_Vereinbarung;
-
     !!@ ili2db.dispName = "Beobachtung Fauna"
     CLASS Beobachtung_Fauna =
       !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
@@ -359,7 +365,7 @@ VERSION "2020-10-26"  =
 
     /** Hier wird der Bewirtschafterwechsel dokumentiert
      */
-    !!@ ili2db.dispName = "Historie der Bewirtschafter einer Vereinbarung"
+    !!@ ili2db.dispName = "Vereinbarung Bewirtschafter-Historie"
     CLASS Vereinbarung_Bewirtschafter_Historie =
       !!@ ili2db.dispName = "Vereinbarungs-NR MJPNL"
       Vereinbarungs_Nr : MANDATORY TEXT*50;
@@ -405,16 +411,65 @@ VERSION "2020-10-26"  =
 
     /** Die Abrechnung aggregiert auf Bewirtschafter. Es werden hier die Leistungen mehrere Vereinbarungen aggregiert.
      */
-    CLASS Abrechnung
+    CLASS Abrechnung_per_Bewirtschafter
     EXTENDS Dokument =
-      !!@ ili2db.dispName = "Datum der Abrechnung"
-      Datum_Abrechnung : MANDATORY FORMAT INTERLIS.XMLDate "1990-1-1" .. "2100-12-31";
       !!@ ili2db.dispName = "Personen ID GELAN"
       GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
-      GELAN_IBAN : TEXT*20;
+      GELAN_IBAN : MANDATORY TEXT*20;
       !!@ ili2db.dispName = "Betrag Total per Bewirtschafter"
       Betrag_Total : MANDATORY -10000.00 .. 50000.00 [Units.CHF];
-    END Abrechnung;
+      /** Status der Abrechnung / Auszahlung
+       */
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1990-1-1" .. "2100-12-31";
+    END Abrechnung_per_Bewirtschafter;
+
+    /** Zusammenstellung der abgerechneten Leistungen
+     */
+    !!@ ili2db.dispName = "abgerechnete Leistungen"
+    CLASS Abrechnung_per_Leistung =
+      /** Die Beschreibung der Leistung in Textform
+       */
+      !!@ ili2db.dispName = "Leistungsbeschrieb"
+      Leistung_Beschrieb : MANDATORY TEXT*255;
+      /** Abgeltungsart: per Hektar, per Stück oder pauschal
+       */
+      !!@ ili2db.dispName = "Abgeltungssart"
+      Abgeltungssart : MANDATORY Abgeltungsart;
+      /** Betrag per Einheit (z.B. per Hektar, pro Stück, pauschal)
+       */
+      !!@ ili2db.dispName = "Betrag per Einheit"
+      Betrag_per_Einheit : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Anzahl Einheiten"
+      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Betrag in CHF total"
+      Betrag_Total : MANDATORY -10000.00 .. 20000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+    END Abrechnung_per_Leistung;
+
+    !!@ ili2db.dispName = "Abrechnung (total) per Vereinbarung"
+    CLASS Abrechnung_per_Vereinbarung =
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Flurnamen"
+      Flurnamen : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Gemeindename"
+      Gemeinde : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      !!@ ili2db.dispName = "Gesamtbetrag"
+      Gesamtbetrag : MANDATORY 0.00 .. 20000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Jahr der Auszahlung"
+      Auszahlungsjahr : MANDATORY 2020 .. 2100;
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+    END Abrechnung_per_Vereinbarung;
 
     /** Es gibt nur einen Basisvertrag pro GELAN Bewirtschafter.
      */
@@ -2191,28 +2246,6 @@ VERSION "2020-10-26"  =
       Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
     END Foto;
 
-    /** Zusammenstellung der abgerechneten Leistungen
-     */
-    !!@ ili2db.dispName = "abgerechnete Leistungen"
-    CLASS Leistungsabrechnung =
-      /** Die Beschreibung der Leistung in Textform
-       */
-      !!@ ili2db.dispName = "Leistungsbeschrieb"
-      Leistung_Beschrieb : MANDATORY TEXT*255;
-      /** Abgeltungsart: per Hektar, per Stück oder pauschal
-       */
-      !!@ ili2db.dispName = "Abgeltungssart"
-      Abgeltungssart : MANDATORY Abgeltungsart;
-      /** Betrag per Einheit (z.B. per Hektar, pro Stück, pauschal)
-       */
-      !!@ ili2db.dispName = "Betrag per Einheit"
-      Betrag_per_Einheit : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
-      !!@ ili2db.dispName = "Anzahl Einheiten"
-      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00 [Units.CHF];
-      !!@ ili2db.dispName = "Betrag in CHF total"
-      Betrag_Total : MANDATORY -10000.00 .. 20000.00 [Units.CHF];
-    END Leistungsabrechnung;
-
     !!@ ili2db.dispName = "Strukturelement Fläche"
     CLASS Strukturelement_Flaeche =
       /** Überlappungen sind erlaubt
@@ -2255,9 +2288,9 @@ VERSION "2020-10-26"  =
     EXTENDS Dokument =
       /** Die Vereinbarungs-Nr setzt sich wie folgt zusammen:
        * 
-       * PidGELAN_AbkuerzungProgrammtyp_FortlaufendeNummer
+       * Bezirksnr_AbkuerzungProgrammtyp_FortlaufendeNummer
        * 
-       * Z.B. 200385_Wi_37
+       * Z.B. 1102_Wi_00003
        */
       !!@ ili2db.dispName = "Vereinbarungs-Nr"
       Vereinbarungs_Nr : MANDATORY TEXT*50;
@@ -2327,6 +2360,16 @@ VERSION "2020-10-26"  =
       Bemerkung : MTEXT*1000;
     END Vereinbarung;
 
+    ASSOCIATION AbrechnungLeistung_AbrechnungPerVereinbarung =
+      AbrechnungLeistung -- {1..*} Abrechnung_per_Leistung;
+      AbrechnungPerVereinbarung -<#> {1} Abrechnung_per_Vereinbarung;
+    END AbrechnungLeistung_AbrechnungPerVereinbarung;
+
+    ASSOCIATION AbrechnungPerVereinbarung_AbrechnungPerBewirtschafter =
+      AbrechnungPerVereinbarung -- {1..*} Abrechnung_per_Vereinbarung;
+      AbrechnungPerBewirtschafter -<#> {1} Abrechnung_per_Bewirtschafter;
+    END AbrechnungPerVereinbarung_AbrechnungPerBewirtschafter;
+
     ASSOCIATION Beobachtung_Faunaliste =
       Beobachtung -- {0..*} Beobachtung_Fauna;
       Art_Fauna -- {1} Faunaliste;
@@ -2347,11 +2390,6 @@ VERSION "2020-10-26"  =
       Beurteilung -<#> {1} Beurteilung;
     END Foto_Beurteilung;
 
-    ASSOCIATION Leistung_Abrechnung =
-      Leistung -- {1..*} Leistungsabrechnung;
-      Abrechnung -<#> {1} Abrechnung;
-    END Leistung_Abrechnung;
-
     /** Zusammenzug von Fauna und Floraliste (für Massnahmen Artenförderung)
      */
     !!@ ili2db.dispName = "Fauna- und Floraliste (kombiniert)"
@@ -2367,15 +2405,15 @@ VERSION "2020-10-26"  =
       FF_Art: MANDATORY TEXT*50;
     END Fauna_Flora_Liste;
 
+    ASSOCIATION AbrechnungLeistung_Vereinbarung =
+      Leistungsabrechnung -- {0..*} Abrechnung_per_Leistung;
+      Vereinbarung -<#> {1} Vereinbarung;
+    END AbrechnungLeistung_Vereinbarung;
+
     ASSOCIATION Beurteilung_Vereinbarung =
       Beurteilung -- {0..*} Beurteilung;
       Vereinbarung -- {1} Vereinbarung;
     END Beurteilung_Vereinbarung;
-
-    ASSOCIATION Leistungsabrechnung_Vereinbarung =
-      Leistungsabrechnung -- {0..*} Leistungsabrechnung;
-      Vereinbarung -<#> {1} Vereinbarung;
-    END Leistungsabrechnung_Vereinbarung;
 
     ASSOCIATION Strukturelement_Flaeche_Vereinbarung =
       Strukturelement_Flaeche -- {0..*} Strukturelement_Flaeche;
