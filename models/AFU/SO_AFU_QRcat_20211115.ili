@@ -40,6 +40,10 @@ VERSION "2021-11-15"  =
       bur_nummer : 1 .. 1000000000;
     END Betrieb;
 
+    /** Tabelle der Gebäude, mit EGID und Lokalität.
+     * 
+     * Die t_id entspricht der id_gebaeude im Online-Risk
+     */
     CLASS Gebaeude =
       EGID : 1 .. 999999999;
       !!@ ili2db.dispName = "Name Gebäude"
@@ -48,17 +52,52 @@ VERSION "2021-11-15"  =
       zusatz : TEXT*255;
     END Gebaeude;
 
+    /** Tabelle der Gefahrenstoffe
+     * 
+     * Die t_id entspricht der id_stoff im Online-Risk
+     */
+    !!@ ili2db.dispName = "Stoff"
+    CLASS Stoff =
+      !!@ ili2db.dispName = "Stoff-Name"
+      stoff_name : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Stoff-Anzeigetext (display)"
+      stoff_anzeigetext : TEXT*255;
+      /** Aggregatzustand (gasförmig, flüssig)
+       */
+      !!@ ili2db.dispName = "Aggregatzustand"
+      aggregatzustand : TEXT*255;
+      /** Mengenschwellen gemäss Störfallverordnung (StFV)
+       */
+      !!@ ili2db.dispName = "Mengenschwelle (MS-StFV)"
+      mengenschwelle_stfv : 1.0 .. 10000000.0;
+      !!@ ili2db.dispName = "Stoff-ID"
+      stoff_id : TEXT*255;
+      !!@ ili2db.dispName = "Stoff-ID-Zusatz"
+      stoff_id_zusatz : TEXT*255;
+      /** Die CAS-Nummer (engl. CAS Registry Number, CAS = Chemical Abstracts Service) ist ein internationaler Bezeichnungsstandard für chemische Stoffe. Für jeden bekannten chemischen Stoff (auch Biosequenzen, Legierungen, Polymere) existiert eine eindeutige CAS-Nummer.
+       */
+      !!@ ili2db.dispName = "CAS-Nummer"
+      cas_nummer : TEXT*20;
+      /** Die CEA-Nummer wird von den europäischen Sachversicherern verwendet.
+       */
+      !!@ ili2db.dispName = "CEA-Nummer"
+      cea_nummer : 0 .. 9999;
+      !!@ ili2db.dispName = "Gefahrgut-Symbol(e)"
+      gf_symbol : TEXT*255;
+    END Stoff;
+
     /** Stoffe in einzelnen Bereichen mit Mengen.
+     * 
+     * Die t_id entspricht der id_assoziation im Online-Risk
      */
     !!@ ili2db.dispName = "Stoffe im Bereich"
     CLASS Stoff_in_Bereich =
-      !!@ ili2db.dispName = "Name des Stoffs"
-      name_stoff : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Alternativ-Name des Stoffs"
-      name_stoff_alternativ : TEXT*255;
-      /** Was ist das?
+      /** Anzeigename Stoff in Bereich.
        */
-      ms_stfv : 1.0 .. 10000000.0;
+      !!@ ili2db.dispName = "Name des Stoffs im Bereich"
+      name_stoff_in_bereich : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Alternativ-Name des Stoffs im Bereich"
+      name_alternativ : TEXT*255;
       !!@ ili2db.dispName = "Maximale Menge des Stoffs"
       max_menge : MANDATORY 1.0 .. 10000000.0;
       !!@ ili2db.dispName = "Bemerkung"
@@ -92,11 +131,16 @@ VERSION "2021-11-15"  =
     ASSOCIATION StoffInBereich_Bereich =
       /** entspricht id_stoff im Online-Risk
        */
-      id_stoff -- {0..*} Stoff_in_Bereich;
+      id_stoff_in_bereich -- {0..*} Stoff_in_Bereich;
       /** entspricht id_bereich im Online-Risk
        */
       id_bereich -- {1} Bereich;
     END StoffInBereich_Bereich;
+
+    ASSOCIATION StoffinBereich_Stoff =
+      id_stoff -- {1} Stoff;
+      id_stoff_in_bereich -- {0..*} Stoff_in_Bereich;
+    END StoffinBereich_Stoff;
 
     ASSOCIATION Untersuchungseinheit_Betrieb =
       id_untersuchungseinheit -- {0..*} Untersuchungseinheit;
@@ -340,9 +384,14 @@ VERSION "2021-11-15"  =
       id_szenario -<#> {1} Szenario;
     END Letalflaeche_Szenario;
 
+    ASSOCIATION Szenario_Bereich =
+      id_bereich (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Bereich;
+      szenario -- {0..*} Szenario;
+    END Szenario_Bereich;
+
     ASSOCIATION Szenario_Betrieb =
       szenario -- {0..*} Szenario;
-      id_betrieb (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Betrieb;
+      id_betrieb (EXTERNAL) -- {0..1} SO_AFU_QRcat_20211115.OnlineRisk.Betrieb;
     END Szenario_Betrieb;
 
     ASSOCIATION Szenario_DetailszenarioGHK =
@@ -382,8 +431,13 @@ VERSION "2021-11-15"  =
       szenario -- {0..*} Szenario;
       /** ID des im Bereich gelagerten Stoffes
        */
-      id_stoff (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Stoff_in_Bereich;
+      id_stoff (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Stoff;
     END Szenario_Stoff;
+
+    ASSOCIATION Szenario_StoffInBereich =
+      id_stoff_in_bereich (EXTERNAL) -- {1} SO_AFU_QRcat_20211115.OnlineRisk.Stoff_in_Bereich;
+      szenario -- {0..*} Szenario;
+    END Szenario_StoffInBereich;
 
     ASSOCIATION Szenario_ToxReferenzSzenario =
       szenario -- {0..*} Szenario;
