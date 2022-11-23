@@ -1,0 +1,79 @@
+INTERLIS 2.3;
+
+/** !!---------------------------------------------------------------------------------------------
+ * !! Version    | wer             | Änderung
+ * !!--------------------------------------------------------------------------------------------
+ * !! 2021-08-30 | ps  | Ersterfassung; Modell für die STATPOP- und STATENT-Daten.
+ * !! 2022-11-14 | an  | Ergänzung Hektarraster --> Modell version 20221114
+ * !!============================================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ furtherInformation="https://www.bfs.admin.ch/bfs/de/home/statistiken/bevoelkerung/erhebungen/statpop.html"
+MODEL SO_AGI_DemoValidation_20221122 (de)
+AT "http://geo.so.ch/models/ARP"
+VERSION "2022-11-14"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Die admninistrativen Einheiten unseres Landes
+   */
+  TOPIC AdministrativeEinheiten =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Gebietseinteilung (Provinz, Bundesland oder Kanton)
+     */
+    !!@ ili2db.dispName = "Provinz / Bundesland / Kanton"
+    CLASS Provinz =
+      Geometrie : MANDATORY AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+      !!@ ili2db.dispName = "Name der Provinz"
+      Provinzname : MANDATORY TEXT*40;
+      /** Wohnbevölkerung - nur ständige Wohnbevölkerung
+       */
+      !!@ ili2db.dispName = "Bevölkerungszahl"
+      Bevoelkerung_Gesamt : MANDATORY 0 .. 10000000;
+      /** Wohnbevölkerung weiblich absolut
+       */
+      !!@ ili2db.dispName = "Wohnbevölkerung weiblich"
+      Bevoelkerung_weiblich : MANDATORY 0 .. 10000000;
+      /** Bevölkerung männlich
+       */
+      !!@ ili2db.dispName = "Bevölkerung männlich"
+      Bevoelkerung_maennlich : MANDATORY 0 .. 10000000;
+      !!@ name = checkMaennlichBevoelkerungGesamt
+      !!@ ilivalid.msg = "Es darf nicht mehr Männer als Gesamtbevölkerung geben"
+      MANDATORY CONSTRAINT
+         Bevoelkerung_maennlich <= Bevoelkerung_Gesamt;
+      !!@ name = checkWeiblichBevoelkerungGesamt
+      !!@ ilivalid.msg = "Es darf nicht mehr Frauen als Gesamtbevölkerung geben"
+      MANDATORY CONSTRAINT
+         Bevoelkerung_weiblich <= Bevoelkerung_Gesamt;
+    END Provinz;
+
+    CLASS Stadt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      !!@ ili2db.dispName = "Wohnbevölkerung absolut"
+      Bevoelkerung_Gesamt : MANDATORY 1000 .. 1000000;
+      !!@ ili2db.dispName = "Name der Stadt"
+      Stadtname : MANDATORY TEXT*20;
+    END Stadt;
+
+    /** Hauptstadt der Provinz
+     */
+    CLASS Hauptstadt
+    EXTENDS Stadt =
+      !!@ ili2db.dispName = "Anzahl Ämter"
+      Anzahl_Aemter : MANDATORY 1 .. 30;
+    END Hauptstadt;
+
+    ASSOCIATION Stadt_Provinz =
+      Stadt -- {1..*} Stadt;
+      rSProvinz -<#> {1} Provinz;
+    END Stadt_Provinz;
+
+    ASSOCIATION Hauptstadt_Provinz =
+      Hauptstadt -- {1} Hauptstadt;
+      rHProvinz -<#> {1} Provinz;
+    END Hauptstadt_Provinz;
+
+  END AdministrativeEinheiten;
+
+END SO_AGI_DemoValidation_20221122.
