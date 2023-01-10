@@ -24,6 +24,7 @@ COPY models/ADA /opt/repository/ADA
 COPY models/KSTA /opt/repository/KSTA
 COPY models/AWA /opt/repository/AWA
 COPY models/AGS /opt/repository/AGS
+COPY models/HBA /opt/repository/HBA
 
 COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/

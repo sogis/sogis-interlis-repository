@@ -1,0 +1,63 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-01-09 | sz  | Initialerstellung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_HBA_Grundstuecke_Publikation_20230109.uml
+!!@ shortDescription="Publikationsmodell für die kantonseigenen Grundstücke"
+!!@ title="Grundstücke des Kantons"
+MODEL SO_HBA_Grundstuecke_Publikation_20230109 (de)
+AT "https://hba.so.ch"
+VERSION "2023-01-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Grundstuecke =
+
+    CLASS Liegenschaft =
+      /** Schweizweit eindeutiger Grundstücksindentifikator
+       */
+      EGRID : MANDATORY TEXT*14;
+      /** Rechtsart am Grundstück
+       */
+      Recht : MANDATORY (
+        Stiftung,
+        Allmend,
+        Miete,
+        Eigentum
+      );
+      /** Fachliche Verantwortung innerhalb des Kantons
+       */
+      Fachverantwortung : TEXT*100;
+      /** Art des Vermögens
+       */
+      Vermoegensart : (
+        !!@ ili2db.dispName=Stiftungsvermögen
+        SV,
+        !!@ ili2db.dispName=Allmend
+        ALLM,
+        !!@ ili2db.dispName=Anmietobjekt
+        AM,
+        !!@ ili2db.dispName=Finanzvermögen
+        FV,
+        !!@ ili2db.dispName=Verwaltungsvermögen
+        VV
+      );
+      /** Eindeutiger Identifikator der Wirtschaftseinheit. HBA-interne Nummer.
+       */
+      Wirtschaftseinheit : TEXT*20;
+      /** Geometrie des Grundstückes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Baurecht zuhanden Dritter
+       */
+      Baurecht_Dritter : MANDATORY BOOLEAN;
+      UNIQUE EGRID;
+    END Liegenschaft;
+
+  END Grundstuecke;
+
+END SO_HBA_Grundstuecke_Publikation_20230109.
