@@ -131,6 +131,16 @@ VERSION "2020-10-26"  =
         selten
       );
 
+      !!@ ili2db.dispName = "Herbstweide Tierart"
+      Herbstweide_Tierart = (
+        Alpaka,
+        Mutterkuh,
+        Pferd,
+        Rind,
+        Schaf,
+        Ziege
+      );
+
       !!@ ili2db.dispName = "MJPNL Version"
       MJPNL_Version = (
         /** Das neue aktuelle MJPNL
@@ -294,6 +304,7 @@ VERSION "2020-10-26"  =
     STRUCTURE Bodeneigenschaft_ = value : MANDATORY Bodeneigenschaft; END Bodeneigenschaft_;
     STRUCTURE Topografische_Eigenschaften_ = value : MANDATORY Topografische_Eigenschaften; END Topografische_Eigenschaften_;
     STRUCTURE Weide_BesondereStrukturen_ = value : MANDATORY Weide_BesondereStrukturen; END Weide_BesondereStrukturen_;
+    STRUCTURE Weide_Struktur_ = value : MANDATORY Weide_Struktur; END Weide_Struktur_;
     STRUCTURE Weidnarbe_ = value : MANDATORY Weidnarbe; END Weidnarbe_;
     STRUCTURE Wiesenstruktur_ = value : MANDATORY Wiesenstruktur; END Wiesenstruktur_;
 
@@ -318,12 +329,34 @@ VERSION "2020-10-26"  =
       Beurteilungsfreigabe : MANDATORY BOOLEAN;
       Bemerkungen : MTEXT*2000;
       Kopie_an_Bewirtschafter : BOOLEAN;
+      !!@ ili2db.dispName = "mit Bewirtschafter besprochen"
+      mit_Bewirtschafter_besprochen : MANDATORY BOOLEAN;
+      /** Datum der Besprechung der Beurteilung mit dem Bewirtschafter
+       */
+      !!@ ili2db.dispName = "Datum Besprechung mit Bewirtschafter"
+      Datum_Besprechung_Bewirtschafter : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
       !!@ ili2db.dispName = "Generische Abgeltung - Beschrieb der Leistung"
       Abgeltung_generisch_Text : TEXT*255;
       /** Dieser Betrag ist pauschal und kann positiv oder negativ sein (Abschlagszahlung für zuviel bezahlte Subventionen).
        */
       !!@ ili2db.dispName = "Abgeltung generisch Pauschalbetrag"
       Abgeltung_generisch_Betrag : -10000.00 .. 10000.00 [Units.CHF];
+      /** Datum der Ersterfassung der Beurteilung. Wird vom Bearbeitungssystem automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Erstellungsdatum"
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die die Vereinbarung erstellt hat. Wird vom System automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Operator Ersterfassung"
+      Operator_Erstellung : MANDATORY TEXT*255;
+      /** Änderungsdatum. Vom System automatisch bewirtschaftet.
+       */
+      !!@ ili2db.dispName = "Änderungsdatum"
+      Aenderungsdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die eine Änderung vorgenommen hat. Wird vom System automatisch bewirtschaftet.
+       */
+      !!@ ili2db.dispName = "Operator Änderung"
+      Operator_Aenderung : TEXT*255;
     END Beurteilung;
 
     /** Damit mehrere BFS-Nr pro Attribut abgespeichert werden können
@@ -337,6 +370,22 @@ VERSION "2020-10-26"  =
       /** Pfad im Dateisystem oder URL. Relativ zu Basispfad.
        */
       Dateipfad_oder_URL : MANDATORY TEXT*1000;
+      /** Datum der Ersterfassung eines Dokuments. Wird vom Bearbeitungssystem automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Erstellungsdatum"
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die das Dokument erstellt hat. Wird vom System automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Operator Ersterstellung"
+      Operator_Erstellung : MANDATORY TEXT*255;
+      /** Optionales Änderungsdatum des Dokuments. Wird vom System automatisch vergeben.
+       */
+      !!@ ili2db.dispName = "Änderungsdatum"
+      Aenderungsdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die das Dokument geändert hat. Wird vom System automatisch verwaltet.
+       */
+      !!@ ili2db.dispName = "Operator Änderung"
+      Operator_Aenderung : TEXT*255;
     END Dokument;
 
     STRUCTURE String_List =
@@ -395,11 +444,7 @@ VERSION "2020-10-26"  =
         !!@ ili2db.dispName = "Weide LN"
         Weide_LN,
         !!@ ili2db.dispName = "Wiese"
-        Wiese,
-        /** Vereinbarung ohne Auszahlungsleistungen
-         */
-        !!@ ili2db.dispName = "Nutzungsvereinbarung"
-        Nutzungsvereinbarung
+        Wiese
       );
 
     /** Die Abrechnung aggregiert auf Bewirtschafter. Es werden hier die Leistungen mehrere Vereinbarungen aggregiert.
@@ -714,9 +759,9 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Schnittzeitpunkt: i. d. Regel zw. Hälfte August."
       Bewirtschaftung_Schnittzeitpunkt : MANDATORY BOOLEAN;
-      /** Schnitthöhe: 7  10 cm.
+      /** Schnitthöhe: 7 – 10 cm.
        */
-      !!@ ili2db.dispName = "Schnitthöhe: 7  10 cm"
+      !!@ ili2db.dispName = "Schnitthöhe: 7 – 10 cm"
       Bewirtschaftung_Schnitthoehe : MANDATORY BOOLEAN;
       /** Schnittgut auf Fläche trocknen lassen, abführen oder vor Ort teilweise aufhäufen
        */
@@ -1140,10 +1185,6 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Lage"
       Einstiegskriterium_Lage : MANDATORY BOOLEAN;
-      /** Mindestfläche von 50 Aren (in der Regel); Ausnahme bei Arrondierungen oder angrenzend an einen anderen Programmtyp; keine Flächenbegrenzung bei Objekten von nationaler Bedeutung oder zur spezifischen Artenförderung.
-       */
-      !!@ ili2db.dispName = "Mindestfläche"
-      Einstiegskriterium_Mindestflaeche : MANDATORY BOOLEAN;
       /** Keine Zufütterung
        */
       !!@ ili2db.dispName = "Keine Zufütterung"
@@ -1199,7 +1240,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Weidenkategorie pro ha"
       EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
       !!@ ili2db.dispName = "Struktur"
-      EinstufungBeurteilungIstZustand_Struktur : MANDATORY Weide_Struktur;
+      EinstufungBeurteilungIstZustand_Struktur : BAG {0..*} OF Weide_Struktur_;
       /** Bei optimaler Struktur bis Fr. 100.- pro ha
        */
       !!@ ili2db.dispName = "Abgeltung Struktur pro ha"
@@ -1386,7 +1427,6 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Einstiegskriterium Lage"
       Einstiegskriterium_Lage : MANDATORY BOOLEAN;
-      Einstiegskriterium_Mindestflaeche : MANDATORY BOOLEAN;
       /** Verzicht auf jegliche Düngung (Handels- und Hofdünger).
        */
       !!@ ili2db.dispName = "Einstiegskriterium Verzicht Düngung"
@@ -1478,9 +1518,9 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Herbstweide"
       BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
       !!@ ili2db.dispName = "Herbstbeweidung Tierart"
-      BewirtschaftAbmachung_Herbstweide_Tierart : TEXT*100;
+      BewirtschaftAbmachung_Herbstweide_Tierart : Herbstweide_Tierart;
       !!@ ili2db.dispName = "Herbstbeweidung Anzahl Tiere"
-      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : 0 .. 500;
+      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : TEXT*255;
       !!@ ili2db.dispName = "Keine Herbstweide"
       BewirtschaftAbmachung_KeineHerbstweide : BOOLEAN;
       /** Gesamte ID-Fläche: Mähen mit Messerbalken-Mähgerät (Verzicht auf Rotationsmähwerk, bzw. Kreiselmäher)
@@ -1680,7 +1720,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Weidenkategorie pro ha"
       EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Struktur"
-      EinstufungBeurteilungIstZustand_Struktur : MANDATORY Weide_Struktur;
+      EinstufungBeurteilungIstZustand_Struktur : BAG {0..*} OF Weide_Struktur_;
       /** Bei optimaler Struktur bis Fr. 100.- pro ha
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur pro ha"
@@ -1720,10 +1760,10 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte"
       BewirtschaftAbmachung_Besatzdichte : MANDATORY BOOLEAN;
-      /** Besatzdichte gemäss Abmachung (Anzahl Tiere)
+      /** Besatzdichte gemäss Abmachung (Anzahl Tiere). Text oder Zahl.
        */
-      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte gemäss Abmachung"
-      BewirtschaftAbmachung_Besatzdichte_Zahl : 0 .. 1000;
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte (Text/Zahl)"
+      BewirtschaftAbmachung_Besatzdichte_Zahl : TEXT*255;
       /** Erschwernis aufwendige Handarbeit - Massnahme 1
        */
       !!@ ili2db.dispName = "Erschwernis Massnahme 1"
@@ -1870,7 +1910,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Weidenkategorie pro ha"
       EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Struktur"
-      EinstufungBeurteilungIstZustand_Struktur : MANDATORY Weide_Struktur;
+      EinstufungBeurteilungIstZustand_Struktur : BAG {0..*} OF Weide_Struktur_;
       /** Bei optimaler Struktur bis Fr. 150.- pro ha
        */
       !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur pro ha"
@@ -1911,10 +1951,10 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte"
       BewirtschaftAbmachung_Besatzdichte : MANDATORY BOOLEAN;
-      /** Besatzdichte gemäss Abmachung (Anzahl Tiere)
+      /** Besatzdichte gemäss Abmachung (Anzahl Tiere). Text oder Zahl.
        */
-      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte gemäss Abmachung"
-      BewirtschaftAbmachung_Besatzdichte_Zahl : 0 .. 1000;
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte (Text/Zahl)"
+      BewirtschaftAbmachung_Besatzdichte_Zahl : TEXT*255;
       /** Erschwernis aufwendige Handarbeit - Massnahme 1
        */
       !!@ ili2db.dispName = "Erschwernis Massnahme 1"
@@ -2099,9 +2139,9 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "kurze Herbstweide ab Oktober"
       BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
       !!@ ili2db.dispName = "Herbstbeweidung Tierart"
-      BewirtschaftAbmachung_Herbstweide_Tierart : TEXT*100;
+      BewirtschaftAbmachung_Herbstweide_Tierart : Herbstweide_Tierart;
       !!@ ili2db.dispName = "Herbstbeweidung Anzahl Tiere"
-      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : 0 .. 500;
+      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : TEXT*255;
       !!@ ili2db.dispName = "Keine Herbstweide"
       BewirtschaftAbmachung_KeineHerbstweide : MANDATORY BOOLEAN;
       /** Gesamte ID-Fläche: Mähen mit Messerbalken-Mähgerät (Verzicht auf Rotationsmähwerk, bzw. Kreiselmäher)
@@ -2318,6 +2358,10 @@ VERSION "2020-10-26"  =
       Flurname : BAG {1..*} OF SO_ARP_MJPNL_20201026.MJPNL.String_List;
       !!@ ili2db.dispName = "Vereinbarungsart"
       Vereinbarungsart : MANDATORY Vereinbarungsart;
+      /** Eine Nutzungsvereinbarung ist eine normale Vereinbarung ohne Abgeltungen. Defaultmässig ist es keine Nutzungsvereinbarung.
+       */
+      !!@ ili2db.dispName = "ist Nutzungsvereinbarung"
+      ist_Nutzungsvereinbarung : MANDATORY BOOLEAN;
       /** Fläche in ha
        */
       !!@ ili2db.dispName = "Fläche"
