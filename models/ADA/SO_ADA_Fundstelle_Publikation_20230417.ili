@@ -1,0 +1,99 @@
+INTERLIS 2.3;
+
+/** Publikations-Modell der archäologischen Fundstellen.
+ */
+MODEL SO_ADA_Fundstelle_Publikation_Restricted_20230417 (de)
+AT "https://ada.so.ch"
+VERSION "2023-04-17"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Fundstellen =
+
+    DOMAIN
+
+    Qualitaet_Lokalisierung_Typ = (
+      A_eingemessen,
+      B_aus_Literatur,
+      C_Flurbezeichnung
+    );
+
+    /** Fundstelle aus dem Inventar der aktuell bekannten archäologischen Fundstellen.
+     * Stellen mit weiterem Fundpotential sind geschuetzt. Vollständig ausgegrabene oder Einzelfunde sind nicht geschützt.
+     */
+    CLASS Fundstelle (ABSTRACT) =
+      /** Sprechender Schlüssel der Fundstelle. Beispiel: "103/60".
+       */
+      Fundstellen_Nummer : MANDATORY TEXT*10;
+      /** Flurname oder Adresse der Fundstelle.
+       */
+      Fundstellen_Name : MANDATORY TEXT*30;
+      /** Kurzdefinition der Fundstelle. Beispiel: "Römische Villa".
+       */
+      Fundstellen_Art : MANDATORY TEXT*30;
+      /** "True", falls die Fundstelle eine archäologische Schutzzone ist.
+       */
+      Geschuetzt : MANDATORY BOOLEAN;
+      /** Dreistufe Einschätzung, wie gut die Fundstelle lokalisiert ist.
+       */
+      Qualitaet_Lokalisierung : MANDATORY Qualitaet_Lokalisierung_Typ;
+      /** Beschreibung der Fundstelle und Forschungsgeschichte.
+       */
+      Kurzbeschreibung : MANDATORY MTEXT*3000;
+      /** Alter Gemeindename der Dokumenten-Ablage (vor Fusionen).
+       */
+      Gemeindename_Ablage : MANDATORY TEXT*30;
+      /** Während dem Import über die Schnittstelle verwendeter Verweis auf den RRB (Wird in Beziehung verwandelt).
+       */
+      RRB_Nummer : TEXT*10;
+    END Fundstelle;
+
+    CLASS Punktfundstelle
+    EXTENDS Fundstelle =
+      /** Punkt-Geometrie der Flaeche
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Punktfundstelle;
+
+    CLASS Flaechenfundstelle
+    EXTENDS Fundstelle =
+      /** Polygon-Geometrie der Flaeche
+       */
+      Multipolygon : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Flaechenfundstelle;
+
+    /** Das Dokumente-Archiv der Fundstellen ist nach einem eingefrorenen Stand der Gemeinden strukturiert.
+     *  In der Klasse Archiv_Gemeinde ist dieser eingefrorene Stand der Gemeinden enthalten.
+     */
+     CLASS Archiv_Gemeinde =
+
+     /** Name der Archiv-Gemeinde
+      */
+     Name : MANDATORY TEXT*255;
+
+     /** Nummer der Archiv-Gemeinde. Entspricht der ehemaligen Bfs-Gemeindenummer
+      */
+     Nummer : MANDATORY 0..9999;
+
+     /** Polygon der Archiv-Gemeinde.
+      */
+     Multipolygon : MANDATORY GeometryCHLV95_V1.MultiSurface;
+
+   END Archiv_Gemeinde;
+
+   /** Bereiche der Innenstädte, welche eine sehr hohe Dichte an Fundstellen aufweisen. 
+    */
+   CLASS Schutzbereiche_Innenstadt =
+
+     /** Name des Schutzbereichs. Bsp: Solothurn.
+      */
+     Name: MANDATORY TEXT*255;
+
+     /** Polygon des Schutzbereichs.
+      */
+     Multipolygon : MANDATORY GeometryCHLV95_V1.MultiSurface;
+
+   END Schutzbereiche_Innenstadt;
+
+  END Fundstellen;
+
+END SO_ADA_Fundstelle_Publikation_Restricted_20230417.
