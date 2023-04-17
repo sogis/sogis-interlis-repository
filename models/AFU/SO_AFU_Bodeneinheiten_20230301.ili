@@ -1086,6 +1086,8 @@ VERSION "2023-03-01"  =
       );
     STRUCTURE Bodenuntertyp_ = value : MANDATORY Bodenuntertyp; END Bodenuntertyp_;
 
+    /** Geometrie der Bodeneinheit und Basisdaten.
+     */
     CLASS Bodeneinheit =
       /** BFS-Nr der Gemeinde (Spatial Join).
        * 
@@ -1148,6 +1150,212 @@ VERSION "2023-03-01"  =
       Bemerkung : MTEXT*2000;
     END Kartierer;
 
+    /** Wertetabelle als Berechnungsgrundlage zum Thema Bindungsstärke der Metalle im Zusammenhang mit dem pH-Wert (Bodenazidität). Einfluss der Bodenazidität auf die relative Bindungsstärke von Metallen (FSM) bei sandigen Böden (Bodenart S, Su2) mit geringem Humusgehalt (<2%). Aus Tabelle 70.1 der Dokumentation.
+     * 
+     * Ehemalige Tabelle wt_tab70_1.
+     */
+    CLASS WT_BGL_Bindungsstaerke_Bodenaziditaet =
+      /** Metall (Abkürzung). 2 Buchstaben.
+       */
+      !!@ il2db.dispName="Metall (Abkürzung)"
+      Metall : MANDATORY TEXT*2;
+      /** ph-Wert von
+       */
+      !!@ il2db.dispName="ph-Wert bis"
+      pH_Wert_von : MANDATORY 0.00 .. 14.00;
+      /** ph-Wert bis
+       */
+      !!@ il2db.dispName="ph-Wert bis"
+      pH_Wert_bis : MANDATORY 0.00 .. 14.00;
+      /** relative Bindungsstärke FSM (1. Wert) des entsprechenden Metalles beim entsprechenden pH-Wert.
+       */
+      !!@ ili2db.dipsName="relative Bindungsstärke (FSM) des Metalls"
+      relative_Bindungsstaerke_FSM : MANDATORY 0.0 .. 5.0;
+    END WT_BGL_Bindungsstaerke_Bodenaziditaet;
+
+    /** Zuschläge zur Berücksichtigung des Einflusses des Humusgehaltes auf die relative Bindungsstärke für Schwermetalle. Tabelle 70.3 aus Dokumentation.
+     * 
+     * Ehemalige Tabelle wt_tab70_3
+     */
+    !!@ ili2db.dispName="Einfluss Humusgehalt auf Bindungsstärke"
+    CLASS WT_BGL_Bindungsstaerke_Einfluss_Humusgehalt =
+      /** Humusgehalt von (Prozent 0-100)
+       */
+      !!@ ili2db.dispName="Humusgehalt von"
+      Humusgehalt_von : MANDATORY 0 .. 100 [Units.Percent];
+      /** Humusgehalt bis (Prozent 0-100)
+       */
+      !!@ ili2db.dispName="Humusgehalt bis"
+      Humusgehalt_bis : MANDATORY 0 .. 100 [Units.Percent];
+      /** relative Bindungsstärke der Schwermetalle
+       */
+      !!@ ili2db.dispName="relative Bindungsstärke"
+      relative_Bindungsstaerke : MANDATORY 0.0 .. 5.0;
+      /** Korrekturfaktor (2. Wert) im Zusammenhang mit Humusgehalt und Bindungsstärke.
+       */
+      !!@ ili2db.dispName="Korrekturfaktor (2. Wert)"
+      Korrekturfaktor_Wert_2 : MANDATORY 0.0 .. 2.0;
+    END WT_BGL_Bindungsstaerke_Einfluss_Humusgehalt;
+
+    /** Zuschläge zur Berücksichtigung des Einflusses des Tongehaltes auf die relative Bindungsstärke für Schwermetalle. Tabelle 70.4 aus Dokumentation.
+     * 
+     * Ehemalige Tabelle wt_tab70_4
+     */
+    CLASS WT_BGL_Bindungsstaerke_Einfluss_Tongehalt =
+      /** Tongehalt von (Prozent 0-100)
+       */
+      !!@ ili2db.dispName="Tongehalt von"
+      Tongehalt_von : MANDATORY 0 .. 100 [Units.Percent];
+      /** Tongehalt bis (Prozent 0-100)
+       */
+      !!@ ili2db.dispName="Tongehalt bis"
+      Tongehalt_bis : MANDATORY 0 .. 100 [Units.Percent];
+      /** relative Bindungsstärke der Schwermetalle
+       */
+      !!@ ili2db.dispName="relative Bindungsstärke Schwermetalle"
+      relative_Bindungsstaerke : MANDATORY 1.0 .. 5.0;
+      /** Korrekturfaktor (3. Wert) im Zusammenhang mit Tongehalt und Bindungsstärke.
+       */
+      !!@ Name="Korrekturfaktor (3. Wert)"
+      Korrekturfaktor_Wert_3 : MANDATORY 0.0 .. 2.0;
+    END WT_BGL_Bindungsstaerke_Einfluss_Tongehalt;
+
+    /** Relative Bindungsstärke für Metallionen in Abhängigkeit von Bodenbestandteilen (Humus und Ton) . Tabelle 70.2 in der Dokumentation.
+     * 
+     * Ehemalige Tabelle wt_tab70_2
+     */
+    CLASS WT_BGL_Bindungsstaerke_Humus_Ton =
+      /** Metall (Abkürzung)
+       */
+      !!@ ili2db.dispName="Metall (Abkürzung)"
+      Metall : MANDATORY TEXT*2;
+      /** Grenz pH-Wert
+       */
+      !!@ ili2db.Mapping="Grenz pH-Wert"
+      Grenz_pH_Wert : MANDATORY 0.0 .. 14.0;
+      /** Substratbedingte Bindungsstärke unterhalb Grenz pH-Wert durch Humus.
+       */
+      !!@ ili2db.dispName="Substratbedingte Bindungsstärke unterhalb Grenz pH-Wert durch Humus"
+      Bindungsstaerke_unterh_Grenz_pH_Humus : MANDATORY 0.0 .. 5.0;
+      /** Substratbedingte Bindungsstärke unterhalb Grenz pH-Wert durch Ton.
+       */
+      !!@ ili2db.dispName="Substratbedingte Bindungsstärke unterhalb Grenz pH-Wert durch Ton"
+      Bindungsstaerke_unterh_Grenz_pH_Ton : MANDATORY TEXT*20;
+    END WT_BGL_Bindungsstaerke_Humus_Ton;
+
+    /** Wertetabelle als Berechnungsgrundlage zum Thema Bindungsstärke Skelettparameter.
+     * 
+     * Ehemalige Tabelle wt_tab70_4sk
+     */
+    CLASS WT_BGL_Bindungsstaerke_Skelettparameter =
+      Skelettgehalt : MANDATORY TEXT*3;
+      Minuswert : MANDATORY 0.5 .. 1.0;
+    END WT_BGL_Bindungsstaerke_Skelettparameter;
+
+    /** Wertetabelle als Berechnungsgrundlage zum Thema Bodenart. Bestimmungsschlüssel und Grenzwerte (Tongehalt und Schluffgehalt) für die Ansprache des Bodens
+     * 
+     * Ehemalige Tabelle wt_bodart
+     */
+    CLASS WT_BGL_Bodenart =
+      /** Bodenart Abkürzung
+       */
+      !!@ ili2db.dispName="Bodenart (Abkürzung)"
+      Bodenart : MANDATORY TEXT*3;
+      /** Tongehalt von - in Prozent (0-100)
+       */
+      !!@ ili2db.dispName="Tongehalt von"
+      Tongehalt_von : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      /** Tongehalt bis - in Prozent (0-100)
+       */
+      !!@ ili2db.dispName="Tongehalt bis"
+      Tongehalt_bis : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      /** Schluffgehalt von - in Prozent (0-100)
+       */
+      !!@ ili2db.dispName="Schluffgehalt von"
+      Schluffgehalt_von : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      /** Schluffgehalt bis - in Prozent (0-100)
+       */
+      !!@ Name="Schluffgehalt bis"
+      Schluffgehalt_bis : MANDATORY 0.00 .. 100.00 [Units.Percent];
+    END WT_BGL_Bodenart;
+
+    /** Wertetabelle als Berechnungsgrundlage zum Thema Gefüge. Bestimmungsschlüssel für die Ansprache des Gefüges. Zusammenhang Lagerungsdichte mit Gefüge.
+     * 
+     * Ehemalige Tabelle wt_gefueg
+     */
+    CLASS WT_BGL_Gefuege =
+      /** Lagerungsdichte (Ld)
+       */
+      !!@ ili2db.dispName="Lagerungsdichte (Ld)"
+      Lagerungsdichte : MANDATORY TEXT*3;
+      /** erhobene Gefügeart
+       */
+      !!@ ili2db.dispName=Gefügeart
+      Gefuegeart : MANDATORY TEXT*4;
+    END WT_BGL_Gefuege;
+
+    /** Wertetabelle als Berechnungsgrundlage zum Thema nutzbare Feldkapazität des Wurzelraums (Zusammenhang mit Nitratwerten). Nutzbare Feldkapazität (Ld) in Abhängigkeit von Bodenart und effektiver Lagerungsdichte (ebenfalls Ld).
+     * 
+     * Ehemalige Tabelle wt_nutzbfk
+     */
+    CLASS WT_BGL_nutzbare_Feldkapazitaet_Wurzelraum =
+      /** Bodenart (Abkürzung)
+       */
+      Bodenart : MANDATORY TEXT*3;
+      /** Nutzbare Feldkapazität bei Lagerungsdichte 1-2
+       */
+      !!@ ili2db.dispName="Nutzb. Feldkapazität b. Lagerungsdichte 1-2"
+      Nutzbare_Feldkapazitaet_bei_Ld1_2 : MANDATORY 0.00 .. 3.00;
+      /** Nutzbare Feldkapazität bei Lagerungsdichte 3
+       */
+      !!@ ili2db.dispName="Nutzb. Feldkapazität b. Lagerungsdichte 3"
+      Nutzbare_Feldkapazitaet_bei_Ld3 : MANDATORY 0.00 .. 3.00;
+      /** Nutzbare Feldkapazität bei Lagerungsdichte 4-5
+       */
+      !!@ ili2db.dispName="Nutzb. Feldkapazität b. Lagerungsdichte 4-5"
+      Nutzbare_Feldkapazitaet_bei_Ld4_5 : MANDATORY 0.00 .. 100.00;
+    END WT_BGL_nutzbare_Feldkapazitaet_Wurzelraum;
+
+    /** Wertetabelle als Berechnungsgrundlage zum Thema nutzbare Feldkapazität des Wurzelraums (Zusammenhang mit Nitratwerten). Zuschläge nutzbare Feldkapazität in Abhängigkeit von Bodenart und organischer Substanz.
+     * 
+     * Ehemalige Tabelle wt_znutzbfk
+     */
+    CLASS WT_BGL_nutzbare_Feldkapazitaet_Zuschlag =
+      /** Bodenart (Abkürzung)
+       */
+      !!@ ili2db.dispName="Bodenart (Abkürzung)"
+      Bodenart : MANDATORY TEXT*3;
+      /** Humusgehalt (organische Substanz) in Prozent.
+       */
+      !!@ ili2db.dispName="Humusgehalt von"
+      Humusgehalt_von : MANDATORY 0.00 .. 15.00 [Units.Percent];
+      /** Humusgehalt (organische Substanz) bis in Prozent.
+       */
+      !!@ ili2db.dispName="Humusgehalt bis"
+      Humusgehalt_bis : MANDATORY 0.00 .. 15.00 [Units.Percent];
+      /** Zuschlag nutzbare Feldkapazität
+       */
+      !!@ ili2db.dispName="Zuschlag nutzbare Feldkapazität"
+      Zuschlag_nutzbare_Feldkapazitaet : MANDATORY 0.00 .. 2.00;
+    END WT_BGL_nutzbare_Feldkapazitaet_Zuschlag;
+
+    /** Bestimmungsschlüssel für die pflanzennutzbare Gründigkeit (pnG) in Ab-
+     * hängigkeit der Wasserhaushaltsgruppe (WhG).
+     * 
+     * Ehemalige Tabelle wt_gefueg
+     */
+    CLASS WT_BGL_pflanzennutzbare_Gruendigkeit =
+      /** Wasserhaushaltsgruppe (WhG)
+       */
+      Wasserhaushaltsgruppe : MANDATORY TEXT*1;
+      /** flanzennutzbare Gründigkeit in cm
+       */
+      !!@ ili2db.dispName="flanzennutzbare Gründigkeit"
+      flanzennutzbare_Gruendigkeit : MANDATORY 0 .. 125 [Units.cm];
+    END WT_BGL_pflanzennutzbare_Gruendigkeit;
+
+    /** Eigenschaften der Bodeneinheit. Pro Bodeneinheit gibt es mindestens eine Bodenausprägung (Hauptausprägung) und bis zu 2 Nebenausprägung. Insgesamt müssen alle Ausprägungen 100 Prozent ergeben.
+     */
     !!@ ili2db.dispName=Bodenausprägung
     CLASS Bodenauspraegung =
       /** BFS-Nr der Gemeinde (Spatial Join).
@@ -1306,25 +1514,24 @@ VERSION "2023-03-01"  =
        */
       !!@ ili2db.dispName="pH-Wert Unterboden"
       pH_Wert_Unterboden : MANDATORY 0.0 .. 14.0;
-      /** Mächtigkeit des A-Horizonts in cm.
+      /** Mächtigkeit des Ah-Horizonts in cm.
        */
       !!@ ili2db.dispName="Mächtigkeit A-Horizont"
-      Maechtigkeit_A_Horizont : MANDATORY 0 .. 99 [Units.cm];
-      /** Humusgehalt des A-Horizonts in Prozent. 1 Dezimalstelle.
+      Maechtigkeit_Ah_Horizont : MANDATORY 0 .. 99 [Units.cm];
+      /** Humusgehalt des Ah-Horizonts in Prozent. 1 Dezimalstelle.
        */
       !!@ ili2db.dispName="Humusgehalt A-Horizont"
-      Humusgehalt_A_Horizont : MANDATORY 0.0 .. 80.0 [Units.Percent];
+      Humusgehalt_Ah_Horizont : MANDATORY 0.0 .. 80.0 [Units.Percent];
       /** Humusform, nur relevant bei Waldböden. Werteliste.
        */
       !!@ ili2db.dispName="Humusform (nur bei Waldboden)"
       Humusform_Waldboden : Humusform_Waldboden;
-      /** Mächtigkeit des Ah-Horizonts in cm. Nur relevant im Waldbereich.
+      /** Mächtigkeit des Ahh-Horizonts in cm. Nur relevant im Waldbereich.
        */
       !!@ ili2db.dispName="Mächtigkeit Ah-Horizont"
-      Maechtigkeit_Ah_Horizont : 0.0 .. 21.0 [Units.cm];
-      /** Bodenprofilwert, ehemals bodpktzahl.
-       * 
-       * Was bedeutet diese Zahl?
+      Maechtigkeit_Ahh_Horizont : 0.0 .. 21.0 [Units.cm];
+      /** Bodenprofilwert (Punkte). Maximalpunkte: 100 (beste Qualität)
+       * ehemals: bodpktzahl
        */
       Bodenprofilwert : MANDATORY 0 .. 100;
       /** pflanzennutzbare Gründigkeit in cm.
