@@ -5,7 +5,7 @@ INTERLIS 2.3;
  * - Die Klasse Fundstelle_ImdasView simuliert temporär die Imdas-View. Rückbau Fundstelle_Base -> Fundstelle
  * - Die Klasse Regierungsratsbeschluss_ImdasView simuliert temporär die Imdas-View. Rückbau Regierungsratsbeschluss_Base -> Regierungsratsbeschluss
  */
-MODEL SO_ADA_Fundstelle_20230417 (de)
+MODEL SO_ADA_Archaeologie_20230417 (de)
 AT "https://ada.so.ch"
 VERSION "2023-04-17"  =
   IMPORTS GeometryCHLV95_V1;
@@ -32,7 +32,7 @@ VERSION "2023-04-17"  =
       Fundstellen_Nummer : MANDATORY TEXT*10;
       /** Flurname oder Adresse der Fundstelle.
        */
-      Fundstellen_Name : MANDATORY TEXT*30;
+      Fundst_Adresse_Flurname : MANDATORY TEXT*30;
       /** Kurzdefinition der Fundstelle. Beispiel: "Römische Villa".
        */
       Fundstellen_Art : MANDATORY TEXT*100;
@@ -72,7 +72,7 @@ VERSION "2023-04-17"  =
     CLASS Regierungsratsbeschluss_Base (ABSTRACT) =
       /** Sprechende Nummer des Regierungsratsbeschluss. Beispiel: 1943/5656.
        */
-      Nummer : MANDATORY TEXT*10;
+      RRB_Nummer : MANDATORY TEXT*10;
       /** Titel des Regierungsratsbeschluss.
        */
       Titel : MANDATORY TEXT*200;
@@ -102,7 +102,7 @@ VERSION "2023-04-17"  =
   /** Umfasst die mittels QGIS gepflegten Flächen der Fundstellen.
    */
   TOPIC Geo =
-    DEPENDS ON SO_ADA_Fundstelle_20230417.Fachapplikation;
+    DEPENDS ON SO_ADA_Archaeologie_20230417.Fachapplikation;
 
     /** Ausdehnung der Schutzzone oder Oereb-Eigentumsbeschränkung der Fundstelle.
      */
@@ -121,36 +121,36 @@ VERSION "2023-04-17"  =
     END Flaeche;
 
     ASSOCIATION Geo_Fach =
-      Fundstelle_Role (EXTERNAL) -- {1} SO_ADA_Fundstelle_20230417.Fachapplikation.Fundstelle;
+      Fundstelle_Role (EXTERNAL) -- {1} SO_ADA_Archaeologie_20230417.Fachapplikation.Fundstelle;
       Flaeche_Role -- {0..2} Flaeche;
     END Geo_Fach;
 
-    /** Das Dokumente-Archiv der Fundstellen ist nach einem eingefrorenen Stand der Gemeinden strukturiert.
-     * In der Klasse Archiv_Gemeinde ist dieser eingefrorene Stand der Gemeinden enthalten.
+    /** Die Dokumente-Ablage der Fundstellen ist nach einem eingefrorenen Stand der Gemeinden strukturiert.
+     * In der Klasse Ablage_Gemeinde ist dieser eingefrorene Stand der Gemeinden enthalten.
      */
-    CLASS Archiv_Gemeinde =
-      /** Name der Archiv-Gemeinde
+    CLASS Ablage_Gemeinde =
+      /** Name der Ablage-Gemeinde
        */
-      Name : MANDATORY TEXT*255;
-      /** Nummer der Archiv-Gemeinde. Entspricht der ehemaligen Bfs-Gemeindenummer
+      Gemeindename_Ablage : MANDATORY TEXT*255;
+      /** Nummer der Ablage-Gemeinde.
        */
-      Nummer : MANDATORY 0 .. 9999;
+      Gemeindenummer_Ablage : MANDATORY 0 .. 9999;
       /** Polygon der Archiv-Gemeinde.
        */
       Multipolygon : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Archiv_Gemeinde;
+    END Ablage_Gemeinde;
 
     /** Bereiche der Innenstädte, welche eine sehr hohe Dichte an Fundstellen aufweisen.
      */
-    CLASS Schutzbereiche_Innenstadt =
+    CLASS Schutzbereich_Innenstadt =
       /** Name des Schutzbereichs. Bsp: Solothurn.
        */
       Name : MANDATORY TEXT*255;
       /** Polygon des Schutzbereichs.
        */
       Polygon : MANDATORY GeometryCHLV95_V1.Surface;
-    END Schutzbereiche_Innenstadt;
+    END Schutzbereich_Innenstadt;
 
   END Geo;
 
-END SO_ADA_Fundstelle_20230417.
+END SO_ADA_Archaeologie_20230417.
