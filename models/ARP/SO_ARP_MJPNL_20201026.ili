@@ -12,9 +12,24 @@ AT "http://www.geo.so.ch/models"
 VERSION "2020-10-26"  =
   IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1,SO_ALW_Landwirtschaft_Tierhaltung_20210426;
 
+  TOPIC Umweltziele =
+    /** Umweltziele Landwirtschaft. Quelle: Bafu/Agroscope.
+    * 
+    * https://www.agroscope.admin.ch/agroscope/de/home/themen/umwelt-ressourcen/biodiversitaet-landschaft/oekologischer-ausgleich/umweltziele-landwirtschaft.html
+    * 
+    * Daten müssen beim Import vom LV03 ins LV95 konvertiert werden.
+    */
+    !!@ ili2db.dispName = "UZL Subregion"
+    CLASS UZL_Subregion =
+      SRCode : MANDATORY TEXT*3;
+      SRName : MANDATORY TEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END UZL_Subregion;
+  END Umweltziele;
+
   TOPIC MJPNL =
     OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_ALW_Landwirtschaft_Tierhaltung_20210426.Betriebsdaten_Strukturdaten,SO_ALW_Landwirtschaft_Tierhaltung_20210426.BFF_Qualitaet;
+    DEPENDS ON SO_ALW_Landwirtschaft_Tierhaltung_20210426.Betriebsdaten_Strukturdaten,SO_ALW_Landwirtschaft_Tierhaltung_20210426.BFF_Qualitaet,SO_ARP_MJPNL_20201026.Umweltziele;
 
     DOMAIN
 
@@ -385,19 +400,6 @@ VERSION "2020-10-26"  =
     STRUCTURE String_List =
       String : MANDATORY TEXT*255;
     END String_List;
-
-    /** Umweltziele Landwirtschaft. Quelle: Bafu/Agroscope.
-     * 
-     * https://www.agroscope.admin.ch/agroscope/de/home/themen/umwelt-ressourcen/biodiversitaet-landschaft/oekologischer-ausgleich/umweltziele-landwirtschaft.html
-     * 
-     * Daten müssen beim Import vom LV03 ins LV95 konvertiert werden.
-     */
-    !!@ ili2db.dispName = "UZL Subregion"
-    CLASS UZL_Subregion =
-      SRCode : MANDATORY TEXT*3;
-      SRName : MANDATORY TEXT*255;
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END UZL_Subregion;
 
     /** Hier wird der Bewirtschafterwechsel dokumentiert
      */
@@ -2432,7 +2434,7 @@ VERSION "2020-10-26"  =
      */
     ASSOCIATION Vereinbarung_UZL_Subregion =
       Vereinbarung -- {0..*} Vereinbarung;
-      UZL_Subregion -- {1} UZL_Subregion;
+      UZL_Subregion (EXTERNAL) -- {1} SO_ARP_MJPNL_20201026.Umweltziele.UZL_Subregion;
     END Vereinbarung_UZL_Subregion;
 
   END MJPNL;
