@@ -13,9 +13,127 @@ AT "http://www.geo.so.ch/models"
 VERSION "2020-10-26"  =
   IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1,SO_ALW_Landwirtschaft_Tierhaltung_20210426;
 
+  TOPIC Umweltziele =
+    OID AS INTERLIS.UUIDOID;
+    /** Umweltziele Landwirtschaft. Quelle: Bafu/Agroscope.
+    * 
+    * https://www.agroscope.admin.ch/agroscope/de/home/themen/umwelt-ressourcen/biodiversitaet-landschaft/oekologischer-ausgleich/umweltziele-landwirtschaft.html
+    * 
+    * Daten müssen beim Import vom LV03 ins LV95 konvertiert werden.
+    */
+    !!@ ili2db.dispName = "UZL Subregion"
+    CLASS UZL_Subregion =
+      SRCode : MANDATORY TEXT*3;
+      SRName : MANDATORY TEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END UZL_Subregion;
+  END Umweltziele;
+
+  TOPIC Kataloge =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      !!@ ili2db.dispName = "Faunaliste Gruppe"
+      Faunaliste_Gruppe = (
+        !!@ ili2db.dispName = "Heuschrecke"
+        Heuschrecke,
+        !!@ ili2db.dispName = "Libelle"
+        Libelle,
+        !!@ ili2db.dispName = "Käfer"
+        Kaefer,
+        !!@ ili2db.dispName = "Netzflügler"
+        Netzfluegler,
+        !!@ ili2db.dispName = "Tagfalter"
+        Tagfalter,
+        !!@ ili2db.dispName = "Säugetier"
+        Saeugetier,
+        !!@ ili2db.dispName = "Vogel"
+        Vogel,
+        !!@ ili2db.dispName = "Reptilie"
+        Reptilie,
+        !!@ ili2db.dispName = "Amphibie"
+        Amphibie
+      );
+
+      !!@ ili2db.dispName = "Faunaliste Status"
+      Faunaliste_Status = (
+        Zielart,
+        Leitart
+      );
+
+      !!@ ili2db.dispName = "Floraliste Eigenschaft"
+      Floraliste_Eigenschaft = (
+        !!@ ili2db.dispName = "selten"
+        selten,
+        !!@ ili2db.dispName = "typisch"
+        typisch,
+        !!@ ili2db.dispName = "besonders typisch"
+        besonders_typisch,
+        !!@ ili2db.dispName = "Nährstoffzeiger"
+        Naehrstoffzeiger,
+        !!@ ili2db.dispName = "Nährstoffzeiger eingeschränkt / Störungszeiger"
+        Naehrstoffzeiger_eingeschraenkt_Stoerungszeiger,
+        !!@ ili2db.dispName = "Verbrachungszeiger"
+        Verbrachungszeiger
+      );
+
+    /** Liste von Tieren
+     */
+    CLASS Faunaliste =
+      !!@ ili2db.dispName = "Lateinischer Name"
+      Name_Lateinisch : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Deutscher Name"
+      Name_Deutsch : MANDATORY TEXT*255;
+      /** Tiergruppe (Kategorie)
+        */
+      Gruppe : MANDATORY Faunaliste_Gruppe;
+      /** Leitart oder Zielart (optional)
+        */
+      Status : Faunaliste_Status;
+      /** Art ist relevant in Subregion 1_2
+        */
+      !!@ ili2db.dispName = "relevant in Subregion 1.2"
+      relevant_Subregion_1_2 : MANDATORY BOOLEAN;
+      /** Art ist relevant in Subregion 1.3
+        */
+      !!@ ili2db.dispName = "relevant im Subregion 1.3"
+      relevant_Subregion_1_3 : MANDATORY BOOLEAN;
+      /** Art ist relevant in Subregion 1.5
+        */
+      !!@ ili2db.dispName = "relevant in Subregion 1.5"
+      relevant_Subregion_1_5 : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Wiese"
+      relevant_ProgrTyp_Wiese : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp"
+      relevant_ProgrTyp_Weide : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Wasserbeeinflusster Lebensraum"
+      relevant_ProgrTyp_WBL : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Hecke"
+      relevant_ProgrTyp_Hecke : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Obstbaumlandschaft"
+      relevant_ProgrTyp_OBL : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Ackerlebensraum"
+      relevant_ProgrTyp_ALR : MANDATORY BOOLEAN;
+    END Faunaliste;
+
+    /** Artenliste Pflanzen
+      */
+    CLASS Floraliste =
+      !!@ ili2db.dispName = "Lateinischer Name"
+      Name_Lateinisch : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Deutscher Name"
+      Name_Deutsch : MANDATORY TEXT*255;
+      /** Diverse Eigenschaften, wie selten, typisch, Nährstoffzeiger, Verbrachungsanzeiger
+        */
+      !!@ ili2db.dispName = "Verbrachungszeiger in Weiden"
+      Eigenschaft : Floraliste_Eigenschaft;
+    END Floraliste;
+    
+  END Kataloge;
+
   TOPIC MJPNL =
     OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_ALW_Landwirtschaft_Tierhaltung_20210426.Betriebsdaten_Strukturdaten,SO_ALW_Landwirtschaft_Tierhaltung_20210426.BFF_Qualitaet;
+    DEPENDS ON SO_ALW_Landwirtschaft_Tierhaltung_20210426.Betriebsdaten_Strukturdaten,SO_ALW_Landwirtschaft_Tierhaltung_20210426.BFF_Qualitaet,SO_ARP_MJPNL_20201026.Umweltziele,SO_ARP_MJPNL_20201026.Kataloge;
 
     DOMAIN
 
@@ -28,8 +146,8 @@ VERSION "2020-10-26"  =
         pauschal,
         /** z.B. per Baum
          */
-        !!@ ili2db.dispName = "pro Stück"
-        pro_Stueck
+        !!@ ili2db.dispName = "per Stück"
+        per_stueck
       );
 
       /** Status des Zahlungslaufes
@@ -76,50 +194,6 @@ VERSION "2020-10-26"  =
         Sued,
         Nord,
         verschiedene
-      );
-
-      !!@ ili2db.dispName = "Faunaliste Gruppe"
-      Faunaliste_Gruppe = (
-        !!@ ili2db.dispName = "Heuschrecke"
-        Heuschrecke,
-        !!@ ili2db.dispName = "Libelle"
-        Libelle,
-        !!@ ili2db.dispName = "Käfer"
-        Kaefer,
-        !!@ ili2db.dispName = "Netzflügler"
-        Netzfluegler,
-        !!@ ili2db.dispName = "Tagfalter"
-        Tagfalter,
-        !!@ ili2db.dispName = "Säugetier"
-        Saeugetier,
-        !!@ ili2db.dispName = "Vogel"
-        Vogel,
-        !!@ ili2db.dispName = "Reptilie"
-        Reptilie,
-        !!@ ili2db.dispName = "Amphibie"
-        Amphibie
-      );
-
-      !!@ ili2db.dispName = "Faunaliste Status"
-      Faunaliste_Status = (
-        Zielart,
-        Leitart
-      );
-
-      !!@ ili2db.dispName = "Floraliste Eigenschaft"
-      Floraliste_Eigenschaft = (
-        !!@ ili2db.dispName = "selten"
-        selten,
-        !!@ ili2db.dispName = "typisch"
-        typisch,
-        !!@ ili2db.dispName = "besonders typisch"
-        besonders_typisch,
-        !!@ ili2db.dispName = "Nährstoffzeiger"
-        Naehrstoffzeiger,
-        !!@ ili2db.dispName = "Nährstoffzeiger eingeschränkt / Störungszeiger"
-        Naehrstoffzeiger_eingeschraenkt_Stoerungszeiger,
-        !!@ ili2db.dispName = "Verbrachungszeiger"
-        Verbrachungszeiger
       );
 
       !!@ ili2db.dispName = "Floraliste Häufigkeit"
@@ -333,7 +407,7 @@ VERSION "2020-10-26"  =
       /** Jährliche Abgeltung total (Abgeltung Fläche plus Abgeltung pauschal).
        */
       !!@ ili2db.dispName = "Abgeltung total (Flächenbeitrag und Pauschale)"
-      Abgeltung_total : MANDATORY 0.00 .. 50000.00 [Units.CHF];
+      Abgeltung_total : MANDATORY -50000.00 .. 50000.00 [Units.CHF];
       !!@ ili2db.dispName = "Besondere Abmachungen"
       Besondere_Abmachungen : MTEXT*2000;
       /** Datum der Ersterfassung der Beurteilung. Wird vom Bearbeitungssystem automatisch abgefüllt.
@@ -386,19 +460,6 @@ VERSION "2020-10-26"  =
     STRUCTURE String_List =
       String : MANDATORY TEXT*255;
     END String_List;
-
-    /** Umweltziele Landwirtschaft. Quelle: Bafu/Agroscope.
-     * 
-     * https://www.agroscope.admin.ch/agroscope/de/home/themen/umwelt-ressourcen/biodiversitaet-landschaft/oekologischer-ausgleich/umweltziele-landwirtschaft.html
-     * 
-     * Daten müssen beim Import vom LV03 ins LV95 konvertiert werden.
-     */
-    !!@ ili2db.dispName = "UZL Subregion"
-    CLASS UZL_Subregion =
-      SRCode : MANDATORY TEXT*3;
-      SRName : MANDATORY TEXT*255;
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END UZL_Subregion;
 
     /** Hier wird der Bewirtschafterwechsel dokumentiert
      */
@@ -486,9 +547,9 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Betrag per Einheit"
       Betrag_per_Einheit : MANDATORY -30000.00 .. 30000.00 [Units.CHF];
       !!@ ili2db.dispName = "Anzahl Einheiten"
-      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00;
       !!@ ili2db.dispName = "Betrag in CHF total"
-      Betrag_Total : MANDATORY -10000.00 .. 20000.00 [Units.CHF];
+      Betrag_Total : MANDATORY -20000.00 .. 20000.00 [Units.CHF];
       !!@ ili2db.dispName = "Auszahlungsjahr"
       Auszahlungsjahr : 1900 .. 2100;
       !!@ ili2db.dispName = "Status der Abrechnung"
@@ -510,7 +571,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Fläche in ha"
       Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
       !!@ ili2db.dispName = "Gesamtbetrag"
-      Gesamtbetrag : MANDATORY 0.00 .. 40000.00 [Units.CHF];
+      Gesamtbetrag : MANDATORY -40000.00 .. 40000.00 [Units.CHF];
       !!@ ili2db.dispName = "Jahr der Auszahlung"
       Auszahlungsjahr : MANDATORY 1900 .. 2100;
       !!@ ili2db.dispName = "Status der Abrechnung"
@@ -2172,58 +2233,6 @@ VERSION "2020-10-26"  =
       Abgeltung_pauschal_total : MANDATORY -10000.00 .. 450.00 [Units.CHF];
     END Beurteilung_Wiese;
 
-    /** Liste von Tieren
-     */
-    CLASS Faunaliste =
-      !!@ ili2db.dispName = "Lateinischer Name"
-      Name_Lateinisch : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Deutscher Name"
-      Name_Deutsch : MANDATORY TEXT*255;
-      /** Tiergruppe (Kategorie)
-       */
-      Gruppe : MANDATORY Faunaliste_Gruppe;
-      /** Leitart oder Zielart (optional)
-       */
-      Status : Faunaliste_Status;
-      /** Art ist relevant in Subregion 1_2
-       */
-      !!@ ili2db.dispName = "relevant in Subregion 1.2"
-      relevant_Subregion_1_2 : MANDATORY BOOLEAN;
-      /** Art ist relevant in Subregion 1.3
-       */
-      !!@ ili2db.dispName = "relevant im Subregion 1.3"
-      relevant_Subregion_1_3 : MANDATORY BOOLEAN;
-      /** Art ist relevant in Subregion 1.5
-       */
-      !!@ ili2db.dispName = "relevant in Subregion 1.5"
-      relevant_Subregion_1_5 : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp Wiese"
-      relevant_ProgrTyp_Wiese : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp"
-      relevant_ProgrTyp_Weide : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp Wasserbeeinflusster Lebensraum"
-      relevant_ProgrTyp_WBL : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp Hecke"
-      relevant_ProgrTyp_Hecke : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp Obstbaumlandschaft"
-      relevant_ProgrTyp_OBL : MANDATORY BOOLEAN;
-      !!@ ili2db.dispName = "relevant im Programmtyp Ackerlebensraum"
-      relevant_ProgrTyp_ALR : MANDATORY BOOLEAN;
-    END Faunaliste;
-
-    /** Artenliste Pflanzen
-     */
-    CLASS Floraliste =
-      !!@ ili2db.dispName = "Lateinischer Name"
-      Name_Lateinisch : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Deutscher Name"
-      Name_Deutsch : MANDATORY TEXT*255;
-      /** Diverse Eigenschaften, wie selten, typisch, Nährstoffzeiger, Verbrachungsanzeiger
-       */
-      !!@ ili2db.dispName = "Verbrachungszeiger in Weiden"
-      Eigenschaft : Floraliste_Eigenschaft;
-    END Floraliste;
-
     CLASS Foto
     EXTENDS Dokument =
       Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
@@ -2359,7 +2368,7 @@ VERSION "2020-10-26"  =
 
     ASSOCIATION Beobachtung_Fauna =
       Beurteilung -- {0..*} Beurteilung;
-      Art_Fauna -- {0..*} Faunaliste;
+      Art_Fauna (EXTERNAL) -- {0..*} SO_ARP_MJPNL_20201026.Kataloge.Faunaliste;
       /** optional for now, maybe later mandatory
        */
       !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
@@ -2368,7 +2377,7 @@ VERSION "2020-10-26"  =
 
     ASSOCIATION Beobachtung_Flora =
       Beurteilung -- {0..*} Beurteilung;
-      Art_Flora -- {0..*} Floraliste;
+      Art_Flora (EXTERNAL) -- {0..*} SO_ARP_MJPNL_20201026.Kataloge.Floraliste;
       !!@ ili2db.dispName = "Häufigkeit (qualitativ)"
       Haeufigkeit_qualitativ : Floraliste_Haeufigkeit;
       !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
@@ -2385,8 +2394,8 @@ VERSION "2020-10-26"  =
     !!@ ili2db.dispName = "Fauna- und Floraliste (kombiniert)"
     VIEW Fauna_Flora_Liste
     UNION OF
-      Fa ~ Faunaliste,
-      Fl ~ Floraliste;
+      Fa ~ SO_ARP_MJPNL_20201026.Kataloge.Faunaliste,
+      Fl ~ SO_ARP_MJPNL_20201026.Kataloge.Floraliste;
     =
       Name_Lateinisch: MANDATORY TEXT*255 := Fa -> Name_Lateinisch,
                                              Fl -> Name_Lateinisch;
@@ -2434,7 +2443,7 @@ VERSION "2020-10-26"  =
      */
     ASSOCIATION Vereinbarung_UZL_Subregion =
       Vereinbarung -- {0..*} Vereinbarung;
-      UZL_Subregion -- {1} UZL_Subregion;
+      UZL_Subregion (EXTERNAL) -- {1} SO_ARP_MJPNL_20201026.Umweltziele.UZL_Subregion;
     END Vereinbarung_UZL_Subregion;
 
   END MJPNL;
