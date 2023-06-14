@@ -1,0 +1,71 @@
+INTERLIS 2.3;
+
+/** Publikationsmodell des TIN-basierten geologischen Schichtenmodells (3D).
+ * Die enthaltenen Punkte entstehen durch Abfrage des Schichtenmodells in
+ * einem regelmässigen Punktraster.
+ * Beachte verwandtes Modell SO_AFU_EWS_Abfrage_2D_YYYYMMMDD.
+ */
+MODEL SO_AFU_EWS_Abfrage_3D_20230508 (de)
+AT "https://afu.so.ch"
+VERSION "2023-05-08"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Von_3D =
+
+    DOMAIN
+
+      Grund_Beschraenkung_Typ = (
+        Keuper,
+        Malmkalke,
+        Birmensdorfer,
+        Hauptrogenstein,
+        Muschelkalk
+      );
+
+      Hinweis_Art = (
+        anbohrbarer_Kalk,
+        Oel,
+        Gas
+      );
+
+    /** Enthält die maximal mögliche Bohrtiefe an der Stelle und den Grund
+     * der Bohrtiefenbeschränkung.
+     */
+    CLASS Tiefenbeschraenkung =
+      /** Maximal zulässige Bohrtiefe aufgrund geolog. Schichtenmodell
+       */
+      Max_Bohrtiefe : MANDATORY 0 .. 2000 [INTERLIS.m];
+      /** Grund für die Bohrtiefenbeschränkung
+       */
+      Grund_Beschraenkung : MANDATORY Grund_Beschraenkung_Typ;
+      /** Unsicherheit der maximal zulässigen Bohrtiefe
+       */
+      Unsicherheit : MANDATORY 0 .. 9999 [INTERLIS.m];
+      /** Programmlog der wichtigsten Entscheidungen für die Tiefenbeschränkung an dieser Stelle.
+       */
+      Entscheidungs_Log : MANDATORY MTEXT*500;
+      /** Punktgeometrie
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Tiefenbeschraenkung;
+
+    /** Hinweis zum Untergrund an der Stelle
+     */
+    CLASS Hinweis =
+      /** Art des Hinweises
+       */
+      Hinweis : MANDATORY Hinweis_Art;
+      /** Tiefe des Hinweises. Null bei Hinweisen ohne Bezug zur Bohrtiefe.
+       */
+      Tiefe_Hinweis : 0 .. 2000 [INTERLIS.m];
+      /** Hinweis öffentlich oder nur für AfU-Fachpersonen.
+       */
+      Hinweis_oeffentlich : MANDATORY BOOLEAN;
+      /** Punktgeometrie
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Hinweis;
+
+  END Von_3D;
+
+END SO_AFU_EWS_Abfrage_3D_20230508.
