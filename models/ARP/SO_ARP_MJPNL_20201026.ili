@@ -509,7 +509,8 @@ VERSION "2020-10-26"  =
         Wiese
       );
 
-    /** Die Abrechnung aggregiert auf Bewirtschafter. Es werden hier die Leistungen mehrere Vereinbarungen aggregiert.
+    /** Die Abrechnung aggregiert auf Bewirtschafter. 
+    Es werden hier die Abrechnungen der Vereinbarungen des Bewirtschafters aggregiert.
      */
     !!@ ili2db.dispName = "Abrechnung per Bewirtschafter"
     CLASS Abrechnung_per_Bewirtschafter
@@ -538,7 +539,34 @@ VERSION "2020-10-26"  =
       Migriert: BOOLEAN;
     END Abrechnung_per_Bewirtschafter;
 
-    /** Zusammenstellung der abgerechneten Leistungen
+    /** Abrechnung (total) per Vereinbarung.
+    Es werden hier die Abrechnungen der Leistungen der Vereinbarung aggregiert.
+     */
+    !!@ ili2db.dispName = "Abrechnung per Vereinbarung"
+    CLASS Abrechnung_per_Vereinbarung =
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Flurnamen"
+      Flurnamen : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Gemeindename"
+      Gemeinde : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      !!@ ili2db.dispName = "Gesamtbetrag"
+      Gesamtbetrag : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Jahr der Auszahlung"
+      Auszahlungsjahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      Bemerkung : MTEXT*2000;
+      !!@ ili2db.dispName = "Aus altem System migriert"
+      Migriert: BOOLEAN;
+    END Abrechnung_per_Vereinbarung;
+
+    /** Abrechnungen der einzelnen Leistungen. 
+    Diese können aus Beurteilungen kalkuliert oder auch direkt erstellt werden.
      */
     !!@ ili2db.dispName = "Abgerechnete Leistungen"
     CLASS Abrechnung_per_Leistung =
@@ -569,31 +597,6 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Einmalige / manuell Erfasste Leistung"
       Einmalig: BOOLEAN;
     END Abrechnung_per_Leistung;
-
-    /** Abrechnung (total) per Vereinbarung
-     */
-    !!@ ili2db.dispName = "Abrechnung per Vereinbarung"
-    CLASS Abrechnung_per_Vereinbarung =
-      !!@ ili2db.dispName = "Vereinbarungs-Nr"
-      Vereinbarungs_Nr : MANDATORY TEXT*50;
-      !!@ ili2db.dispName = "Flurnamen"
-      Flurnamen : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Gemeindename"
-      Gemeinde : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Fläche in ha"
-      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
-      !!@ ili2db.dispName = "Gesamtbetrag"
-      Gesamtbetrag : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
-      !!@ ili2db.dispName = "Jahr der Auszahlung"
-      Auszahlungsjahr : MANDATORY 1900 .. 2100;
-      !!@ ili2db.dispName = "Status der Abrechnung"
-      Status_Abrechnung : MANDATORY Abrechnung_Status;
-      !!@ ili2db.dispName = "Datum der Abrechnung"
-      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
-      Bemerkung : MTEXT*2000;
-      !!@ ili2db.dispName = "Aus altem System migriert"
-      Migriert: BOOLEAN;
-    END Abrechnung_per_Vereinbarung;
 
     /** Es gibt nur einen Basisvertrag pro GELAN Bewirtschafter.
      */
@@ -1038,7 +1041,7 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Erschwernis Massnahme 2"
       !!@ Abgeltung="100"
-      !!@ Abgeltungsart="oer_ha"
+      !!@ Abgeltungsart="per_ha"
       Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
       /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
        */
