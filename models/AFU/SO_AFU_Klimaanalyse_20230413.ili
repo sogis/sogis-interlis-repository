@@ -1,0 +1,199 @@
+INTERLIS 2.3;
+
+/** -------------------------------------------------------------------------------------------------- 
+ *  Version    | wer | Änderung 
+ * -------------------------------------------------------------------------------------------------- 
+ *  2023-04-13 | ps  | Ersterfassung 
+ * =========================================================================
+ */
+!!@ technicalContact="mailto:agi@so.ch"
+MODEL SO_AFU_Klimaanalyse_20230413 (de)
+AT "https://geo.so.ch/models/AFU"
+VERSION "2013-04-13"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Der Klimawandel stellt eine neue Herausforderung für die Siedlungsentwicklung dar. 
+   * Vor diesem Hintergrund wurde die heutige (Ist 2020) und künftige (Zukunft 2060) klimatische Situation flächendeckend für den Kanton Solothurn modelliert (Klimaanalyse). 
+   * Die Modellergebnisse und die daraus resultierenden Klimaanalyse- und Planungshinweiskarten (zusammen: Klimakarten) geben Aufschluss über die klimatische Situation: Wo befinden sich die Hot-Spots im Siedlungsgebiet? Welche Grün- und Freiräume sind wichtig für die Kaltluftproduktion? Wo verlaufen wichtige Kaltluftleitbahnen, die es freizuhalten gilt?
+   */
+  TOPIC Klimaanalyse =
+
+    /** Flächen mit der Grundnutzung "Arbeiten" (Arbeit, Gewerbe, Industrie) gemäss Nutzungsplanung.
+     */
+    CLASS Arbeitszone_ohne_Wohnen =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Arbeitszone_ohne_Wohnen;
+
+    /** Flächendeckender Layer mit den Ausgangsgrössen betreffend Bewertungen der Planungshinweiskarte, inklusive der Angabe zur Landnutzung.
+     */
+    CLASS Ausgangsgroessen_Bewertung =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Art der Landnutzung
+       */
+      Nutzung : MANDATORY TEXT*50;
+      /** Waldflächen (ja/nein)
+       */
+      !!@ ili2db.dispName = "Waldfläche"
+      Waldflaeche : MANDATORY BOOLEAN;
+      /** mittlere Lufttemperatur (in °C) 2 m ü. Grund
+       * Zeitpunkt: 4 Uhr nachts
+       */
+      Lufttemperatur_04Uhr : MANDATORY 0.00 .. 100.00;
+      /** mittlere Windgeschwindigkeit (in m/s) 2 m ü. Grund
+       * Zeitpunkt: 4 Uhr nachts
+       */
+      Windgeschwindigkeit : MANDATORY 0.00 .. 50.00;
+      /** PET = Physiologisch Äquivalente Temperatur 
+       * mittlere PET (in °C) 1,1 m ü. Grund
+       * Zeitpunkt: 14 Uhr am Tag
+       */
+      PET : MANDATORY 0.00 .. 100.00;
+      /** Grünflächen, welche im nächtlichen Katlufthaushalt eine besondere Funktion erfüllen
+       */
+      Kaltluftprozess : MANDATORY (
+        !!@ ili2db.dispName = "keine Funktion"
+        keine_Funktion,
+        !!@ ili2db.dispName = "Kaltluftleitbahn"
+        Kaltluftleitbahn,
+        !!@ ili2db.dispName = "Kaltluftabfluss"
+        Kaltluftabfluss,
+        !!@ ili2db.dispName = "Parkwind"
+        Parkwind
+      );
+      /** Kaltluftentstehungsgebiet
+       */
+      Kaltluftentstehungsgebiet : MANDATORY BOOLEAN;
+      /** Flächengrösse in ha
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0.0000 .. 1000.0000;
+      /** Einwohnerzahl (gesamt)
+       */
+      Einwohnerzahl_gesamt : MANDATORY 0 .. 1000;
+      /** Einwohnerzahl unter 6 Jahren
+       */
+      Einwohner_unter_6_Jahren : MANDATORY 0 .. 1000;
+      /** Einwohnerzahl 65 Jahre und älter
+       */
+      Einwohner_ueber_65_Jahre : MANDATORY 0 .. 1000;
+      /** Einwohnerdichte (gesamt) in Einwohner pro Hektar
+       */
+      Einwohnerdichte : MANDATORY 0.00 .. 2000.00;
+      /** Bewertung der Siedlungs- und Grünflächen in der Planungshinweiskarte für die Tagsituation
+       */
+      Bewertung_Tag : TEXT*100;
+      /** Bewertung der Siedlungs- und Grünflächen in der Planungshinweiskarte für die Nachtsituation
+       */
+      Bewertung_Nacht : TEXT*100;
+    END Ausgangsgroessen_Bewertung;
+
+    /** Flächen, welche potentiell künftig (bis 2060) überbaut sein könnten.
+     * Fläche wurde gemäss der Grundnutzung mit entsprechenden Flächenzwillingen (4) "bebaut".
+     */
+    !!@ ili2db.dispName = "Entwicklungsflächen"
+    CLASS Entwicklungsflaechen =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Nummerierung
+       */
+      Nummer : MANDATORY 0 .. 50000;
+      /** Flächengrösse in m²
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0.00 .. 500000.00;
+      /** Art der Bebauung
+       */
+      Typ : MANDATORY (
+        !!@ ili2db.dispName = "Arbeitszonen"
+        Arbeitszone,
+        !!@ ili2db.dispName = "Mischzonen"
+        Mischzone,
+        !!@ ili2db.dispName = "Wohnzone 1G bis 3G"
+        Wohnzone_1G_bis_3G,
+        !!@ ili2db.dispName = "Wohnzone 4G+"
+        Wohnzone_4G
+      );
+      /** Fläche des Agglomerationsprogramms (ja/nein)
+       */
+      Aggloprogramm : MANDATORY BOOLEAN;
+      /** Mittlere Lufttemperatur (in °C) 2 m ü. Grund; Zukunft
+       * Zeitpunkt: 14 Uhr
+       */
+      Lufttemperatur_14Uhr : MANDATORY 0.00 .. 100.00;
+      /** PET = Physiologisch Äquivalente Temperatur 
+       * mittlere PET (in °C) 1,1 m ü. Grund; Zukunft
+       * Zeitpunkt: 14 Uhr am Tag
+       */
+      PET_14Uhr : MANDATORY 0.00 .. 100.00;
+      /** Mittlere Lufttemperatur (in °C) 2 m ü. Grund; Zukunft
+       * Zeitpunkt: 4 Uhr nachts
+       */
+      Lufttemperatur_04Uhr : MANDATORY 0.00 .. 100.00;
+    END Entwicklungsflaechen;
+
+    /** (ausgewählte) Flächenobjekte (Massnahmen) aus den Agglomerationsprogrammen (AP) 1. bis 4. Generation.
+     */
+    CLASS Entwicklungsflaechen_Agglopr =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Gemeindename
+       */
+      Gemeinde : TEXT*50;
+      /** Nummer der Massnahme
+       */
+      !!@ ili2db.dispName = "Massnahme-ID"
+      Massnahme_ID : MANDATORY TEXT*20;
+      /** Generation Agglomerationsprogramm
+       */
+      Generation : MANDATORY 1 .. 4;
+    END Entwicklungsflaechen_Agglopr;
+
+    /** Siedlungsflächen im Zustand Ist 2020, welche sich im Einwirkbereich eines klimatisch wirksamen Kaltluftstroms (Kaltluftleitbahn, flächenhafter Kaltluftabfluss) befinden. Sie werden mit einer bodennahe Windgeschwindigkeit von mindestens 0,3 m/s durchflossen.
+     */
+    CLASS Kaltluftbereich_Ist =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Kaltluftbereich_Ist;
+
+    /** Siedlungsflächen im Zustand Zukunft 2060, welche sich im Einwirkbereich eines klimatisch wirksamen Kaltluftstroms (Kaltluftleitbahn, flächenhafter Kaltluftabfluss) befinden. Sie werden mit einer bodennahe Windgeschwindigkeit von mindestens 0,3 m/s durchflossen.
+     */
+    CLASS Kaltluftbereich_Zukunft =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Kaltluftbereich_Zukunft;
+
+    /** Grün- und Freiflächen mit einer Kaltluftproduktionsrate im Zustand Ist 2020 mit einer stündlichen Kaltluftproduktion von mindestens 16,5 Kubikmeter Kaltluft pro Quadratmeter und Stunde [m³/m²*h], bezogen auf die Situation um 4 Uhr in 2 Meter über Grund.
+     */
+    CLASS Kaltluftentstehung_Ist =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Kaltluftentstehung_Ist;
+
+    /** Grün- und Freiflächen mit einer Kaltluftproduktionsrate im Zustand Zukunft 2060 mit einer stündlichen Kaltluftproduktion von mindestens 16,5 Kubikmeter Kaltluft pro Quadratmeter und Stunde [m³/m²*h], bezogen auf die Situation um 4 Uhr in 2 Meter über Grund.
+     */
+    CLASS Kaltluftentstehung_Zukunft =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+    END Kaltluftentstehung_Zukunft;
+
+    /** Abstrakte Klasse der Kaltluftprozesse
+     */
+    CLASS Kaltluftprozess (ABSTRACT) =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Art des Kaltluftprozesses
+       */
+      Typ : MANDATORY TEXT*50;
+      /** Windrichtung in 2 m über Grund (in °)
+       */
+      Windrichtung : MANDATORY 0 .. 360;
+    END Kaltluftprozess;
+
+    /** Bereiche mit Kaltluftprozessen (Kaltluftleitbahnen, Kaltluftabfluss, Parkwinde) im Zustand Ist 2020.
+     */
+    CLASS Kaltluftprozess_Ist
+    EXTENDS Kaltluftprozess =
+    END Kaltluftprozess_Ist;
+
+    /** Bereiche mit Kaltluftprozessen (Kaltluftleitbahnen, Kaltluftabfluss, Parkwinde) im Zustand Zukunft 2060.
+     */
+    CLASS Kaltluftprozess_Zukunft
+    EXTENDS Kaltluftprozess =
+    END Kaltluftprozess_Zukunft;
+
+  END Klimaanalyse;
+
+END SO_AFU_Klimaanalyse_20230413.
