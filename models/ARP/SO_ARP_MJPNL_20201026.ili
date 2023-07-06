@@ -151,13 +151,19 @@ VERSION "2020-10-26"  =
       );
 
       /** Status des Zahlungslaufes
+      Freigegeben: Leistungen, die kalkuliert der manuell erfasst wurden und noch ausbezahlt werden müssen.
+      Ausbezahlt: Leistungen, die bereits unter dem Jahr oder bei Jahresende ausbezahlt worden sind.
+      In Bearbeitung: Leistungen, die manuell, aber noch nicht abschliessend, erfasst worden sind und nicht ausbezahlt und auch in keinem Brief vermerkt werden müssen.
+      Intern Verrechnet: Leistungen von kantonsinternen Vereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen. 
+      Abgeltungslos: Leistungen von Nutzungsvereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen.
        */
       !!@ ili2db.dispName = "Abrechnung Status"
       Abrechnung_Status = (
-        bestaetigt,
+        freigegeben,
         ausbezahlt,
-        unterwegs,
-        initialisiert
+        in_bearbeitung,
+        intern_verrechnet,
+        abgeltungslos
       );
 
       Bewirtschaftung_Anteile = (
@@ -398,16 +404,16 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Datum Besprechung mit Bewirtschafter"
       Datum_Besprechung_Bewirtschafter : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
-      !!@ ili2db.dispName = "Generische Abgeltung - Beschrieb der Leistung"
+      !!@ ili2db.dispName = "Generische jährliche Abgeltung - Beschrieb der jährlichen Leistung"
       Abgeltung_generisch_Text : TEXT*255;
       /** Dieser Betrag ist pauschal und kann positiv oder negativ sein (Abschlagszahlung für zuviel bezahlte Subventionen).
        */
-      !!@ ili2db.dispName = "Abgeltung generisch Pauschalbetrag"
-      Abgeltung_generisch_Betrag : -10000.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung generisch - jährlicher Pauschalbetrag"
+      Abgeltung_generisch_Betrag : -100000.00 .. 100000.00 [Units.CHF];
       /** Jährliche Abgeltung total (Abgeltung Fläche plus Abgeltung pauschal).
        */
       !!@ ili2db.dispName = "Abgeltung total (Flächenbeitrag und Pauschale)"
-      Abgeltung_total : MANDATORY -50000.00 .. 50000.00 [Units.CHF];
+      Abgeltung_total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Besondere Abmachungen"
       Besondere_Abmachungen : MTEXT*2000;
       /** Datum der Ersterfassung der Beurteilung. Wird vom Bearbeitungssystem automatisch abgefüllt.
@@ -503,7 +509,8 @@ VERSION "2020-10-26"  =
         Wiese
       );
 
-    /** Die Abrechnung aggregiert auf Bewirtschafter. Es werden hier die Leistungen mehrere Vereinbarungen aggregiert.
+    /** Die Abrechnung aggregiert auf Bewirtschafter. 
+    Es werden hier die Abrechnungen der Vereinbarungen des Bewirtschafters aggregiert.
      */
     !!@ ili2db.dispName = "Abrechnung per Bewirtschafter"
     CLASS Abrechnung_per_Bewirtschafter
@@ -518,7 +525,7 @@ VERSION "2020-10-26"  =
       GELAN_Ortschaft : TEXT*255;
       GELAN_IBAN : MANDATORY TEXT*34;
       !!@ ili2db.dispName = "Betrag Total per Bewirtschafter"
-      Betrag_Total : MANDATORY -20000.00 .. 60000.00 [Units.CHF];
+      Betrag_Total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       /** Status der Abrechnung / Auszahlung
        */
       !!@ ili2db.dispName = "Status der Abrechnung"
@@ -532,7 +539,55 @@ VERSION "2020-10-26"  =
       Migriert: BOOLEAN;
     END Abrechnung_per_Bewirtschafter;
 
-    /** Zusammenstellung der abgerechneten Leistungen
+    /** Abrechnung (total) per Vereinbarung.
+    Es werden hier die Abrechnungen der Leistungen der Vereinbarung aggregiert.
+     */
+    !!@ ili2db.dispName = "Abrechnung per Vereinbarung"
+    CLASS Abrechnung_per_Vereinbarung =
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Bewirtschaftungseinheit ID"
+      GELAN_BewE_ID : MANDATORY TEXT*100;
+      !!@ ili2db.dispName = "GB-Nr"
+      !!@ ili2db.mapping="ARRAY"
+      GB_Nr : BAG {1..*} OF SO_ARP_MJPNL_20201026.MJPNL.String_List;
+      !!@ ili2db.dispName = "Flurnamen"
+      Flurnamen : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Gemeindename"
+      Gemeinde : MANDATORY TEXT*255;
+      /** Falls es sich um eine Fläche handelt */
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      /** Falls es sich um eine Anzahl Bäume handelt*/
+      !!@ ili2db.dispName = "Anzahl Bäume"
+      Anzahl_Baeume : MANDATORY 0 .. 1000;
+      !!@ ili2db.dispName = "Total der Abgeltungen für die Fläche"
+      Betrag_Flaeche : MANDATORY 0.00 .. 100000.00[Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen für die Bäume total"
+      Betrag_Baeume : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der pauschalen Abgeltungen"
+      Betrag_Pauschal : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Gesamtbetrag"
+      Gesamtbetrag : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Jahr der Auszahlung"
+      Auszahlungsjahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Bei Wiese: Datum 1. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Bei Wiese: Mähen mit Messerbalken-Mähgerät"
+      BewirtschaftAbmachung_MesserbalkenMaehgeraet : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Herbstweide"
+      BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
+      Bemerkung : MTEXT*2000;
+      !!@ ili2db.dispName = "Aus altem System migriert"
+      Migriert: BOOLEAN;
+    END Abrechnung_per_Vereinbarung;
+
+    /** Abrechnungen der einzelnen Leistungen. 
+    Diese können aus Beurteilungen kalkuliert oder auch direkt erstellt werden.
      */
     !!@ ili2db.dispName = "Abgerechnete Leistungen"
     CLASS Abrechnung_per_Leistung =
@@ -547,11 +602,11 @@ VERSION "2020-10-26"  =
       /** Betrag per Einheit (z.B. per Hektar, pro Stück, pauschal)
        */
       !!@ ili2db.dispName = "Betrag per Einheit"
-      Betrag_per_Einheit : MANDATORY -30000.00 .. 30000.00 [Units.CHF];
+      Betrag_per_Einheit : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Anzahl Einheiten"
       Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00;
       !!@ ili2db.dispName = "Betrag in CHF total"
-      Betrag_Total : MANDATORY -20000.00 .. 20000.00 [Units.CHF];
+      Betrag_Total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Auszahlungsjahr"
       Auszahlungsjahr : 1900 .. 2100;
       !!@ ili2db.dispName = "Status der Abrechnung"
@@ -560,32 +615,9 @@ VERSION "2020-10-26"  =
       Bemerkung : MTEXT*2000;
       !!@ ili2db.dispName = "Aus altem System migriert"
       Migriert: BOOLEAN;
+      !!@ ili2db.dispName = "Einmalige / manuell Erfasste Leistung"
+      Einmalig: BOOLEAN;
     END Abrechnung_per_Leistung;
-
-    /** Abrechnung (total) per Vereinbarung
-     */
-    !!@ ili2db.dispName = "Abrechnung per Vereinbarung"
-    CLASS Abrechnung_per_Vereinbarung =
-      !!@ ili2db.dispName = "Vereinbarungs-Nr"
-      Vereinbarungs_Nr : MANDATORY TEXT*50;
-      !!@ ili2db.dispName = "Flurnamen"
-      Flurnamen : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Gemeindename"
-      Gemeinde : MANDATORY TEXT*255;
-      !!@ ili2db.dispName = "Fläche in ha"
-      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
-      !!@ ili2db.dispName = "Gesamtbetrag"
-      Gesamtbetrag : MANDATORY -40000.00 .. 40000.00 [Units.CHF];
-      !!@ ili2db.dispName = "Jahr der Auszahlung"
-      Auszahlungsjahr : MANDATORY 1900 .. 2100;
-      !!@ ili2db.dispName = "Status der Abrechnung"
-      Status_Abrechnung : MANDATORY Abrechnung_Status;
-      !!@ ili2db.dispName = "Datum der Abrechnung"
-      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
-      Bemerkung : MTEXT*2000;
-      !!@ ili2db.dispName = "Aus altem System migriert"
-      Migriert: BOOLEAN;
-    END Abrechnung_per_Vereinbarung;
 
     /** Es gibt nur einen Basisvertrag pro GELAN Bewirtschafter.
      */
@@ -726,11 +758,11 @@ VERSION "2020-10-26"  =
       /** Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)
        */
       !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
-      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00;
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
       /** Abgeltung pauschal total
        */
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 800.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_ALR_Buntbrache;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag des Ackerlebensraumes Saum.
@@ -858,7 +890,7 @@ VERSION "2020-10-26"  =
       /** Abgeltung pauschal total
        */
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 800.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_ALR_Saum;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Hecke
@@ -1030,7 +1062,7 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Erschwernis Massnahme 2"
       !!@ Abgeltung="100"
-      !!@ Abgeltungsart="oer_ha"
+      !!@ Abgeltungsart="per_ha"
       Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
       /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
        */
@@ -1069,7 +1101,7 @@ VERSION "2020-10-26"  =
       /** Abgeltung total pauschal
        */
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 6150.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_Hecke;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Hostet
@@ -1431,7 +1463,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Fläche total"
       Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 2450.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_WBL_Weide;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der WBL Wiese.
@@ -1663,7 +1695,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Fläche total"
       Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 2100.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_WBL_Wiese;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Weide LN.
@@ -1857,7 +1889,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Fläche total"
       Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 450.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_Weide_LN;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Weide SöG.
@@ -2052,7 +2084,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Fläche total"
       Abgeltung_flaeche_total : MANDATORY 0.00 .. 15000.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 450.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_Weide_SOEG;
 
     /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Wiese.
@@ -2236,7 +2268,7 @@ VERSION "2020-10-26"  =
       !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
       Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
       !!@ ili2db.dispName = "Abgeltung pauschal total"
-      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 450.00 [Units.CHF];
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
     END Beurteilung_Wiese;
 
     CLASS Foto
@@ -2353,6 +2385,10 @@ VERSION "2020-10-26"  =
        */
       !!@ ili2db.dispName = "Kontrollintervall"
       Kontrollintervall : MANDATORY 1 .. 10;
+      !!@ ili2db.dispName = "Falls die Laufzeit diese Vereinbarung befristet ist (wie bei Buntbrache auf zBs. 8 Jahren), bei leer ist er unbefristet."
+      Ablaufdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Wird kantonsintern abgerechnet"
+      Kantonsintern : BOOLEAN;
       !!@ ili2db.dispName = "Bemerkung"
       Bemerkung : MTEXT*1000;
     END Vereinbarung;
