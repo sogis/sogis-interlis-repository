@@ -1,0 +1,151 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2022-08-29 | jek | Ersterfassung
+ * !! 2022-08-31 | jek | Defintive Version nach Bspr. AVT, ecoplan
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AVT_Gesamtverkehrsmodell_2019_20230829 (de)
+AT "https://geo.so.ch/models/AVT"
+VERSION "2023-08-29"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Klassierung der DTV-Werte des Strassenabschnitts. Meist beide Richtungen.
+     * Bei beispielsweise Autobahnabschnitten nur DTV der Fahrtrichtung des Abschnitts.
+     */
+    Klasse_DTV = (
+      Kl0_bis_1000,
+      Kl1_1001_bis_2500,
+      Kl2_2501_bis_5000,
+      Kl3_5001_bis_10000,
+      Kl4_10001_bis_20000,
+      Kl5_20001_bis_30000,
+      Kl6_groesser_30000
+    );
+
+    Methode_Strassenneigung = (
+      /** Verwendet wurde der überlappungs-längengewichtete Mittelwert der Neigung aller überlappenden TLM-Abschnitte
+       */
+      TLM_gewichtet,
+      /** Neigung aus DHM25 der Swisstopo berechnet
+       */
+      DHM25,
+      /** Neigung manuell festgelegt
+       */
+      Manuell
+    );
+
+    Methode_Matching = (
+      /** Matching-Algorithmus.	Zuordnung direkt über Matching-Algorithmus (best match)
+       */
+      Automatisch_zugeordnet,
+      /** Einfügung/Korrektur aus Korrekturlayer.	Einfügung nach manueller Korrektur (Korrektur der Zuordnung und/oder Geometrie)
+       */
+      Korrektur_Korrekturlayer,
+      /** Fehlende Kantonstrassenabschnitte mit DTV < 1500 $td bestätigung
+       */
+      Ergaenzung_manuell
+    );
+
+  TOPIC Main =
+
+    /** Gesamtverkehrsmodell 2015 Passagiere öffentlicher Verkehr
+     */
+    CLASS OeV_Passagiere =
+      /** Geometrie der Oev-Strecke
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Typ des Verkehrsmittels
+       */
+      Streckentyp : MANDATORY (
+        Bahn,
+        Bus
+      );
+      /** Passagieranzahl pro Werktag 2019
+       */
+      Passagieranzahl_pro_Werktag_2019 : MANDATORY 0 .. 200000;
+      /** Passagieranzahl pro Werktag 2040
+       */
+      Passagieranzahl_pro_Werktag_2040 : MANDATORY 0 .. 200000;
+      /** Passagieranzahl in Abendspitzen 2040
+       */
+      Passagieranzahl_in_Abendspitzen_2040 : MANDATORY 0 .. 50000;
+    END OeV_Passagiere;
+
+    /** Basisklasse mit gemeinsamen Attributen aller Verkehrsdichte-Zeitstände
+     * des motorisierten Individualverkehrs.
+     */
+    CLASS MIV_Verkehrsdichte (ABSTRACT) =
+      /** Geometrie der Achse
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      /** Durchschnittlicher täglicher Verkehr [Fz/d]. $map dtv 2040 /2030 /2019
+       */
+      DTV_Gesamt : MANDATORY 0 .. 100000;
+      /** Klasse des DTV für beide Fahrtrichtungen (Ausnahme: Autobahnen mit richtungsgetrennt abgebildeten Fahrbahnen). $map dtv 2040 Klasse /2030 Klasse /2019 Klasse. "DTV 20XX Klassentext" wird in der Geodatenbank abgeleitet und steht darum nicht im Modell.
+       */
+      DTV_Klasse : MANDATORY SO_AVT_Gesamtverkehrsmodell_2019_20230829.Klasse_DTV;
+      /** Auslastung [%]. Berechnet als DTV_Gesamt/Kapazität. $map Auslastung DTV 2019 / 2030 / 2040
+       */
+      DTV_Auslastung : MANDATORY 0.0 .. 300.0;
+      /** durchschnittl. Werktagsverkehr [Fz/d]
+       */
+      DWV_Gesamt : 0 .. 100000;
+      /** Für Abschnitt aus Höhendaten abgeleitete Neigung [%]. Siehe Strassenneigung_Methode.
+       */
+      Strassenneigung : MANDATORY 0.0 .. 100.0;
+      /** Methode zur Berechnung der Neigung
+       */
+      Strassenneigung_Methode : MANDATORY SO_AVT_Gesamtverkehrsmodell_2019_20230829.Methode_Strassenneigung;
+      /** Gefahrene Geschwindigkeit im Modell [km/h].
+       */
+      Modellgeschwindigkeit : MANDATORY 0 .. 150;
+      /** Methode zum Matching der Visum-Abschnitte auf die AV-Strassen
+       */
+      Matching_Methode : MANDATORY SO_AVT_Gesamtverkehrsmodell_2019_20230829.Methode_Matching;
+      /** Methode zur Berechnung der Neigung
+       */
+      Neigung_Methode : MANDATORY SO_AVT_Gesamtverkehrsmodell_2019_20230829.Methode_Strassenneigung;
+    END MIV_Verkehrsdichte;
+
+    CLASS MIV_Verkehrsdichte_2019
+    EXTENDS MIV_Verkehrsdichte =
+      /** Durchschnittl. täglicher Verkehr Personenwagen [Fz/d]
+       */
+      DTV_Personenwagen : MANDATORY 0 .. 100000;
+      /** Durchschnittl. täglicher Verkehr Motorräder (pauschal 2% von DTV_Personenwagen) [Fz/d]
+       */
+      DTV_Motorraeder : MANDATORY 0 .. 50000;
+      /** Durchschnittl. täglicher Verkehr Lieferwagen [Fz/d]
+       */
+      DTV_Lieferwagen : MANDATORY 0 .. 50000;
+      /** Durchschnittl. täglicher Verkehr Lastwagen [Fz/d]
+       */
+      DTV_Lastwagen : MANDATORY 0 .. 50000;
+      /** Durchschnittl. täglicher Verkehr  Lastzüge [Fz/d]
+       */
+      DTV_Lastzuege : MANDATORY 0 .. 50000;
+      /** Verkehr in Abendspitzenstunde [Fz/h]
+       */
+      ASP_Gesamt : 0 .. 20000;
+    END MIV_Verkehrsdichte_2019;
+
+    CLASS MIV_Verkehrsdichte_Prognose_2030
+    EXTENDS MIV_Verkehrsdichte =
+    END MIV_Verkehrsdichte_Prognose_2030;
+
+    CLASS MIV_Verkehrsdichte_Prognose_2040
+    EXTENDS MIV_Verkehrsdichte =
+      /** Verkehr in Abendspitzenstunde [Fz/h]
+       */
+      ASP_Gesamt : 0 .. 20000;
+    END MIV_Verkehrsdichte_Prognose_2040;
+
+  END Main;
+
+END SO_AVT_Gesamtverkehrsmodell_2019_20230829.
