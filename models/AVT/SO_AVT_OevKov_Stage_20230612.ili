@@ -8,13 +8,413 @@ AT "https://geo.so.ch/models/AVT"
 VERSION "2023-06-12"  =
   IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
 
-  DOMAIN
+  TOPIC Auswertung =
+    OID AS INTERLIS.UUIDOID;
 
-    Verkehrsmittel = (
-      Bahn,
-      Tram,
-      Bus
-    );
+    /** Korrektur der  Haltestellenabfahrt pro Linie.
+     */
+    !!@ ili2db.dispName = "unique_haltestelle_unternehmer_linie"
+    CLASS Abfahrten_korrigiert =
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*255;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Korrigierte Gewichtung pro Linie.
+       * Gewichtung Verkehrsmittel:
+       * Bus: 1
+       * Tram: 2
+       * Bahn: 3
+       */
+      Gewichtung : MANDATORY 0.0 .. 10.0;
+      /** Korrigierte Haltestellenabfahrt pro Linie. Es wird die Differenz zur Auswertung der GTFS-Daten eingetragen.
+       */
+      Abfahrten_korrigiert : -9999 .. 9999;
+      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
+       */
+      Bemerkungen : MTEXT*1000;
+      !!@ name = "unique_haltestelle_unternehmer_linie"
+      UNIQUE Haltestellenname, Unternehmer, Linie;
+    END Abfahrten_korrigiert;
+
+    /** Berechnung der Abfahrten pro Linie und Unternehmen aus den GTFS-Daten
+     */
+    CLASS Auswertung_GTFS =
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** ID der Route
+       */
+      Route_ID : MANDATORY TEXT*50;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*100;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Gewichtung Verkehrsmittel:
+       * Fernzug: 6
+       * Regionalzug: 3
+       * Bus: 1
+       * Bedarfsangebot: 0.2
+       */
+      Gewichtung : 0.0 .. 10.0;
+      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
+       */
+      Anzahl_Abfahrten_Linie : 0 .. 9999;
+    END Auswertung_GTFS;
+
+    /** Einwohnerzahl und Kosten pro Gemeinde
+     */
+    CLASS Gemeinde_Einwohner_Kosten =
+      /** Name der Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*255;
+      /** Einwohnerzahl am Stichtag 31.12. des Vorjahres
+       */
+      Einwohnerzahl : MANDATORY 1 .. 100000;
+      /** Gewichtete Haltestellenabfahrten
+       */
+      Gewichtete_Haltestellenabfahrten : 0.0 .. 10000.0;
+      /** Kosten gemaess Angebot (Haltestellenabfahrten)
+       */
+      Kosten_Angebot : 0.00 .. 10000000.00;
+      /** Kosten gemaess Anzahl Einwohner
+       */
+      Kosten_Anzahl_Einwohner : 0.00 .. 10000000.00;
+      /** Kosten pro Einwohner
+       */
+      Kosten_pro_Einwohner : 0.00 .. 1000.00;
+      /** Total Kosten fuer die Gemeinde
+       */
+      Kosten_Total : 0.00 .. 10000000.00;
+      /** Kosten reduziert gemaess Schwellenwert zu Lasten Gemeinde
+       */
+      Kosten_minus_Schwellenwert : 0.00 .. 10000000.00;
+      /** Kosten ueber Schwellenwert zu Lasten Kanton
+       */
+      Kosten_ueber_Schwellenwert : 0.00 .. 10000000.00;
+    END Gemeinde_Einwohner_Kosten;
+
+    CLASS Gesamtauswertung =
+      /** Name der Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*255;
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*100;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Anrechnung  der Haltestellenabfahrten zu einer Gemeinde:
+       * 0%
+       * 20%
+       * 30%
+       * 100%
+       */
+      Anrechnung : MANDATORY 0 .. 100;
+      /** Gewichtung Verkehrsmittel:
+       * Fernzug: 6
+       * Regionalzug: 3
+       * Bus: 1
+       * Bedarfsangebot: 0.2
+       */
+      Gewichtung : MANDATORY 0.0 .. 10.0;
+      /** Gewichtung manuell korrigiert
+       */
+      Gewichtung_korrigiert : 0.0 .. 10.0;
+      /** Berechnete Abfahrten aus den GTFS-Daten
+       */
+      Abfahrten_GTFS : 0 .. 9999;
+      /** Ungewichtete Abfahrten manuell korrigert
+       */
+      Abfahrten_GTFS_korrigiert : -9999 .. 9999;
+      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
+       */
+      Abfahrten_ungewichtet : MANDATORY 0 .. 9999;
+      /** Anzahl gewichtete Abfahrten (nach Verkehrsmittel) einer Haltestelle  pro Linie am Stichtag
+       */
+      Abfahrten_gewichtet : MANDATORY 0.0 .. 9999.0;
+      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
+       */
+      Bemerkungen : TEXT*1000;
+    END Gesamtauswertung;
+
+  END Auswertung;
+
+  TOPIC SO_Geodaten =
+
+    /** Kopie des Layers agi_hoheitsgrenzen_pub.hoheitsgrenzen_gemeindegrenze
+     */
+    CLASS Gemeindegrenzen =
+      /** Geometrie der Gemeinde
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Gemeindename
+       */
+      Gemeindename : MANDATORY TEXT*255;
+      /** BFS-Nr der Gemeinde
+       */
+      BFS_Gemeindenummer : MANDATORY 0 .. 9999;
+    END Gemeindegrenzen;
+
+    /** Haltestelle mit Geometrie und Name fuer Bearbeitung mit QGIS
+     */
+    CLASS Haltestellen =
+      /** Geometrie der Haltestelle
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+    END Haltestellen;
+
+    /** Haltestellen-Buffer für die Darstellung des Einzugsgebiets einer Haltestelle.
+     * Bahn: Radius 500 m
+     * Tram: Radius 350m
+     * Bus: Radius 250 m
+     */
+    CLASS Haltestellenbuffer =
+      /** Geometrie des Haltestellenpuffers
+       */
+      Geometrie : GeometryCHLV95_V1.Surface;
+      /** Name der Haltestelle
+       */
+      Haltestellenname : TEXT*255;
+      /** Verkehrsmittel
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+    END Haltestellenbuffer;
+
+    /** Streckennetz der Transportunternehmungen (Bahn und Bus). Linien welche den Kanton verlassen und wieder betreten, sind auch ausserhalb der Kantonsgrenzen erfasst.
+     */
+    CLASS Streckennetz =
+      /** Geometrie des Streckennetzes
+       */
+      Geometrie : MANDATORY ANYSTRUCTURE;
+      /** Verkehrsmittel
+       */
+      Verkehrsmittel : MANDATORY TEXT*50;
+    END Streckennetz;
+
+  END SO_Geodaten;
+
+  TOPIC Staging_GTFS =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Transportunternehmen
+     */
+    CLASS Agency =
+      /** Eindeutiger Bezeichner eines Unternehmens
+       */
+      Agency_ID : MANDATORY TEXT*20;
+      /** Name des Unternehmens
+       */
+      Agency_Name : MANDATORY TEXT*200;
+      /** Webseite des Unternehmens
+       */
+      Agency_Url : MANDATORY TEXT*100;
+      /** Zeitzone des Standorts des Unternehmens
+       */
+      Agency_Timezone : MANDATORY TEXT*100;
+      /** ISO 639-1 Code fuer die Hauptsprache des Unternehmens
+       */
+      Agency_lang : TEXT*2;
+      /** Telefonnummer des Unternehmens
+       */
+      Agency_Phone : TEXT*20;
+    END Agency;
+
+    /** Definiert Wochentage und/oder Zeitspanne fuer eine bestimmte Fahrt
+     */
+    CLASS Calendar =
+      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
+       */
+      Service_ID : MANDATORY TEXT*20;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Monday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Tuesday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Wednesday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Thursday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Friday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Saturday : MANDATORY 0 .. 1;
+      /** 0: Service nicht verfuegbar an diesem Wochentag
+       * 1: Service  verfuegbar an diesem Wochentag
+       */
+      Sunday : MANDATORY 0 .. 1;
+      /** Startdatum eines Services
+       */
+      Start_Date : MANDATORY TEXT*8;
+      /** Enddatum eines Services
+       */
+      End_Date : MANDATORY TEXT*8;
+    END Calendar;
+
+    /** Calendar Dates enthaelt spezifische Tage, an denen ein Service nicht oder zusaetzlich verfuegbar ist
+     */
+    CLASS Calendar_Dates =
+      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
+       */
+      Service_ID : MANDATORY TEXT*20;
+      /** Datum fuer ein Service_ID, welche ausserhalb des normalen Fahrplans liegt
+       */
+      Datum : MANDATORY TEXT*8;
+      /** Ausnahme:
+       * 1: ein Sevice fuer dieses Datum wurde hinzugefuegt
+       * 2: ein Service fuer dieses Datum wurde entfernt
+       */
+      Exception_Type : MANDATORY 1 .. 2;
+    END Calendar_Dates;
+
+    /** Eine oder mehrere Routen entsprechen einer OeV-Linie
+     */
+    CLASS Route =
+      /** Eindeutiger Bezeichner einer Route
+       */
+      Route_ID : MANDATORY TEXT*20;
+      /** Eindeutiger Bezeichner eines Unternehmens
+       */
+      Agency_ID : MANDATORY TEXT*20;
+      /** Abstrakter Identifikator fuer eine Route
+       */
+      Route_Short_Name : MANDATORY TEXT*20;
+      /** Name der Route
+       */
+      Route_Long_Name : TEXT*200;
+      /** Beschreibung des Verkehrsmittels
+       */
+      Route_Desc : TEXT*50;
+      /** Verkehrsmittel:
+       * 100: Extrazug
+       * 102: Eurocity / ICE/ ICN  / Intercity / TGV
+       * 103: InterRegio
+       * 106: RegioExpress / Regionalzug
+       * 400: S-Bahn
+       * 700: Bus
+       * 900: Tram
+       * 1000: Schiff
+       * 1300: Gondelbahn
+       */
+      Route_Type : 0 .. 9999;
+    END Route;
+
+    /** GTFS-Haltestelle, wird benoetigt fuer die Beziehung zu den Auswertungs-Tabellen mit den Abfahrten
+     */
+    CLASS Stop =
+      /** Eindeutiger Bezeichner eines Stops
+       */
+      Stop_ID : MANDATORY TEXT*20;
+      /** Name der GTFS-Haltestelle
+       */
+      Stop_Name : MANDATORY TEXT*255;
+      /** WGS 84 Breitengrad
+       */
+      Stop_Lat : MANDATORY 36.000000000000000 .. 60.000000000000000;
+      /** WGS 84 Laengengrad
+       */
+      Stop_Lon : MANDATORY -11.000000000000000 .. 38.000000000000000;
+      /** 0 oder NULL: Haltestelle
+       * 1: Knotenpunkt
+       */
+      Location_Type : TEXT*20;
+      /** Bezeichnet Stationsgebaeude, welche ein oder mehere Stops enthalten
+       */
+      Parent_Station : TEXT*20;
+    END Stop;
+
+    /** Enthaelt die Ankunfts-/Abfahrtszeiten, die Reihenfolge einer Fahrt und die Ein-/Ausstiegsmoeglichkeit einer Haltestelle
+     */
+    CLASS Stoptime =
+      /** Eindeutiger Bezeichner eines Trips
+       */
+      Trip_ID : MANDATORY TEXT*100;
+      /** Ankunftszeit
+       */
+      Arrival_Time : MANDATORY TEXT*20;
+      /** Abfahrtszeit
+       */
+      Departure_Time : MANDATORY TEXT*20;
+      /** Eindeutiger Bezeichner eines Stops
+       */
+      Stop_ID : MANDATORY TEXT*20;
+      /** Reihenfolge der Haltestelle fuer eine einzelne Fahrt
+       */
+      Stop_Sequence : MANDATORY 1.0 .. 500.0;
+      /** Angabe ob regulaerer Einstieg moeglich oder Einstieg nicht moeglich
+       * 0: Regularly scheduled pickup
+       * 1: No pickup available
+       * 2: Must phone agency to arrange pickup
+       * 3: Must coordinate with driver to arrange pickup
+       */
+      Pickup_Type : 0 .. 1;
+      /** Angabe ob regulaerer Ausstieg moeglich oder Ausstieg nicht moeglich
+       * 0: Regularly scheduled drop off
+       * 1: No drop off available
+       * 2: Must phone agency to arrange drop off
+       * 3: Must coordinate with driver to arrange drop off
+       */
+      Drop_Off_Type : 0 .. 1;
+    END Stoptime;
+
+    /** Einzelne Fahrt auf einer Route/Linie
+     */
+    CLASS Trip =
+      /** Eindeutiger Bezeichner einer Route
+       */
+      Route_ID : MANDATORY TEXT*20;
+      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
+       */
+      Service_ID : MANDATORY TEXT*20;
+      /** Eindeutiger Bezeichner eines Trips
+       */
+      Trip_ID : MANDATORY TEXT*100;
+      /** Zielort einer Fahrt
+       */
+      Trip_Headsign : TEXT*255;
+      /** Eindeutige Bezeichnung eines Trips an einem bestimmten Tag
+       */
+      Trip_Short_Name : TEXT*20;
+      /** Richtung der Fahrt
+       * 0; Fahrt in die eine Richtung
+       * 1: Faht in die entgegengesetzte Richtung
+       */
+      Direction_ID : 0 .. 1;
+    END Trip;
+
+  END Staging_GTFS;
 
   TOPIC GTFS =
     OID AS INTERLIS.UUIDOID;
@@ -236,372 +636,6 @@ VERSION "2023-06-12"  =
 
   END GTFS;
 
-  TOPIC Staging_GTFS =
-    OID AS INTERLIS.UUIDOID;
-
-    /** Transportunternehmen
-     */
-    CLASS Agency =
-      /** Eindeutiger Bezeichner eines Unternehmens
-       */
-      Agency_ID : MANDATORY TEXT*20;
-      /** Name des Unternehmens
-       */
-      Agency_Name : MANDATORY TEXT*200;
-      /** Webseite des Unternehmens
-       */
-      Agency_Url : MANDATORY TEXT*100;
-      /** Zeitzone des Standorts des Unternehmens
-       */
-      Agency_Timezone : MANDATORY TEXT*100;
-      /** ISO 639-1 Code fuer die Hauptsprache des Unternehmens
-       */
-      Agency_lang : TEXT*2;
-      /** Telefonnummer des Unternehmens
-       */
-      Agency_Phone : TEXT*20;
-    END Agency;
-
-    /** Definiert Wochentage und/oder Zeitspanne fuer eine bestimmte Fahrt
-     */
-    CLASS Calendar =
-      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
-       */
-      Service_ID : MANDATORY TEXT*20;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Monday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Tuesday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Wednesday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Thursday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Friday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Saturday : MANDATORY 0 .. 1;
-      /** 0: Service nicht verfuegbar an diesem Wochentag
-       * 1: Service  verfuegbar an diesem Wochentag
-       */
-      Sunday : MANDATORY 0 .. 1;
-      /** Startdatum eines Services
-       */
-      Start_Date : MANDATORY TEXT*8;
-      /** Enddatum eines Services
-       */
-      End_Date : MANDATORY TEXT*8;
-    END Calendar;
-
-    /** Calendar Dates enthaelt spezifische Tage, an denen ein Service nicht oder zusaetzlich verfuegbar ist
-     */
-    CLASS Calendar_Dates =
-      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
-       */
-      Service_ID : MANDATORY TEXT*20;
-      /** Datum fuer ein Service_ID, welche ausserhalb des normalen Fahrplans liegt
-       */
-      Datum : MANDATORY TEXT*8;
-      /** Ausnahme:
-       * 1: ein Sevice fuer dieses Datum wurde hinzugefuegt
-       * 2: ein Service fuer dieses Datum wurde entfernt
-       */
-      Exception_Type : MANDATORY 1 .. 2;
-    END Calendar_Dates;
-
-    /** Eine oder mehrere Routen entsprechen einer OeV-Linie
-     */
-    CLASS Route =
-      /** Eindeutiger Bezeichner einer Route
-       */
-      Route_ID : MANDATORY TEXT*20;
-      /** Eindeutiger Bezeichner eines Unternehmens
-       */
-      Agency_ID : MANDATORY TEXT*20;
-      /** Abstrakter Identifikator fuer eine Route
-       */
-      Route_Short_Name : MANDATORY TEXT*20;
-      /** Name der Route
-       */
-      Route_Long_Name : TEXT*200;
-      /** Beschreibung des Verkehrsmittels
-       */
-      Route_Desc : TEXT*50;
-      /** Verkehrsmittel:
-       * 100: Extrazug
-       * 102: Eurocity / ICE/ ICN  / Intercity / TGV
-       * 103: InterRegio
-       * 106: RegioExpress / Regionalzug
-       * 400: S-Bahn
-       * 700: Bus
-       * 900: Tram
-       * 1000: Schiff
-       * 1300: Gondelbahn
-       */
-      Route_Type : 0 .. 9999;
-    END Route;
-
-    /** GTFS-Haltestelle, wird benoetigt fuer die Beziehung zu den Auswertungs-Tabellen mit den Abfahrten
-     */
-    CLASS Stop =
-      /** Eindeutiger Bezeichner eines Stops
-       */
-      Stop_ID : MANDATORY TEXT*20;
-      /** Name der GTFS-Haltestelle
-       */
-      Stop_Name : MANDATORY TEXT*255;
-      /** WGS 84 Breitengrad
-       */
-      Stop_Lat : MANDATORY 36.000000000000000 .. 60.000000000000000;
-      /** WGS 84 Laengengrad
-       */
-      Stop_Lon : MANDATORY -11.000000000000000 .. 38.000000000000000;
-      /** 0 oder NULL: Haltestelle
-       * 1: Knotenpunkt
-       */
-      Location_Type : TEXT*20;
-      /** Bezeichnet Stationsgebaeude, welche ein oder mehere Stops enthalten
-       */
-      Parent_Station : TEXT*20;
-    END Stop;
-
-    /** Enthaelt die Ankunfts-/Abfahrtszeiten, die Reihenfolge einer Fahrt und die Ein-/Ausstiegsmoeglichkeit einer Haltestelle
-     */
-    CLASS Stoptime =
-      /** Eindeutiger Bezeichner eines Trips
-       */
-      Trip_ID : MANDATORY TEXT*100;
-      /** Ankunftszeit
-       */
-      Arrival_Time : MANDATORY TEXT*20;
-      /** Abfahrtszeit
-       */
-      Departure_Time : MANDATORY TEXT*20;
-      /** Eindeutiger Bezeichner eines Stops
-       */
-      Stop_ID : MANDATORY TEXT*20;
-      /** Reihenfolge der Haltestelle fuer eine einzelne Fahrt
-       */
-      Stop_Sequence : MANDATORY 1.0 .. 500.0;
-      /** Angabe ob regulaerer Einstieg moeglich oder Einstieg nicht moeglich
-       * 0: Regularly scheduled pickup
-       * 1: No pickup available
-       * 2: Must phone agency to arrange pickup
-       * 3: Must coordinate with driver to arrange pickup
-       */
-      Pickup_Type : 0 .. 1;
-      /** Angabe ob regulaerer Ausstieg moeglich oder Ausstieg nicht moeglich
-       * 0: Regularly scheduled drop off
-       * 1: No drop off available
-       * 2: Must phone agency to arrange drop off
-       * 3: Must coordinate with driver to arrange drop off
-       */
-      Drop_Off_Type : 0 .. 1;
-    END Stoptime;
-
-    /** Einzelne Fahrt auf einer Route/Linie
-     */
-    CLASS Trip =
-      /** Eindeutiger Bezeichner einer Route
-       */
-      Route_ID : MANDATORY TEXT*20;
-      /** Eindeutiger Bezeichner fuer eine Ausnahme im Fahrplan fuer ein bestimmtes Datum
-       */
-      Service_ID : MANDATORY TEXT*20;
-      /** Eindeutiger Bezeichner eines Trips
-       */
-      Trip_ID : MANDATORY TEXT*100;
-      /** Zielort einer Fahrt
-       */
-      Trip_Headsign : TEXT*255;
-      /** Eindeutige Bezeichnung eines Trips an einem bestimmten Tag
-       */
-      Trip_Short_Name : TEXT*20;
-      /** Richtung der Fahrt
-       * 0; Fahrt in die eine Richtung
-       * 1: Faht in die entgegengesetzte Richtung
-       */
-      Direction_ID : 0 .. 1;
-    END Trip;
-
-  END Staging_GTFS;
-
-  TOPIC Auswertung =
-    OID AS INTERLIS.UUIDOID;
-
-    /** Korrektur der  Haltestellenabfahrt pro Linie.
-     */
-    CLASS Abfahrten_korrigiert =
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*255;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_Stage_20230612.Verkehrsmittel;
-      /** Korrigierte Gewichtung pro Linie. 
-       * Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : 0.0 .. 10.0;
-      /** Korrigierte Haltestellenabfahrt pro Linie. Es wird die Differenz zur Auswertung der GTFS-Daten eingetragen.
-       */
-      Abfahrten_korrigiert : -9999 .. 9999;
-      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
-       */
-      Bemerkungen : MTEXT*1000;
-      /** Nur ein Entrag pro Haltestelle und Linie
-       */
-      UNIQUE
-      Haltestellenname, Linie;
-    END Abfahrten_korrigiert;
-
-    /** Berechnung der Abfahrten pro Linie und Unternehmen aus den GTFS-Daten
-     */
-    CLASS Auswertung_GTFS =
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*100;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       * 
-       * ev. routes_desc von GTFS verwenden??????????
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_Stage_20230612.Verkehrsmittel;
-      /** Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : 0.0 .. 10.0;
-      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
-       */
-      Anzahl_Abfahrten_Linie : 0 .. 9999;
-    END Auswertung_GTFS;
-
-    /** Einwohnerzahl und Kosten pro Gemeinde
-     */
-    CLASS Gemeinde_Einwohner_Kosten =
-      /** Name der Gemeinde
-       */
-      Gemeindename : MANDATORY TEXT*255;
-      /** Einwohnerzahl am Stichtag 31.12. des Vorjahres
-       */
-      Einwohnerzahl : MANDATORY 1 .. 100000;
-      /** Gewichtete Haltestellenabfahrten
-       */
-      Gewichtete_Haltestellenabfahrten : 0.0 .. 10000.0;
-      /** Kosten gemaess Angebot (Haltestellenabfahrten)
-       */
-      Kosten_Angebot : 0.00 .. 10000000.00;
-      /** Kosten gemaess Anzahl Einwohner
-       */
-      Kosten_Anzahl_Einwohner : 0.00 .. 10000000.00;
-      /** Kosten pro Einwohner
-       */
-      Kosten_pro_Einwohner : 0.00 .. 1000.00;
-      /** Total Kosten fuer die Gemeinde
-       */
-      Kosten_Total : 0.00 .. 10000000.00;
-      /** Kosten reduziert gemaess Schwellenwert zu Lasten Gemeinde
-       */
-      Kosten_minus_Schwellenwert : 0.00 .. 10000000.00;
-      /** Kosten ueber Schwellenwert zu Lasten Kanton
-       */
-      Kosten_ueber_Schwellenwert : 0.00 .. 10000000.00;
-    END Gemeinde_Einwohner_Kosten;
-
-    CLASS Gesamtauswertung =
-      /** Name der Gemeinde
-       */
-      Gemeindename : MANDATORY TEXT*255;
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*100;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       * 
-       * ev. routes_desc von GTFS verwenden??????????
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_Stage_20230612.Verkehrsmittel;
-      /** Anrechnung  der Haltestellenabfahrten zu einer Gemeinde:
-       * 0%
-       * 20%
-       * 30%
-       * 100%
-       */
-      Anrechnung : MANDATORY 0 .. 100;
-      /** Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : MANDATORY 0.0 .. 10.0;
-      /** Gewichtung manuell korrigiert
-       */
-      Gewichtung_korrigiert : 0.0 .. 10.0;
-      /** Berechnete Abfahrten aus den GTFS-Daten
-       */
-      Abfahrten_GTFS : 0 .. 9999;
-      /** Ungewichtete Abfahrten manuell korrigert
-       */
-      Abfahrten_GTFS_korrigiert : -9999 .. 9999;
-      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
-       */
-      Abfahrten_ungewichtet : MANDATORY 0 .. 9999;
-      /** Anzahl gewichtete Abfahrten (nach Verkehrsmittel) einer Haltestelle  pro Linie am Stichtag
-       */
-      Abfahrten_gewichtet : MANDATORY 0.0 .. 9999.0;
-      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
-       */
-      Bemerkungen : TEXT*1000;
-    END Gesamtauswertung;
-
-  END Auswertung;
-
   TOPIC Sachdaten =
     OID AS INTERLIS.UUIDOID;
 
@@ -632,6 +666,9 @@ VERSION "2023-06-12"  =
       /** Ein Fahrplanfeld zeigt die Verkehrszeiten aller Zuege zwischen zwei Knotenbahnhoefen.
        */
       Fahrplanfeld : TEXT*20;
+      /** Kommentar, ob route_id am Stichttag verwendet wird
+       */
+      Kommentar : MTEXT*255;
     END Linie_Route;
 
     /** Tabelle zur Verwaltung der Daten zu einem Projekt/Jahr
@@ -642,7 +679,7 @@ VERSION "2023-06-12"  =
       OEVKOV_Name : MANDATORY TEXT*50;
       /** Datum der Abrechnung
        */
-      Abrechnungsdatum : MANDATORY INTERLIS.XMLDate;
+      Abrechnungsdatum : INTERLIS.XMLDate;
       /** Stichag fuer die Auswertung der Haltestellenabfahrten. In der Regel der erste Donnerstag im September.
        */
       Stichtag : MANDATORY INTERLIS.XMLDate;
@@ -678,12 +715,12 @@ VERSION "2023-06-12"  =
       Schwellenwert : 0.00 .. 10000.00;
     END OEVKOV_Daten;
 
-    /** Art des Verkehrsmittels (Bahn, Tram, Bus, Bedarfsangebot), Gewichtung und Einzugsbereich
+    /** Art des Verkehrsmittels (Bus, Bahn, Tram), Gewichtung und Einzugsbereich.
      */
     CLASS Verkehrsmittel =
-      /** Art des Verkehrsmittels
+      /** Code des Verkehrsmittels
        */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_Stage_20230612.Verkehrsmittel;
+      Verkehrsmittel : MANDATORY TEXT*10;
       /** Faktor fuer die Gewichtung pro Abfahrt
        */
       Gewichtung : MANDATORY 0.0 .. 99.0;
@@ -693,65 +730,5 @@ VERSION "2023-06-12"  =
     END Verkehrsmittel;
 
   END Sachdaten;
-
-  TOPIC SO_Geodaten =
-    OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_AVT_OevKov_Stage_20230612.Staging_GTFS;
-
-    /** Kopie des Layers agi_hoheitsgrenzen_pub.hoheitsgrenzen_gemeindegrenze
-     */
-    CLASS Gemeindegrenzen =
-      /** Geometrie der Gemeinde
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      /** Gemeindename
-       */
-      Gemeindename : MANDATORY TEXT*255;
-      /** BFS-Nr der Gemeinde
-       */
-      BFS_Gemeindenummer : MANDATORY 0 .. 9999;
-    END Gemeindegrenzen;
-
-    /** Haltestelle mit Geometrie und Name fuer Bearbeitung mit QGIS
-     */
-    CLASS Haltestellen =
-      /** Geometrie der Haltestelle
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-    END Haltestellen;
-
-    /** Haltestellen-Buffer fuer die Darstellung des Einzugsgebiets einer Haltestelle.
-     * Bahn Radius 500 m
-     * Bus: Radius 250 m
-     */
-    CLASS Haltestellenbuffer =
-      /** Geometrie des Haltestellenpuffers
-       */
-      Geometrie : GeometryCHLV95_V1.Surface;
-      /** Name der Haltestelle
-       */
-      Haltestellenname : TEXT*255;
-      /** Verkehrsmittel
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_Stage_20230612.Verkehrsmittel;
-    END Haltestellenbuffer;
-
-    /** Streckennetz der Transportunternehmungen (Bahn und Bus). Linien welche den Kanton verlassen und wieder betreten, sind auch ausserhalb der Kantonsgrenzen erfasst.
-     */
-    CLASS Streckennetz =
-      /** Geometrie des Streckennetzes
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
-      /** 1: Bus
-       * 2: SBB
-       * 3: Regionalbahn
-       */
-      Typ : MANDATORY 1 .. 100;
-    END Streckennetz;
-
-  END SO_Geodaten;
 
 END SO_AVT_OevKov_Stage_20230612.

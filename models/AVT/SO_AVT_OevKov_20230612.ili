@@ -14,13 +14,154 @@ AT "https://geo.so.ch/models/AVT"
 VERSION "2023-06-12"  =
   IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
 
-  DOMAIN
+  TOPIC Auswertung =
+    OID AS INTERLIS.UUIDOID;
 
-    Verkehrsmittel = (
-      Bahn,
-      Tram,
-      Bus
-    );
+    /** Korrektur der  Haltestellenabfahrt pro Linie.
+     */
+    CLASS Abfahrten_korrigiert =
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*255;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Korrigierte Gewichtung pro Linie. 
+       * Gewichtung Verkehrsmittel:
+       * Bus: 1
+       * Tram: 2
+       * Bahn: 3
+       */
+      Gewichtung : MANDATORY 0.0 .. 10.0;
+      /** Korrigierte Haltestellenabfahrt pro Linie. Es wird die Differenz zur Auswertung der GTFS-Daten eingetragen.
+       */
+      Abfahrten_korrigiert : -9999 .. 9999;
+      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
+       */
+      Bemerkungen : MTEXT*1000;
+      UNIQUE
+      Haltestellenname, Unternehmer, Linie;
+    END Abfahrten_korrigiert;
+
+    /** Berechnung der Abfahrten pro Linie und Unternehmen aus den GTFS-Daten
+     */
+    CLASS Auswertung_GTFS =
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** ID der Route
+       */
+      Route_ID : MANDATORY TEXT*50;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*100;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Gewichtung Verkehrsmittel:
+       * Fernzug: 6
+       * Regionalzug: 3
+       * Bus: 1
+       * Bedarfsangebot: 0.2
+       */
+      Gewichtung : 0.0 .. 10.0;
+      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
+       */
+      Anzahl_Abfahrten_Linie : 0 .. 9999;
+    END Auswertung_GTFS;
+
+    /** Einwohnerzahl und Kosten pro Gemeinde
+     */
+    CLASS Gemeinde_Einwohner_Kosten =
+      /** Name der Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*255;
+      /** Einwohnerzahl am Stichtag 31.12. des Vorjahres
+       */
+      Einwohnerzahl : MANDATORY 1 .. 100000;
+      /** Gewichtete Haltestellenabfahrten
+       */
+      Gewichtete_Haltestellenabfahrten : 0.0 .. 10000.0;
+      /** Kosten gemaess Angebot (Haltestellenabfahrten)
+       */
+      Kosten_Angebot : 0.00 .. 10000000.00;
+      /** Kosten gemaess Anzahl Einwohner
+       */
+      Kosten_Anzahl_Einwohner : 0.00 .. 10000000.00;
+      /** Kosten pro Einwohner
+       */
+      Kosten_pro_Einwohner : 0.00 .. 1000.00;
+      /** Total Kosten fuer die Gemeinde
+       */
+      Kosten_Total : 0.00 .. 10000000.00;
+      /** Kosten reduziert gemaess Schwellenwert zu Lasten Gemeinde
+       */
+      Kosten_minus_Schwellenwert : 0.00 .. 10000000.00;
+      /** Kosten ueber Schwellenwert zu Lasten Kanton
+       */
+      Kosten_ueber_Schwellenwert : 0.00 .. 10000000.00;
+    END Gemeinde_Einwohner_Kosten;
+
+    CLASS Gesamtauswertung =
+      /** Name der Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*255;
+      /** Name der Haltestelle
+       */
+      Haltestellenname : MANDATORY TEXT*255;
+      /** Name des Unternehmers
+       */
+      Unternehmer : MANDATORY TEXT*255;
+      /** Name der OeV-Linie
+       */
+      Linie : MANDATORY TEXT*100;
+      /** Art des Verkehrsmittels (Bus, Bahn, Tram).
+       */
+      Verkehrsmittel : MANDATORY TEXT*10;
+      /** Anrechnung  der Haltestellenabfahrten zu einer Gemeinde:
+       * 0%
+       * 20%
+       * 30%
+       * 100%
+       */
+      Anrechnung : MANDATORY 0 .. 100;
+      /** Gewichtung Verkehrsmittel:
+       * Fernzug: 6
+       * Regionalzug: 3
+       * Bus: 1
+       * Bedarfsangebot: 0.2
+       */
+      Gewichtung : MANDATORY 0.0 .. 10.0;
+      /** Gewichtung manuell korrigiert
+       */
+      Gewichtung_korrigiert : 0.0 .. 10.0;
+      /** Berechnete Abfahrten aus den GTFS-Daten
+       */
+      Abfahrten_GTFS : 0 .. 9999;
+      /** Ungewichtete Abfahrten manuell korrigert
+       */
+      Abfahrten_GTFS_korrigiert : -9999 .. 9999;
+      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
+       */
+      Abfahrten_ungewichtet : MANDATORY 0 .. 9999;
+      /** Anzahl gewichtete Abfahrten (nach Verkehrsmittel) einer Haltestelle  pro Linie am Stichtag
+       */
+      Abfahrten_gewichtet : MANDATORY 0.0 .. 9999.0;
+      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
+       */
+      Bemerkungen : TEXT*1000;
+    END Gesamtauswertung;
+
+  END Auswertung;
 
   TOPIC GTFS =
     OID AS INTERLIS.UUIDOID;
@@ -242,174 +383,6 @@ VERSION "2023-06-12"  =
 
   END GTFS;
 
-  TOPIC Auswertung =
-    OID AS INTERLIS.UUIDOID;
-
-    /** Korrektur der  Haltestellenabfahrt pro Linie.
-     */
-    CLASS Abfahrten_korrigiert =
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*255;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_20230612.Verkehrsmittel;
-      /** Korrigierte Gewichtung pro Linie. 
-       * Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : 0.0 .. 10.0;
-      /** Korrigierte Haltestellenabfahrt pro Linie. Es wird die Differenz zur Auswertung der GTFS-Daten eingetragen.
-       */
-      Abfahrten_korrigiert : -9999 .. 9999;
-      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
-       */
-      Bemerkungen : MTEXT*1000;
-      /** Nur ein Entrag pro Haltestelle und Linie
-       */
-      UNIQUE
-      Haltestellenname, Linie;
-    END Abfahrten_korrigiert;
-
-    /** Berechnung der Abfahrten pro Linie und Unternehmen aus den GTFS-Daten
-     */
-    CLASS Auswertung_GTFS =
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** ID der Route
-       */
-      Route_ID : MANDATORY TEXT*50;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*100;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       * 
-       * ev. routes_desc von GTFS verwenden??????????
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_20230612.Verkehrsmittel;
-      /** Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : 0.0 .. 10.0;
-      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
-       */
-      Anzahl_Abfahrten_Linie : 0 .. 9999;
-    END Auswertung_GTFS;
-
-    /** Einwohnerzahl und Kosten pro Gemeinde
-     */
-    CLASS Gemeinde_Einwohner_Kosten =
-      /** Name der Gemeinde
-       */
-      Gemeindename : MANDATORY TEXT*255;
-      /** Einwohnerzahl am Stichtag 31.12. des Vorjahres
-       */
-      Einwohnerzahl : MANDATORY 1 .. 100000;
-      /** Gewichtete Haltestellenabfahrten
-       */
-      Gewichtete_Haltestellenabfahrten : 0.0 .. 10000.0;
-      /** Kosten gemaess Angebot (Haltestellenabfahrten)
-       */
-      Kosten_Angebot : 0.00 .. 10000000.00;
-      /** Kosten gemaess Anzahl Einwohner
-       */
-      Kosten_Anzahl_Einwohner : 0.00 .. 10000000.00;
-      /** Kosten pro Einwohner
-       */
-      Kosten_pro_Einwohner : 0.00 .. 1000.00;
-      /** Total Kosten fuer die Gemeinde
-       */
-      Kosten_Total : 0.00 .. 10000000.00;
-      /** Kosten reduziert gemaess Schwellenwert zu Lasten Gemeinde
-       */
-      Kosten_minus_Schwellenwert : 0.00 .. 10000000.00;
-      /** Kosten ueber Schwellenwert zu Lasten Kanton
-       */
-      Kosten_ueber_Schwellenwert : 0.00 .. 10000000.00;
-    END Gemeinde_Einwohner_Kosten;
-
-    CLASS Gesamtauswertung =
-      /** Name der Gemeinde
-       */
-      Gemeindename : MANDATORY TEXT*255;
-      /** Name der Haltestelle
-       */
-      Haltestellenname : MANDATORY TEXT*255;
-      /** Name des Unternehmers
-       */
-      Unternehmer : MANDATORY TEXT*255;
-      /** Name der OeV-Linie
-       */
-      Linie : MANDATORY TEXT*100;
-      /** Art des Verkehrsmittels:
-       * 0: kein Verkehrsmittel
-       * 1: Bus bzw. Bushaltestelle
-       * 2: Zug bzw. Bahnhof
-       * 3: Regionalbahn bzw. Regionalbahnhof
-       * 
-       * ev. routes_desc von GTFS verwenden??????????
-       */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_20230612.Verkehrsmittel;
-      /** Anrechnung  der Haltestellenabfahrten zu einer Gemeinde:
-       * 0%
-       * 20%
-       * 30%
-       * 100%
-       */
-      Anrechnung : MANDATORY 0 .. 100;
-      /** Gewichtung Verkehrsmittel:
-       * Fernzug: 6
-       * Regionalzug: 3
-       * Bus: 1
-       * Bedarfsangebot: 0.2
-       */
-      Gewichtung : MANDATORY 0.0 .. 10.0;
-      /** Gewichtung manuell korrigiert
-       */
-      Gewichtung_korrigiert : 0.0 .. 10.0;
-      /** Berechnete Abfahrten aus den GTFS-Daten
-       */
-      Abfahrten_GTFS : 0 .. 9999;
-      /** Ungewichtete Abfahrten manuell korrigert
-       */
-      Abfahrten_GTFS_korrigiert : -9999 .. 9999;
-      /** Anzahl Abfahrten einer Haltestelle  pro Linie am Stichtag
-       */
-      Abfahrten_ungewichtet : MANDATORY 0 .. 9999;
-      /** Anzahl gewichtete Abfahrten (nach Verkehrsmittel) einer Haltestelle  pro Linie am Stichtag
-       */
-      Abfahrten_gewichtet : MANDATORY 0.0 .. 9999.0;
-      /** Bei groesseren Korrekturen soll die Begruendung fuer die Korrektur angegeben werden
-       */
-      Bemerkungen : TEXT*1000;
-    END Gesamtauswertung;
-
-  END Auswertung;
-
   TOPIC Sachdaten =
     OID AS INTERLIS.UUIDOID;
 
@@ -489,12 +462,12 @@ VERSION "2023-06-12"  =
       Schwellenwert : 0.00 .. 10000.00;
     END OEVKOV_Daten;
 
-    /** Art des Verkehrsmittels (Bahn, Bus, Bedarfsangebot), Gewichtung und Einzugsbereich
+    /** Art des Verkehrsmittels (Bus, Bahn, Tram), Gewichtung und Einzugsbereich.
      */
     CLASS Verkehrsmittel =
       /** Code des Verkehrsmittels
        */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_20230612.Verkehrsmittel;
+      Verkehrsmittel : MANDATORY TEXT*10;
       /** Faktor fuer die Gewichtung pro Abfahrt
        */
       Gewichtung : MANDATORY 0.0 .. 99.0;
@@ -533,8 +506,9 @@ VERSION "2023-06-12"  =
       Haltestellenname : MANDATORY TEXT*255;
     END Haltestellen;
 
-    /** Haltestellen-Buffer fuer die Darstellung des Einzugsgebiets einer Haltestelle.
-     * Bahn Radius 500 m
+    /** Haltestellen-Buffer für die Darstellung des Einzugsgebiets einer Haltestelle.
+     * Bahn: Radius 500 m
+     * Tram: Radius 350m
      * Bus: Radius 250 m
      */
     CLASS Haltestellenbuffer =
@@ -546,7 +520,7 @@ VERSION "2023-06-12"  =
       Haltestellenname : TEXT*255;
       /** Verkehrsmittel
        */
-      Verkehrsmittel : MANDATORY SO_AVT_OevKov_20230612.Verkehrsmittel;
+      Verkehrsmittel : MANDATORY TEXT*10;
     END Haltestellenbuffer;
 
     /** Streckennetz der Transportunternehmungen (Bahn und Bus). Linien welche den Kanton verlassen und wieder betreten, sind auch ausserhalb der Kantonsgrenzen erfasst.
