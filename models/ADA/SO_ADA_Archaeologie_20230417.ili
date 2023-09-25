@@ -1,9 +1,6 @@
 INTERLIS 2.3;
 
 /** Edit-Modell der archäologischen Fundstellen.
- * Todo:
- * - Die Klasse Fundstelle_ImdasView simuliert temporär die Imdas-View. Rückbau Fundstelle_Base -> Fundstelle
- * - Die Klasse Regierungsratsbeschluss_ImdasView simuliert temporär die Imdas-View. Rückbau Regierungsratsbeschluss_Base -> Regierungsratsbeschluss
  */
 MODEL SO_ADA_Archaeologie_20230417 (de)
 AT "https://ada.so.ch"
@@ -29,16 +26,16 @@ VERSION "2023-04-17"  =
     CLASS Fundstelle =
       /** Sprechender Schlüssel der Fundstelle. Beispiel: "103/60".
        */
-      Fundstellen_Nummer : MANDATORY TEXT*10;
+      Fundstellen_Nummer : MANDATORY TEXT*255;
       /** Flurname oder Adresse der Fundstelle.
        */
-      Fundst_Adresse_Flurname : MANDATORY TEXT*30;
+      Fundst_Adresse_Flurname : MANDATORY TEXT*255;
       /** Kurzdefinition der Fundstelle. Beispiel: "Römische Villa".
        */
-      Fundstellen_Art : MANDATORY TEXT*100;
+      Fundstellen_Art : MANDATORY TEXT*255;
       /** "True", falls die Fundstelle eine archäologische Schutzzone ist.
        */
-      Geschuetzt : MANDATORY BOOLEAN;
+      Geschuetzt : MANDATORY 0..1;
       /** Dreistufe Einschätzung, wie gut die Fundstelle lokalisiert ist.
        */
       Qualitaet_Lokalisierung : MANDATORY Qualitaet_Lokalisierung_Typ;
@@ -50,13 +47,15 @@ VERSION "2023-04-17"  =
       Y_Koordinate : MANDATORY 162000 .. 1302000;
       /** Beschreibung der Fundstelle und Forschungsgeschichte.
        */
-      Kurzbeschreibung : MANDATORY MTEXT*3000;
+      Kurzbeschreibung : MANDATORY MTEXT;
       /** Alter Gemeindename der Dokumenten-Ablage (vor Fusionen).
        */
-      Gemeindename_Ablage : MANDATORY TEXT*30;
+      Gemeindename_Ablage : MANDATORY TEXT*255;
       /** Während dem Import über die Schnittstelle verwendeter Verweis auf den RRB (Wird in Beziehung verwandelt).
        */
-      RRB_Nummer : TEXT*10;
+      RRB_Nummer : TEXT*255;
+
+      UNIQUE Fundstellen_Nummer;
     END Fundstelle;
 
     /** RRB der Oereb-Eigentumsbeschränkung der zugeordneten Fundstellen.
@@ -74,6 +73,8 @@ VERSION "2023-04-17"  =
       /** Name der Datei des RRB-Scans auf der Ablage (ohne Pfad / Dateierweiterung .pdf)
        */
       Dateiname : MANDATORY TEXT*40;
+
+      UNIQUE RRB_Nummer;
     END Regierungsratsbeschluss;
 
     ASSOCIATION Fundstelle_RRB =
