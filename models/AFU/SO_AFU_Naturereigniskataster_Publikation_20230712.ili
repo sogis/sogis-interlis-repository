@@ -1,0 +1,382 @@
+INTERLIS 2.3;
+
+/** !! Publikationsmodell für den Naturereigniskataster Kt. Solothurn
+ *  !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-07-12 | ps  | Initialerstellung
+ *  !!==============================================================================
+ */
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ furtherInformation="http://geo.so.ch/models/AFU/SO_AFU_Naturereigniskataster_Publikation_20230712.uml"
+!!@ shortDescription="Publikationsmodell für den KbS mit öffentlichen Attributen und Daten"
+!!@ title="Kataster der belasteten Standorte (öffentlich)"
+MODEL SO_AFU_Naturereigniskataster_Publikation_20230712 (de)
+AT "https://afu.so.ch"
+VERSION "2023-07-12"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Datenherr = (
+      AG,
+      AI,
+      AR,
+      BE,
+      BL,
+      BS,
+      FR,
+      GE,
+      GL,
+      GR,
+      JU,
+      LU,
+      NE,
+      NW,
+      OW,
+      SG,
+      SH,
+      SO,
+      SZ,
+      TG,
+      TI,
+      UR,
+      VD,
+      VS,
+      ZG,
+      ZH,
+      FL,
+      ASTRA,
+      SBB,
+      SOB,
+      SLF,
+      GIUZ,
+      VAW,
+      WSL,
+      BAFU
+    );
+
+    Erhebung = (
+      keine_Erhebung,
+      mit_Schaeden,
+      ohne_Schaeden
+    );
+
+    Erhebungsart = (
+      an_Ort_und_Stelle,
+      Luftbild_Orthofoto,
+      vom_Gegenhang,
+      Rekonstruktion
+    );
+
+    Hauptprozess = (
+      Wasser,
+      Rutschung,
+      Sturz,
+      Lawine,
+      Einsturz_Absenkung,
+      Andere
+    );
+
+    Prozesse_EA = (
+      Einsturz,
+      Absenkung
+    );
+
+    Status = (
+      in_Bearbeitung,
+      Freigabe_beantragt,
+      freigegeben,
+      in_Ueberarbeitung
+    );
+
+    Evidenz = (
+      erwiesen,
+      vermutet,
+      externe_Datenquelle
+    );
+
+    Prozesse_L = (
+      nicht_spezifiziert,
+      Fliesslawine,
+      Staublawine,
+      Gleitschneelawine,
+      Schneegleiten
+    );
+
+    Taggenauigkeit = (
+      Jahr,
+      Monat,
+      Tag
+    );
+
+    Prozesse_R = (
+      nicht_spezifiziert,
+      spontane_Rutschung,
+      Hangmure,
+      reaktivierte_permanente_Rutschung
+    );
+
+    Zeitgenauigkeit = (
+      unbekannt,
+      Jahrzehnt,
+      Jahr,
+      Monat,
+      Tag,
+      Stunde,
+      Minute
+    );
+
+    Prozesse_S = (
+      nicht_spezifiziert,
+      Steinschlag,
+      Blockschlag,
+      Felssturz,
+      Bergsturz,
+      Eisschlag,
+      Gletschersturz
+    );
+
+    Prozesse_W = (
+      nicht_spezifiziert,
+      Ueberschwemmung_ohne_Uebersarung,
+      Ueberschwemmung_mit_Uebersarung,
+      Uebermurung,
+      Ufererosion,
+      Oberflaechenabfluss,
+      Grundwasseraufstoss
+    );
+
+  TOPIC StorMe =
+
+    /** Zentrale Klasse des Datenmodells. Sie beinhaltet Grundinformationen zu einem Ereignis.
+     */
+    !!@ ili2db.dispName = "Bemerkungen zu Schäden"
+    CLASS Basisinformation =
+      /** Datenherren sind die Kantone, FL, sowie ASTRA, SBB, SOB, SLF, GIUZ, VAW, WSL und das BAFU.
+       */
+      Datenherr : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Datenherr;
+      /** StorMe-Nummer für die schweizweite Kommunikation nach aussen.
+       */
+      !!@ ili2db.dispName = "StorMe Nummer"
+      StorMe_Nr : MANDATORY TEXT*16;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Hauptprozess Wasser
+       */
+      !!@ ili2db.dispName = "Hauptprozess Wasser"
+      Hauptprozess_Wasser : MANDATORY BOOLEAN;
+      /** Hauptprozess Rutschung
+       */
+      !!@ ili2db.dispName = "Hauptprozess Rutschung"
+      Hauptprozess_Rutschung : MANDATORY BOOLEAN;
+      /** Hauptprozess Sturz
+       */
+      !!@ ili2db.dispName = "Hauptprozess Sturz"
+      Hauptprozess_Sturz : MANDATORY BOOLEAN;
+      /** Hauptprozess Lawine
+       */
+      !!@ ili2db.dispName = "Hauptprozess Lawine"
+      Hauptprozess_Lawine : MANDATORY BOOLEAN;
+      /** Hauptprozess Einsturz/Absenkung
+       */
+      !!@ ili2db.dispName = "Hauptprozess Einsturz/Absenkung"
+      Hauptprozess_Einsturz_Absenkung : MANDATORY BOOLEAN;
+      /** Anderer Hauptprozess, z.Bsp. Erdbeben.
+       */
+      !!@ ili2db.dispName = "Hauptprozess Anderer"
+      Hauptprozess_anderer : MANDATORY BOOLEAN;
+      /** Massgebender Hauptprozess (Wasser, Rutschung, Sturz, Lawine, Einsturz/Absenkung, Andere)
+       */
+      !!@ ili2db.dispName = "Massgebender Hauptprozess"
+      Massgebender_Hauptprozess : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Hauptprozess;
+      /** Ereignisdatum
+       */
+      Ereignisdatum : INTERLIS.XMLDateTime;
+      /** Genauigkeitsangabe zum Ereignisdatum resp. -zeitpunkt.
+       */
+      Datumsgenauigkeit : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Zeitgenauigkeit;
+      /** - an Ort und Stelle
+       * - Luftbild / Orthofoto
+       * - vom Gegenhang
+       * - Rekonstruktion
+       */
+      Erhebungsart : TEXT*255;
+      /** Name der Lokalität, Flurname
+       */
+      !!@ ili2db.dispName = "Name Lokalität"
+      Name_Lokalitaet : TEXT*50;
+      /** Aktuell gültiger Gemeindename, in welcher der Basisinformationspunkt liegt.
+       */
+      Gemeinde : TEXT*50;
+      /** Bemerkungen für die öffentliche Darstellung.
+       */
+      Bemerkungen_Basisinformationen : TEXT*4000;
+      /** Schäden an Menschen, Tieren
+       */
+      !!@ ili2db.dispName = "Schäden an Menschen, Tieren"
+      Schaeden_an_Menschen_Tieren : TEXT*255;
+      /** Todesfälle an Menschen
+       */
+      !!@ ili2db.dispName = "Todesfälle an Menschen"
+      Todesfaelle_an_Menschen : TEXT*255;
+      /** Menschen verletzt
+       */
+      !!@ ili2db.dispName = "Menschen verletzt"
+      Menschen_verletzt : TEXT*255;
+      /** Tote oder verletzte Tiere
+       */
+      !!@ ili2db.dispName = "Tote oder verletzte Tiere"
+      Tote_oder_verletzte_Tiere : TEXT*255;
+      /** Schäden an Sachwerten
+       */
+      !!@ ili2db.dispName = "Schäden an Sachwerten"
+      Schaeden_an_Sachwerten : TEXT*255;
+      /** Schäden an Infrastrukturen, Verbindungen
+       */
+      !!@ ili2db.dispName = "Schäden an Infrastrukturen, Verbindungen"
+      Schaeden_an_Infrastruktur_Verbindungen : TEXT*255;
+      /** Schäden an Landwirtschaftsland, Wald
+       */
+      !!@ ili2db.dispName = "Schäden an Landwirtschaftsland, Wald"
+      Schaeden_an_Landwirtschaftsland_Wald : TEXT*255;
+      /** Bemerkungen für die öffentliche Darstellung (Schaden).
+       */
+      Bemerkungen_Schaeden : TEXT*4000;
+    END Basisinformation;
+
+    /** Prozessräume sind fachlich von grosser Bedeutung, weil sie unter anderem zur Validierung bestehender Gefahrenbeurteilungen verwendet werden können.
+     */
+    CLASS Prozessraum (ABSTRACT) =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** StorMe-Nummer für die schweizweite Kommunikation nach aussen.
+       */
+      !!@ ili2db.dispName = "StorMe Nummer"
+      StorMe_Nr : MANDATORY TEXT*16;
+      /** Evidenz:
+       * - erwiesen
+       * - vermutet
+       * - externe Datenquelle [unbestimmt]
+       */
+      Evidenz : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Evidenz;
+      /** Massgebender Hauptprozess (Wasser, Rutschung, Sturz, Lawine, Einsturz/Absenkung, Andere)
+       */
+      !!@ ili2db.dispName = "Massgebender Hauptprozess"
+      Massgebender_Hauptprozess : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Hauptprozess;
+      Datenherr : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Datenherr;
+    END Prozessraum;
+
+    /** Die zu einem Sammelereignis gehörigen StorMe-Objekte können von unterschied-lichen Hauptprozessen sein. Sie können auch nachträglich jederzeit noch einem Sammelereignis zugewiesen werden.
+     */
+    CLASS Sammelereignis =
+      Datenherr : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Datenherr;
+      /** Ereignisname
+       */
+      Name : MANDATORY TEXT*50;
+      /** Sammelereignis-Nummer
+       */
+      Nummer : MANDATORY TEXT*15;
+      /** Schwerpunkt
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Datum des Sammelereignisses
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Angabe zur Datumsgenauigkeit
+       */
+      Datum_Genauigkeit : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Taggenauigkeit;
+      /** Hauptprozess: Wasser
+       */
+      Hauptprozess_Wasser : MANDATORY BOOLEAN;
+      /** Hauptprozess: Rutschung
+       */
+      Hauptprozess_Rutschung : MANDATORY BOOLEAN;
+      /** Hauptprozess: Sturz
+       */
+      Hauptprozess_Sturz : MANDATORY BOOLEAN;
+      /** Hauptprozess: Lawine
+       */
+      Hauptprozess_Lawine : MANDATORY BOOLEAN;
+      /** Hauptprozess: Einsturz / Absenkung
+       */
+      Hauptprozess_Einsturz_Absenkung : MANDATORY BOOLEAN;
+      /** Hauptprozess: Anderer
+       */
+      Hauptprozess_Anderer : MANDATORY BOOLEAN;
+      /** Name des grössten beteiligten Gewässers
+       */
+      Gewaessername : TEXT*50;
+      /** Bemerkungen zum Wetter für die öffentliche Darstellung
+       */
+      Meteo_Bemerkungen : TEXT*4000;
+      /** Bemerkungen zu Schäden für die öffentliche Darstellung
+       */
+      Schaden_Bemerkungen : TEXT*4000;
+      /** Bemerkungen zu Prozess(en) und Hinweise auf frei verfügbare Dokumenten für die öffentliche Darstellung
+       */
+      Prozess_Bemerkungen : TEXT*4000;
+    END Sammelereignis;
+
+    /** Prozessraum Andere
+     */
+    !!@ ili2db.dispName = "Prozessraum Andere"
+    CLASS Prozessraum_A
+    EXTENDS Prozessraum =
+      /** Name anderer Hauptprozess
+       */
+      !!@ ili2db.dispName = "Name anderer Hauptprozess"
+      Anderer_Prozess : MANDATORY TEXT*255;
+    END Prozessraum_A;
+
+    /** Prozessraum Rutschung
+     */
+    !!@ ili2db.dispName = "Prozessraum Rutschung"
+    CLASS Prozessraum_R
+    EXTENDS Prozessraum =
+      /** Teilprozess
+       */
+      Teilprozess_Rutschung : SO_AFU_Naturereigniskataster_Publikation_20230712.Prozesse_R;
+    END Prozessraum_R;
+
+    /** Prozessraum Sturz
+     */
+    !!@ ili2db.dispName = "Prozessraum Sturz"
+    CLASS Prozessraum_S
+    EXTENDS Prozessraum =
+      /** Teilprozess
+       */
+      Teilprozess_Sturz : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Prozesse_S;
+    END Prozessraum_S;
+
+    /** Prozessraum Einsturz / Absenkung
+     */
+    !!@ ili2db.dispName = "Prozessraum Einsturz / Absenkung"
+    CLASS Prozessraum_EA
+    EXTENDS Prozessraum =
+      /** Teilprozess
+       */
+      Teilprozess_Einsturz_Absenkung : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Prozesse_EA;
+    END Prozessraum_EA;
+
+    /** Prozessraum Wasser
+     */
+    !!@ ili2db.dispName = "Prozessraum Wasser"
+    CLASS Prozessraum_W
+    EXTENDS Prozessraum =
+      /** Teilprozess
+       */
+      Teilprozess_Wasser : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Prozesse_W;
+    END Prozessraum_W;
+
+    /** Prozessraum Lawine
+     */
+    !!@ ili2db.dispName = "Prozessraum Lawine"
+    CLASS Prozessraum_L
+    EXTENDS Prozessraum =
+      /** Teilprozess
+       */
+      Teilprozess_Lawine : MANDATORY SO_AFU_Naturereigniskataster_Publikation_20230712.Prozesse_L;
+    END Prozessraum_L;
+
+  END StorMe;
+
+END SO_AFU_Naturereigniskataster_Publikation_20230712.
