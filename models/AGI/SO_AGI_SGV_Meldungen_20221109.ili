@@ -1,0 +1,116 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2022-11-09 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_SGV_Meldungen_20221109.uml
+MODEL SO_AGI_SGV_Meldungen_20221109 (de)
+AT "https://agi.so.ch"
+VERSION "2022-11-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    SOOID = OID TEXT*255;
+
+  TOPIC Meldungen =
+    OID AS SOOID;
+
+    /** Meldungen der SGV abgeleitet aus eCH-0132.
+     */
+    CLASS Meldung =
+      /** Koordinate des eingeschätzten Objektes. Kommt von der SGV-Meldung oder wird im Web GIS Client digitalisiert.
+       */
+      Lage : GeometryCHLV95_V1.Coord2;
+      /** Grundbuchnummer des Grundstückes auf dem das versicherte Objekt liegt.
+       */
+      Grundstuecksnummer : TEXT*12;
+      /** E-GRID des Grundstückes auf dem das versicherte Objekt liegt.
+       */
+      EGRID : TEXT*14;
+      /** Nummerierungsbereich-Identifikator. Kommt von der SGV-Meldung oder wird im Web GIS Client digitalisiert. Ist für Eindeutigkeit der GB-Nr. bei fusionierten Gemeinden notwendig.
+       */
+      NBIdent : TEXT*20;
+      /** Kommt von SGV-Meldung oder beim Erfassen im Web GIS Client. Das Datum wird in der Tranformation eCH->INTERLIS erzeugt.
+       */
+      Datum_Meldung : INTERLIS.XMLDate;
+      /** Ereignis resp. Meldegrund. Es sind nicht alle Eregnisse gemäss eCH-0132 möglich. Siehe Konzept.
+       */
+      Meldegrund : (
+        weitere,
+        Entlassung,
+        Loeschung(
+          !!@ ili2db.dispName="Löschung: Abbruch"
+          Abbruch,
+          !!@ ili2db.dispName="Löschung: Vereinigung"
+          Vereinigung,
+          !!@ ili2db.dispName="Löschung: Schaden"
+          Schaden
+        ),
+        Vereinigung,
+        Trennung,
+        Neuaufnahme,
+        Teilabbruch,
+        Umbau,
+        Anbau,
+        Neubau,
+        Wiederaufnahme
+      );
+      /** Baujahr des versicherten Objektes
+       */
+      Baujahr : INTERLIS.GregorianYear;
+      /** Politische Gemeinde
+       */
+      Gemeinde : TEXT*200;
+      /** Freitext zur Beschreibung der Gebäudenutzungsart
+       */
+      Gebaeudebezeichnung : TEXT;
+      /** Postalische Adresse des Gebäudes. Zusammengesetzt aus einzelnen Werten (Strasse Nummer, PLZ Ortschaft).
+       */
+      Gebaeudeadresse : TEXT*1000;
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      EGID : 1 .. 999999999;
+      /** Zeitpunkt des Beginns der Versicherung
+       */
+      Versicherungsbeginn : INTERLIS.XMLDate;
+      /** Name und Adresses des Verwalters
+       */
+      Verwalter : TEXT*2000;
+      /** Name und Adresse des Eigentümers
+       */
+      Eigentuemer : TEXT*2000;
+      /** Baulicher Mehrwert
+       */
+      Baulicher_Mehrwert : -999999999 .. 999999999;
+      /** Bearbeitungsstatus im Rahmen der NF-Tätigkeit
+       */
+      Status : (
+        abgeschlossen,
+        in_Arbeit,
+        neu
+      );
+      /** Abschlussdatum der Nachführung
+       */
+      Datum_abgeschlossen : INTERLIS.XMLDate;
+      /** Identifikator der eCH-Meldung: delivery.deliveryHeader.messageId
+       */
+      MessageId : TEXT*50;
+      /** Versicherungsnummer des versicherten Objektes aus eCH-Meldung: delivery.XXXX.insuranceObject.insuranceNumber.
+       */
+      InsuranceObjectId : TEXT*50;
+      /** Bemerkungen
+       */
+      Bemerkungen : MTEXT*10000;
+      /** Vom Import- ins Work-Schema dürfen nur neue Meldungen kopiert werden. Dazu wird INSERT ON CONFLICT verwendet. Dieser Befehl braucht einen eindeutigen Schlüssel.
+       */
+      UNIQUE MessageId;
+    END Meldung;
+
+  END Meldungen;
+
+END SO_AGI_SGV_Meldungen_20221109.
