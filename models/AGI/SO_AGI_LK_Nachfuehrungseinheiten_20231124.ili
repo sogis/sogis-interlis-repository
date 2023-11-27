@@ -1,19 +1,18 @@
 INTERLIS 2.3;
 
-/** /**
- * * !!------------------------------------------------------------------------------
- * * !! Version    | wer | Änderung
- * * !!------------------------------------------------------------------------------
- * * !! 2023-11-24 | AW  | Erste Version
- * * !!==============================================================================
- * */
+/** !!
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-11-24 | AW  | Erste Version
+ * !!==============================================================================
  */
+!!@ furtherInformation=ttp://geo.so.ch/models/AGI/SO_AGI_LK_Nachfuehrungseinheiten_20231124.uml
 !!@ technicalContact=mailto:agi@so.ch
-!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_LK_Nachfuehrungsperimeter_20231124.uml
-MODEL SO_AGI_LK_Nachfuehrungsperimeter_20231124 (de)
+MODEL SO_AGI_LK_Nachfuehrungseinheiten_20231124 (de)
 AT "http://www.geo.so.ch/models/AGI"
 VERSION "2023-11-24"  =
-  IMPORTS INTERLIS,Base_LV95,Units;
+  IMPORTS GeometryCHLV95_V1,Text;
 
   DOMAIN
 
@@ -29,7 +28,7 @@ VERSION "2023-11-24"  =
       weitereMedien
     );
 
-  TOPIC Nachfuehrungsperimeter =
+  TOPIC Nachfuehrungseinheiten =
 
     /** Die Nachführungseinheit ist ein zusammenhängendes Leitungsnetz eines Werkes, welches einem Werkeigentümer gehört und von einer Nachführungsstelle nachgeführt wird.
      */
@@ -38,10 +37,10 @@ VERSION "2023-11-24"  =
       OID AS INTERLIS.UUIDOID;
       /** Das Medium des Leitungsnetz
        */
-      Medium : MANDATORY SO_AGI_LK_Nachfuehrungsperimeter_20231124.Medium;
+      Medium : MANDATORY SO_AGI_LK_Nachfuehrungseinheiten_20231124.Medium;
       /** Die letzte Änderung an dieser Nachführungseinheit
        */
-      Letzte_Aenderung : MANDATORY INTERLIS.INTERLIS_1_DATE;
+      Letzte_Aenderung : MANDATORY INTERLIS.XMLDate;
     END Nachfuehrungseinheit;
 
     /** Eine Organisation kann eine private Firma oder eine öffentliche Verwaltungseinheit sein, welche eine bestimmte Rolle im Leitungskataster übernimmt
@@ -49,10 +48,10 @@ VERSION "2023-11-24"  =
     !!@ dispExpression="concat(organisation_name, ', ', strasse, ' ', hausnummer, ', ', plz, ' ', ortschaft)"
     CLASS Organisation =
       OID AS INTERLIS.UUIDOID;
-      /** Titel bzw. Name der Nachführungsstelle
+      /** Titel bzw. Name der Organisation
        */
       Organisation_Name : MANDATORY TEXT*255;
-      /** Strasse
+      /** Strasse der Postadresse
        */
       Strasse : MANDATORY TEXT*255;
       /** Hausnummer der Postadresse inkl. Zusatzzeichen wie Buchstaben etc.
@@ -64,15 +63,15 @@ VERSION "2023-11-24"  =
       /** Postalische Ortschaft
        */
       Ortschaft : MANDATORY TEXT*255;
-      /** Allgemeinde Telefonnummer der Organisation
+      /** Allgemeine Telefonnummer der Organisation
        */
       Telefon : MANDATORY TEXT*255;
       /** Webseite der Organisation
        */
       Web : MANDATORY INTERLIS.URI;
-      /** Allgemeinde Email Adresse
+      /** Allgemeine Email Adresse
        */
-      Email : MANDATORY TEXT*255;
+      Email : MANDATORY INTERLIS.URI;
       /** Unternehmens-Identifikationsnummer UID gemäss https://www.uid.admin.ch/
        */
       UID : TEXT*80;
@@ -83,14 +82,14 @@ VERSION "2023-11-24"  =
     !!@ dispExpression=concat(bezeichnung)
     CLASS Perimeter =
       OID AS INTERLIS.UUIDOID;
-      Geometrie : MANDATORY Base_LV95.Surface;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
       /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier die BFS Nummer abgefüllt. Ansonsten kann das Feld leer bleiben.
        */
-      BFSNr : 2400 .. 2700;
+      BFSNr : 0 .. 9999;
       /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt. Ansonsten im Freitext eine Bezeichnung für den Perimeter.
        */
       Bezeichnung : MANDATORY TEXT*255;
-      /** Entspricht der Perimeter einer Gemeinde ist die Ausdehnung kommunal, bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend regional oder kantonal
+      /** Entspricht der Perimeter einer Gemeinde ist die Ausdehnung kommunal, bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend regional oder kantonal.
        */
       Ausdehnung : (
         kommunal,
@@ -99,7 +98,7 @@ VERSION "2023-11-24"  =
       );
       /** Entspricht der Perimeter einer Gemeinde (Ausdehung ist kommunal), muss eine BFS Nummer abgefüllt werden
        */
-      MANDATORY CONSTRAINT (Ausdehnung == #kommunal AND DEFINED(BFSNr)) OR (Ausdehnung != #kommunal AND NOT(DEFINED(BFSNr)));
+      MANDATORY CONSTRAINT (Ausdehnung == #kommunal AND DEFINED (BFSNr)) OR (Ausdehnung <> #kommunal AND NOT (DEFINED (BFSNr)));
     END Perimeter;
 
     ASSOCIATION Nachfuehrungsstelle_Nachfuehrungseinheit =
@@ -109,7 +108,7 @@ VERSION "2023-11-24"  =
 
     ASSOCIATION Perimeter_Nachfuehrungseinheit =
       Perimeter -- {1} Perimeter;
-      Nachfuehrung_Perimeter -- {1..*} Nachfuehrungseinheit;
+      Nachfuehrungseinheit_Perimeter -- {1..*} Nachfuehrungseinheit;
     END Perimeter_Nachfuehrungseinheit;
 
     ASSOCIATION Werkeigentuemer_Nachfuehrungseinheit =
@@ -117,6 +116,6 @@ VERSION "2023-11-24"  =
       Nachfuehrungseinheit_Werkeigentuemer -- {0..*} Nachfuehrungseinheit;
     END Werkeigentuemer_Nachfuehrungseinheit;
 
-  END Nachfuehrungsperimeter;
+  END Nachfuehrungseinheiten;
 
-END SO_AGI_LK_Nachfuehrungsperimeter_20231124.
+END SO_AGI_LK_Nachfuehrungseinheiten_20231124.
