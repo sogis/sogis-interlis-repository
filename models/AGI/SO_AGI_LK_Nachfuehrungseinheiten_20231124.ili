@@ -1,34 +1,37 @@
 INTERLIS 2.3;
 
-/** !!
+/** !
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2023-11-24 | AW  | Erste Version
  * !!==============================================================================
  */
-!!@ furtherInformation=ttp://geo.so.ch/models/AGI/SO_AGI_LK_Nachfuehrungseinheiten_20231124.uml
-!!@ technicalContact=mailto:agi@so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_LK_Nachfuehrungseinheiten_20231124.uml
+!!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AGI_LK_Nachfuehrungseinheiten_20231124 (de)
 AT "http://www.geo.so.ch/models/AGI"
 VERSION "2023-11-24"  =
   IMPORTS GeometryCHLV95_V1,Text;
 
-  DOMAIN
-
-    /** Die verschiedenen Leitungsmedien gemäss SIA405
-     */
-    Medium = (
-      Abwasser,
-      Elektrizitaet,
-      Fernwaerme,
-      Gas,
-      Kommunikation,
-      Wasser,
-      weitereMedien
-    );
-
   TOPIC Nachfuehrungseinheiten =
+
+    DOMAIN
+
+      /** Die verschiedenen Leitungsmedien gemäss SIA405
+       */
+      Medium = (
+        Abwasser,
+        !!@ ili2db.dispName=Elektrizität
+        Elektrizitaet,
+        !!@ ili2db.dispName=Fernwärme
+        Fernwaerme,
+        Gas,
+        Kommunikation,
+        Wasser,
+        !!@ ili2db.dispName="weitere Medien"
+        weitereMedien
+      );
 
     /** Die Nachführungseinheit ist ein zusammenhängendes Leitungsnetz eines Werkes, welches einem Werkeigentümer gehört und von einer Nachführungsstelle nachgeführt wird.
      */
@@ -37,7 +40,7 @@ VERSION "2023-11-24"  =
       OID AS INTERLIS.UUIDOID;
       /** Das Medium des Leitungsnetz
        */
-      Medium : MANDATORY SO_AGI_LK_Nachfuehrungseinheiten_20231124.Medium;
+      Medium : MANDATORY Medium;
       /** Die letzte Änderung an dieser Nachführungseinheit
        */
       Letzte_Aenderung : MANDATORY INTERLIS.XMLDate;
@@ -86,11 +89,11 @@ VERSION "2023-11-24"  =
       /** Prüft die Formatierung der Webadresse
        */
       !!@ ilivalid.msg="{Web} ist keine gültige Web-URL"
-      MANDATORY CONSTRAINT Text.matches(Web, "^http.*");
+      MANDATORY CONSTRAINT Text.matches(Web, "^http[s]?://.*");
       /** Prüft die Formatierung der Email Adresse. Wichtig ist der Präfix mailto:
        */
       !!@ ilivalid.msg="{Email} ist keine gültige Email-Adresse"
-      MANDATORY CONSTRAINT Text.matches(Email, "^mailto.*@.*[\\.].*");
+      MANDATORY CONSTRAINT Text.matches(Email, "^mailto:.*@.*[\\.].*");
     END Organisation;
 
     /** Perimeter einer Nachführungseinheit
@@ -102,7 +105,8 @@ VERSION "2023-11-24"  =
       /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier die BFS Nummer abgefüllt. Ansonsten kann das Feld leer bleiben.
        */
       BFSNr : 0 .. 9999;
-      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt. Ansonsten im Freitext eine Bezeichnung für den Perimeter.
+      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt.
+       * Ansonsten im Freitext eine Bezeichnung für den Perimeter.
        */
       Bezeichnung : MANDATORY TEXT*255;
       /** Entspricht der Perimeter einer Gemeinde ist die Ausdehnung kommunal, bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend regional oder kantonal.
