@@ -1,0 +1,88 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-11-27 | MS  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Naturgefahren_Beurteilungsgebiet_20231127 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2023-11-27"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Beurteilungsgebiet =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      beurteilung_einfach_typ (FINAL) = (
+        nicht_beurteilt,
+        beurteilung_nicht_noetig,
+        beurteilt
+      );
+
+      teilprozess_quellen (FINAL) = (
+        w_ueberschwemmung,
+        w_uebermurung,
+        w_ufererosion,
+        r_permanente_rutschung,
+        r_plo_spontane_rutschung,
+        r_plo_hangmure,
+        s_stein_block_schlag,
+        s_fels_berg_sturz,
+        s_eisschlag,
+        ea_einsturz,
+        ea_absenkung,
+        l_fliesslawine,
+        l_staublawine,
+        l_schneegleiten
+      );
+
+    /** Flaechendeckende Gliederung des Kantons in unterschiedliche Erhebungsgebiete gemäss Beurteilungsstand der Teilprozesse. Erhebungsgebiete innerhalb desselben Hauptprozesses überlagern sich nicht. 
+     * Beispiel:
+     * Gebiet 1: Permanente Rutschung: beurteilt, Spontane Rutschung: beurteilt
+     * Gebiet 2: Permanente Rutschung: beurteilt, Spontane Rutschung: nicht notwendig...
+     */
+    CLASS Ergebungsgebiet_Rutschung =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Ergebungsgebiet_Rutschung;
+
+    /** Siehe Erhebungsgebiet_Rutschung
+     */
+    CLASS Erhebungsgebiet_Sturz =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
+      /** Gemeinde-Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Erhebungsgebiet_Sturz;
+
+    /** Siehe Erhebungsgebiet_Rutschung
+     */
+    CLASS Erhebungsgebiet_Wasser =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
+      /** Gemeinde-Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Erhebungsgebiet_Wasser;
+
+  END Beurteilungsgebiet;
+
+END SO_AFU_Naturgefahren_Beurteilungsgebiet_20231127.

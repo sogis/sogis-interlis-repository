@@ -1,0 +1,275 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-10-16 | MS  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Naturgefahren_Kernmodell_20231016 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2023-10-16"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Naturgefahren =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      beurteilung_einfach_typ (FINAL) = (
+        nicht_beurteilt,
+        beurteilung_nicht_noetig,
+        beurteilt
+      );
+
+      hauptprozess (FINAL) = (
+        wasser,
+        rutschung,
+        sturz,
+        lawine
+      );
+
+      intensitaet_typ (FINAL) = (
+        keine_einwirkung,
+        einwirkung_vorhanden,
+        schwach,
+        mittel,
+        hoch
+      );
+
+      jaehrlichkeit_typ = 1 .. 10000;
+
+      teilprozess_quellen (FINAL) = (
+        w_ueberschwemmung,
+        w_uebermurung,
+        w_ufererosion,
+        r_permanente_rutschung,
+        r_plo_spontane_rutschung,
+        r_plo_hangmure,
+        s_stein_block_schlag,
+        s_fels_berg_sturz,
+        s_eisschlag,
+        ea_einsturz,
+        ea_absenkung,
+        l_fliesslawine,
+        l_staublawine,
+        l_schneegleiten
+      );
+
+      /** Überflutungshöhe (Einteilung gemäss altem Modell)
+       */
+      ueberflutungshoehe_wasser (FINAL) = (
+        keine_Ueberflutung,
+        groesser_200cm,
+        von_100_bis_200cm,
+        von_75_bis_100cm,
+        von_50_bis_75cm,
+        von_25_bis_50cm,
+        von_0_bis_25cm
+      );
+
+      vollstaendigkeit_typ (FINAL) = (
+        vollstaendig,
+        nicht_vollstaendig,
+        nicht_bestimmbar,
+        in_abklaerung
+      );
+
+    /** Strukturklasse für die Dokumente
+     */
+    STRUCTURE Dokument =
+      /** Titel des Berichts
+       */
+      Titel : MANDATORY TEXT*255;
+      /** Name der PDF-Datei in der Ablage
+       */
+      Dateiname : MANDATORY TEXT*255;
+      /** URL-Adresse des Berichts
+       */
+      Link : MANDATORY TEXT*500;
+      /** Aktuell relevante im Bericht beschriebene Hauptprozesse
+       */
+      Hauptprozesse : MANDATORY TEXT*255;
+      /** Erstellungsjahr
+       */
+      Jahr : MANDATORY TEXT*20;
+    END Dokument;
+
+    /** Enthält alle Attribute, die für jede Klasse im Kernmodell gelten z.B. Datenherkunft.
+     */
+    CLASS Kernmodell_Attribute (ABSTRACT) =
+      /** Beschreibt aus welchem Modell die Daten stammen (Altdaten; Neudaten)
+       */
+      Datenherkunft : MANDATORY TEXT*255;
+      /** Kennung des Auftrags, in welchem die Daten zuletzt bearbeitet wurden.
+       */
+      Auftrag_Neudaten : MANDATORY TEXT*80;
+    END Kernmodell_Attribute;
+
+    DOMAIN
+
+      gefahrenstufe_typ (FINAL) = (
+        nicht_gefaehrdet,
+        restgefaehrdung,
+        gering,
+        mittel,
+        erheblich
+      );
+
+    /** Sammlung der Berichte, usw. zu den im Gemeindegebiet erfolgten Gefahrenbeurteilungen.
+     */
+    CLASS Dokumente_pro_Gemeinde
+    EXTENDS Kernmodell_Attribute =
+      /** Bfs-Nummer der Gemeinde
+       */
+      Gemeinde_BfsNr : MANDATORY 0 .. 9999;
+      /** Gemeindenummer gemäss kantonsinterner Nummerierung
+       */
+      Gemeinde_Nr_Kanton : TEXT*3;
+      /** Name der Gemeinde
+       */
+      Gemeinde_Name : MANDATORY TEXT*255;
+      /** Liste der verknüpften Dokumente.
+       */
+      Dokumente : MANDATORY SO_AFU_Naturgefahren_Kernmodell_20231016.Naturgefahren.Dokument;
+      /** Gemeinde Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Dokumente_pro_Gemeinde;
+
+    /** Flaechendeckende Gliederung des Kantons in unterschiedliche Erhebungsgebiete gemäss Beurteilungsstand der Teilprozesse. Erhebungsgebiete innerhalb desselben Hauptprozesses überlagern sich nicht.
+     */
+    CLASS Erhebungsgebiet
+    EXTENDS Kernmodell_Attribute =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Erhebungsgebiet;
+
+    CLASS Fliessrichtung
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Fliessrichtung
+       */
+      Fliessrichtung : MANDATORY GeometryCHLV95_V1.Orientation;
+      /** Name des beurteilten Gewässers / Abschnitt(e) von Gerinnen
+       */
+      Prozessquelle_Neudaten : TEXT*80;
+      /** Ort des Fliessrichtungspfeils
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Fliessrichtung;
+
+    /** Klassierte Fliesstiefen pro Jaehrlichkeit für den Teilprozess Ueberschwemmung, in ca. 70 % der Altdaten vorhanden (siehe Dokumente). Keine Ueberlappungen innerhalb der gleichen klassierten Fliesstiefe und Jaehrlichkeit. Prozessquelle optional.
+     */
+    CLASS Fliesstiefen
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Überschwemmungstiefe
+       */
+      Ueberschwemmung_Tiefe : MANDATORY ueberflutungshoehe_wasser;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle_Neudaten : TEXT*80;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Fliesstiefen;
+
+    /** Intensitaetskarten pro Jaehrlichkeit für die verschiedenen Teilprozesse. Keine Ueberlappungen innerhalb der gleichen Jaehrlichkeit.
+     */
+    CLASS Synoptische_Intensitaet
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozess gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Intensität des Prozesses
+       */
+      Intensitaet : MANDATORY intensitaet_typ;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Synoptische_Intensitaet;
+
+    /** Gefahrenhinweis ohne Jährlichkeit und Intensität für den Teilprozess Ufererosion.
+     */
+    CLASS Ufererosion
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozesse Ufererosion gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Ufererosion;
+
+    DOMAIN
+
+      ue_tiefe_typ = 0.00 .. 10.00 [INTERLIS.m];
+
+    /** Datengrundlage für die Gefahrenkarten für die Hauptprozesse. Die Flächen der verschiedenen Objekte dieser Klasse zum selben Hauptprozess  dürfen sich aus Gründen der Eindeutigkeit nicht überlappen
+     */
+    CLASS Gefahrengebiet_Hauptprozesse
+    EXTENDS Kernmodell_Attribute =
+      /** Hauptprozess gemäss MGDM
+       */
+      Hauptprozess : MANDATORY hauptprozess;
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt. Eine Fläche kann von mehreren Prozessarten in der gleichen Gefahrenstufe betroffen sein.
+       */
+      Charakterisierung : MANDATORY TEXT*30;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Gefahrengebiet_Hauptprozesse;
+
+    /** Datengrundlage für die Gefahrenkarten für die Teilprozesse Rutsch. Die Flächen der verschiedenen Objekte dieser Klasse zum selben Teilprozess Rutsch  dürfen sich aus Gründen der Eindeutigkeit nicht überlappen.
+     */
+    CLASS Gefahrengebiet_Teilprozess_Rutsch
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozesse Rutsch gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt.
+       */
+      Charakterisierung : MANDATORY TEXT*30;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Gefahrengebiet_Teilprozess_Rutsch;
+
+    /** Synoptische Gefahrengebiete der veröffentlichten synoptischen Gefahrenkarte. Die Flächen der verschiedenen Objekte dieser Klasse dürfen sich aus Gründen der Eindeutigkeit nicht überlappen
+     */
+    CLASS Synoptisches_Gefahrengebiet
+    EXTENDS Kernmodell_Attribute =
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt. Eine Fläche kann von mehreren Prosessarten in der gleichen Gefahrenstufe betroffen sein.
+       */
+      Charakterisierung : MANDATORY TEXT*30;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Synoptisches_Gefahrengebiet;
+
+  END Naturgefahren;
+
+END SO_AFU_Naturgefahren_Kernmodell_20231016.
