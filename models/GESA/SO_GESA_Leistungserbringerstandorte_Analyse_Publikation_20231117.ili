@@ -1,0 +1,74 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-11-17 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/GESA/SO_GESA_Leistungserbringerstandorte_Analyse_Publikation_20231117.uml
+!!@ Name=Value
+MODEL SO_GESA_Leistungserbringerstandorte_Analyse_Publikation_20231117 (de)
+AT "https://agi.so.ch"
+VERSION "2023-11-17"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Analyse =
+
+    /** Erreichbarkeit klassiert und aggregiert [Prozent]
+     */
+    STRUCTURE Erreichbarkeit_Prozent =
+      /** Anteil der Bevölkerung in der Fahrzeitklasse 0-10 Minuten.
+       */
+      Fahrzeit_kleiner_10 : MANDATORY 0 .. 100;
+      /** Anteil (in Prozent) der Bevölkerung in der Fahrzeitklasse 0-15 Minuten.
+       */
+      Fahrzeit_kleiner_15 : MANDATORY 0 .. 100;
+      /** Anteil (in Prozent) der Bevölkerung in der Fahrzeitklasse 0-30 Minuten.
+       */
+      Fahrzeit_kleiner_30 : MANDATORY 0 .. 100;
+      /** Anteil (in Prozent) der Bevölkerung in der Fahrzeitklasse 0-60 Minuten.
+       */
+      Fahrzeit_kleiner_60 : MANDATORY 0 .. 100;
+    END Erreichbarkeit_Prozent;
+
+    /** Leistungserbringerstandorte inkl. Zahlen aus der Erreichbarkeitsanalyse.
+     */
+    CLASS Standort =
+      /** Punktgeometrie des Standorts
+       */
+      Lage : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Standortname
+       */
+      Name : MANDATORY TEXT*512;
+      /** Strasse und Hausnummer
+       */
+      Strasse_Hausnummer : TEXT*512;
+      /** Postleitzahl und postalische Ortschaft
+       */
+      PLZ_Ortschaft : TEXT*512;
+      /** Erbrachte Leistungen am Standort
+       */
+      Leistungen : (
+        !!@ ili2db.dispName="ambulant und stationär"
+        ambulant_stationaer,
+        !!@ ili2db.dispName=stationär
+        stationaer,
+        ambulant
+      );
+      /** Kanton
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Name des Instituts
+       */
+      Institut : MANDATORY TEXT*512;
+      /** Erreichbarkeit des Standorts in Prozent (aggregiert)
+       */
+      !!@ ili2db.mapping=JSON
+      Erreichbarkeit_aggregiert : SO_GESA_Leistungserbringerstandorte_Analyse_Publikation_20231117.Analyse.Erreichbarkeit_Prozent;
+    END Standort;
+
+  END Analyse;
+
+END SO_GESA_Leistungserbringerstandorte_Analyse_Publikation_20231117.
