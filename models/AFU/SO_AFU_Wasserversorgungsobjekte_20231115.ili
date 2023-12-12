@@ -1,0 +1,364 @@
+INTERLIS 2.3;
+
+/** Modell zur Erfassung wasserversorgungsrelevanter Objekte des Kt. Solothurn.
+ * 
+ * ------------------------------------------------------------------------------
+ *  Version    | wer   | Aenderung
+ * ------------------------------------------------------------------------------
+ *  2023-10-17 | AfU   | Erstellung Fachmodell
+ *  2023-11-15 | AfU   | Ergänzung Constraints, Datum aktualisiert
+ * ==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/AFU/SO_AFU_Wasserversorgungsobjekte_20231115.uml
+MODEL SO_AFU_Wasserversorgungsobjekte_20231115 (de)
+AT "http://geo.so.ch"
+VERSION "2023-11-15"  =
+  IMPORTS GeometryCHLV95_V1,Units,Text;
+
+  /** Das Thema Wasserversorgungsobjekte (WVO) bewirtschaftet alle grundwasserschutzrelevante Objekte sowie die dazugehoerigen Dokumente
+   */
+  TOPIC Wasserversorgungsobjekte =
+
+    DOMAIN
+
+      /** Hoehenangabe in m ü. M.
+       */
+      Hoehenangabe = 200.00 .. 9999.00 [INTERLIS.m];
+
+    /** vorhandene Dokumente zum Objekt
+     */
+    CLASS Dokument =
+      /** Titel des Dokuments
+       */
+      Titel : MANDATORY TEXT*100;
+      /** Beschreibung des Dokumentes
+       */
+      Dokument_Beschreibung : MANDATORY TEXT*200;
+      /** Typ vom Dokument
+       */
+      Typ : MANDATORY (
+        Text,
+        Foto,
+        Plan,
+        Skizze
+      );
+      /** Datum der Dokumentzuordnung
+       */
+      Datum : MANDATORY FORMAT INTERLIS.XMLDate "1900-01-01" .. "2500-12-24";
+      /** Name des Dokuments (inkl. Pfad und Dateiendung)
+       */
+      Dateiname : MANDATORY TEXT*255;
+      UNIQUE Dateiname;
+    END Dokument;
+
+    DOMAIN
+
+      /** Nutzungsart (Schutzzone)
+       */
+      Nutzungsart = (
+        Oeffentliche_Fassung,
+        Private_Fassung_von_oeffentlichem_Interesse,
+        Private_Fassung,
+        keine_Angabe
+      );
+
+      Verwendungszweck = (
+        Trinkwasser,
+        Brauchwasser,
+        Notbrunnen,
+        keine_Angabe
+      );
+
+      /** Schuettungsmenge [l/min]
+       */
+      Schuettungsmenge = 0 .. 300000;
+
+      /** Volumen in m3
+       */
+      Volumen = 1 .. 10000 [Units.m3];
+
+    /** Objekte der Trinkwasserversorgung
+     */
+    CLASS Objekte_Wasserversorgung (ABSTRACT) =
+      /** Objektidentifikation (ehemalige VEGAS-ID)
+       */
+      Objekt_ID : MANDATORY 591212001 .. 648266999;
+      /** Objektname
+       */
+      Bezeichnung : MANDATORY TEXT*200;
+      /** Technische Daten (enthaelt Notizen und z.T. Namen)
+       */
+      Beschreibung : MTEXT*2000;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : MTEXT*2000;
+      /** Datum der Objektaufnahme
+       */
+      Aufnahmedatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-01-01" .. "2500-12-24";
+      /** Name des Erfassers
+       */
+      Erfasser : MANDATORY TEXT*200;
+      /** Betriebszustand
+       */
+      Zustand : MANDATORY (
+        Voranfrage,
+        in_Betrieb,
+        stillgelegt,
+        aufgehoben,
+        keine_Angabe
+      );
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Die Objekt-ID muss eindeutig sein
+       */
+      UNIQUE Objekt_ID;
+      /** Ab dem Jahr 2024 darf beim Zustand keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Zustand == #keine_Angabe));
+    END Objekte_Wasserversorgung;
+
+    /** Grundwasserfassung zur Trinkwassernutzung
+     */
+    CLASS Filterbrunnen
+    EXTENDS Objekte_Wasserversorgung =
+      /** Geschaeftsnummer BauGK (falls vorhanden)
+       */
+      BauGK_Geschaeft : TEXT*20;
+      /** Filterbrunnentyp
+       */
+      Typ : MANDATORY (
+        vertikal,
+        horizontal
+      );
+      /** Nutzungsart (Schutzzone)
+       */
+      Nutzungsart : MANDATORY Nutzungsart;
+      /** Limnigraf vorhanden
+       */
+      Limnigraf : MANDATORY BOOLEAN;
+      Schutzzone : BOOLEAN;
+      Verwendung : MANDATORY Verwendungszweck;
+      /** Konzessionsmenge in l/min
+       */
+      Konzessionsmenge : 0 .. 99999;
+      /** Ab dem Jahr 2024 darf bei der Nutzungsart keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Nutzungsart == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf bei der Verwendung keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Verwendung == #keine_Angabe));
+    END Filterbrunnen;
+
+    /** Foerderanlage
+     */
+    CLASS Pumpwerk
+    EXTENDS Objekte_Wasserversorgung =
+      /** Speicherpumpwerk (ja/nein)
+       */
+      Speicher : MANDATORY BOOLEAN;
+    END Pumpwerk;
+
+    /** Filterbrunnen_Dokumente
+     */
+    ASSOCIATION Filterbrunnen__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Filterbrunnen_R -- {0..*} Filterbrunnen;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Filterbrunnen__Dokument;
+
+    /** Schacht mit einem Zulauf und einem Ablauf. Dient zur Kontrolle und Unterhalt der Quellableitungen.
+     */
+    CLASS Kontrollschacht
+    EXTENDS Objekte_Wasserversorgung =
+      Verwendung : MANDATORY Verwendungszweck;
+      /** Ab dem Jahr 2024 darf bei der Verwendung keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Verwendung == #keine_Angabe));
+    END Kontrollschacht;
+
+    ASSOCIATION Pumpwerk__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Pumpwerk_R -- {0..*} Pumpwerk;
+    END Pumpwerk__Dokument;
+
+    /** Sammelbehaelter für Quellwasser
+     */
+    CLASS Quellwasserbehaelter
+    EXTENDS Objekte_Wasserversorgung =
+      /** Durchschnittliche minimale Schuettung [l/min]
+       */
+      Minimale_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche Schuettung [l/min]
+       */
+      Mittlere_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche maximale Schuettung [l/min]
+       */
+      Maximale_Schuettung : Schuettungsmenge;
+      /** Volumen des Behaelters in m3
+       */
+      Volumen : Volumen;
+    END Quellwasserbehaelter;
+
+    ASSOCIATION Kontrollschacht__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Kontrollschacht_R -- {0..*} Kontrollschacht;
+    END Kontrollschacht__Dokument;
+
+    /** Gefasste Trinkwasserquelle
+     */
+    CLASS Quelle_gefasst
+    EXTENDS Objekte_Wasserversorgung =
+      /** Nutzungsart (Schutzzone)
+       */
+      Nutzungsart : MANDATORY (
+        Oeffentliche_Fassung,
+        Private_Fassung_von_oeffentlichem_Interesse,
+        Private_Fassung,
+        keine_Angabe
+      );
+      /** Durchschnittliche minimale Schuettung [l/min]
+       */
+      Minimale_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche Schuettung [l/min]
+       */
+      Mittlere_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche maximale Schuettungsmenge [l/min]
+       */
+      Maximale_Schuettung : Schuettungsmenge;
+      /** Limnigraf vorhanden
+       */
+      Limnigraf : MANDATORY BOOLEAN;
+      /** Schuttzone vorhanden
+       */
+      Schutzzone : MANDATORY BOOLEAN;
+      /** Bezeichnung Pflichten GWBA
+       */
+      Pflichten_GWBA : MANDATORY (
+        anzeigepflichtig,
+        bewilligungspflichtig,
+        konzessionspflichtig,
+        sonstige_unbekannt,
+        keine_Angabe
+      );
+      /** Bezeichnung Rechtstand GWBA
+       */
+      Rechtsstand_GWBA : MANDATORY (
+        oeffentlich,
+        privat,
+        keine_Angabe
+      );
+      Verwendung : MANDATORY Verwendungszweck;
+      /** Ab dem Jahr 2024 darf bei der Nutzungsart keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Nutzungsart == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf bei der Verwendung keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Verwendung == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf bei den Pflichten_GWBA keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Pflichten_GWBA == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf beim Rechtsstand_GWBA keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Rechtsstand_GWBA == #keine_Angabe));
+    END Quelle_gefasst;
+
+    ASSOCIATION Quellwasserbehaelter__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Quellwasserbehaelter_R -- {0..*} Quellwasserbehaelter;
+    END Quellwasserbehaelter__Dokument;
+
+    /** Brunnstube fuer Trinkwasser von mehreren Quellen
+     */
+    CLASS Sammelbrunnstube
+    EXTENDS Objekte_Wasserversorgung =
+      /** Durchschnittliche minimale Schuettung [l/min]
+       */
+      Minimale_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche Schuettung [l/min]
+       */
+      Mittlere_Schuettung : Schuettungsmenge;
+      /** Durchschnittliche maximale Schuettung[l/min]
+       */
+      Maximale_Schuettung : Schuettungsmenge;
+    END Sammelbrunnstube;
+
+    ASSOCIATION Quelle_gefasst__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Quelle_gefasst_R -- {0..*} Quelle_gefasst;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Quelle_gefasst__Dokument;
+
+    /** Geschlossene Speicheranlage fuer Trinkwasser
+     */
+    CLASS Reservoir
+    EXTENDS Objekte_Wasserversorgung =
+      /** Loeschwassermenge in m3
+       */
+      Loeschreserve : Volumen;
+      /** Brauchwasserreserve in m3
+       */
+      Volumen : Volumen;
+      /** Wasserspiegel in m ü. M
+       */
+      Wasserspiegel : Hoehenangabe;
+      Aufbereitungsanlage : MANDATORY (
+        Sandfiltration,
+        /** Entkeimungsanlage mit UV-Strahlung
+         */
+        Entkeimungsanlage_UV,
+        Flockungsfiltration,
+        /** Entkeimungsanlage mit Ozon
+         */
+        Entkeimungsanlage_Ozon,
+        /** Entkeimungsanlage mit Chlor
+         */
+        Entkeimungsanlage_Chlor,
+        Membranfiltration,
+        Aktivkohlefiltration,
+        keine_Angabe
+      );
+      Verwendung : MANDATORY Verwendungszweck;
+      /** Ab dem Jahr 2024 darf bei der Verwendung keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Verwendung == #keine_Angabe));
+    END Reservoir;
+
+    ASSOCIATION Sammelbrunnstube__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Sammelbrunnstube_R -- {0..*} Sammelbrunnstube;
+    END Sammelbrunnstube__Dokument;
+
+    ASSOCIATION Reservoir__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehört
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Reservoir_R -- {0..*} Reservoir;
+    END Reservoir__Dokument;
+
+  END Wasserversorgungsobjekte;
+
+END SO_AFU_Wasserversorgungsobjekte_20231115.
