@@ -14,7 +14,8 @@ AT "http://www.geo.so.ch/models/AFU"
 VERSION "2023-12-12"  =
   IMPORTS Units,GeometryCHLV95_V1;
 
-  TOPIC Schutzbauten_Basis(ABSTRACT) =
+  TOPIC Schutzbauten =
+    OID AS INTERLIS.UUIDOID;
 
     DOMAIN
 
@@ -131,20 +132,37 @@ VERSION "2023-12-12"  =
       Wirksamkeit : MANDATORY Wirksamkeit_Typ;
     END Schutzbautenobjekt;
 
-  END Schutzbauten_Basis;
-
-  TOPIC Schutzbauten_Rutschung
-  EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis =
-    OID AS INTERLIS.UUIDOID;
-
     /** Abstrakte Klasse für alle Schutzbauten
      * gegen den Hauptprozess Rutschung
      */
     CLASS Schutzbautenobjekt_Rutschung (ABSTRACT)
-    EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Schutzbautenobjekt =
+    EXTENDS Schutzbautenobjekt =
       weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
       weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
     END Schutzbautenobjekt_Rutschung;
+
+    /** Abstrakte Klasse für alle Schutzbauten
+     * gegen den Hauptprozess Sturz
+     */
+    CLASS Schutzbautenobjekt_Sturz (ABSTRACT)
+    EXTENDS Schutzbautenobjekt =
+      weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
+      weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
+    END Schutzbautenobjekt_Sturz;
+
+    /** Abstrakte Klasse für alle Schutzbauten
+     * gegen den Hauptprozess Wasser
+     */
+    CLASS Schutzbautenobjekt_Wasser (ABSTRACT)
+    EXTENDS Schutzbautenobjekt =
+      weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
+      weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
+    END Schutzbautenobjekt_Wasser;
+
+    ASSOCIATION Schutzbaute_Dokument =
+      Schutzbaute -- {1..*} Schutzbautenobjekt;
+      Dokument -- {0..*} Dokument;
+    END Schutzbaute_Dokument;
 
     /** Funktion: Schutz vor Anriss
      * Werksarten gemäss MGDM:
@@ -152,79 +170,79 @@ VERSION "2023-12-12"  =
      * ingenieurbiologische Massnahme
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Abdeckung_IngMassnahme
+    CLASS Rutschung_Abdeckung_IngMassnahme
     EXTENDS Schutzbautenobjekt_Rutschung =
       Art : MANDATORY (
         Abdeckung,
         ingenieurbiologische_Massnahme
       );
-      Flaeche : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
+      Flaeche : MANDATORY Flaeche;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Abdeckung_IngMassnahme;
+    END Rutschung_Abdeckung_IngMassnahme;
 
     /** Diverse Werksarten gegen den Hauptprozess Rutschung
      * Flächenobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Rutschung_Flaeche
+    CLASS Rutschung_andere_Werksart_Flaeche
     EXTENDS Schutzbautenobjekt_Rutschung =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END andere_Werksart_Rutschung_Flaeche;
+    END Rutschung_andere_Werksart_Flaeche;
 
     /** Diverse Werksarten gegen den Hauptprozess Rutschung
      * Linienobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Rutschung_Linie
+    CLASS Rutschung_andere_Werksart_Linie
     EXTENDS Schutzbautenobjekt_Rutschung =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END andere_Werksart_Rutschung_Linie;
+    END Rutschung_andere_Werksart_Linie;
 
     /** Diverse Werksarten gegen den Hauptprozess Rutschung
      * Punktobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Rutschung_Punkt
+    CLASS Rutschung_andere_Werksart_Punkt
     EXTENDS Schutzbautenobjekt_Rutschung =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END andere_Werksart_Rutschung_Punkt;
+    END Rutschung_andere_Werksart_Punkt;
 
     /** Funktion: Ablenkung und Auffangen
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Auffangnetz; ID: ',   schutzbauten_id  )"
-    CLASS Auffangnetz
+    CLASS Rutschung_Auffangnetz
     EXTENDS Schutzbautenobjekt_Rutschung =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
+      Laenge : MANDATORY Laenge;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Auffangnetz;
+    END Rutschung_Auffangnetz;
 
     /** Funktion: Ablenkung und Auffangen
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Damm (Rutschung); ID: ',   schutzbauten_id  )"
-    CLASS Damm
+    CLASS Rutschung_Damm
     EXTENDS Schutzbautenobjekt_Rutschung =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Damm;
+    END Rutschung_Damm;
 
     /** Funktion: Schutz vor Anriss
      * Werksarten gemäss MGDM:
@@ -233,36 +251,16 @@ VERSION "2023-12-12"  =
      * Palisade
      */
     !!@ qgis.modelbaker.dispExression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Hangstuetzwerk_Entwaesserung_Palisade
+    CLASS Rutschung_Hangstuetzwerk_Entwaesserung_Palisade
     EXTENDS Schutzbautenobjekt_Rutschung =
       Art : MANDATORY (
         Hangstuetzwerk,
         Entwaesserung,
         Palisade
       );
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
+      Laenge : MANDATORY Laenge;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Hangstuetzwerk_Entwaesserung_Palisade;
-
-    ASSOCIATION Schutzbauten_Rutschung_Dokument =
-      Schutzbaute_Rutschung -- {1..*} Schutzbautenobjekt_Rutschung;
-      Dokument -- {0..*} SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Dokument;
-    END Schutzbauten_Rutschung_Dokument;
-
-  END Schutzbauten_Rutschung;
-
-  TOPIC Schutzbauten_Sturz
-  EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis =
-    OID AS INTERLIS.UUIDOID;
-
-    /** Abstrakte Klasse für alle Schutzbauten
-     * gegen den Hauptprozess Sturz
-     */
-    CLASS Schutzbautenobjekt_Sturz (ABSTRACT)
-    EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Schutzbautenobjekt =
-      weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
-      weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
-    END Schutzbautenobjekt_Sturz;
+    END Rutschung_Hangstuetzwerk_Entwaesserung_Palisade;
 
     /** Funktion: Schutz vor Ausbruch
      * Werksarten gemäss MGDM:
@@ -270,71 +268,71 @@ VERSION "2023-12-12"  =
      * Verankerung
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Abdeckung_Verankerung
+    CLASS Sturz_Abdeckung_Verankerung
     EXTENDS Schutzbautenobjekt_Sturz =
       Art : MANDATORY (
         Abdeckung,
         Verankerung
       );
-      Flaeche : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
+      Flaeche : MANDATORY Flaeche;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Abdeckung_Verankerung;
+    END Sturz_Abdeckung_Verankerung;
 
     /** Diverse Werksarten gegen den Hauptprozess Sturz
      * Flächenobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Sturz_Flaeche
+    CLASS Sturz_andere_Werksart_Flaeche
     EXTENDS Schutzbautenobjekt_Sturz =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END andere_Werksart_Sturz_Flaeche;
+    END Sturz_andere_Werksart_Flaeche;
 
     /** Diverse Werksarten gegen den Hauptprozess Sturz
      * Linienobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Sturz_Linie
+    CLASS Sturz_andere_Werksart_Linie
     EXTENDS Schutzbautenobjekt_Sturz =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END andere_Werksart_Sturz_Linie;
+    END Sturz_andere_Werksart_Linie;
 
     /** Funktion: Diverse
      * Werksart gemäss MGDM: andere Werksart im Hauptprozess Sturz
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Sturz_Punkt
+    CLASS Sturz_andere_Werksart_Punkt
     EXTENDS Schutzbautenobjekt_Sturz =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END andere_Werksart_Sturz_Punkt;
+    END Sturz_andere_Werksart_Punkt;
 
     /** Funktion: Schutz vor Aufprall
      * Werksart gemäss MGDM: Galerie
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Galerie; ID: ',   schutzbauten_id  )"
-    CLASS Galerie
+    CLASS Sturz_Galerie
     EXTENDS Schutzbautenobjekt_Sturz =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Galerie;
+    END Sturz_Galerie;
 
     /** Funktion: Schutz vor Aufprall
      * Werksarten gemäss MGDM:
@@ -345,7 +343,7 @@ VERSION "2023-12-12"  =
      * Mauer
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Schutznetz_Palisade_Damm_Schutzzaun_Mauer
+    CLASS Sturz_Schutznetz_Palisade_Damm_Schutzzaun_Mauer
     EXTENDS Schutzbautenobjekt_Sturz =
       Art : MANDATORY (
         Schutznetz,
@@ -354,138 +352,118 @@ VERSION "2023-12-12"  =
         Schutzzaun,
         Mauer
       );
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Hoehe_zum_Umland : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
+      Laenge : MANDATORY Laenge;
+      Hoehe_zum_Umland : MANDATORY Hoehe_zum_Umland;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Schutznetz_Palisade_Damm_Schutzzaun_Mauer;
+    END Sturz_Schutznetz_Palisade_Damm_Schutzzaun_Mauer;
 
     /** Funktion: Schutz vor Ausbruch
      * Werksarten gemäss MGDM:
      * Unterfangung
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Unterfangung; ID: ',   schutzbauten_id  )"
-    CLASS Unterfangung
+    CLASS Sturz_Unterfangung
     EXTENDS Schutzbautenobjekt_Sturz =
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END Unterfangung;
-
-    ASSOCIATION Schutzbauten_Sturz_Dokument =
-      Schutzbaute_Sturz -- {1..*} Schutzbautenobjekt_Sturz;
-      Dokument -- {0..*} SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Dokument;
-    END Schutzbauten_Sturz_Dokument;
-
-  END Schutzbauten_Sturz;
-
-  TOPIC Schutzbauten_Wasser
-  EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis =
-    OID AS INTERLIS.UUIDOID;
-
-    /** Abstrakte Klasse für alle Schutzbauten
-     * gegen den Hauptprozess Wasser
-     */
-    CLASS Schutzbautenobjekt_Wasser (ABSTRACT)
-    EXTENDS SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Schutzbautenobjekt =
-      weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
-      weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
-    END Schutzbautenobjekt_Wasser;
+    END Sturz_Unterfangung;
 
     /** Diverse Werksarten gegen den Hauptprozess Wasser
      * Flächenobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Wasser_Flaeche
+    CLASS Wasser_andere_Werksart_Flaeche
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END andere_Werksart_Wasser_Flaeche;
+    END Wasser_andere_Werksart_Flaeche;
 
     /** Diverse Werksarten gegen den Hauptprozess Wasser
      * Linienobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Wasser_Linie
+    CLASS Wasser_andere_Werksart_Linie
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END andere_Werksart_Wasser_Linie;
+    END Wasser_andere_Werksart_Linie;
 
     /** Diverse Werksarten gegen den Hauptprozess Wasser
      * Punktobjekte
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
-    CLASS andere_Werksart_Wasser_Punkt
+    CLASS Wasser_andere_Werksart_Punkt
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Hoehe_zum_Umland : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
-      Flaeche : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
-      Rueckhaltevolumen : SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END andere_Werksart_Wasser_Punkt;
+    END Wasser_andere_Werksart_Punkt;
 
     /** Funktion: Diverse
      * Werden zusätzlich aufgenommen, sind jedoch keine Schutzbauten
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Brücke, Steg; ID: ',   schutzbauten_id  )"
-    CLASS Bruecke_Steg
+    CLASS Wasser_Bruecke_Steg
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END Bruecke_Steg;
+    END Wasser_Bruecke_Steg;
 
     /** Funktion: Schutz vor Seitenerosion
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Buhne; ID: ',   schutzbauten_id  )"
-    CLASS Buhne
+    CLASS Wasser_Buhne
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
+      Laenge : MANDATORY Laenge;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Buhne;
+    END Wasser_Buhne;
 
     /** Funktion: Schutz vor Überflutung / Übersarung
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Damm (Wasser); ID: ',   schutzbauten_id  )"
-    CLASS Damm
+    CLASS Wasser_Damm
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe_zum_Umland : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
+      Hoehe_zum_Umland : MANDATORY Hoehe_zum_Umland;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Damm;
+    END Wasser_Damm;
 
     /** Funktion: Diverse
      * Werden aufgenommen, auch wenn es keine Schutzbauten sind. Bei Rohrdurchlässen: Durchmesser = Höhe
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Eindolung; ID: ',   schutzbauten_id  )"
-    CLASS Eindolung
+    CLASS Wasser_Eindolung
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Eindolung;
+    END Wasser_Eindolung;
 
     /** Funktion: Entlastung
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Entlastungsbauwerk; ID: ',   schutzbauten_id  )"
-    CLASS Entlastungsbauwerk
+    CLASS Wasser_Entlastungsbauwerk
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
+      Laenge : MANDATORY Laenge;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Entlastungsbauwerk;
+    END Wasser_Entlastungsbauwerk;
 
     /** Funktion: Entlastung
      * Werksarten gemäss MGDM:
@@ -493,59 +471,59 @@ VERSION "2023-12-12"  =
      * Entlastungsgerinne / -kanal
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Entlastungsstollen_kanal
+    CLASS Wasser_Entlastungsstollen_kanal
     EXTENDS Schutzbautenobjekt_Wasser =
       Art : MANDATORY (
         Umleit_Entlastungsstollen,
         Entlastungsgerinne_kanal
       );
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Entlastungsstollen_kanal;
+    END Wasser_Entlastungsstollen_kanal;
 
     /** Funktion: Diverse
      * Werden zusätzlich aufgenommen, sind jedoch keine Schutzbauten
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Furt; ID: ',   schutzbauten_id  )"
-    CLASS Furt
+    CLASS Wasser_Furt
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END Furt;
+    END Wasser_Furt;
 
     /** Funktion: Rückhalt
      * Werksart gemäss MGDM:
      * bewirtschafteter Geschiebeablagerungsplatz
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Geschiebeablagerungsplatz; ID: ',   schutzbauten_id  )"
-    CLASS Geschiebeablagerungsplatz
+    CLASS Wasser_Geschiebeablagerungsplatz
     EXTENDS Schutzbautenobjekt_Wasser =
-      Flaeche : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Flaeche;
+      Flaeche : MANDATORY Flaeche;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Geschiebeablagerungsplatz;
+    END Wasser_Geschiebeablagerungsplatz;
 
     /** Funktion: Schutz vor Überflutung / Übersarung
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Mauer; ID: ',   schutzbauten_id  )"
-    CLASS Mauer
+    CLASS Wasser_Mauer
     EXTENDS Schutzbautenobjekt_Wasser =
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Hoehe_zum_Umland : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe_zum_Umland;
+      Laenge : MANDATORY Laenge;
+      Hoehe_zum_Umland : MANDATORY Hoehe_zum_Umland;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Mauer;
+    END Wasser_Mauer;
 
     /** Funktion: Diverse
      */
     !!@ qgis.modelbaker.dispExpression="concat( 'Murbrecher, Murbremse; ID: ',   schutzbauten_id  )"
-    CLASS Murbrecher_Murbremse
+    CLASS Wasser_Murbrecher_Murbremse
     EXTENDS Schutzbautenobjekt_Wasser =
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Murbrecher_Murbremse;
+    END Wasser_Murbrecher_Murbremse;
 
     /** Funktion: Gewährung der Sohlenstabilität
      * Werksarten gemäss MGDM
@@ -553,16 +531,16 @@ VERSION "2023-12-12"  =
      * flächenhafte Sohlensicherung
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Rampe_Sohlensicherung
+    CLASS Wasser_Rampe_Sohlensicherung
     EXTENDS Schutzbautenobjekt_Wasser =
       Art : MANDATORY (
         Rampe,
         flaechenhafte_Sohlensicherung
       );
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
+      Laenge : MANDATORY Laenge;
+      Breite : MANDATORY Breite;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Rampe_Sohlensicherung;
+    END Wasser_Rampe_Sohlensicherung;
 
     /** Funktion: Rückhalt
      * Werksarten gemäss MGDM:
@@ -572,7 +550,7 @@ VERSION "2023-12-12"  =
      * Eisrückhaltebauwerk
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Rueckhaltebauwerk
+    CLASS Wasser_Rueckhaltebauwerk
     EXTENDS Schutzbautenobjekt_Wasser =
       Art : MANDATORY (
         Hochwasserrueckhaltebauwerk,
@@ -580,11 +558,11 @@ VERSION "2023-12-12"  =
         Schwemmholzrueckhaltebauwerk,
         Eisrueckhaltebauwerk
       );
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
-      Rueckhaltevolumen : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Rueckhaltevolumen;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
+      Rueckhaltevolumen : MANDATORY Rueckhaltevolumen;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Rueckhaltebauwerk;
+    END Wasser_Rueckhaltebauwerk;
 
     /** Funktion: Gewährung der Sohlenstabilität
      * Werksarten gemäss MGDM
@@ -592,16 +570,16 @@ VERSION "2023-12-12"  =
      * Schwelle
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Sperre_Schwelle
+    CLASS Wasser_Sperre_Schwelle
     EXTENDS Schutzbautenobjekt_Wasser =
       Art : MANDATORY (
         Sperre,
         Schwelle
       );
-      Breite : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Breite;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Breite : MANDATORY Breite;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Sperre_Schwelle;
+    END Wasser_Sperre_Schwelle;
 
     /** Funktion: Schutz vor Seitenerosion
      * Werksarten gemäss MGDM:
@@ -610,23 +588,18 @@ VERSION "2023-12-12"  =
      * Lebendverbau
      */
     !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
-    CLASS Uferdeckwerk_Ufermauer_Lebendverbau
+    CLASS Wasser_Uferdeckwerk_Ufermauer_Lebendverbau
     EXTENDS Schutzbautenobjekt_Wasser =
       Art : MANDATORY (
         Uferdeckwerk,
         Ufermauer_Holzlaengsverbau,
         Lebendverbau
       );
-      Laenge : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Laenge;
-      Hoehe : MANDATORY SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Hoehe;
+      Laenge : MANDATORY Laenge;
+      Hoehe : MANDATORY Hoehe;
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Uferdeckwerk_Ufermauer_Lebendverbau;
+    END Wasser_Uferdeckwerk_Ufermauer_Lebendverbau;
 
-    ASSOCIATION Schutzbauten_Wasser_Dokument =
-      Schutzbaute_Wasser -- {1..*} Schutzbautenobjekt_Wasser;
-      Dokument -- {0..*} SO_AFU_Schutzbauten_20231212.Schutzbauten_Basis.Dokument;
-    END Schutzbauten_Wasser_Dokument;
-
-  END Schutzbauten_Wasser;
+  END Schutzbauten;
 
 END SO_AFU_Schutzbauten_20231212.
