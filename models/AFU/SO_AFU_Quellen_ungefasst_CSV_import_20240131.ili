@@ -16,11 +16,13 @@ INTERLIS 2.3;
 MODEL SO_AFU_Quellen_ungefasst_CSV_import_20240131 (de)
 AT "https://afu.so.ch"
 VERSION "2024-01-31"  =
+  IMPORTS GeometryCHLV95_V1;
+
   TOPIC Quellen =
 
     /** Umfasst die Informationen der ungefassten Quellen gemäss CSV
       */ 
-    CLASS Quelle_CSV =
+    CLASS Quelle_Basis (ABSTRACT) =
 
         /** Bezeichnung der Quelle
          */
@@ -31,21 +33,9 @@ VERSION "2024-01-31"  =
         /** Name der Quelle
          */
         QuellenName : TEXT*100;
-        /** X-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
-         */
-        X_Koordinate : MANDATORY 480000 .. 865000;
-        /** Y-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
-         */
-        Y_Koordinate : MANDATORY 62000 .. 302000;
         /** Höhe der Quelle in Meter über Meer 
          */
         Hoehe : MANDATORY 0 .. 4000;
-        /** Datum an dem die Datenerhebung stattfand. Text im Format TT.MM.JJJJ
-         */
-        Datum : MANDATORY TEXT*10;
-        /* Datum umgewandelt in INTERLIS XMLDate
-         */
-        Datum_ILI : MANDATORY INTERLIS.XMLDate;
         /** Eindeutige Austrittsform. Codiert.
          */
         Austrittsform : MANDATORY TEXT*30;
@@ -85,10 +75,32 @@ VERSION "2024-01-31"  =
         /** Bewertung der Quelle nach Modul Stufen Konzept des Bafu hinsichtlich des Zustands der Quelle. Codiert.
          */
         Gesamtbewertung : MANDATORY TEXT*30;
+    END Quelle_Basis;
+
+    CLASS Quelle_CSV EXTENDS Quelle_Basis =
+        /** X-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
+         */
+         X_Koordinate : MANDATORY 480000 .. 865000;
+         /** Y-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
+          */
+         Y_Koordinate : MANDATORY 62000 .. 302000;
+         /** Datum an dem die Datenerhebung stattfand. Text im Format TT.MM.JJJJ
+         */
+        Datum : MANDATORY TEXT*10;
+        /* Datum umgewandelt in INTERLIS XMLDate
+         */
+        Datum_ILI : MANDATORY INTERLIS.XMLDate;
     END Quelle_CSV;
+
+    CLASS Quelle EXTENDS Quelle_Basis =
+      /* Datum umgewandelt in INTERLIS XMLDate
+       */
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /* Aus CSV X- und Y-Koordinaten. Umgewandelt in EPSG:2056
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Quelle;
 
   END Quellen;
 
 END SO_AFU_Quellen_ungefasst_CSV_import_20240131.
-
-
