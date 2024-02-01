@@ -1,0 +1,465 @@
+INTERLIS 2.3;
+
+/** !!-----------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2018-10-08 | NS  | Ersterfassung
+ * !! 2018-10-29 | NS  | Anpassung Attributnamen und Enumerationeintraegen,
+ * !!                    Ergaenzung Planungsstand
+ * !! 2018-11-02 | NS  | abstrakte Klasse integrieren
+ * !! 2018-11-06 | NS  | Zusammenfassen der Grundnutzung, Geometrietypaenderung bei
+ * !!                    Grundnutzung, Umbenennen der Zentrumsstruktur
+ * !! 2018-12-03 | NS  | Reservezonen aus Grundnutzungsart entfernt, 
+ * !!                    Aenderung Lines zu MultiLines, Nationalstrasse.Strasse 
+ * !!                    statt Nationalstrasse.Autobahn_Autostrasse
+ * !! 2018-12-14 | NS  | historische Verkehrswege entfernt
+ * !! 2019-02-22 | NS  | Klasse Grundnutzung_erweitert umbenennen,
+ * !!                    Aufsplittung der Juraschutzzone entfernt
+ * !! 2021-02-10 | PS  | Detailkarte neu mit ueberlagernder Linie
+ * !! 2022-06-30 | PS  | neuer Objekttyp in ueberlagernder Linie: historische Verkehrswege
+ * !! 2023-10-18 | AL  | Neue Klasse Anpassung und neues Topic Raumkonzept 
+ * !!                    Überprüfung:Alle Inhalte für MGDM sind vorhanden
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_ARP_Richtplan_20231018 (de)
+AT "http://geo.so.ch/models/ARP"
+VERSION "2023-10-18"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Kategorie der Abstimmung
+     */
+    Abstimmungskategorie = (
+      Ausgangslage,
+      Vororientierung,
+      Zwischenergebnis,
+      Festsetzung
+    );
+
+    /** Bedeutung des Objekts
+     */
+    Bedeutung = (
+      regional,
+      kantonal,
+      national
+    );
+
+    Planungsstand = (
+      in_Bearbeitung,
+      in_Auflage,
+      rechtsgueltig
+    );
+
+    /** Status des Objekts
+     */
+    Status = (
+      neu,
+      bestehend,
+      Erweiterung,
+      zu_loeschen
+    );
+
+  CLASS Anpassung (ABSTRACT) =
+    Jahr : INTERLIS.GregorianYear;
+    /** Nummer der Regierungsratsbeschlusses
+     */
+    RRB_Nr : TEXT*20;
+    /** Datum des Regierungsratsbeschlusses
+     */
+    RRB_Datum : INTERLIS.XMLDate;
+    /** Link zum Regierungsratsbeschluss
+     */
+    RRB_URL : INTERLIS.URI;
+    Bemerkung : TEXT;
+    /** Stand der Anpassung
+     */
+    Stand : Planungsstand;
+  END Anpassung;
+
+  /** Detailkarte für Richtplantext.
+   */
+  TOPIC Detailkarten =
+
+    /** Eine Anpassung des Richtplans erfolgt nach den Vorgaben der Raumplanungsgesetzgebung (Raumplanungsgesetz sowie -verordnung)jährlich. Mit der Genehmigung durch den Regierungsrat wird der Richtplan für jegliche Behörden im Kanton verbindlich. Mit der Genehmigung durch das UVEK wird der Richtplan auch für die Behörden der Nachbarkantone sowie für die Bundesbehörden verbindlich.
+     */
+    CLASS Anpassung
+    EXTENDS SO_ARP_Richtplan_20231018.Anpassung =
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : INTERLIS.URI;
+      /** Datum des Bundesblatt
+       */
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+    END Anpassung;
+
+    /** Kategorie der Abstimmung
+     */
+    CLASS Detailobjekt (ABSTRACT) =
+      /** Name des Objekts
+       */
+      Objektname : TEXT*150;
+      /** Kapitel vom Richtplantext zu dem die Karte gehört.
+       */
+      Richtplantext : TEXT*300;
+      /** Stand der Planung
+       */
+      Status : SO_ARP_Richtplan_20231018.Status;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_20231018.Abstimmungskategorie;
+      /** Link zum Richtplantext
+       */
+      Richtplantext_URL : INTERLIS.URI;
+    END Detailobjekt;
+
+    CLASS Flaeche
+    EXTENDS Detailobjekt =
+      /** Geometrie der Fläche
+       */
+      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+    END Flaeche;
+
+    CLASS Linie
+    EXTENDS Detailobjekt =
+      /** Geometrie der Linie
+       */
+      Geometrie : GeometryCHLV95_V1.MultiLine;
+    END Linie;
+
+    CLASS Punkt
+    EXTENDS Detailobjekt =
+      /** Geometrie des Punktes
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+    END Punkt;
+
+    ASSOCIATION Flaeche_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Flaeche -- {0..*} Flaeche;
+    END Flaeche_Anpassung;
+
+    ASSOCIATION Linie_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Linie -- {0..*} Linie;
+    END Linie_Anpassung;
+
+    ASSOCIATION Punkt_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Punkt -- {0..*} Punkt;
+    END Punkt_Anpassung;
+
+  END Detailkarten;
+
+  TOPIC Raumkonzept =
+
+    CLASS Anpassung
+    EXTENDS SO_ARP_Richtplan_20231018.Anpassung =
+    END Anpassung;
+
+    /** Flächenobjekte des Raumkonzepts
+     */
+    CLASS Flaeche =
+      /** Name des Objekts
+       */
+      Objektname : TEXT*150;
+      /** Typ der Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Siedlung_Handlungsraum(
+          /** Agglomerationsgeprägten Raum aufwerten
+           */
+          agglogepraegt,
+          /** Ländlichen Raum erhalten
+           */
+          laendlich,
+          /** Urbanen Raum verdichten
+           */
+          urban
+        ),
+        Freizeit_Sport_Erholung,
+        Landschaft(
+          /** Vorranggebiete Landschaft erhalten
+           */
+          Vorranggebiet,
+          /** Naturnahe Landschaftsräume erhalten
+           */
+          naturnaher_Landschaftsraum,
+          /** Pärke von nationaler Bedeutung entwickeln
+           */
+          Park_nationaler_Bedeutung
+        ),
+        Metropolitanraum,
+        Agglomeration
+      );
+      /** Geometrie der Fläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+    END Flaeche;
+
+    /** Linienobjekte des Raumkonzepts
+     */
+    CLASS Linie =
+      /** Name des Objekts
+       */
+      Objektname : TEXT*150;
+      /** Typ der Linie
+       */
+      Objekttyp : MANDATORY (
+        Verkehr_regional(
+          Bahnlinie,
+          Strasse
+        ),
+        Verkehr_national(
+          Bahnlinie,
+          Autobahn
+        )
+      );
+      /** Geometrie der Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Linie;
+
+    /** Punktobjekte des Raumkonzepts
+     */
+    CLASS Punkt =
+      /** Typ des Punktes
+       */
+      Objekttyp : MANDATORY (
+        /** Freizeitnutzungen konzentrieren
+         */
+        Landschaft_Freizeitnutzung,
+        Siedlung_Zentrumsstruktur(
+          Hauptzentrum,
+          Regionalzentrum,
+          Stuetzpunktgemeinde
+        )
+      );
+      /** Geometrie des Punktes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Objektname : TEXT*20;
+    END Punkt;
+
+    ASSOCIATION Flaeche_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Flaeche -- {0..*} Flaeche;
+    END Flaeche_Anpassung;
+
+    ASSOCIATION Linie_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Linie -- {0..*} Linie;
+    END Linie_Anpassung;
+
+    ASSOCIATION Punkt_Anpassung =
+      Anpassung -- {0..1} Anpassung;
+      Punkt -- {0..*} Punkt;
+    END Punkt_Anpassung;
+
+  END Raumkonzept;
+
+  TOPIC Richtplankarte =
+
+    /** Eine Anpassung des Richtplans erfolgt nach den Vorgaben der Raumplanungsgesetzgebung (Raumplanungsgesetz sowie -verordnung)jährlich. Mit der Genehmigung durch den Regierungsrat wird der Richtplan für jegliche Behörden im Kanton verbindlich. Mit der Genehmigung durch das UVEK wird der Richtplan auch für die Behörden der Nachbarkantone sowie für die Bundesbehörden verbindlich.
+     */
+    CLASS Anpassung
+    EXTENDS SO_ARP_Richtplan_20231018.Anpassung =
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : INTERLIS.URI;
+      /** Datum vom Bundesblatt
+       */
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+    END Anpassung;
+
+    /** Dokumente, welche sich auf Richtplanelemente beziehen.
+     */
+    CLASS Dokument =
+      /** Name des Dokuments
+       */
+      Titel : MANDATORY TEXT*150;
+      /** Datum an dem das Dokument in Kraft tritt
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Pfad zum Dokument
+       */
+      Dateipfad : MANDATORY INTERLIS.URI;
+      /** Bemerkung zum Dokument
+       */
+      Bemerkung : MTEXT;
+    END Dokument;
+
+    /** Geometrien, welche die Grundnutzung ueberlagern
+     */
+    CLASS ueberlagernde_Geometrie (ABSTRACT) =
+      /** Name der ueberlagernden Geometrie
+       */
+      Objektname : TEXT*150;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : MANDATORY SO_ARP_Richtplan_20231018.Abstimmungskategorie;
+      /** Bedeutung der ueberlagernden Geometrie
+       */
+      Bedeutung : SO_ARP_Richtplan_20231018.Bedeutung;
+      /** Status des Objektes
+       */
+      Status : MANDATORY SO_ARP_Richtplan_20231018.Status;
+    END ueberlagernde_Geometrie;
+
+    /** Polygonthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Flaeche
+    EXTENDS ueberlagernde_Geometrie =
+      /** Nummer der ueberlagernden Flaeche
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Deponie,
+        Windenergie,
+        Naturpark,
+        kantonales_Vorranggebiet,
+        Sondernutzungsgebiet,
+        Witischutzzone,
+        kantonale_Uferschutzzone,
+        Juraschutzzone,
+        Entwicklungsgebiet_Arbeiten,
+        Siedlungstrennguertel,
+        BLN_Gebiet
+      );
+      /** weitere Informationen zu der ueberlagernden Flaeche
+       */
+      weitere_Informationen : TEXT*255;
+      /** Polygongeometrie der ueberlagernden Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END ueberlagernde_Flaeche;
+
+    /** Linienthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Linie
+    EXTENDS ueberlagernde_Geometrie =
+      /** Objektnummer der ueberlagernden Linie
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Linie
+       */
+      Objekttyp : MANDATORY (
+        Erdgastransportleitung,
+        Hochspannungsleitung,
+        Bahnlinie(
+          Schiene,
+          Tunnel
+        ),
+        Nationalstrasse(
+          Strasse,
+          Tunnel
+        ),
+        Kantonsstrasse,
+        Wildtierkorridor,
+        Historischer_Verkehrsweg
+      );
+      /** Liniengeometrie der ueberlagernden Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END ueberlagernde_Linie;
+
+    /** Punktthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernder_Punkt
+    EXTENDS ueberlagernde_Geometrie =
+      /** Art des ueberlagernden Punkts
+       */
+      Objekttyp : MANDATORY (
+        Schiess_Uebungsplatz,
+        Kehrrichtverbrennungsanlage,
+        Kernkraftwerk,
+        Wasserkraftwerk(
+          Aare,
+          Birs,
+          Emmenkanal
+        ),
+        Flugplatz,
+        Bahn_Bus_Haltestelle,
+        Autobahnanschluss(
+          Vollanschluss,
+          Halbanschluss
+        ),
+        oeffentliche_Bauten,
+        Umstrukturierungsgebiet,
+        Einkaufszentrum,
+        Bahnhofgebiet,
+        Arbeitszone,
+        UNESCO_Weltkulturerbe,
+        Ortsbild,
+        Freizeit_Sport_Anlage,
+        Gueterregulierung,
+        Erweiterung_Siedlungsgebiet
+      );
+      /** weitere Spezifikationen des ueberlagernden Punkts
+       */
+      Spezifikation : TEXT*255;
+      /** Geometrie des ueberlagernden Punkts
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END ueberlagernder_Punkt;
+
+    ASSOCIATION ueberlagernde_Flaeche_Dokument =
+      /** Fremdschluessel zur Klasse Dokument
+       */
+      Dokument -- {0..*} Dokument;
+      /** Fremdschluessel zur Klasse ueberlagernde_Flaeche
+       */
+      ueberlagernde_Flaeche -- {0..*} ueberlagernde_Flaeche;
+    END ueberlagernde_Flaeche_Dokument;
+
+    /** Zuordnung der Objekte zu einem Richtplananpassungsjahr
+     */
+    ASSOCIATION ueberlagernde_Geometrie_Richtplananpassung =
+      Anpassung -- {0..1} Anpassung;
+      ueberlagernde_Flaeche -- {0..*} ueberlagernde_Flaeche;
+    END ueberlagernde_Geometrie_Richtplananpassung;
+
+    /** Zuordnung der Objekte zu einem Richtplananpassungsjahr
+     */
+    ASSOCIATION ueberlagernde_Line_Richtplananpassung =
+      Anpassung -- {0..1} Anpassung;
+      ueberlagernde_Linie -- {0..*} ueberlagernde_Linie;
+    END ueberlagernde_Line_Richtplananpassung;
+
+    ASSOCIATION ueberlagernde_Linie_Dokument =
+      /** Fremdschluessel zur Klasse Dokument
+       */
+      Dokument -- {0..*} Dokument;
+      /** Fremdschluessel zur Klasse ueberlagernde_Linie
+       */
+      ueberlagernde_Linie -- {0..*} ueberlagernde_Linie;
+    END ueberlagernde_Linie_Dokument;
+
+    ASSOCIATION ueberlagernder_Punkt_Dokument =
+      /** Fremdschluessel zur Klasse Dokument
+       */
+      Dokument -- {0..*} Dokument;
+      /** Fremdschluessel zur Klasse ueberlagernder_Punkt
+       */
+      ueberlagernder_Punkt -- {0..*} ueberlagernder_Punkt;
+    END ueberlagernder_Punkt_Dokument;
+
+    /** Zuordnung der Objekte zu einem Richtplananpassungsjahr
+     */
+    ASSOCIATION ueberlagernder_Punkt_Richtplananpassung =
+      Anpassung -- {0..1} Anpassung;
+      ueberlagernder_Punkt -- {0..*} ueberlagernder_Punkt;
+    END ueberlagernder_Punkt_Richtplananpassung;
+
+  END Richtplankarte;
+
+END SO_ARP_Richtplan_20231018.
