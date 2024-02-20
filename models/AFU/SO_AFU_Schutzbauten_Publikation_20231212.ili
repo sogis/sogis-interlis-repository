@@ -1,0 +1,231 @@
+INTERLIS 2.3;
+
+/** !
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-02-14 | AW  | Erste Version
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Schutzbauten_Publikation_20231212.uml
+MODEL SO_AFU_Schutzbauten_Publikation_20231212 (de)
+AT "http://www.geo.so.ch/models/AFU"
+VERSION "2023-12-12"  =
+  IMPORTS GeometryCHLV95_V1,Schutzbauten_LV95_V1,Units;
+
+  TOPIC Schutzbauten =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      Werksartenliste = (
+        Wasser(
+          Schutz_vor_Ueberflutung_Uebersarung(
+            Damm,
+            Mauer
+          ),
+          Gewaehrung_der_Sohlenstabilitaet(
+            Sperre,
+            Schwelle,
+            Rampe,
+            !!@ ili2db.dispName="flächenhafte Sohlensicherung"
+            flaechenhafte_Sohlensicherung
+          ),
+          Schutz_vor_Seitenerosion(
+            Buhne,
+            Uferdeckwerk,
+            Ufermauer_Holzlaengsverbau,
+            Lebendverbau
+          ),
+          Rueckhalt(
+            !!@ ili2db.dispName=Hochwasserrückhaltebauwerk
+            Hochwasserrueckhaltebauwerk,
+            !!@ ili2db.dispName="Geschiebe- oder Murgangrückhaltebauwerk"
+            Geschiebe_oder_Murgangrueckhaltebauwerk,
+            !!@ ili2db.dispName=Schwemmholzrückhaltebauwerk
+            Schwemmholzrueckhaltebauwerk,
+            !!@ ili2db.dispName=Eisrückhaltebauwerk
+            Eisrueckhaltebauwerk,
+            bewirtschafteter_Geschiebeablagerungsplatz_strecke
+          ),
+          Entlastung(
+            Entlastungsbauwerk,
+            Umleit_Entlastungsstollen,
+            Entlastungsgerinne_kanal
+          ),
+          Diverse(
+            Eindolung,
+            Murbrecher_Murbremse,
+            /** Kantonale Erweiterung
+             */
+            !!@ ili2db.dispName="Brücke Steg"
+            Bruecke_Steg,
+            /** Kantonale Erweiterung
+             */
+            Furt,
+            andere_Werksart
+          )
+        ),
+        /** Gemäss MGDM
+         */
+        Rutschung(
+          Schutz_vor_Anriss(
+            !!@ ili2db.dispName=Hangstützwerk
+            Hangstuetzwerk,
+            Abdeckung,
+            ingenieurbiologische_Massnahme,
+            !!@ ili2db.dispName=Entwässerung
+            Entwaesserung,
+            Palisade
+          ),
+          Ablenkung_und_Auffangen(
+            Damm,
+            Auffangnetz
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        ),
+        /** Gemäss MGDM
+         */
+        Sturz(
+          Schutz_vor_Ausbruch(
+            Abdeckung,
+            Verankerung,
+            Unterfangung
+          ),
+          Schutz_vor_Aufprall(
+            Schutznetz,
+            Palisade_Barrage,
+            Damm,
+            Schutzzaun,
+            Galerie,
+            Mauer
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        )
+      );
+
+      /** Kantonale Mehranforderung zur Beurteilung der Wirksamkeit einer Schutzbaute
+       */
+      Wirksamkeit_Typ = (
+        hoch,
+        !!@ ili2db.dispName=eingeschränkt
+        eingeschraenkt,
+        gering,
+        !!@ ili2db.dispName="noch abzuklären"
+        noch_abzuklaeren,
+        negativ
+      );
+
+    /** Klasse für Dokumente wie Pläne, Bilder etc.
+     */
+    CLASS Dokument =
+      /** Titel der Dokuments
+       */
+      Titel : MANDATORY TEXT*255;
+      /** Kurzbeschrieb oder Bemerkungen zum Dokument im Freitext
+       */
+      Beschrieb : TEXT*255;
+      /** Der Dateiname mit Dateiendung, aber ohne Pfad
+       */
+      Dateiname : MANDATORY TEXT*64;
+    END Dokument;
+
+    /** Abstrakte Klasse für die Schutzbauten mit allen Attributen ohne Geometrien. Für Punkt-, Linien- und Flächenobjekte muss diese Klasse je konkretisiert werden.
+     */
+    CLASS Schutzbautenobjekt (ABSTRACT) =
+      /** Gemäss MGDM
+       */
+      Schutzbauten_ID : MANDATORY TEXT*30;
+      /** Gemäss MGDM
+       */
+      Hauptprozess : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Prozess_Typ;
+      /** Gemäss MGDM
+       */
+      weiterer_Prozess_Wasser : BOOLEAN;
+      /** Gemäss MGDM
+       */
+      weiterer_Prozess_Rutschung : BOOLEAN;
+      /** Gemäss MGDM
+       */
+      weiterer_Prozess_Sturz : BOOLEAN;
+      /** Gemäss MGDM
+       */
+      Werksart : MANDATORY Werksartenliste;
+      /** Gemäss MGDM
+       */
+      Material : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Baumaterial_Typ;
+      /** Gemäss MGDM
+       */
+      Laenge : 0.1 .. 99999.9 [INTERLIS.m];
+      /** Gemäss MGDM
+       */
+      Breite : 0.1 .. 9999.9 [INTERLIS.m];
+      /** Gemäss MGDM
+       */
+      Hoehe : 0.1 .. 999.9 [INTERLIS.m];
+      /** Gemäss MGDM
+       */
+      Hoehe_zum_Umland : 0.1 .. 999.9 [INTERLIS.m];
+      /** Gemäss MGDM
+       */
+      Flaeche : 1 .. 9999999 [Units.m2];
+      /** Gemäss MGDM
+       */
+      Rueckhaltevolumen : 1 .. 999999999 [Units.m3];
+      /** Gemäss MGDM
+       */
+      Erstellungsjahr : MANDATORY 1800 .. 2050 [INTERLIS.Y];
+      /** Gemäss MGDM
+       */
+      Erhaltungsverantwortung_Kategorie : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Koerperschaft_Typ;
+      /** Gemäss MGDM
+       */
+      Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
+      /** Gemäss MGDM
+       */
+      Zustand : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Beurteilung_Typ;
+      /** Gemäss MGDM
+       */
+      Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
+      /** Kantonale Erweiterung
+       */
+      Wirksamkeit : MANDATORY Wirksamkeit_Typ;
+      /** Gemäss MGDM
+       */
+      Bemerkungen : TEXT*1000;
+    END Schutzbautenobjekt;
+
+    /** Eine Schutzbaute mit einer flächenhaften Geometrie
+     */
+    CLASS Schutzbautenobjekt_Flaeche
+    EXTENDS Schutzbautenobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Schutzbautenobjekt_Flaeche;
+
+    /** Eine Schutzbaute mit einer linienhaften Geometrie
+     */
+    CLASS Schutzbautenobjekt_Linie
+    EXTENDS Schutzbautenobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Schutzbautenobjekt_Linie;
+
+    /** Eine Schutzbaute, welche als Punkt erfasst wird
+     */
+    CLASS Schutzbautenobjekt_Punkt
+    EXTENDS Schutzbautenobjekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Schutzbautenobjekt_Punkt;
+
+    ASSOCIATION Schutzbaute_Dokument =
+      Schutzbaute -- {1..*} Schutzbautenobjekt;
+      Dokument -- {0..*} Dokument;
+    END Schutzbaute_Dokument;
+
+  END Schutzbauten;
+
+END SO_AFU_Schutzbauten_Publikation_20231212.
