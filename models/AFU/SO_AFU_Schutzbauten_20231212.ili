@@ -19,7 +19,8 @@ VERSION "2023-12-12"  =
 
     DOMAIN
 
-      /** Definition gemäss MGDM
+      /** Aufzählung der unterschiedlichen Materialen einer Schutzbaute.
+       * Entspricht der Definition gemäss MGDM.
        */
       Baumaterial_Typ = (
         Beton,
@@ -31,7 +32,8 @@ VERSION "2023-12-12"  =
         Ingenieurbiologie
       );
 
-      /** Definition gemäss MGDM
+      /** Aufzählung zur Beurteilung des Zustands einer Schutzbaute.
+       * Entspricht der Definition gemäss MGDM.
        */
       Beurteilung_Typ = (
         gut_bis_annehmbar,
@@ -41,23 +43,23 @@ VERSION "2023-12-12"  =
         noch_abzuklaeren
       );
 
-      /** Definition gemäss MGDM
+      /** Breite in Meter einer Schutzbaute
        */
       Breite = 0.1 .. 9999.9 [INTERLIS.m];
 
-      /** Definition gemäss MGDM
+      /** Fläche in Quadratmeter einer Schutzbaute.
        */
       Flaeche = 1 .. 9999999 [Units.m2];
 
-      /** Definition gemäss MGDM
+      /** Höhe in Meter einer Schutzbaute.
        */
       Hoehe = 0.1 .. 999.9 [INTERLIS.m];
 
-      /** Definition gemäss MGDM
+      /** Höhe zum Umland in Meter einer Schutzbaute.
        */
       Hoehe_zum_Umland = 0.1 .. 999.9 [INTERLIS.m];
 
-      /** Definition gemäss MGDM
+      /** Aufzählung der verschiedenen Körperschaften, welche die Erhaltungsverantwortung tragen.
        */
       Koerperschaft_Typ = (
         Kanton,
@@ -75,16 +77,15 @@ VERSION "2023-12-12"  =
         in_Abklaerung
       );
 
-      /** Definition gemäss MGDM
+      /** Länge in Meter einer Schutzbaute
        */
       Laenge = 0.1 .. 99999.9 [INTERLIS.m];
 
-      /** Definition gemäss MGDM
+      /** Rückhaltevolumen in Kubikmeter einer Schutzbaute
        */
       Rueckhaltevolumen = 1 .. 999999999 [Units.m3];
 
-      /** Kantonale Mehranforderung
-       * zur Beurteilung der Wirksamkeit eines Bauwerks
+      /** Kantonale Mehranforderung zur Beurteilung der Wirksamkeit eines Bauwerks.
        */
       Wirksamkeit_Typ = (
         hoch,
@@ -99,19 +100,23 @@ VERSION "2023-12-12"  =
     /** Klasse für Dokumente wie Pläne, Bilder etc.
      */
     CLASS Dokument =
-      /** Titel des Dokuments
+      /** Titel des Dokuments.
        */
       Titel : MANDATORY TEXT*255;
-      /** Kurzbeschrieb oder Bemerkungen im Freitext
+      /** Kurzbeschrieb oder Bemerkungen in Freitext.
        */
       Beschrieb : TEXT*255;
-      /** Der Dateiname mit Dateiendung, aber ohne Pfad
+      /** Der Dateiname mit Dateiendung, aber ohne Pfad.
        */
       Dateiname : MANDATORY TEXT*64;
+      /** Prüft die Eindeutigkeit eines Dateinamen.
+       */
+      !!@ name=CheckUniqueDateiname
       UNIQUE Dateiname;
       /** Prüft den Dateinamen: erlaubt sind ausschliesslich Buchstaben und Zahlen, sowie Bindestrich, Unterstrich, Tilde und Punkt
        */
       !!@ ilivalid.msg="{Dateiname} ist kein gültiger Dateiname"
+      !!@ name=CheckDateinameFormat
       MANDATORY CONSTRAINT Text.matches(Dateiname, "^[-a-zA-Z0-9\\_\\~\\.]*[\\.][a-zA-Z0-9]{3,4}$");
     END Dokument;
 
@@ -119,22 +124,40 @@ VERSION "2023-12-12"  =
      * für alle Werksarten gelten, unabhängig des Hauptprozess
      */
     CLASS Schutzbautenobjekt (ABSTRACT) =
-      /** Gemäss MGDM
+      /** Eindeutiger Identifikator einer Schutzbaute
        */
       Schutzbauten_ID : MANDATORY TEXT*30;
-      /** Gemäss MGDM
+      /** Material welches für den Bau der Schutzbaute hauptsächlich verwendet worden ist.
        */
       Material : MANDATORY Baumaterial_Typ;
+      /** Jahr in welchem die Schutzbaute erstellt worden ist.
+       */
       Erstellungsjahr : MANDATORY 1800 .. 2050 [INTERLIS.Y];
-      /** Gemäss MGDM wird "in_Abklaerung" vergeben, wenn bei
+      /** Art der Körperschaft, welche die Erhaltung für die Schutzbaute verantwortet.
+       * Gemäss MGDM wird "in_Abklaerung" vergeben, wenn bei
        * der Erhebung der Erhaltungsverantwortliche noch nicht bekannt ist.
        */
       Erhaltungsverantwortung_Kategorie : MANDATORY Koerperschaft_Typ;
+      /** Name oder Bezeichnung der Körperschaft, welche die Erhaltung der Schutzbaute verantwortet.
+       */
       Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
+      /** Die Bewertung des Zustands einer Schutzbaute.
+       */
       Zustand : MANDATORY Beurteilung_Typ;
+      /** Jahr in welchem der Zustand bewertet worden ist.
+       */
       Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
-      Bemerkungen : TEXT*1000;
+      /** Freitextfeld für weitere Bemerkungen
+       */
+      Bemerkungen : MTEXT*1000;
+      /** Die Bewertung der Wirksamkeit einer Schutzbaute. Ob die Funktion einer Massnahme gewährleistet ist, kann unabhängig vom Zustand sein.
+       * Kantonale Erweiterung
+       */
       Wirksamkeit : MANDATORY Wirksamkeit_Typ;
+      /** Prüft die Eindeutigkeit der Schutzbauten_ID.
+       */
+      !!@ name=CheckUniqueSchutzbauten_ID
+      !!@ ilivalid.msg="{Schutzbauten_ID} ist kein eindeutiger Identifikator"
       UNIQUE Schutzbauten_ID;
     END Schutzbautenobjekt;
 
@@ -143,7 +166,11 @@ VERSION "2023-12-12"  =
      */
     CLASS Schutzbautenobjekt_Rutschung (ABSTRACT)
     EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Wasser bietet.
+       */
       weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Sturz bietet.
+       */
       weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
     END Schutzbautenobjekt_Rutschung;
 
@@ -152,7 +179,11 @@ VERSION "2023-12-12"  =
      */
     CLASS Schutzbautenobjekt_Sturz (ABSTRACT)
     EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Wasser bietet.
+       */
       weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Rutschung bietet.
+       */
       weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
     END Schutzbautenobjekt_Sturz;
 
@@ -161,7 +192,11 @@ VERSION "2023-12-12"  =
      */
     CLASS Schutzbautenobjekt_Wasser (ABSTRACT)
     EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Rutschung bietet.
+       */
       weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Sturz bietet.
+       */
       weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
     END Schutzbautenobjekt_Wasser;
 
