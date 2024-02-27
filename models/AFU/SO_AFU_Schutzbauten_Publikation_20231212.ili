@@ -12,104 +12,189 @@ INTERLIS 2.3;
 MODEL SO_AFU_Schutzbauten_Publikation_20231212 (de)
 AT "http://www.geo.so.ch/models/AFU"
 VERSION "2023-12-12"  =
-  IMPORTS GeometryCHLV95_V1,Schutzbauten_LV95_V1,Units;
+  IMPORTS GeometryCHLV95_V1,Units;
 
   TOPIC Schutzbauten =
     OID AS INTERLIS.UUIDOID;
 
     DOMAIN
 
+      /** Aufzählung der unterschiedlichen Materialen einer Schutzbaute.
+       */
+      Baumaterial_Typ = (
+        Beton,
+        Stein,
+        Holz,
+        Erdmaterial,
+        Metall,
+        Kunststoff,
+        Ingenieurbiologie
+      );
+
+      /** Aufzählung zur Beurteilung des Zustands einer Schutzbaute.
+       */
+      Beurteilung_Typ = (
+        gut_bis_annehmbar,
+        schadhaft_bis_schlecht,
+        alarmierend,
+        !!@ ili2db.dispName="noch abzuklären"
+        noch_abzuklaeren
+      );
+
+      /** Aufzählung der verschiedenen Körperschaften, welche die Erhaltungsverantwortung tragen.
+       */
+      Koerperschaft_Typ = (
+        Kanton,
+        Bezirk,
+        Gemeinde,
+        !!@ ili2db.dispName=Bürgergemeinde
+        Buergergemeinde,
+        Korporation,
+        Private,
+        ASTRA,
+        SBB,
+        Privatbahn,
+        keine,
+        !!@ ili2db.dispName="in Abklärung"
+        in_Abklaerung
+      );
+
+      /** Aufzählung der Hauptprozesse, gegenüber dem MGDM gibt es keinen Hauptprozess Lawine.
+       */
+      Prozess_Typ = (
+        Wasser,
+        Rutschung,
+        Sturz
+      );
+
+      /** Aufzählung der verschiedenen Werksarten geordnet nach Hauptprozess und Funktion der Schutzbaute.
+       */
       Werksartenliste = (
+        /** Werksarten und deren Funktion mit Schutz vor Wasser
+         */
         Wasser(
           Schutz_vor_Ueberflutung_Uebersarung(
+            !!@ ili2db.dispName="Schutz vor Überflutung und Übersarung: Damm"
             Damm,
+            !!@ ili2db.dispName="Schutz vor Überflutung und Übersarung: Mauer"
             Mauer
           ),
           Gewaehrung_der_Sohlenstabilitaet(
+            !!@ ili2db.dispName="Gewährung der Sohlenstabilität: Sperre"
             Sperre,
+            !!@ ili2db.dispName="Gewährung der Sohlenstabilität: Schwelle"
             Schwelle,
+            !!@ ili2db.dispName="Gewährung der Sohlenstabilität: Rampe"
             Rampe,
-            !!@ ili2db.dispName="flächenhafte Sohlensicherung"
+            !!@ ili2db.dispName="Gewährung der Sohlenstabilität: flächenhafte Sohlensicherung"
             flaechenhafte_Sohlensicherung
           ),
           Schutz_vor_Seitenerosion(
+            !!@ ili2db.dispName="Schutz vor Seitenerosion: Buhne"
             Buhne,
+            !!@ ili2db.dispName="Schutz vor Seitenerosion: Uferdeckwerk"
             Uferdeckwerk,
+            !!@ ili2db.dispName="Schutz vor Seitenerosion: Ufermauer Holzlängsverbau"
             Ufermauer_Holzlaengsverbau,
+            !!@ ili2db.dispName="Schutz vor Seitenerosion: Lebendverbau"
             Lebendverbau
           ),
           Rueckhalt(
-            !!@ ili2db.dispName=Hochwasserrückhaltebauwerk
+            !!@ ili2db.dispName="Rückhalt: Hochwasserrückhaltebauwerk"
             Hochwasserrueckhaltebauwerk,
-            !!@ ili2db.dispName="Geschiebe- oder Murgangrückhaltebauwerk"
+            !!@ ili2db.dispName="Rückhalt: Geschiebe- oder Murgangrückhaltebauwerk"
             Geschiebe_oder_Murgangrueckhaltebauwerk,
-            !!@ ili2db.dispName=Schwemmholzrückhaltebauwerk
+            !!@ ili2db.dispName="Rückhalt: Schwemmholzrückhaltebauwerk"
             Schwemmholzrueckhaltebauwerk,
-            !!@ ili2db.dispName=Eisrückhaltebauwerk
+            !!@ ili2db.dispName="Rückhalt: Eisrückhaltebauwerk"
             Eisrueckhaltebauwerk,
+            !!@ ili2db.dispName="Rückhalt: bewirtschafteter Geschiebeablagerungsplatz oder -strecke"
             bewirtschafteter_Geschiebeablagerungsplatz_strecke
           ),
           Entlastung(
+            !!@ ili2db.dispName="Entlastung: Entlastungsbauwerk"
             Entlastungsbauwerk,
+            !!@ ili2db.dispName="Entlastung: Umleit-, Entlastungsstollen"
             Umleit_Entlastungsstollen,
+            !!@ ili2db.dispName="Entlastung: Entlastungsgerinne, -kanal"
             Entlastungsgerinne_kanal
           ),
           Diverse(
+            !!@ ili2db.dispName="Diverse: Eindolung"
             Eindolung,
+            !!@ ili2db.dispName="Diverse: Murbrecher, Murbremse"
             Murbrecher_Murbremse,
             /** Kantonale Erweiterung
              */
-            !!@ ili2db.dispName="Brücke Steg"
+            !!@ ili2db.dispName="Diverse: Brücke, Steg"
             Bruecke_Steg,
             /** Kantonale Erweiterung
              */
+            !!@ ili2db.dispName="Diverse: Furt"
             Furt,
+            !!@ ili2db.dispName="Diverse: andere Werksart"
             andere_Werksart
           )
         ),
-        /** Gemäss MGDM
+        /** Werksarten und deren Funktion mit Schutz vor Rutschung
          */
         Rutschung(
           Schutz_vor_Anriss(
-            !!@ ili2db.dispName=Hangstützwerk
+            !!@ ili2db.dispName="Schutz vor Anriss: Hangstützwerk"
             Hangstuetzwerk,
+            !!@ ili2db.dispName="Schutz vor Anriss: Abdeckung"
             Abdeckung,
+            !!@ ili2db.dispName="Schutz vor Anriss: ingenieurbiologische Massnahme"
             ingenieurbiologische_Massnahme,
-            !!@ ili2db.dispName=Entwässerung
+            !!@ ili2db.dispName="Schutz vor Anriss: Entwässerung"
             Entwaesserung,
+            !!@ ili2db.dispName="Schutz vor Anriss: Palisade"
             Palisade
           ),
           Ablenkung_und_Auffangen(
+            !!@ ili2db.dispName="Ablenkung und Auffangen: Damm"
             Damm,
+            !!@ ili2db.dispName="Ablenkung und Auffangen: Auffangnetz"
             Auffangnetz
           ),
           Diverse(
+            !!@ ili2db.dispName="Diverse: andere Werksart"
             andere_Werksart
           )
         ),
-        /** Gemäss MGDM
+        /** Werksarten und deren Funktion mit Schutz vor Sturz
          */
         Sturz(
           Schutz_vor_Ausbruch(
+            !!@ ili2db.dispName="Schutz vor Ausbruch: Abdeckung"
             Abdeckung,
+            !!@ ili2db.dispName="Schutz vor Ausbruch: Verankerung"
             Verankerung,
+            !!@ ili2db.dispName="Schutz vor Ausbruch: Unterfangung"
             Unterfangung
           ),
           Schutz_vor_Aufprall(
+            !!@ ili2db.dispName="Schutz vor Aufprall: Schutznetz"
             Schutznetz,
+            !!@ ili2db.dispName="Schutz vor Aufprall: Palisade, Barrage"
             Palisade_Barrage,
+            !!@ ili2db.dispName="Schutz vor Aufprall: Damm"
             Damm,
+            !!@ ili2db.dispName="Schutz vor Aufprall: Schutzzaun"
             Schutzzaun,
+            !!@ ili2db.dispName="Schutz vor Aufprall: Galerie"
             Galerie,
+            !!@ ili2db.dispName="Schutz vor Aufprall: Mauer"
             Mauer
           ),
           Diverse(
+            !!@ ili2db.dispName="Diverse: andere Werksart"
             andere_Werksart
           )
         )
       );
 
-      /** Kantonale Mehranforderung zur Beurteilung der Wirksamkeit einer Schutzbaute
+      /** Kantonale Mehranforderung zur Beurteilung der Wirksamkeit einer Schutzbaute.
        */
       Wirksamkeit_Typ = (
         hoch,
@@ -124,80 +209,89 @@ VERSION "2023-12-12"  =
     /** Klasse für Dokumente wie Pläne, Bilder etc.
      */
     STRUCTURE Dokument =
-      /** Titel der Dokuments
+      /** Titel des Dokuments
        */
       Titel : MANDATORY TEXT*255;
       /** Kurzbeschrieb oder Bemerkungen zum Dokument im Freitext
        */
       Beschrieb : TEXT*255;
-      /** Der Dateiname mit Dateiendung, aber ohne Pfad
+      /** Vollständige Internetadresse des Dokuments auf der Dokumentenablage.
+       * Z.B. https://geo.so.ch/docs/ch.so.afu.schutzbauten/datasetname/1-100-P.pdf
        */
-      Dateiname : MANDATORY TEXT*64;
+      DokumentImWeb : MANDATORY INTERLIS.URI;
     END Dokument;
 
-    /** Abstrakte Klasse für die Schutzbauten mit allen Attributen ohne Geometrien. Für Punkt-, Linien- und Flächenobjekte muss diese Klasse je konkretisiert werden.
+    /** Abstrakte Klasse für die Schutzbauten mit allen Attributen ohne Geometrien.
+     * Für Punkt-, Linien- und Flächenobjekte muss diese Klasse je konkretisiert werden.
      */
     CLASS Schutzbautenobjekt (ABSTRACT) =
-      /** Gemäss MGDM
+      /** Eindeutiger Identifikator einer Schutzbaute
        */
       Schutzbauten_ID : MANDATORY TEXT*30;
-      /** Gemäss MGDM
+      /** Prozess vor welchem die Baute hauptsächlich Schutz bieten soll.
        */
-      Hauptprozess : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Prozess_Typ;
-      /** Gemäss MGDM
+      Hauptprozess : MANDATORY Prozess_Typ;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess
+       * auch Schutz vor dem Prozess Wasser bietet.
        */
-      weiterer_Prozess_Wasser : BOOLEAN;
-      /** Gemäss MGDM
+      weiterer_Prozess_Wasser : MANDATORY BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess
+       * auch Schutz vor dem Prozess Rutschung bietet.
        */
-      weiterer_Prozess_Rutschung : BOOLEAN;
-      /** Gemäss MGDM
+      weiterer_Prozess_Rutschung : MANDATORY BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess
+       * auch Schutz vor dem Prozess Sturz bietet.
        */
-      weiterer_Prozess_Sturz : BOOLEAN;
-      /** Gemäss MGDM
+      weiterer_Prozess_Sturz : MANDATORY BOOLEAN;
+      /** Art und Funktion der Schutzbaute
        */
       Werksart : MANDATORY Werksartenliste;
-      /** Gemäss MGDM
+      /** Material welches für den Bau der Schutzbaute hauptsächlich verwendet worden ist.
        */
-      Material : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Baumaterial_Typ;
-      /** Gemäss MGDM
+      Material : MANDATORY Baumaterial_Typ;
+      /** Länge
        */
       Laenge : 0.1 .. 99999.9 [INTERLIS.m];
-      /** Gemäss MGDM
+      /** Breite
        */
       Breite : 0.1 .. 9999.9 [INTERLIS.m];
-      /** Gemäss MGDM
+      /** Höhe
        */
       Hoehe : 0.1 .. 999.9 [INTERLIS.m];
-      /** Gemäss MGDM
+      /** Höhe zum Umland
        */
       Hoehe_zum_Umland : 0.1 .. 999.9 [INTERLIS.m];
-      /** Gemäss MGDM
+      /** Fläche
        */
       Flaeche : 1 .. 9999999 [Units.m2];
-      /** Gemäss MGDM
+      /** Rückhaltevolumen
        */
       Rueckhaltevolumen : 1 .. 999999999 [Units.m3];
-      /** Gemäss MGDM
+      /** Jahr in welchem die Schutzbaute erstellt worden ist
        */
       Erstellungsjahr : MANDATORY 1800 .. 2050 [INTERLIS.Y];
-      /** Gemäss MGDM
+      /** Art der Körperschaft, welche die Erhaltung für die Schutzbaute verantwortet.
        */
-      Erhaltungsverantwortung_Kategorie : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Koerperschaft_Typ;
-      /** Gemäss MGDM
+      Erhaltungsverantwortung_Kategorie : MANDATORY Koerperschaft_Typ;
+      /** Name oder Bezeichnung der Körperschaft, welche die Erhaltung der Schutzbaute verantwortet.
        */
       Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
-      /** Gemäss MGDM
+      /** Die Bewertung des Zustands einer Schutzbaute.
        */
-      Zustand : MANDATORY Schutzbauten_LV95_V1.Schutzbauten.Beurteilung_Typ;
-      /** Gemäss MGDM
+      Zustand : MANDATORY Beurteilung_Typ;
+      /** Jahr in welchem der Zustand bewertet worden ist
        */
       Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
-      /** Kantonale Erweiterung
+      /** Die Bewertung der Wirksamkeit einer Schutzbaute. Ob die Funktion einer Massnahme gewährleistet ist, kann unabhängig vom Zustand sein.
+       * Kantonale Erweiterung
        */
       Wirksamkeit : MANDATORY Wirksamkeit_Typ;
-      /** Gemäss MGDM
+      /** Freitextfeld für Bemerkungen
        */
       Bemerkungen : TEXT*1000;
+      /** Einer Schutzbauten kann kein, ein oder mehrere Dokumente zugeordnet sein.
+       * Ein Dokument kann aber auch mehreren Schutzbauten zugeordnet sein.
+       */
       !!@ ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_AFU_Schutzbauten_Publikation_20231212.Schutzbauten.Dokument;
     END Schutzbautenobjekt;
