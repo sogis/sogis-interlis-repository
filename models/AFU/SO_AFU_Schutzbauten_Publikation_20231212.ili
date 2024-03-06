@@ -293,6 +293,85 @@ VERSION "2023-12-12"  =
        */
       !!@ ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_AFU_Schutzbauten_Publikation_20231212.Schutzbauten.Dokument;
+      !!@ name=CheckUniqueSchutzbauten_ID
+      UNIQUE Schutzbauten_ID;
+      /** Diese Einschränkung stellt für den Hauptprozess Wasser sicher,
+       * dass die Werksart einer Schutzbaute dem Hauptprozess entspricht.
+       */
+      !!@ name=CheckHauptprozessWasserAndWerksart
+      MANDATORY CONSTRAINT
+        (Hauptprozess != #Wasser) OR
+          (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Damm) OR
+          (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Mauer) OR
+          (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Sperre) OR
+          (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Schwelle) OR
+          (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Rampe) OR
+          (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.flaechenhafte_Sohlensicherung) OR
+          (Werksart == # Wasser.Schutz_vor_Seitenerosion.Buhne) OR
+          (Werksart == # Wasser.Schutz_vor_Seitenerosion.Uferdeckwerk) OR
+          (Werksart == # Wasser.Schutz_vor_Seitenerosion.Ufermauer_Holzlaengsverbau) OR
+          (Werksart == # Wasser.Schutz_vor_Seitenerosion.Lebendverbau) OR
+          (Werksart == # Wasser.Rueckhalt.Hochwasserrueckhaltebauwerk) OR
+          (Werksart == # Wasser.Rueckhalt.Geschiebe_oder_Murgangrueckhaltebauwerk) OR
+          (Werksart == # Wasser.Rueckhalt.Schwemmholzrueckhaltebauwerk) OR
+          (Werksart == # Wasser.Rueckhalt.Eisrueckhaltebauwerk) OR
+          (Werksart == # Wasser.Rueckhalt.bewirtschafteter_Geschiebeablagerungsplatz_strecke) OR
+          (Werksart == # Wasser.Entlastung.Entlastungsbauwerk) OR
+          (Werksart == # Wasser.Entlastung.Umleit_Entlastungsstollen) OR
+          (Werksart == # Wasser.Entlastung.Entlastungsgerinne_kanal) OR
+          (Werksart == # Wasser.Diverse.Eindolung) OR
+          (Werksart == # Wasser.Diverse.Murbrecher_Murbremse) OR
+          (Werksart == # Wasser.Diverse.Bruecke_Steg) OR !! kantonale Erweiterung
+          (Werksart == # Wasser.Diverse.Furt) OR !! kantonale Erweiterung
+          (Werksart == # Wasser.Diverse.andere_Werksart);
+      /** Diese Einschränkung stellt für den Hauptprozess Rutschung sicher,
+       * dass die Werksart einer Schutzbaute dem Hauptprozess entspricht.
+       */
+      !!@ name=CheckHauptprozessRutschungAndWerksart
+      MANDATORY CONSTRAINT
+        (Hauptprozess != #Rutschung) OR
+          (Werksart == # Rutschung.Schutz_vor_Anriss.Hangstuetzwerk) OR
+          (Werksart == # Rutschung.Schutz_vor_Anriss.Abdeckung) OR
+          (Werksart == # Rutschung.Schutz_vor_Anriss.ingenieurbiologische_Massnahme) OR
+          (Werksart == # Rutschung.Schutz_vor_Anriss.Entwaesserung) OR
+          (Werksart == # Rutschung.Schutz_vor_Anriss.Palisade) OR
+          (Werksart == # Rutschung.Ablenkung_und_Auffangen.Damm) OR
+          (Werksart == # Rutschung.Ablenkung_und_Auffangen.Auffangnetz) OR
+          (Werksart == # Rutschung.Diverse.andere_Werksart);
+      /** Diese Einschränkung stellt für den Hauptprozess Sturz sicher,
+       * dass die Werksart einer Schutzbaute dem Hauptprozess entspricht.
+       */
+      !!@ name=CheckHauptprozessSturzAndWerksart
+      MANDATORY CONSTRAINT
+        (Hauptprozess != #Sturz) OR
+          (Werksart == # Sturz.Schutz_vor_Ausbruch.Abdeckung) OR
+          (Werksart == # Sturz.Schutz_vor_Ausbruch.Verankerung) OR
+          (Werksart == # Sturz.Schutz_vor_Ausbruch.Unterfangung) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Schutznetz) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Palisade_Barrage) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Damm) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Schutzzaun) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Galerie) OR
+          (Werksart == # Sturz.Schutz_vor_Aufprall.Mauer) OR
+          (Werksart == # Sturz.Diverse.andere_Werksart);
+      /** Die weiteren Prozesse dürfen nicht mit Hauptprozess identisch sein.
+       */
+      !!@ name=CheckWeitererProzessWasser
+      MANDATORY CONSTRAINT
+        ((Hauptprozess == #Wasser) AND NOT (weiterer_Prozess_Wasser)) OR
+          (Hauptprozess != #Wasser);
+      /** Die weiteren Prozesse dürfen nicht mit Hauptprozess identisch sein.
+       */
+      !!@ name=CheckWeitererProzessRutschung
+      MANDATORY CONSTRAINT
+        ((Hauptprozess == #Rutschung) AND NOT (weiterer_Prozess_Rutschung)) OR
+          (Hauptprozess != #Rutschung);
+      /** Die weiteren Prozesse dürfen nicht mit Hauptprozess identisch sein.
+       */
+      !!@ name=CheckWeitererProzessSturz
+      MANDATORY CONSTRAINT
+        ((Hauptprozess == #Sturz) AND NOT (weiterer_Prozess_Sturz)) OR
+          (Hauptprozess != #Sturz);
     END Schutzbautenobjekt;
 
     /** Eine Schutzbaute mit einer flächenhaften Geometrie
