@@ -46,11 +46,27 @@ VERSION "2023-10-16"  =
         schwach,
         !!@ ili2db.dispName=mittel
         mittel,
-        !!@ ili2db.dispName=hoch
-        hoch
+        !!@ ili2db.dispName=stark
+        stark
       );
 
-      jaehrlichkeit_typ = 1 .. 10000;
+      jaehrlichkeit_typ = -1 .. 10000;
+
+      m_geschwindigkeit_typ = (
+        !!@ ili2db.dispName="mehr als 1 m/s"
+        mehr_als_1_m_s,
+        !!@ ili2db.dispName="bis 1 m/s"
+        bis_1_m_s
+      );
+
+      /** Übermurungshöhe
+       */
+      m_hoehe_typ = (
+        !!@ ili2db.dispName="mehr als 100 cm"
+        mehr_als_100_cm,
+        !!@ ili2db.dispName="bis 100 cm"
+        bis_100_cm
+      );
 
       teilprozess_quellen (FINAL) = (
         !!@ ili2db.dispName=Überschwemmung
@@ -124,6 +140,23 @@ VERSION "2023-10-16"  =
         l_staublawine,
         !!@ ili2db.dispName=Schneegleiten
         l_schneegleiten
+      );
+
+      ue_fliessgeschwindigkeit_typ = (
+        !!@ ili2db.dispName="mehr als 5 m/s"
+        mehr_als_5_m_s,
+        !!@ ili2db.dispName="von 4 bis 5 m/s"
+        von_4_bis_5_m_s,
+        !!@ ili2db.dispName="von 3 bis 4 m/s"
+        von_3_bis_4_m_s,
+        !!@ ili2db.dispName="von 2 bis 3 m/s"
+        von_2_bis_3_m_s,
+        !!@ ili2db.dispName="von 1 bis 2 m/s"
+        von_1_bis_2_m_s,
+        !!@ ili2db.dispName="von 0.5 bis 1 m/s"
+        von_0_5_bis_1_m_s,
+        !!@ ili2db.dispName="von 0 bis 0.5 m/s"
+        von_0_bis_0_5_m_s
       );
 
       /** Überflutungshöhe (Einteilung gemäss altem Modell)
@@ -208,9 +241,6 @@ VERSION "2023-10-16"  =
       /** Bfs-Nummer der Gemeinde
        */
       Gemeinde_BfsNr : MANDATORY 0 .. 9999;
-      /** Gemeindenummer gemäss kantonsinterner Nummerierung
-       */
-      Gemeinde_Nr_Kanton : TEXT*3;
       /** Name der Gemeinde
        */
       Gemeinde_Name : MANDATORY TEXT*255;
@@ -271,6 +301,69 @@ VERSION "2023-10-16"  =
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
     END Fliesstiefen;
+
+    /** Klassierte Fliessgeschwindigkeit pro Jährlichkeit für den Prozess Übermurung.  Keine Ueberlappungen innerhalb der gleichen klassierten Fliessgeschwindigkeit, Jaehrlichkeit und Prozessquelle.
+     */
+    CLASS Kennwert_Uebermurung_Geschwindigkeit
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Fliessgeschwindigkeit
+       */
+      Fliessgeschwindigkeit : MANDATORY m_geschwindigkeit_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Uebermurung_Geschwindigkeit;
+
+    /** Klassierte Fliesshöhe pro Jährlichkeit für den Prozess Übermurung. Keine Ueberlappungen innerhalb der gleichen klassierten Fliesshoehe, Jaehrlichkeit, und Prozessquelle.
+     */
+    CLASS Kennwert_Uebermurung_Hoehe
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Übermurungshöhe
+       */
+      Uebermurungshoehe : MANDATORY m_hoehe_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Uebermurung_Hoehe;
+
+    /** Klassierte Fliessgeschwindigkeit pro Jährlichkeit für den Prozess Überschwemmung. Keine Ueberlappungen innerhalb der gleichen klassierten Fliessgeschwindigkeit, Jaehrlichkeit und Prozessquelle.
+     */
+    CLASS Kennwert_Ueberschwemmung_Geschwindigkeit
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Fliessgeschwindigkeit
+       */
+      Fliessgeschwindigkeit : MANDATORY ue_fliessgeschwindigkeit_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Ueberschwemmung_Geschwindigkeit;
 
     /** Intensitaetskarten pro Jaehrlichkeit für die verschiedenen Teilprozesse. Keine Ueberlappungen innerhalb der gleichen Jaehrlichkeit.
      */

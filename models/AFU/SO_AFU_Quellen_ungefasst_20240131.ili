@@ -1,0 +1,158 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Modell der ungefassten Wasser-Quellen.
+ * !! In der Midat-Datenbank (Quell-Fachapplikation) codierte
+ * !! Aufzählungen sind im Kommentar jeweils mit Codiert gekennzeichnet.
+ * !! Aufgrund der erwarteten häufigen Codierungsanpassungen wurden die
+ * !! Codierungen absichtlich nicht ins Modell übernommen.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-01-31 | JEK | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Quellen_ungefasst_CSV_import_20240131.uml
+MODEL SO_AFU_Quellen_ungefasst_20240131 (de)
+AT "https://afu.so.ch"
+VERSION "2024-01-31"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Bewertung = (
+      !!@ ili2db.dispName=natrunah
+      naturnah,
+      !!@ ili2db.dispName="bedingt naturnah"
+      bedingt_naturnah,
+      !!@ ili2db.dispName="mässig beeinträchtigt"
+      maessig_beeintraechtigt,
+      !!@ ili2db.dispName=geschädigt
+      geschaedigt,
+      !!@ ili2db.dispName="stark geschädigt"
+      stark_geschaedigt
+    );
+
+  TOPIC Quellen =
+
+    CLASS Quelle_Basis (ABSTRACT) =
+      /** Bezeichnung der Quelle
+       */
+      ID_Quelle : MANDATORY TEXT*50;
+      /** Flurname des Ortes, wo sich die Quelle befindet
+       */
+      Flurname : MANDATORY TEXT*100;
+      /** Name der Quelle
+       */
+      QuellenName : TEXT*100;
+      /** Höhe der Quelle in Meter über Meer
+       */
+      Hoehe : MANDATORY 0 .. 4000;
+      /** Eindeutige Austrittsform. Codiert.
+       */
+      Austrittsform : MANDATORY TEXT*30;
+      /** Grösse der Quelle. Codiert.
+       */
+      Quellgroesse : MANDATORY TEXT*30;
+      /** Fliesst die Quelle ganzjährig oder nur temporär? Codiert.
+       */
+      Schuettungsverhalten : MANDATORY TEXT*30;
+      /** Schüttung. Codiert.
+       */
+      Quellschuettung : MANDATORY TEXT*30;
+      /** Vernetzung der Quelle. Codiert.
+       */
+      Vernetzung : MANDATORY TEXT*30;
+      /** Anzahl der Austritte. Betrifft Einzellquellen als auch ein Quellsystem oder Quellkomplex
+       */
+      Austrittsanzahl : MANDATORY 1 .. 20;
+      /** Bemerkungen, z.B. wenn Makrozoobentos gesichtet wurden
+       */
+      Bemerkungen : MTEXT*1000;
+      /** Typ der Fassung. Codiert.
+       */
+      Fassung : MANDATORY TEXT*30;
+      /** Anteil der Wasserentnahme der Quellschüttung. Codiert.
+       */
+      Wasserentnahme : MANDATORY TEXT*30;
+      /** Ausmass der Trittschäden. Codiert.
+       */
+      Trittschaeden : MANDATORY TEXT*30;
+      /** Wie gut ist die Sommerbeschattung? Codiert.
+       */
+      Sommerbeschattung : MANDATORY TEXT*30;
+      /** Aufzählung von einem oder mehreren Substraten. Codiert.
+       */
+      Substrate : MANDATORY TEXT*500;
+      /** Ist Revitaliserungspotential vorhanden? Codiert.
+       */
+      RevitObjekt : MANDATORY TEXT*30;
+      /** Bewertung der Quelle nach Modul Stufen Konzept des Bafu hinsichtlich des Zustands der Quelle.
+       */
+      Gesamtbewertung : MANDATORY SO_AFU_Quellen_ungefasst_20240131.Bewertung;
+      /** X-Koordinate
+       */
+      X_Koordinate : MANDATORY 2480000 .. 2865000;
+      /** Y-Koordinate
+       */
+      Y_Koordinate : MANDATORY 1062000 .. 1302000;
+      Datum : MANDATORY INTERLIS.XMLDate;
+      /** Name der Standortgemeinde
+       */
+      Gemeindename : MANDATORY TEXT*30;
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Datum an dem die Biologierhebung stattfand.
+       */
+      BioErhebung : INTERLIS.XMLDate;
+      /** Datum an dem die Quelle importiert wurde.
+       */
+      ImportDatum : INTERLIS.XMLDate;
+    END Quelle_Basis;
+
+    /** Temporäre Hilfsklasse für Import und "Veredelung" der CSV-Daten.
+     */
+    CLASS CSV_Import
+    EXTENDS Quelle_Basis =
+      /** X-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
+       */
+      X_Koordinate_LV03 : MANDATORY 480000 .. 865000;
+      /** Y-Koordinate LV 03 (6stellig, aus Midat-Datenbank)
+       */
+      Y_Koordinate_LV03 : MANDATORY 62000 .. 302000;
+      /** Datum an dem die Datenerhebung stattfand. Text im Format TT/MM/JJJJ
+       */
+      Datum_CSV : MANDATORY TEXT*10;
+      /** Gesamtbewertung als Text
+       */
+      Gesamtbewertung_CSV : MANDATORY TEXT*30;
+      /** Datum an dem die Biologierhebung stattfand. Text im Format TT/MM/JJJJ
+       */
+      BioErhebung_CSV : TEXT*10;
+    END CSV_Import;
+
+    /** Umfasst die Informationen der ungefassten Quellen
+     */
+    CLASS Quelle_ungefasst
+    EXTENDS Quelle_Basis =
+    END Quelle_ungefasst;
+
+    /** Zeigt den Erhebungsstand der ungefassten Quellen (Attribut Erhebungsabschluss).
+     * Die Gebiete entsprechen grob der Gemeindeeinteilung. Gemeindefusionen
+     * werden nicht zwingend nachvollzogen.
+     */
+    CLASS Erhebungsstand =
+      /** Name des Gebiets.
+       */
+      Name : MANDATORY TEXT*255;
+      /** Datum des Erhebungsabschlusses der ungefassten Quellen im Gebiet.
+       */
+      Erhebungsabschluss : INTERLIS.XMLDate;
+      /** Geometrie des Erhebungsgebiets (Meist eine Gemeinde).
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      UNIQUE Name;
+    END Erhebungsstand;
+
+  END Quellen;
+
+END SO_AFU_Quellen_ungefasst_20240131.
