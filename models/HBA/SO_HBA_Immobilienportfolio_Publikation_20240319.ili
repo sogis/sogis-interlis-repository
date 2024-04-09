@@ -1,0 +1,108 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-01-09 | sz  | Initialerstellung
+ *  !! 2024-01-11 | sz  | Anpassung an Edit-Modell
+ *  !! 2024-03-19 | sz  | Gemeinsames Modell (Gebäude und Grundstücke)
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/HBA/SO_HBA_Immobilienportfolio_Publikation_20240319.uml
+!!@ shortDescription="Publikationsmodell für das Immobilienportfolio des HBA"
+!!@ title="Grundstücke und Gebäude des Kantons (Immobilienportfolio)"
+MODEL SO_HBA_Immobilienportfolio_Publikation_20240319 (de)
+AT "https://hba.so.ch"
+VERSION "2024-03-19"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Gebaeude =
+
+    CLASS Gebaeude =
+      /** Schweizweit eindeutiger Gebäudeidentifikator
+       */
+      EGID : TEXT*20;
+      /** aktuelle Nutzungsgruppe
+       */
+      Nutzungsgruppe : TEXT*50;
+      /** HBA-interne, eindeutige Nummer
+       */
+      Wirtschaftseinheit : MANDATORY TEXT*20;
+      /** Grundriss des Gebäudes gemäss amtlicher Vermessung
+       */
+      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Buchhalterische Vermögensart
+       */
+      Vermoegensart : (
+        !!@ ili2db.dispName=Anmietobjekt
+        AM,
+        !!@ ili2db.dispName=Stiftungsvermögen
+        SV,
+        !!@ ili2db.dispName=Verwaltungsvermögen
+        VV,
+        !!@ ili2db.dispName=Finanzvermögen
+        FV
+      );
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      Prioritaet : (
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, verwertbar"
+        C,
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, halten, periodische Überprüfung"
+        B,
+        !!@ ili2db.dispName=betriebsnotwendig
+        A
+      );
+    END Gebaeude;
+
+  END Gebaeude;
+
+  TOPIC Grundstuecke =
+
+    CLASS Grundstueck =
+      /** Schweizweit eindeutiger Grundstücksindentifikator
+       */
+      EGRID : MANDATORY TEXT*14;
+      /** Fachliche Verantwortung innerhalb des Kantons
+       */
+      Fachverantwortung : TEXT*100;
+      /** Art des Vermögens
+       */
+      Vermoegensart : MANDATORY (
+        !!@ ili2db.dispName=Stiftungsvermögen
+        SV,
+        !!@ ili2db.dispName=Allmend
+        ALLM,
+        !!@ ili2db.dispName=Anmietobjekt
+        AM,
+        !!@ ili2db.dispName=Finanzvermögen
+        FV,
+        !!@ ili2db.dispName=Verwaltungsvermögen
+        VV
+      );
+      /** Eindeutiger Identifikator der Wirtschaftseinheit. HBA-interne Nummer.
+       */
+      Wirtschaftseinheit : MANDATORY TEXT*20;
+      /** Geometrie des Grundstückes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Baurecht zuhanden Dritter
+       */
+      Baurecht_Dritter : MANDATORY BOOLEAN;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      Prioritaet : (
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, verwertbar"
+        C,
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, halten, periodische Überprüfung"
+        B,
+        !!@ ili2db.dispName=betriebsnotwendig
+        A
+      );
+      UNIQUE EGRID;
+    END Grundstueck;
+
+  END Grundstuecke;
+
+END SO_HBA_Immobilienportfolio_Publikation_20240319.

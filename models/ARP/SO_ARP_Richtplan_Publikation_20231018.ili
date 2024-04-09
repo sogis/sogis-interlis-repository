@@ -15,6 +15,8 @@ INTERLIS 2.3;
  * !! 2021-02-10 | PS  | Detailkarte neu mit ueberlagernder Linie
  * !! 2022-06-30 | PS  | neuer Objekttyp in ueberlagernder Linie: historische Verkehrswege
  * !! 2023-10-18 | AL  | Neue Attrbitue von Klasse Anpassung und neues Topic Raumkonzept
+ * !! 2023-10-18 | PB  | Kleinere Anpassungen: Objekttyp fuer Detailkarten,
+ * !!        	         Anpassung Objekttyp richtplankarte.ueberlagernder_punkt 
  * !!======================================================================================
  */
 !!@ technicalContact=mailto:agi@bd.so.ch
@@ -89,7 +91,8 @@ VERSION "2023-10-18"  =
           /** Pärke von nationaler Bedeutung entwickeln
            */
           !!@ ili2db.dispName="Pärke von nationaler Bedeutung entwickeln"
-          Park_nationaler_Bedeutung
+          Park_nationaler_Bedeutung,
+          naturnaher_Landschaftsraum
         ),
         Metropolitanraum,
         Agglomeration
@@ -201,15 +204,28 @@ VERSION "2023-10-18"  =
       /** Name der Flaeche
        */
       Objektname : TEXT*150;
-      /** Kapitel vom Richtplantext zu dem die Karte gehört.
-       */
-      Richtplantext : TEXT*300;
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        Bodenaufwertungsflaeche,
+        Deponie,
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
       /** Kategorie der Abstimmung
        */
       Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20231018.Abstimmungskategorie;
       /** Flaechengeometrie der ueberlagernden Flaeche
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Kapitel vom Richtplantext zu dem die Karte gehört.
+       */
+      Richtplantext : TEXT*300;
       /** Namen der betroffenen Gemeinden
        */
       Gemeindenamen : TEXT*255;
@@ -247,15 +263,25 @@ VERSION "2023-10-18"  =
     /** Linien der Detailkarten
      */
     CLASS Linie =
-      /** Name der Linie
-       */
-      Objektname : MTEXT*150;
-      /** Kategorie der Abstimmung
-       */
-      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20231018.Abstimmungskategorie;
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        Bodenaufwertungsflaeche,
+        Deoponie,
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
       /** Linienengeometrie der ueberlagernden Linie
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20231018.Abstimmungskategorie;
       /** Jahr der Anpassung
        */
       Richtplananpassung : INTERLIS.GregorianYear;
@@ -288,11 +314,30 @@ VERSION "2023-10-18"  =
       /** Stand der Planung
        */
       Status : SO_ARP_Richtplan_Publikation_20231018.Status;
+      /** Name der Linie
+       */
+      Objektname : TEXT*150;
     END Linie;
 
     /** Punkte der Detailkarten
      */
     CLASS Punkt =
+      /** Name des Punktes
+       */
+      Objektname : TEXT*150;
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        Bodenaufwertungsflaeche,
+        Deponie,
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
       /** Status des Punktes
        */
       Status : MANDATORY SO_ARP_Richtplan_Publikation_20231018.Status;
@@ -364,6 +409,7 @@ VERSION "2023-10-18"  =
           Wohnen_oeffentliche_Bauten,
           Industrie_Arbeiten
         ),
+        Strasse,
         Reservezone
       );
       /** Flaechengeometrie der Grundnutzung
@@ -518,10 +564,17 @@ VERSION "2023-10-18"  =
           Halbanschluss
         ),
         oeffentliche_Bauten,
+        Deponie,
+        Windenergie,
         Umstrukturierungsgebiet,
         Einkaufszentrum,
         Bahnhofgebiet,
         Arbeitszone,
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
         UNESCO_Weltkulturerbe,
         Ortsbild,
         Freizeit_Sport_Anlage,
