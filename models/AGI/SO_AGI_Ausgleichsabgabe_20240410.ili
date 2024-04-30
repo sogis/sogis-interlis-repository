@@ -36,8 +36,7 @@ VERSION "2024-04-10"  =
         N140_Kernzone,
         N141_Zentrumszone,
         N142_Erhaltungszone,
-        N150_Zone_fuer_oeffentliche_Bauten,
-        N151_Zone_fuer_oeffentliche_Anlagen,
+        N150_Zone_fuer_oeffentliche_Bauten_und_Anlagen,
         N160_Gruen_und_Freihaltezone_innerhalb_Bauzone,
         N161_kommunale_Uferschutzzone_innerhalb_Bauzone,
         N162_Landwirtschaftliche_Kernzone,
@@ -74,10 +73,29 @@ VERSION "2024-04-10"  =
         N499_weitere_Bauzonen_nach_Art18_RPG_ausserhalb_Bauzonen
       );
 
+    STRUCTURE Publikation_Amtsblatt =
+      Amtsblatt : BOOLEAN;
+      Datum_Publikation : INTERLIS.XMLDate;
+    END Publikation_Amtsblatt;
+
+    STRUCTURE Verfuegung_Status =
+      Status : (
+        Verfuegung,
+        Beschwerde,
+        erledigt
+      );
+      Datum_Verfuegung : INTERLIS.XMLDate;
+    END Verfuegung_Status;
+
+    STRUCTURE Rechnung =
+      Rechnung_gestellt : BOOLEAN;
+      Datum_Rechnung : INTERLIS.XMLDate;
+    END Rechnung;
+
     /** Erfassung/Anpassung der Ausgleichsabgaben.
      * Diese werden notwendig, wenn durch raumplanerische Massnahmen nach eidgenössischem und kantonalem Recht erhebliche Vor- und Nachteile entstehen.
      */
-    CLASS Anpassung =
+    CLASS Ausgleichsabgabe =
       /** alter Zonentyp
        */
       Zone_alt : Typ_Kanton_Grundnutzung;
@@ -87,9 +105,18 @@ VERSION "2024-04-10"  =
       /** Fläche in m2
        */
       Flaeche_m2 : 0.00 .. 9999999.00;
-      /** Datum
+      /** Erfassungsdatum
        */
       Erfassungsdatum : INTERLIS.XMLDate;
+      /** Publikation des Amtsblattes
+       */
+      Publikation : Publikation_Amtsblatt;
+      /** Status der Verfügung
+       */      
+      Verfuegung : Verfuegung_Status;
+      /** Meldung Fälligkeit
+       */      
+      Meldung_Faelligkeit : INTERLIS.XMLDate;
       /** Status der Ausgleichsabgabe
        */
       Status : (
@@ -99,23 +126,20 @@ VERSION "2024-04-10"  =
         Verfuegung_erlassen,
         Planung_in_Rechtskraft
       );
-      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-      /** Auslöser der Fälligkeit
+      /** Rechnung / Verfügung
+       */      
+      Rechnung_Verfuegung : Rechnung;
+      /** Zahlungsdatum
        */
-      Ausloeser_Faelligkeit : (
-        Baubewilligung,
-        Verkauf_Schenkung
-      );
+      Bezahlt : INTERLIS.XMLDate;
       /** Nummer der Regierungsratsbeschlusses
        */
       RRB_Nr : TEXT*20;
-      /** Beschreibung des Mangels
+      /** Bemerkung
        */
       Bemerkung : TEXT*400;
-      /** Datum der Bezahlung
-       */
-      Bezahlt : INTERLIS.XMLDate;
-    END Anpassung;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Ausgleichsabgabe;
 
   END Ausgleichsabgaben;
 
