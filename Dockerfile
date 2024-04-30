@@ -18,6 +18,7 @@ COPY models/AMB /opt/repository/AMB
 COPY models/ARP /opt/repository/ARP 
 COPY models/AVT /opt/repository/AVT 
 COPY models/AWJF /opt/repository/AWJF
+COPY models/DSBJD /opt/repository/DSBJD
 COPY models/Gemeinden /opt/repository/Gemeinden
 COPY models/SGV /opt/repository/SGV
 COPY models/ADA /opt/repository/ADA
