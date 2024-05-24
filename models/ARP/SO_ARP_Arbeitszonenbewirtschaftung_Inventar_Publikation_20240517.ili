@@ -1,0 +1,136 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-05-17 | al  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_20240517.uml
+MODEL SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517 (de)
+AT "https://agi.so.ch"
+VERSION "2022-11-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück, welches in der Arbeitszone liegt. Folgende Daten werden hier für verwendet amtlichen Vermessung, Nutzungsplanung, Bauzonenstatistik und die erfassten Bemerkungen der Arbeitszonenbewirtschaftung.
+   */
+  TOPIC Arbeitszonenbewirtschaftung_Inventar =
+
+    DOMAIN
+
+      Typ_Kt_Grundnutzung = (
+        !!@ ili2db.dispName="Zone für publikumsintensive Anlagen"
+        N134_Zone_fuer_publikumsintensive_Anlagen,
+        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 4 G und grösser"
+        N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser,
+        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 3 G"
+        N132_Gewerbezone_mit_Wohnen_Mischzone_3_G,
+        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 2 G"
+        N131_Gewerbezone_mit_Wohnen_Mischzone_2_G,
+        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone"
+        N130_Gewerbezone_mit_Wohnen_Mischzone,
+        !!@ ili2db.dispName=Arbeitszone
+        N122_Arbeitszone,
+        !!@ ili2db.dispName=Industriezone
+        N121_Industriezon,
+        !!@ ili2db.dispName="Gewerbezone ohne Wohnen"
+        N120_Gewerbezone_ohne_Wohnen
+      );
+
+    STRUCTURE Grundnutzung =
+      Typ_Kt : Typ_Kt_Grundnutzung;
+      /** Fläche der Grundnutzung auf dem Grundstück
+       */
+      Flaeche : 0 .. 9999999999;
+    END Grundnutzung;
+
+    /** Meldungen der SGV abgeleitet aus eCH-0132.
+     */
+    CLASS Arbeitszonenbewirtschaftung_Inventar =
+      /** Geometrie des Grundstücks (inkl. Baurecht)
+       */
+      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Ist das Grundstück bebaut? Ja/Nein
+       */
+      Bebaut : MANDATORY BOOLEAN;
+      /** ?
+       */
+      Potenzial : MANDATORY BOOLEAN;
+      /** ?
+       */
+      In_Planung : MANDATORY BOOLEAN;
+      Unternutzte_Arbeiszone : MANDATORY BOOLEAN;
+      /** Arbeitszone mit Mietfläche?
+       */
+      Mietflaeche : MANDATORY BOOLEAN;
+      Erweiterbar_Nachbargrundstueck : MANDATORY MTEXT;
+      Gebunden : MANDATORY BOOLEAN;
+      Zonierung_kontrollieren : MANDATORY BOOLEAN;
+      /** Postalische Adresse des Gebäudes. Zusammengesetzt aus einzelnen Werten (Strasse Nummer, PLZ Ortschaft).
+       */
+      Bemerkung : TEXT*1000;
+      Watch_List : MANDATORY BOOLEAN;
+      /** Zeitpunkt des Beginns der Versicherung
+       */
+      Watchlist_Grund : (
+        Veraenderung_absehbar,
+        Altersgruende,
+        unbekannte_Nutzung,
+        nicht_rentabel
+      );
+      /** Datum der Erfassung
+       */
+      Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
+      Watchlist_Objekttyp : TEXT*20;
+      /** Darf öffentlich für die Förderung des Wirtschaftsstandortes Kanton Solothurn publiziert werden.
+       */
+      publizieren : MANDATORY BOOLEAN;
+      /** Dossier zum Objekt
+       */
+      Dossier : INTERLIS.URI;
+      /** Grundstücknummer
+       */
+      Grundstuecknummer : MANDATORY TEXT*15;
+      /** Name des Grundbuchs (= Grundbuchkreis)
+       */
+      Grundbuch : MANDATORY TEXT*255;
+      /** Name der politischen Gemeinde
+       */
+      Gemeinde : MANDATORY TEXT*255;
+      /** Eidgenössischer Grundstücksidentifikator
+       */
+      EGRID : TEXT*14;
+      /** Fläche des Grundstückes in m2
+       */
+      Grundstueckflaeche : MANDATORY 0 .. 9999999999;
+      /** Link zur Eigentümerabfrage
+       */
+      Eigentuemer : INTERLIS.URI;
+      Region : TEXT*255;
+      Nutzungsgrad : (
+        !!@ ili2db.dispName="teilgenutzt 10-30%"
+        teilgenutzt_zwischen_10_30Prozent,
+        !!@ ili2db.dispName="ungenutzt  <10%"
+        ungenutzt_weniger_10Prozent,
+        /** genutzt > 30%
+         */
+        !!@ ili2db.dispName="genutzt > 30%"
+        genutzt_mehr_als_30Prozent
+      );
+      Zonenreglement : INTERLIS.URI;
+      Gestaltungsplan : INTERLIS.URI;
+      Gestaltungsplanpflicht : BOOLEAN;
+      Bauzonenstatistik : (
+        unbebaut,
+        !!@ ili2db.dispName="teilweise bebaut"
+        teilweise_bebaut,
+        bebaut
+      );
+      !!@ ili2db.mapping=JSON
+      Grundnutzung : BAG {0..*} OF SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.Arbeitszonenbewirtschaftung_Inventar.Grundnutzung;
+    END Arbeitszonenbewirtschaftung_Inventar;
+
+  END Arbeitszonenbewirtschaftung_Inventar;
+
+END SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.

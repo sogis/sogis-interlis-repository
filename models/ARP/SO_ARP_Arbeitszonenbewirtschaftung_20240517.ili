@@ -1,0 +1,82 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-05-17 | al  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_20240517.uml
+MODEL SO_ARP_Arbeitszonenbewirtschaftung_20240517 (de)
+AT "https://agi.so.ch"
+VERSION "2022-11-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Für die Inventarisierung der Arbeitszonen werden verschiedene Daten erhoben. Die Daten werden durch eine Punktgeometrie in ein Grundstück erfasst. Die erfassten Inhalte gelten jeweils für das gesamte Grundstück.
+   */
+  TOPIC Bemerkungen =
+
+    /** Meldungen der SGV abgeleitet aus eCH-0132.
+     */
+    CLASS Bemerkung =
+      /** Punktgeometrie in eimem Grundstück
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Ist das Grundstück bebaut? Ja/Nein
+       */
+      Bebaut : MANDATORY BOOLEAN;
+      /** ?
+       */
+      Potenzial : MANDATORY BOOLEAN;
+      /** ?
+       */
+      In_Planung : MANDATORY BOOLEAN;
+      Unternutzte_Arbeiszone : MANDATORY BOOLEAN;
+      /** Arbeitszone mit Mietfläche?
+       */
+      Mietflaeche : MANDATORY BOOLEAN;
+      Erweiterbar_Nachbargrundstueck : MANDATORY MTEXT;
+      Gebunden : MANDATORY BOOLEAN;
+      Zonierung_kontrollieren : MANDATORY BOOLEAN;
+      /** Postalische Adresse des Gebäudes. Zusammengesetzt aus einzelnen Werten (Strasse Nummer, PLZ Ortschaft).
+       */
+      Bemerkung : TEXT*1000;
+      Watch_List : MANDATORY BOOLEAN;
+      /** Zeitpunkt des Beginns der Versicherung
+       */
+      Watchlist_Grund : (
+        Veraenderung_absehbar,
+        Altersgruende,
+        unbekannte_Nutzung,
+        nicht_rentabel
+      );
+      /** Datum der Erfassung
+       */
+      Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
+      Watchlist_Objekttyp : TEXT*20;
+      /** Darf öffentlich für die Förderung des Wirtschaftsstandortes Kanton Solothurn publiziert werden.
+       */
+      publizieren : MANDATORY BOOLEAN;
+      /** Dossier zum Objekt
+       */
+      Dossier : INTERLIS.URI;
+    END Bemerkung;
+
+  END Bemerkungen;
+
+  /** Übersicht der Regionen
+   */
+  TOPIC Regionen =
+
+    CLASS Region =
+      Name : TEXT*100;
+      Adresse : TEXT*200;
+      Webseite : INTERLIS.URI;
+      Ansprechperson : TEXT*100;
+      Geometrie : GeometryCHLV95_V1.Area;
+    END Region;
+
+  END Regionen;
+
+END SO_ARP_Arbeitszonenbewirtschaftung_20240517.
