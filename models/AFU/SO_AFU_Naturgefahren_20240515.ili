@@ -11,7 +11,7 @@ INTERLIS 2.3;
 */
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AFU_Naturgefahren_20240515 (de) 
-  AT "http://geo.so.ch/models/AFU" VERSION "2024-05-27" =
+  AT "http://geo.so.ch/models/AFU" VERSION "2024-05-29" =
 
   IMPORTS UNQUALIFIED Units, Time, CoordSys;
   IMPORTS GeometryCHLV95_V1;
@@ -97,7 +97,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ ilivalid.msg = "Es muss mindestens ein Auftrag erfasst sein"  
       SET CONSTRAINT INTERLIS.objectCount(ALL) > 0;
       !!@ name = "CheckAuftragKennungen"
-      !!@ ilivalid.msg = "Es gibt mehrere identische Auftrags-Kennungen."  
+      !!@ ilivalid.msg = "Es gibt mehrere identische Auftragsbezeichnungen (Attribut Kennung)."  
       UNIQUE Kennung;
     END Auftrag;
 
@@ -145,7 +145,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       Geometrie : MANDATORY Einzelflaeche;
       /** Beurteilung Teilprozess Überschwemmung statisch */
       w_Ueberschwemmung_statisch : MANDATORY Beurteilungsart;
-      /** Beurteilung Teilprozess Überschwemmung dynmisch */
+      /** Beurteilung Teilprozess Überschwemmung dynamisch */
       w_Ueberschwemmung_dynamisch : MANDATORY Beurteilungsart;
       /** Beurteilung Teilprozess Übermurung */
       w_Uebermurung : MANDATORY Beurteilungsart;
@@ -227,7 +227,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
         hangmure,
         permanente_rutschung,
         stein_blockschlag,
-        fels_bergsturz,     
+        berg_felssturz,     
         einsturz,
         absenkung        
       ) ORDERED;
@@ -297,7 +297,6 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
         tief,
         /** sehr tief: Tiefe t > 40m */
         sehr_tief,
-        /** unbestimmt: Tiefe t <= 40 m */
         unbestimmt
       ) ORDERED;
      
@@ -322,13 +321,13 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
         mehr_als_100_cm
       ) ORDERED;
 
-      /** Standardwertebereich für Teilprozess Uebermurung: Fliessgeschwindigkeit [m/s] */
+      /** Wertebereich für Teilprozess Uebermurung: Fliessgeschwindigkeit [m/s] */
       wUebermurungFliessgeschwindigkeit = (
         bis_1_m_s,
         mehr_als_1_m_s
       ) ORDERED;
 
-      /** Standard Wertebereich für Prozess Ueberschwemmung: Fliessgeschwindigkeit [m/s] */
+      /** Wertebereich für Prozess Ueberschwemmung: Fliessgeschwindigkeit [m/s] */
       wUeberschwemmungFliessgeschwindigkeit = (
         von_0_bis_0_5_m_s,
         von_0_5_bis_1_m_s,
@@ -345,8 +344,8 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
         rot_stark_30,
         rot_stark_100,
         rot_stark_300,
-        rot_mittel_30,
 
+        rot_mittel_30,
         blau_mittel_30,
         blau_mittel_100,
         blau_mittel_300,
@@ -368,8 +367,8 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
         rot_stark_30,
         rot_stark_100,
         rot_stark_300,
-        rot_mittel_30,
-  
+
+        rot_mittel_30,  
         blau_mittel_100,
         blau_mittel_300,
                     
@@ -613,7 +612,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
     /** Befunde mit Kennwert (Fliesstiefe) für Prozess Ueberschwemmung -> Hauptprozess muss Wasser sein */
     CLASS KennwertUeberschwemmungFliesstiefe
     EXTENDS Kennwert_TextPQ =
-      /** Angabe der Fliestiefe. */
+      /** Angabe der Fliesstiefe. */
       h : MANDATORY wFliesstiefeUeberschwemmung;
       /** Angabe der Jährlichkeit (Standard-Jährlichkeit) */
       Jaehrlichkeit : MANDATORY JaehrlichkeitListe;
@@ -657,7 +656,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       PQ_Jaehrlichkeit_SteinBlockschlag_R -- {0..*} PQ_Jaehrlichkeit_SteinBlockschlag;
       Prozessquelle_R -<> {1} Prozessquelle;
       !!@ name = "CheckBefundSteinBlockschlag"  
-      !!@ ilivalid.msg = "Zugordneter Befund passt nicht zum Hauptprozess."
+      !!@ ilivalid.msg = "Zugeordneter Befund passt nicht zum Hauptprozess."
       MANDATORY CONSTRAINT Prozessquelle_R->Teilauftrag_R->Hauptprozess == #sturz;
     END PQ_Jaehrlichkeit_SteinBlockschlag__Prozessquelle;
 
@@ -665,7 +664,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       PQ_Jaehrlichkeit_SpontaneRutschung_R -- {0..*} PQ_Jaehrlichkeit_SpontaneRutschung;
       Prozessquelle_R -<> {1} Prozessquelle;
       !!@ name = "CheckBefundSpontaneRutschung"  
-      !!@ ilivalid.msg = "Zugordneter Befund passt nicht zum Hauptprozess."
+      !!@ ilivalid.msg = "Zugeordneter Befund passt nicht zum Hauptprozess."
       MANDATORY CONSTRAINT Prozessquelle_R->Teilauftrag_R->Hauptprozess == #rutschung;
     END PQ_Jaehrlichkeit_SpontaneRutschung__Prozessquelle;
 
@@ -673,7 +672,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       PQ_Jaehrlichkeit_Hangmure_R -- {0..*} PQ_Jaehrlichkeit_Hangmure;
       Prozessquelle_R -<> {1} Prozessquelle;
       !!@ name = "CheckBefundHangmure"  
-      !!@ ilivalid.msg = "Zugordneter Befund passt nicht zum Hauptprozess."
+      !!@ ilivalid.msg = "Zugeordneter Befund passt nicht zum Hauptprozess."
       MANDATORY CONSTRAINT Prozessquelle_R->Teilauftrag_R->Hauptprozess == #rutschung;
     END PQ_Jaehrlichkeit_Hangmure__Prozessquelle;
 
@@ -681,7 +680,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       PQ_Jaehrlichkeit_BergFelssturz_R -- {0..*} PQ_Jaehrlichkeit_BergFelssturz;
       Prozessquelle_R -<> {1} Prozessquelle;
       !!@ name = "CheckBefundBergFelssturz"  
-      !!@ ilivalid.msg = "Zugordneter Befund passt nicht zum Hauptprozess."
+      !!@ ilivalid.msg = "Zugeordneter Befund passt nicht zum Hauptprozess."
       MANDATORY CONSTRAINT Prozessquelle_R->Teilauftrag_R->Hauptprozess == #sturz;
     END PQ_Jaehrlichkeit_BergFelssturz__Prozessquelle;
 
@@ -779,6 +778,18 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ name = "CheckBefundBergFelssturzKeineUeberragung"
       !!@ ilivalid.msg = "Die Gesamtausdehnung der kleineren Jährlichkeit überragt diejenige der grösseren Jährlichkeit."
       SET CONSTRAINT NGK_SO_FunctionsExt.IsInsideAreaByCode(GeoW_FunctionsExt.GetInGroups(ALL, "PQ_Jaehrlichkeit_BergFelssturz_R->Prozessquelle_R"), "Geometrie" ,"IWCode");
+      !!@ name = "CheckBefundBergFelssturzJaehrlichkeit-30"
+      !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit 30 der Prozessquelle überein."
+      MANDATORY CONSTRAINT NOT(IWCode == #rot_stark_30) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit == 30);
+      !!@ name = "CheckBefundBergFelssturzJaehrlichkeit-100"
+      !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit 100 der Prozessquelle überein."
+      MANDATORY CONSTRAINT NOT(IWCode == #rot_stark_100) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit == 100);
+      !!@ name = "CheckBefundBergFelssturzJaehrlichkeit-300"
+      !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit 300 der Prozessquelle überein."
+      MANDATORY CONSTRAINT NOT(IWCode == #rot_stark_300) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit == 300);
+      !!@ name = "CheckBefundBergFelssturzJaehrlichkeit-Restgef"
+      !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit Restgefährdung der Prozessquelle überein."
+      MANDATORY CONSTRAINT NOT(IWCode == #restgefaehrdung_stark) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit > 300);
       !!@ name = "CheckBefundBergFelssturzImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(PQ_Jaehrlichkeit_BergFelssturz_R->Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
@@ -845,6 +856,9 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ name = "CheckBefundUfererosionImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
+      !!@ name = "CheckBefundUfererosionFlaechenGroesse"
+      !!@ ilivalid.msg = "Der Befund muss grösser als 5m2 sein."
+      MANDATORY CONSTRAINT GeoW_FunctionsExt.GetArea(THIS, "Geometrie") > 5; 
     END;
   
     CONSTRAINTS OF BefundAbsenkung =
@@ -1020,7 +1034,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ ilivalid.msg = "Ungültige Überlappung von Befundsflächen mit gleicher Prozessquelle und Restgefährdung."
       SET CONSTRAINT WHERE IWCode == #restgefaehrdung_stark OR IWCode == #restgefaehrdung_mittel OR IWCode == #restgefaehrdung_schwach : INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
     END;
-     
+
     CONSTRAINTS OF BefundJaehrlichkeit =
       !!@ name = "CheckBefundBefundJaehrlichkeitHauptprozess"
       !!@ ilivalid.msg = "Der Befund Jaehrlichkeit muss einem Teilauftrag des Hauptprozess-Typs 'Sturz' zugeordnet sein"  
