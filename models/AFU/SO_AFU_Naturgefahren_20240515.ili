@@ -20,7 +20,10 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
   DOMAIN
 
     /** Angabe der Jährlichkeit für die Abklärung einer freien Jährlichkeit mittels Klasse BefundeJaehrlichkeit. */
-    Jaehrlichkeit = 0 .. 9999999;
+    JaehrlichkeitFreiBefund = 1 .. 9999999;
+
+    /** Angabe der Prozessquellen-Jährlichkeit in den PQ_Jaehrlichkeit_XYZ Klassen. -1 für Restgefährdung */
+    JaehrlichkeitFreiPQ = -1 .. 9999999;
 
     /** Angabe für die Jährlichkeit der Restgefährdung */
     JaehrlichkeitRestgefaehrdung = 300 .. 9999999;
@@ -126,7 +129,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       Wasserkennwerte: MANDATORY BOOLEAN;
       /** Für Ausnahmefall der Abklärung einer freien Jährlichkeit mittels Klasse BefundeJaehrlichkeit ist hier
       die abzuklärende Jährlichkeit gesetzt. Im Normalfall NULL. */
-      Jaehrlichkeit : Jaehrlichkeit;
+      Jaehrlichkeit : JaehrlichkeitFreiBefund;
     END Teilauftrag;
 
     /** 
@@ -434,7 +437,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
      */
     CLASS PQ_Jaehrlichkeit_SteinBlockschlag =
       /** Jährlichkeit */
-      Jaehrlichkeit : MANDATORY Jaehrlichkeit;
+      Jaehrlichkeit : MANDATORY JaehrlichkeitFreiPQ;
       /** Fläche */
       Polygon : MANDATORY Einzelflaeche;
       /** Beschreibung der Geologie */
@@ -449,7 +452,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
      */
     CLASS PQ_Jaehrlichkeit_BergFelssturz =
       /** Jährlichkeit */
-      Jaehrlichkeit : MANDATORY Jaehrlichkeit;
+      Jaehrlichkeit : MANDATORY JaehrlichkeitFreiPQ;
       /** Fläche */
       Polygon : MANDATORY Einzelflaeche;
       /** Beschreibung der Geologie */
@@ -463,7 +466,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
     /** Abstrakte Klasse für PQ_Jaehrlichkeit Spontane Rutschung und Hangmure */	 
     CLASS PQ_Jaehrlichkeit_Rutsch_Mure_Base (ABSTRACT) = 
       /** Jährlichkeit */
-      Jaehrlichkeit : MANDATORY Jaehrlichkeit;
+      Jaehrlichkeit : MANDATORY JaehrlichkeitFreiPQ;
       /** Fläche */
       Polygon : MANDATORY Einzelflaeche;
       /** Beschreibung Lockermaterial */
@@ -602,7 +605,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
     CLASS BefundJaehrlichkeit
     EXTENDS Befund_TextPQ =
       /** Angabe der freien Jährlichkeit */
-      Jaehrlichkeit : MANDATORY Jaehrlichkeit; 
+      Jaehrlichkeit : MANDATORY JaehrlichkeitFreiBefund; 
       /** Angabe der Intensität */
       Intensitaet : MANDATORY Intensitaet;  
     	/** Angabe vom Teilprozess */
@@ -750,7 +753,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       MANDATORY CONSTRAINT NOT((IWCode == #rot_stark_300) OR (IWCode == #blau_mittel_300) OR (IWCode == #gelb_schwach_300)) OR (PQ_Jaehrlichkeit_SteinBlockschlag_R->Jaehrlichkeit == 300);
       !!@ name = "CheckBefundSteinBlockschlagJaehrlichkeit-Restgef"
       !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit Restgefährdung der Prozessquelle überein."
-      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_SteinBlockschlag_R->Jaehrlichkeit > 300);
+      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_SteinBlockschlag_R->Jaehrlichkeit == -1);
       !!@ name = "CheckBefundSteinBlockschlagImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."  
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(PQ_Jaehrlichkeit_SteinBlockschlag_R->Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
@@ -789,7 +792,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       MANDATORY CONSTRAINT NOT(IWCode == #rot_stark_300) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit == 300);
       !!@ name = "CheckBefundBergFelssturzJaehrlichkeit-Restgef"
       !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit Restgefährdung der Prozessquelle überein."
-      MANDATORY CONSTRAINT NOT(IWCode == #restgefaehrdung_stark) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit > 300);
+      MANDATORY CONSTRAINT NOT(IWCode == #restgefaehrdung_stark) OR (PQ_Jaehrlichkeit_BergFelssturz_R->Jaehrlichkeit == -1);
       !!@ name = "CheckBefundBergFelssturzImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(PQ_Jaehrlichkeit_BergFelssturz_R->Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
@@ -828,7 +831,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       MANDATORY CONSTRAINT NOT((IWCode == #rot_stark_300) OR (IWCode == #blau_mittel_300) OR (IWCode == #gelb_mittel_300) OR (IWCode == #gelb_schwach_300)) OR (PQ_Jaehrlichkeit_Hangmure_R->Jaehrlichkeit == 300); 
       !!@ name = "CheckBefundHangmureJaehrlichkeit-Restgef"
       !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit Restgefährdung der Prozessquelle überein."
-      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_Hangmure_R->Jaehrlichkeit > 300); 
+      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_Hangmure_R->Jaehrlichkeit == -1); 
       !!@ name = "CheckBefundHangmureImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(PQ_Jaehrlichkeit_Hangmure_R->Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
@@ -933,7 +936,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       MANDATORY CONSTRAINT NOT((IWCode == #rot_stark_300) OR (IWCode == #blau_mittel_300) OR (IWCode == #gelb_mittel_300) OR (IWCode == #gelb_schwach_300)) OR (PQ_Jaehrlichkeit_SpontaneRutschung_R->Jaehrlichkeit == 300);
       !!@ name = "CheckBefundHangmureJaehrlichkeit-Restgef"
       !!@ ilivalid.msg = "Die Jährlichkeit stimmt nicht mit der Jährlichkeit Restgefährdung der Prozessquelle überein."
-      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_SpontaneRutschung_R->Jaehrlichkeit > 300); 
+      MANDATORY CONSTRAINT NOT((IWCode == #restgefaehrdung_stark) OR (IWCode == #restgefaehrdung_mittel) OR (IWCode == #restgefaehrdung_schwach)) OR (PQ_Jaehrlichkeit_SpontaneRutschung_R->Jaehrlichkeit == -1); 
       !!@ name = "CheckBefundSpontaneRutschungImAbklPerimeter"
       !!@ ilivalid.msg = "Befund liegt nicht innerhalb des Abklärungsperimeters."
       MANDATORY CONSTRAINT (GeoW_FunctionsExt.IsInside(GeoW_FunctionsExt.Union(PQ_Jaehrlichkeit_SpontaneRutschung_R->Prozessquelle_R->Teilauftrag_R->Abklaerungsperimeter_R, "Geometrie"), UNDEFINED, THIS, "Geometrie"));
