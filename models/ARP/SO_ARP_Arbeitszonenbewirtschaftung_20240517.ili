@@ -10,71 +10,100 @@ INTERLIS 2.3;
 !!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_20240517.uml
 MODEL SO_ARP_Arbeitszonenbewirtschaftung_20240517 (de)
 AT "https://agi.so.ch"
-VERSION "2022-11-09"  =
+VERSION "2024-05-17"  =
   IMPORTS GeometryCHLV95_V1;
 
-  /** Für die Inventarisierung der Arbeitszonen werden verschiedene Daten erhoben. Die Daten werden durch eine Punktgeometrie in ein Grundstück erfasst. Die erfassten Inhalte gelten jeweils für das gesamte Grundstück.
+  /** Für die Inventarisierung der Arbeitszonen werden verschiedene Daten erhoben. Die Daten werden durch eine Punktgeometrie für ein Grundstück erfasst. Die erfassten Inhalte gelten jeweils für das gesamte Grundstück.
    */
-  TOPIC Bemerkungen =
+  TOPIC Bewertung =
 
-    /** Meldungen der SGV abgeleitet aus eCH-0132.
+    /** Bewertung des Grundstücks
      */
-    CLASS Bemerkung =
-      /** Punktgeometrie in eimem Grundstück
+    CLASS Bewertung =
+      /** Punktgeometrie in einem Grundstück
        */
       Geometrie : GeometryCHLV95_V1.Coord2;
-      /** Ist das Grundstück bebaut? Ja/Nein
+      /** Manuelle Erhebung. Ist das Grundstück bebaut oder unbebaut?
        */
       Bebaut : BOOLEAN;
-      /** ?
+      /** Hat das Grundstück Entwicklungspotenzial?
        */
       Potenzial : BOOLEAN;
-      /** ?
+      /** Ist das Grundstück in einer laufenden Planung involviert?
        */
       In_Planung : BOOLEAN;
-      Unternutzte_Arbeiszone : BOOLEAN;
-      /** Arbeitszone mit Mietfläche?
+      /** Es wird vermutet, dass das Grundstück unternutzt ist.
        */
-      Mietflaeche : BOOLEAN;
-      Erweiterbar_Nachbargrundstueck : MANDATORY MTEXT;
+      Unternutzte_Arbeiszone : BOOLEAN;
+      /** Sind Objekte auf dem Grundstück vermietet?
+       */
+      Mietobjekt : BOOLEAN;
+      /** Fläche ist längerfristig gebunden bzw. kann nicht verwendet werden.
+       */
       Gebunden : BOOLEAN;
+      /** Bei diesem Grundstück muss Zone der Grundnutzung überprüft werden?
+       */
       Zonierung_kontrollieren : BOOLEAN;
-      /** Postalische Adresse des Gebäudes. Zusammengesetzt aus einzelnen Werten (Strasse Nummer, PLZ Ortschaft).
+      /** Weitere Bemerkungen
        */
       Bemerkung : TEXT*1000;
-      Watch_List : BOOLEAN;
-      /** Zeitpunkt des Beginns der Versicherung
+      /** Fläche mit potenzieller Veränderung. Merkliste.
+       */
+      Watchlist : BOOLEAN;
+      /** Grund warum die Fläche in die Merkliste aufgenommen wird.
        */
       Watchlist_Grund : (
+        !!@ ili2db.dispName="Veränderung absehbar"
         Veraenderung_absehbar,
+        !!@ ili2db.dispName=Altersgründe
         Altersgruende,
+        !!@ ili2db.dispName="Unbekannte Nutzung"
         unbekannte_Nutzung,
+        !!@ ili2db.dispName="Rentabilität fragwürdig"
         nicht_rentabel
       );
-      /** Datum der Erfassung
+      /** Objekttyp gemäss Kategorien der Wirtschaftsförderung
        */
-      Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
-      Watchlist_Objekttyp : TEXT*20;
+      Watchlist_Objekttyp : TEXT*50;
       /** Darf öffentlich für die Förderung des Wirtschaftsstandortes Kanton Solothurn publiziert werden.
        */
-      publizieren : BOOLEAN;
+      publizieren_oeffentlich : BOOLEAN;
       /** Dossier zum Objekt
        */
       Dossier : INTERLIS.URI;
-    END Bemerkung;
+      /** Falls Objekte vermietet sind, wie viel m2 der Grundstückfläche?
+       */
+      Mietflaeche : 0 .. 9999999999;
+      /** Fläche ist mit angrenzenden Grundstücken potenziell erweiterbar?
+       */
+      Erweiterbar_Nachbargrundstueck : BOOLEAN;
+      /** Schätzung der verfügbaren zusammenhängender Fläche aller benachbarten Grundstücken in m2.
+       */
+      Flaeche_erweiterbar : 0 .. 9999999999;
+    END Bewertung;
 
-  END Bemerkungen;
+  END Bewertung;
 
-  /** Übersicht der Regionen
+  /** Übersicht der Regionen der Arbeitszonenbewirtschaftung und Wirtschaftsförderung.
    */
   TOPIC Regionen =
 
+    /** Übersicht der Regionen der Arbeitszonenbewirtschaftung und Wirtschaftsförderung.
+     */
     CLASS Region =
-      Name : TEXT*100;
-      Adresse : TEXT*200;
-      Webseite : INTERLIS.URI;
+      Name : MANDATORY TEXT*100;
+      /** Die Regionen der Arbeitszonenbewirtschaftung und Wirtschaftsförderung sind nicht immer identisch.
+       */
+      Typ : MANDATORY (
+        !!@ ili2db.dispName=Wirtschaftsförderung
+        Wirtschaftsfoerderung,
+        Arbeitszonenbewirtschaftung
+      );
+      Kontaktangaben : TEXT*200;
+      /** Person die Zuständig ist.
+       */
       Ansprechperson : TEXT*100;
-      Geometrie : GeometryCHLV95_V1.Area;
+      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
     END Region;
 
   END Regionen;

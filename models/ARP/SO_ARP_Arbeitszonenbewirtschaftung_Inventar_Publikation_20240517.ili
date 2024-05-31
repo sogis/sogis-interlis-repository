@@ -7,10 +7,10 @@ INTERLIS 2.3;
  *  !!==============================================================================
  */
 !!@ technicalContact=mailto:agi@bd.so.ch
-!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_20240517.uml
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.uml
 MODEL SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517 (de)
 AT "https://agi.so.ch"
-VERSION "2022-11-09"  =
+VERSION "2024-05-17"  =
   IMPORTS GeometryCHLV95_V1;
 
   /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück, welches in der Arbeitszone liegt. Folgende Daten werden hier für verwendet amtlichen Vermessung, Nutzungsplanung, Bauzonenstatistik und die erfassten Bemerkungen der Arbeitszonenbewirtschaftung.
@@ -39,10 +39,15 @@ VERSION "2022-11-09"  =
       );
 
     STRUCTURE Grundnutzung =
-      Typ_Kt : Typ_Kt_Grundnutzung;
+      /** Bezeichnung Kanton mit Code
+       */
+      Bezeichnung_Kanton : Typ_Kt_Grundnutzung;
       /** Fläche der Grundnutzung auf dem Grundstück
        */
       Flaeche : 0 .. 9999999999;
+      /** Bezeichnung Gemeinde
+       */
+      Bezeichnung_Gemeinde : TEXT*20;
     END Grundnutzung;
 
     /** Meldungen der SGV abgeleitet aus eCH-0132.
@@ -51,45 +56,54 @@ VERSION "2022-11-09"  =
       /** Geometrie des Grundstücks (inkl. Baurecht)
        */
       Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
-      /** Ist das Grundstück bebaut? Ja/Nein
+      /** Manuelle Erhebung. Ist das Grundstück bebaut oder unbebaut?
        */
-      Bebaut : MANDATORY BOOLEAN;
-      /** ?
+      Bewertung_bebaut : MANDATORY BOOLEAN;
+      /** Hat das Grundstück Entwicklungspotenzial?
        */
-      Potenzial : MANDATORY BOOLEAN;
-      /** ?
+      Bewertung_potenzial : MANDATORY BOOLEAN;
+      /** Ist das Grundstück in einer laufenden Planung involviert?
        */
-      In_Planung : MANDATORY BOOLEAN;
-      Unternutzte_Arbeiszone : MANDATORY BOOLEAN;
-      /** Arbeitszone mit Mietfläche?
+      Bewertung_in_Planung : MANDATORY BOOLEAN;
+      /** Es wird vermutet, dass das Grundstück unternutzt ist.
        */
-      Mietflaeche : MANDATORY BOOLEAN;
-      Erweiterbar_Nachbargrundstueck : MANDATORY MTEXT;
-      Gebunden : MANDATORY BOOLEAN;
-      Zonierung_kontrollieren : MANDATORY BOOLEAN;
-      /** Postalische Adresse des Gebäudes. Zusammengesetzt aus einzelnen Werten (Strasse Nummer, PLZ Ortschaft).
+      Bewertung_unternutzte_Arbeiszone : MANDATORY BOOLEAN;
+      /** Sind Objekte auf dem Grundstück vermietet??
        */
-      Bemerkung : TEXT*1000;
-      Watch_List : MANDATORY BOOLEAN;
-      /** Zeitpunkt des Beginns der Versicherung
+      Bewertung_Mietflaeche : MANDATORY BOOLEAN;
+      /** Fläche ist mit angrenzenden Grundstücken potenziell erweiterbar?
        */
-      Watchlist_Grund : (
+      Bewertung_Erweiterbar_Nachbargrundstueck : MANDATORY BOOLEAN;
+      /** Fläche ist längerfristig gebunden bzw. kann nicht verwendet werden.
+       */
+      Bewertung_Gebunden : MANDATORY BOOLEAN;
+      /** Bei diesem Grundstück muss Zone der Grundnutzung überprüft werden?
+       */
+      Bewertung_Zonierung_kontrollieren : MANDATORY BOOLEAN;
+      /** Weitere Bemerkungen
+       */
+      Bewertung_Bemerkung : TEXT*1000;
+      /** Fläche mit potenzieller Veränderung. Merkliste.
+       */
+      Bewertung_Watchlist : MANDATORY BOOLEAN;
+      /** Grund warum die Fläche in die Merkliste aufgenommen wird.
+       */
+      Bewertung_Watchlist_Grund : (
         Veraenderung_absehbar,
         Altersgruende,
         unbekannte_Nutzung,
         nicht_rentabel
       );
-      /** Datum der Erfassung
+      /** Objekttyp gemäss Kategorien der Wirtschaftsförderung
        */
-      Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
-      Watchlist_Objekttyp : TEXT*20;
+      Bewertung_Watchlist_Objekttyp : TEXT*50;
       /** Darf öffentlich für die Förderung des Wirtschaftsstandortes Kanton Solothurn publiziert werden.
        */
-      publizieren : MANDATORY BOOLEAN;
+      Bewertung_publizieren_oeffentlich : MANDATORY BOOLEAN;
       /** Dossier zum Objekt
        */
-      Dossier : INTERLIS.URI;
-      /** Grundstücknummer
+      Bewertung_Dossier : INTERLIS.URI;
+      /** Nummer des Grundstücks
        */
       Grundstuecknummer : MANDATORY TEXT*15;
       /** Name des Grundbuchs (= Grundbuchkreis)
@@ -107,30 +121,65 @@ VERSION "2022-11-09"  =
       /** Link zur Eigentümerabfrage
        */
       Eigentuemer : INTERLIS.URI;
+      /** Name der Regionen der Arbeitszonenbewirtschaftung
+       */
       Region : TEXT*255;
+      /** Bauzonenstatistik (Berechnung aus amtliche Vermessung Grundstück und Bodenbedeckung "befestigte Flächen"). Einteilung in drei Kategorien: Genutzt BB>30%; Teilgenutzt BB10-30%; Ungenutzt BB<10%
+       */
       Nutzungsgrad : (
         !!@ ili2db.dispName="teilgenutzt 10-30%"
         teilgenutzt_zwischen_10_30Prozent,
-        !!@ ili2db.dispName="ungenutzt  <10%"
+        !!@ ili2db.dispName="ungenutzt <10%"
         ungenutzt_weniger_10Prozent,
         /** genutzt > 30%
          */
         !!@ ili2db.dispName="genutzt > 30%"
         genutzt_mehr_als_30Prozent
       );
+      /** Link zum Zonenreglement. Herkunft Nutzungsplanung
+       */
       Zonenreglement : INTERLIS.URI;
+      /** Link, falls ein Gestaltungsplan vorhanden ist. Herkunft Nutzungsplanung
+       */
       Gestaltungsplan : INTERLIS.URI;
+      /** Gestaltungsplanpflicht vorhanden? Herkunft Nutzungsplanung
+       */
       Gestaltungsplanpflicht : BOOLEAN;
+      /** bebaut, teilweise bebaut oder unbebaut
+       */
       Bauzonenstatistik : (
         unbebaut,
         !!@ ili2db.dispName="teilweise bebaut"
         teilweise_bebaut,
         bebaut
       );
+      /** Grundnutzung aus der Nutzungsplanung. Pro Grundstück können mehrere Typen vokommen
+       */
       !!@ ili2db.mapping=JSON
       Grundnutzung : BAG {0..*} OF SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.Arbeitszonenbewirtschaftung_Inventar.Grundnutzung;
+      /** Link zum Baureglement. Herkunft Nutzungsplanung
+       */
+      Baureglement : TEXT*20;
+      /** Falls Objekte vermietet sind, wie viel m2 der Grundstückfläche?
+       */
+      Mietflaeche : 0 .. 9999999999;
+      /** Schätzung der verfügbaren zusammenhängender Fläche aller benachbarten Grundstücken in m2.
+       */
+      Flaeche_erweiterbar : 0 .. 9999999999;
     END Arbeitszonenbewirtschaftung_Inventar;
 
   END Arbeitszonenbewirtschaftung_Inventar;
+
+  TOPIC Region =
+
+    CLASS Region =
+      Name : TEXT*100;
+      /** Person die zuständig ist.
+       */
+      Ansprechperson : TEXT*100;
+      Bewertung : INTERLIS.URI;
+    END Region;
+
+  END Region;
 
 END SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.
