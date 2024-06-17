@@ -156,6 +156,7 @@ VERSION "2024-06-06"  =
       Ausbezahlt: Leistungen, die bereits unter dem Jahr oder bei Jahresende ausbezahlt worden sind.
       In Bearbeitung: Leistungen, die manuell, aber noch nicht abschliessend, erfasst worden sind und nicht ausbezahlt und auch in keinem Brief vermerkt werden müssen.
       Intern Verrechnet: Leistungen von kantonsinternen Vereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen. 
+      Ausbezahlt an Dritte: Leistungen, die direkt an dritte (Rechnungen) bezahlt wurden, die nicht ausbezahlt, aber im Brief vermerkt werden müssen.
       Abgeltungslos: Leistungen von Nutzungsvereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen.
        */
       !!@ ili2db.dispName = "Abrechnung Status"
@@ -164,6 +165,7 @@ VERSION "2024-06-06"  =
         ausbezahlt,
         in_bearbeitung,
         intern_verrechnet,
+        ausbezahlt_an_dritte,
         abgeltungslos
       );
 
@@ -543,6 +545,9 @@ VERSION "2024-06-06"  =
       !!@ ili2db.dispName = "Auszahlungsjahr"
       Auszahlungsjahr : 1900 .. 2100;
       Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
       !!@ ili2db.dispName = "Aus altem System migriert"
       Migriert: BOOLEAN;
     END Abrechnung_per_Bewirtschafter;
@@ -572,9 +577,19 @@ VERSION "2024-06-06"  =
       /** Falls es sich um eine Anzahl Bäume handelt*/
       !!@ ili2db.dispName = "Anzahl Bäume"
       Anzahl_Baeume : MANDATORY 0 .. 100000;
+      !!@ ili2db.dispName = "Anzahl Bäume ab 40cm Ø"
+      Anzahl_Baeume_BaumAb40cmDurchmesser : 0 .. 1000;
+      !!@ ili2db.dispName = "Anzahl Bäume mit Erntepflicht"
+      Anzahl_Baeume_Erntepflicht : 0 .. 1000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Plus"
+      Anzahl_Baeume_OekoPlus : 0 .. 1000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Maxi"
+      Anzahl_Baeume_OekoMaxi : 0 .. 1000;
+      !!@ ili2db.dispName = "Betrag per Hektar"
+      Betrag_per_ha : MANDATORY 0.00 .. 2000.00 [Units.CHF];
       !!@ ili2db.dispName = "Total der Abgeltungen für die Fläche"
       Betrag_Flaeche : MANDATORY 0.00 .. 100000.00[Units.CHF];
-      !!@ ili2db.dispName = "Total der Abgeltungen für die Bäume total"
+      !!@ ili2db.dispName = "Total der Abgeltungen für die Bäume"
       Betrag_Baeume : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Total der pauschalen regulären Abgeltungen"
       Betrag_Pauschal_Regulaer : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
@@ -582,6 +597,16 @@ VERSION "2024-06-06"  =
       Betrag_Pauschal_Einmalig_Ausbezahlt : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Total der pauschalen einmaligen Abgeltungen (freigegeben)"
       Betrag_Pauschal_Einmalig_Freigegeben : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (freigegeben)"
+      Betrag_Freigegeben : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (ausbezahlt)"
+      Betrag_Ausbezahlt : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (ausbezahlt_an_dritte)"
+      Betrag_Ausbezahlt_An_Dritte : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (abgeltungslos)"
+      Betrag_Abgeltungslos : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (intern_verrechnet)"
+      Betrag_Intern_Verrechnet : -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Gesamtbetrag"
       Gesamtbetrag : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
       !!@ ili2db.dispName = "Jahr der Auszahlung"
@@ -593,10 +618,23 @@ VERSION "2024-06-06"  =
       !!@ ili2db.dispName = "Bei Wiese: Datum 1. Schnitt (Tag / Monat)"
       BewirtschaftAbmachung_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
       !!@ ili2db.dispName = "Bei Wiese: Mähen mit Messerbalken-Mähgerät"
-      BewirtschaftAbmachung_MesserbalkenMaehgeraet : MANDATORY BOOLEAN;
+      BewirtschaftAbmachung_MesserbalkenMaehgeraet : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Emden, dabei Bodenheu machen*/
+      BewirtschaftAbmachung_EmdenBodenheu : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Emden, wenn Bodenheu, dann nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
+      !!@ ili2db.dispName = "Rückzugstreifen"
+      BewirtschaftAbmachung_Rueckzugstreifen : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Herbstschnitt ab 20. September"
+      BewirtschaftAbmachung_Herbstschnitt : BOOLEAN;
       !!@ ili2db.dispName = "Bei Wiese: Herbstweide"
-      BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
+      BewirtschaftAbmachung_Herbstweide : BOOLEAN;
+      !!@ ili2db.dispName = "Alte Vereinbarungs-Nr"
+      Vereinbarungs_Nr_Alt : TEXT*50;
       Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
       !!@ ili2db.dispName = "Aus altem System migriert"
       Migriert: BOOLEAN;
     END Abrechnung_per_Vereinbarung;
@@ -628,6 +666,9 @@ VERSION "2024-06-06"  =
       Status_Abrechnung : MANDATORY Abrechnung_Status;
       Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
       Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
       !!@ ili2db.dispName = "Aus altem System migriert"
       Migriert: BOOLEAN;
       !!@ ili2db.dispName = "Einmalige / manuell Erfasste Leistung"
@@ -1138,23 +1179,23 @@ VERSION "2024-06-06"  =
       Zusatzdokument_Dateipfad : TEXT*255;
       /** Grundbeitrag Baum - Anzahl Bäume. Ansatz: 5 CHF pro Baum.
        */
-      !!@ ili2db.dispName = "Grundbeitrag Baum Anzahl Bäume"
+      !!@ ili2db.dispName = "Baum Anzahl"
       Grundbeitrag_Baum_Anzahl : MANDATORY 0 .. 1000;
       /** Grundbeitrag Baum Total in CHF.
        */
       !!@ ili2db.dispName = "Grundbeitrag Baum Total"
       Grundbeitrag_Baum_Total : MANDATORY 0.00 .. 5000.00 [Units.CHF];
-      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 15 CHF.
+      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 40 CHF.
        */
-      !!@ ili2db.dispName = "Bäume ab 40cm Ø Anzahl Bäume"
+      !!@ ili2db.dispName = "Bäume ab 40cm Ø Anzahl"
       Beitrag_BaumAb40cmDurchmesser_Anzahl : MANDATORY 0 .. 1000;
       /** Beitrag für Bäume ab 40cm Ø Totalbetrag in CHF.
        */
       !!@ ili2db.dispName = "Beitrag für Bäume ab 40cm Ø Totalbetrag"
-      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 15000.00 [Units.CHF];
+      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 40000.00 [Units.CHF];
       /** Beitrag für Erntepflicht - Anzahl. Ansatz: 10 CHF.
        */
-      !!@ ili2db.dispName = "Beitrag für Erntepflicht Anzahl"
+      !!@ ili2db.dispName = "Erntepflicht Anzahl"
       Beitrag_Erntepflicht_Anzahl : MANDATORY 0 .. 1000;
       /** Beitrag für Erntepflicht Total in CHF.
        */
@@ -1170,7 +1211,7 @@ VERSION "2024-06-06"  =
       Beitrag_OekoPlus_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
       /** Beitrag für Öko Maxi - Anzahl. Ansatz: 10 CHF.
        */
-      !!@ ili2db.dispName = "Öko Maxi Anzahl Bäume"
+      !!@ ili2db.dispName = "Öko Maxi Anzahl"
       Beitrag_OekoMaxi_Anzahl : MANDATORY 0 .. 1000;
       /** Beitrag Öko Maxi Total in CHF
        */
@@ -1201,14 +1242,14 @@ VERSION "2024-06-06"  =
        */
       !!@ ili2db.dispName = "Grundbeitrag Baum Total"
       Grundbeitrag_Baum_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
-      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 15 CHF.
+      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 40 CHF.
        */
       !!@ ili2db.dispName = "Bäume ab 40cm Ø Anzahl Bäume"
       Beitrag_BaumAb40cmDurchmesser_Anzahl : MANDATORY 0 .. 1000;
       /** Beitrag für Bäume ab 40cm Ø Totalbetrag in CHF.
        */
       !!@ ili2db.dispName = "Beitrag für Bäume ab 40cm Ø Totalbetrag"
-      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 15000.00 [Units.CHF];
+      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 40000.00 [Units.CHF];
       /** Beitrag für Erntepflicht - Anzahl. Ansatz: 10 CHF.
        */
       !!@ ili2db.dispName = "Beitrag für Erntepflicht Anzahl"
@@ -1568,6 +1609,10 @@ VERSION "2024-06-06"  =
        */
       !!@ ili2db.dispName = "Emden, Bodenheu"
       BewirtschaftAbmachung_EmdenBodenheu : MANDATORY BOOLEAN;
+      /** EmdenBodenheu true kann mit "Nach Bedarf" ergänzt werden
+      */
+      !!@ ili2db.dispName = "Nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
       /** Bei jedem Schnitt mind. 10% der Fläche als Rückzugsstreifen stehen lassen (alternierend und überwinternd). Keine Beweidung.
        */
       !!@ ili2db.dispName = "Rückzugstreifen"
@@ -2185,6 +2230,10 @@ VERSION "2024-06-06"  =
        */
       !!@ ili2db.dispName = "Emden, Bodenheu"
       BewirtschaftAbmachung_EmdenBodenheu : MANDATORY BOOLEAN;
+      /** EmdenBodenheu true kann mit "Nach Bedarf" ergänzt werden
+      */
+      !!@ ili2db.dispName = "Nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
       /** Bei jedem Schnitt mind. 10% der Fläche als Rückzugsstreifen stehen lassen (alternierend und überwinternd). Keine Beweidung.
        */
       !!@ ili2db.dispName = "Rückzugstreifen"
@@ -2278,6 +2327,24 @@ VERSION "2024-06-06"  =
     EXTENDS Dokument =
       Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
     END Foto;
+
+    CLASS Baum =
+      !!@ ili2db.dispName = "GB-Nr"
+      !!@ ili2db.mapping="ARRAY"
+      GB_Nr : BAG {1..*} OF SO_ARP_MJPNL_20201026.MJPNL.String_List;
+      oder MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Baum-Nr."
+      Baum_Nr : MANDATORY 0 .. 1000000000;
+      Baumart : Baumart;
+      !!@ ili2db.dispName = "Grösser 40cm Ø"
+      Ab40cmDurchmesser : MANDATORY BOOLEAN; 
+      !!@ ili2db.dispName = "Dürre Bäume grösser 25cm Ø"
+      Dürre Bäume & >25
+      !!@ ili2db.dispName = "Geerntet?"
+      Erntepflicht : MANDATORY BOOLEAN; 
+      !!@ ili2db.dispName = "Bemerkung"
+      Bemerkung : MTEXT*1000;  
+    END Baum;
 
     !!@ ili2db.dispName = "Strukturelement Fläche"
     CLASS Strukturelement_Flaeche =
@@ -2478,6 +2545,11 @@ VERSION "2024-06-06"  =
       Vereinbarung -- {1} Vereinbarung;
     END Beurteilung_Vereinbarung;
 
+    ASSOCIATION Baum_Vereinbarung =
+      Baum -- {0..*} Baum;
+      Vereinbarung -- {0..*} Vereinbarung;
+    END Baum_Vereinbarung;
+
     ASSOCIATION Strukturelement_Flaeche_Vereinbarung =
       Strukturelement_Flaeche -- {0..*} Strukturelement_Flaeche;
       Vereinbarung -<#> {1} Vereinbarung;
@@ -2506,5 +2578,5 @@ VERSION "2024-06-06"  =
     END Vereinbarung_UZL_Subregion;
 
   END MJPNL;
-
+  
 END SO_ARP_MJPNL_20240606.
