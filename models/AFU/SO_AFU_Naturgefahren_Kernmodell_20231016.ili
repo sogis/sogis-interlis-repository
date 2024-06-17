@@ -26,6 +26,45 @@ VERSION "2023-10-16"  =
         beurteilt
       );
 
+      beurteilung_komplex_typ (FINAL) = (
+        nicht_beurteilt,
+        beurteilung_nicht_noetig,
+        beurteilt_und_vollstaendig,
+        beurteilt_und_nicht_vollstaendig,
+        beurteilt_und_nicht_bestimmbar,
+        beurteilt_und_in_abklaerung
+      );
+
+      CHCantonCode (FINAL) = (
+        ZH,
+        BE,
+        LU,
+        UR,
+        SZ,
+        OW,
+        NW,
+        GL,
+        ZG,
+        FR,
+        SO,
+        BS,
+        BL,
+        SH,
+        AR,
+        AI,
+        SG,
+        GR,
+        AG,
+        TG,
+        TI,
+        VD,
+        VS,
+        NE,
+        GE,
+        JU,
+        FL
+      );
+
       hauptprozess (FINAL) = (
         !!@ ili2db.dispName=Wasser
         wasser,
@@ -85,6 +124,31 @@ VERSION "2023-10-16"  =
         stein_blockschlag,
         !!@ ili2db.dispName=Fels-/Bergsturz
         fels_bergsturz,
+        !!@ ili2db.dispName=Einsturz
+        einsturz,
+        !!@ ili2db.dispName=Absenkung
+        absenkung
+      );
+
+      teilprozess_synoptisch (FINAL) = (
+        !!@ ili2db.dispName=Überschwemmung
+        ueberschwemmung,
+        !!@ ili2db.dispName=Übermurung
+        uebermurung,
+        !!@ ili2db.dispName=Ufererosion
+        ufererosion,
+        !!@ ili2db.dispName="permanente Rutschung"
+        permanente_rutschung,
+        !!@ ili2db.dispName="spontane Rutschung"
+        spontane_rutschung,
+        !!@ ili2db.dispName=Hangmure
+        hangmure,
+        !!@ ili2db.dispName=Stein-/Blockschlag
+        stein_blockschlag,
+        !!@ ili2db.dispName=Fels-/Bergsturz
+        fels_bergsturz,
+        !!@ ili2db.dispName=Einsturz/Absenkung
+        einsturz_absenkung,
         !!@ ili2db.dispName=Einsturz
         einsturz,
         !!@ ili2db.dispName=Absenkung
@@ -184,6 +248,19 @@ VERSION "2023-10-16"  =
         erheblich
       );
 
+    /** Die einzelnen Perimeter, in welchen ein Teilprozess abgeklärt wurde.
+     */
+    CLASS Abklaerungsperimeter
+    EXTENDS Kernmodell_Attribute =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Abklaerungsperimeter;
+
     /** Sammlung der Berichte, usw. zu den im Gemeindegebiet erfolgten Gefahrenbeurteilungen.
      */
     CLASS Dokumente_pro_Gemeinde =
@@ -204,15 +281,20 @@ VERSION "2023-10-16"  =
 
     /** Flaechendeckende Gliederung des Kantons in unterschiedliche Erhebungsgebiete gemäss Beurteilungsstand der Teilprozesse. Erhebungsgebiete innerhalb desselben Hauptprozesses überlagern sich nicht.
      */
-    CLASS Erhebungsgebiet
-    EXTENDS Kernmodell_Attribute =
-      /** Untersuchter Teilprozess
-       */
-      Teilprozess : MANDATORY teilprozess_quellen;
-      /** Zeigt den Erhebungsstand des Teilprozesses auf
-       */
-      Erhebungsstand : MANDATORY beurteilung_einfach_typ;
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    CLASS Erhebungsgebiet =
+      flaeche : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      dahenherr : MANDATORY CHCantonCode;
+      status_ueberschwemmung : MANDATORY beurteilung_komplex_typ;
+      status_uebermurung : MANDATORY beurteilung_komplex_typ;
+      status_ufererosion : MANDATORY beurteilung_komplex_typ;
+      status_permanente_rutschung : MANDATORY beurteilung_komplex_typ;
+      status_spontane_rutschung : MANDATORY beurteilung_komplex_typ;
+      status_hangmure : MANDATORY beurteilung_komplex_typ;
+      status_stein_block_schlag : MANDATORY beurteilung_komplex_typ;
+      status_fels_bergs_sturz : MANDATORY beurteilung_komplex_typ;
+      status_einsturz : MANDATORY beurteilung_einfach_typ;
+      status_absenkung : MANDATORY beurteilung_einfach_typ;
+      Kommentar : TEXT*250;
     END Erhebungsgebiet;
 
     CLASS Fliessrichtung
@@ -320,7 +402,7 @@ VERSION "2023-10-16"  =
     EXTENDS Kernmodell_Attribute =
       /** Teilprozess gemäss MGDM
        */
-      Teilprozess : MANDATORY teilprozess_quellen;
+      Teilprozess : MANDATORY teilprozess_synoptisch;
       /** Eintretenswahrscheinlichkeit des Prozesses
        */
       Jaehrlichkeit : jaehrlichkeit_typ;
