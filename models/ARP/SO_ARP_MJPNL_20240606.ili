@@ -1,0 +1,2685 @@
+INTERLIS 2.3;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Änderung
+ * ------------------------------------------------------------------------------
+ * 2020-10-26 | an  | Initialversion SO_ARP_MJPNL_20201026
+ * 2023-05-10 | ds  | Elliminierung Ungereimtheiten SO_ARP_MJPNL_20201026
+ * 2024-06-06 | ds  | Initianlversion SO_ARP_MJPNL_20240606
+ * ===============================================================================
+ */
+!!@ technicalContact="agi@bd.so.ch"
+MODEL SO_ARP_MJPNL_20240606 (de)
+AT "http://www.geo.so.ch/models"
+VERSION "2024-06-06"  =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1,SO_ALW_Landwirtschaft_Tierhaltung_20210426;
+
+  TOPIC Umweltziele =
+    OID AS INTERLIS.UUIDOID;
+    /** Umweltziele Landwirtschaft. Quelle: Bafu/Agroscope.
+    * 
+    * https://www.agroscope.admin.ch/agroscope/de/home/themen/umwelt-ressourcen/biodiversitaet-landschaft/oekologischer-ausgleich/umweltziele-landwirtschaft.html
+    * 
+    * Daten müssen beim Import vom LV03 ins LV95 konvertiert werden.
+    */
+    !!@ ili2db.dispName = "UZL Subregion"
+    CLASS UZL_Subregion =
+      SRCode : MANDATORY TEXT*3;
+      SRName : MANDATORY TEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END UZL_Subregion;
+  END Umweltziele;
+
+  TOPIC Kataloge =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      !!@ ili2db.dispName = "Faunaliste Gruppe"
+      Faunaliste_Gruppe = (
+        !!@ ili2db.dispName = "Heuschrecke"
+        Heuschrecke,
+        !!@ ili2db.dispName = "Libelle"
+        Libelle,
+        !!@ ili2db.dispName = "Käfer"
+        Kaefer,
+        !!@ ili2db.dispName = "Netzflügler"
+        Netzfluegler,
+        !!@ ili2db.dispName = "Tagfalter"
+        Tagfalter,
+        !!@ ili2db.dispName = "Säugetier"
+        Saeugetier,
+        !!@ ili2db.dispName = "Vogel"
+        Vogel,
+        !!@ ili2db.dispName = "Reptilie"
+        Reptilie,
+        !!@ ili2db.dispName = "Amphibie"
+        Amphibie
+      );
+
+      !!@ ili2db.dispName = "Faunaliste Status"
+      Faunaliste_Status = (
+        Zielart,
+        Leitart
+      );
+
+      !!@ ili2db.dispName = "Floraliste Eigenschaft"
+      Floraliste_Eigenschaft = (
+        !!@ ili2db.dispName = "selten"
+        selten,
+        !!@ ili2db.dispName = "typisch"
+        typisch,
+        !!@ ili2db.dispName = "besonders typisch"
+        besonders_typisch,
+        !!@ ili2db.dispName = "Nährstoffzeiger"
+        Naehrstoffzeiger,
+        !!@ ili2db.dispName = "Nährstoffzeiger eingeschränkt / Störungszeiger"
+        Naehrstoffzeiger_eingeschraenkt_Stoerungszeiger,
+        !!@ ili2db.dispName = "Verbrachungszeiger"
+        Verbrachungszeiger
+      );
+
+    /** Liste von Tieren
+     */
+    CLASS Faunaliste =
+      !!@ ili2db.dispName = "Lateinischer Name"
+      Name_Lateinisch : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Deutscher Name"
+      Name_Deutsch : MANDATORY TEXT*255;
+      /** Tiergruppe (Kategorie)
+        */
+      Gruppe : MANDATORY Faunaliste_Gruppe;
+      /** Leitart oder Zielart (optional)
+        */
+      Status : Faunaliste_Status;
+      /** Art ist relevant in Subregion 1_2
+        */
+      !!@ ili2db.dispName = "relevant in Subregion 1.2"
+      relevant_Subregion_1_2 : MANDATORY BOOLEAN;
+      /** Art ist relevant in Subregion 1.3
+        */
+      !!@ ili2db.dispName = "relevant im Subregion 1.3"
+      relevant_Subregion_1_3 : MANDATORY BOOLEAN;
+      /** Art ist relevant in Subregion 1.5
+        */
+      !!@ ili2db.dispName = "relevant in Subregion 1.5"
+      relevant_Subregion_1_5 : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Wiese"
+      relevant_ProgrTyp_Wiese : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp"
+      relevant_ProgrTyp_Weide : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Wasserbeeinflusster Lebensraum"
+      relevant_ProgrTyp_WBL : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Hecke"
+      relevant_ProgrTyp_Hecke : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Obstbaumlandschaft"
+      relevant_ProgrTyp_OBL : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "relevant im Programmtyp Ackerlebensraum"
+      relevant_ProgrTyp_ALR : MANDATORY BOOLEAN;
+    END Faunaliste;
+
+    /** Artenliste Pflanzen
+      */
+    CLASS Floraliste =
+      !!@ ili2db.dispName = "Lateinischer Name"
+      Name_Lateinisch : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Deutscher Name"
+      Name_Deutsch : MANDATORY TEXT*255;
+      /** Diverse Eigenschaften, wie selten, typisch, Nährstoffzeiger, Verbrachungsanzeiger
+        */
+      !!@ ili2db.dispName = "Verbrachungszeiger in Weiden"
+      Eigenschaft : Floraliste_Eigenschaft;
+    END Floraliste;
+    
+  END Kataloge;
+
+  TOPIC MJPNL =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_ALW_Landwirtschaft_Tierhaltung_20210426.Betriebsdaten_Strukturdaten,SO_ALW_Landwirtschaft_Tierhaltung_20210426.BFF_Qualitaet,SO_ARP_MJPNL_20240606.Umweltziele,SO_ARP_MJPNL_20240606.Kataloge;
+
+    DOMAIN
+
+      /** Erfolgt die Abgeltung pauschal oder per Hektar
+       */
+      Abgeltungsart = (
+        !!@ ili2db.dispName = "per Hektar"
+        per_ha,
+        !!@ ili2db.dispName = "pauschal"
+        pauschal,
+        /** z.B. per Baum
+         */
+        !!@ ili2db.dispName = "per Stück"
+        per_stueck
+      );
+
+      /** Status des Zahlungslaufes
+      Freigegeben: Leistungen, die kalkuliert der manuell erfasst wurden und noch ausbezahlt werden müssen.
+      Ausbezahlt: Leistungen, die bereits unter dem Jahr oder bei Jahresende ausbezahlt worden sind.
+      In Bearbeitung: Leistungen, die manuell, aber noch nicht abschliessend, erfasst worden sind und nicht ausbezahlt und auch in keinem Brief vermerkt werden müssen.
+      Intern Verrechnet: Leistungen von kantonsinternen Vereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen. 
+      Ausbezahlt an Dritte: Leistungen, die direkt an dritte (Rechnungen) bezahlt wurden, die nicht ausbezahlt, aber im Brief vermerkt werden müssen.
+      Abgeltungslos: Leistungen von Nutzungsvereinbarungen, die nicht ausbezahlt, aber im Brief vermerkt werden müssen.
+       */
+      !!@ ili2db.dispName = "Abrechnung Status"
+      Abrechnung_Status = (
+        freigegeben,
+        ausbezahlt,
+        in_bearbeitung,
+        intern_verrechnet,
+        ausbezahlt_an_dritte,
+        abgeltungslos
+      );
+
+      Bewirtschaftung_Anteile = (
+        !!@ ili2db.dispName = "zwei Drittel der Fläche"
+        zwei_drittel,
+        !!@ ili2db.dispName = "der ganzen Fläche"
+        ganze,
+        !!@ ili2db.dispName = "der halben Fläche"
+        halbe,
+        !!@ ili2db.dispName = "einem Drittel der Fläche"
+        drittel,
+        !!@ ili2db.dispName = "einem Viertel der Fläche"
+        viertel
+      );
+
+      Bodeneigenschaft = (
+        !!@ ili2db.dispName = "tonig-vernässt"
+        tonig_vernaesst,
+        lehmig,
+        steinig
+      );
+
+      !!@ ili2db.dispName = "Exposition"
+      Exposition = (
+        !!@ ili2db.dispName = "Südost"
+        Suedost,
+        !!@ ili2db.dispName = "Südwest"
+        Suedwest,
+        Nordost,
+        Nordwest,
+        Ost,
+        West,
+        !!@ ili2db.dispName = "Süd"
+        Sued,
+        Nord,
+        verschiedene
+      );
+
+      !!@ ili2db.dispName = "Floraliste Häufigkeit"
+      Floraliste_Haeufigkeit = (
+        !!@ ili2db.dispName = "häufig"
+        haeufig,
+        !!@ ili2db.dispName = "lokal häufig (nur in Weiden)"
+        lokal_haeufig,
+        !!@ ili2db.dispName = "regelmässig"
+        regelmaessig,
+        !!@ ili2db.dispName = "selten (oder nur am Rand in Wiesen)"
+        selten
+      );
+
+      !!@ ili2db.dispName = "Herbstweide Tierart"
+      Herbstweide_Tierart = (
+        Alpaka,
+        Mutterkuh,
+        Pferd,
+        Rind,
+        Schaf,
+        Ziege
+      );      
+      
+      Baumart = (
+        Kirsche,
+        Apfel,
+        Birne,
+        Nuss,
+        Mirabelle,
+        Zwetschge,
+        Quitte,
+        Aprikose,
+        Pfirsich,
+        Edelkastanie,
+        sonstige
+      );
+
+      !!@ ili2db.dispName = "MJPNL Version"
+      MJPNL_Version = (
+        /** Das neue aktuelle MJPNL
+         */
+        !!@ ili2db.dispName = "MJPNL-2032"
+        MJPNL_2021,
+        /** Das alte read-only MJPNL
+         */
+        !!@ ili2db.dispName = "MJPNL-2020"
+        MJPNL_2020
+      );
+
+      Strukturelement_Punkt_Kategorie = (
+        Einzelbaum,
+        Kopfweide,
+        sonstige
+      );
+
+      Strukturelement_Flaeche_Kategorie = (
+        !!@ ili2db.dispName = "Gewässer"
+        Gewaesser,
+        Strauchgruppe,
+        Holzstruktur,
+        Steinstruktur,
+        Trockensteinmauer,
+        Streuehaufen,
+        Sandlinse,
+        !!@ ili2db.dispName = "offene Bodenstelle"
+        offene_Bodenstelle,
+        sonstige
+      );
+
+      !!@ ili2db.dispName = "topografische Eigenschaften"
+      Topografische_Eigenschaften = (
+        Hangfuss,
+        Steilhang,
+        Hang,
+        Kuppe,
+        Senke,
+        eben
+      );
+
+      !!@ ili2db.dispName = "Vereinbarung Status"
+      Vereinbarung_Status = (
+        inaktiv,
+        !!@ ili2db.dispName = "zurückgestellt"
+        zurueckgestellt,
+        aktiv,
+        !!@ ili2db.dispName = "prüfen"
+        pruefen,
+        !!@ ili2db.dispName = "bearbeiten"
+        bearbeiten,
+        angemeldet,
+        !!@ ili2db.dispName = "zur Unterschrift freigegeben"
+        zur_Unterschrift_freigegeben
+      );
+
+      Weide_BesondereStrukturen = (
+        !!@ ili2db.dispName = "Viehläger"
+        Viehlaeger,
+        Abbaustelle,
+        !!@ ili2db.dispName = "Quellaufstoss / Vernässung"
+        Quellaufstoss_Vernaessung,
+        Doline,
+        Weidmauer,
+        Lesesteinhaufen,
+        !!@ ili2db.dispName = "Felsaufschluss oder -block"
+        Felsaufschluss_Block
+      );
+
+      Weidenkategorie = (
+        !!@ ili2db.dispName = "Kat. W RF (Rückführungsweide)"
+        Kat_W_RF,
+        !!@ ili2db.dispName = "Kat. W 2 (Weide)"
+        Kat_W2,
+        !!@ ili2db.dispName = "Kat. W 1 (artenreiche Weide)"
+        Kat_W1,
+        !!@ ili2db.dispName = "Kat. W1+ (besonders artenreiche Weide)"
+        Kat_W1_plus
+      );
+
+      Weidnarbe = (
+        !!@ ili2db.dispName = "grössere Anrisse"
+        groessere_Anrisse,
+        !!@ ili2db.dispName = "lückig"
+        lueckig,
+        geschlossen
+      );
+
+      /** Wiesenkategorie (Art / Typ), Grundlagen: Floraliste
+       * 
+       * Mögliche Auszahlungen:
+       * 
+       * Kat. I: 600-800
+       * Kat. II: 400-500
+       * Kat. II/RF: 200-300
+       * Kat. RF/II: 100
+       * Kat. RF: 0
+       */
+      Wiesenkategorie = (
+        !!@ ili2db.dispName = "Kat. RF (Rückführungswiese)"
+        Kat_RF,
+        /** Ruchgraswiese (trocken); Fuchsschwanzwiese mir Kuckuckslichtnelke (feucht)
+         */
+        !!@ ili2db.dispName = "Kat. RF/II (Ruchgraswiese)"
+        Kat_RF_II,
+        /** Habermarkwiese (trocken); Fuchsschwanzwiese mit grossem Wiesenknopf (feucht)
+         */
+        !!@ ili2db.dispName = "Kat. II/RF (Habermarkwiese)"
+        Kat_II_RF,
+        /** Trespenwiese (trocken); Pfeifengraswiese / Hochstaudenried (feucht)
+         */
+        !!@ ili2db.dispName = "Kat. II (artenreiche Wiese)"
+        Kat_II_artenreicheWiese,
+        /** Trespenwiese (trocken); Kleinseggenried mit Wollgras (feucht)
+         */
+        !!@ ili2db.dispName = "Kat. I (besonders artenreiche Wiese)"
+        Kat_I_besondersartenreicheWiese
+      );
+
+      Wiesenstruktur = (
+        !!@ ili2db.dispName = "2-schichtig"
+        zwei_schichtig,
+        !!@ ili2db.dispName = "1-schichtig"
+        ein_schichtig,
+        dicht,
+        locker,
+        !!@ ili2db.dispName = "regelmässig"
+        regelmaessig,
+        !!@ ili2db.dispName = "unregelmässig"
+        unregelmaessig
+      );
+    STRUCTURE Bodeneigenschaft_ = value : MANDATORY Bodeneigenschaft; END Bodeneigenschaft_;
+    STRUCTURE Topografische_Eigenschaften_ = value : MANDATORY Topografische_Eigenschaften; END Topografische_Eigenschaften_;
+    STRUCTURE Weide_BesondereStrukturen_ = value : MANDATORY Weide_BesondereStrukturen; END Weide_BesondereStrukturen_;
+    STRUCTURE Weidnarbe_ = value : MANDATORY Weidnarbe; END Weidnarbe_;
+    STRUCTURE Wiesenstruktur_ = value : MANDATORY Wiesenstruktur; END Wiesenstruktur_;
+
+    CLASS Berater =
+      Name : MANDATORY TEXT*255;
+      Vorname : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Amt oder Organisation oder Ort"
+      Amt_Organisation_Ort : MANDATORY TEXT*255;
+      Email : TEXT*255;
+      Telefon : TEXT*30;
+      MobilTelefon : TEXT*30;
+      /** Zuständigkeiten (Themen und Regionen (Gemeinden/Bezirke))
+       */
+      !!@ ili2db.dispName = "Zuständig für (Regionen und Themen)"
+      ZustaendigFuer : MTEXT*2000;
+    END Berater;
+
+    CLASS Beurteilung (ABSTRACT) =
+      Beurteilungsdatum : MANDATORY INTERLIS.XMLDateTime;
+      Bemerkungen : MTEXT*2000;
+      Kopie_an_Bewirtschafter : BOOLEAN;
+      !!@ ili2db.dispName = "mit Bewirtschafter besprochen"
+      mit_Bewirtschafter_besprochen : MANDATORY BOOLEAN;
+      /** Datum der Besprechung der Beurteilung mit dem Bewirtschafter
+       */
+      !!@ ili2db.dispName = "Datum Besprechung mit Bewirtschafter"
+      Datum_Besprechung_Bewirtschafter : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Generische jährliche Abgeltung - Beschrieb der jährlichen Leistung"
+      Abgeltung_generisch_Text : TEXT*255;
+      /** Dieser Betrag ist pauschal und kann positiv oder negativ sein (Abschlagszahlung für zuviel bezahlte Subventionen).
+       */
+      !!@ ili2db.dispName = "Abgeltung generisch - jährlicher Pauschalbetrag"
+      Abgeltung_generisch_Betrag : -100000.00 .. 100000.00 [Units.CHF];
+      /** Jährliche Abgeltung total (Abgeltung Fläche plus Abgeltung pauschal).
+       */
+      !!@ ili2db.dispName = "Abgeltung total (Flächenbeitrag und Pauschale)"
+      Abgeltung_total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Besondere Abmachungen"
+      Besondere_Abmachungen : MTEXT*2000;
+      /** Datum der Ersterfassung der Beurteilung. Wird vom Bearbeitungssystem automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Erstellungsdatum"
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die die Vereinbarung erstellt hat. Wird vom System automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Operator Ersterfassung"
+      Operator_Erstellung : MANDATORY TEXT*255;
+      /** Änderungsdatum. Vom System automatisch bewirtschaftet.
+       */
+      !!@ ili2db.dispName = "Änderungsdatum"
+      Aenderungsdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die eine Änderung vorgenommen hat. Wird vom System automatisch bewirtschaftet.
+       */
+      !!@ ili2db.dispName = "Operator Änderung"
+      Operator_Aenderung : TEXT*255;
+    END Beurteilung;
+
+    /** Damit mehrere BFS-Nr pro Attribut abgespeichert werden können
+     */
+    STRUCTURE BFS_Nr =
+      !!@ ili2db.dispName = "BFS-Nr"
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+    END BFS_Nr;
+
+    CLASS Dokument (ABSTRACT) =
+      /** Pfad im Dateisystem oder URL. Relativ zu Basispfad.
+       */
+      Dateipfad_oder_URL : MANDATORY TEXT*1000;
+      /** Datum der Ersterfassung eines Dokuments. Wird vom Bearbeitungssystem automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Erstellungsdatum"
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die das Dokument erstellt hat. Wird vom System automatisch abgefüllt.
+       */
+      !!@ ili2db.dispName = "Operator Ersterstellung"
+      Operator_Erstellung : MANDATORY TEXT*255;
+      /** Optionales Änderungsdatum des Dokuments. Wird vom System automatisch vergeben.
+       */
+      !!@ ili2db.dispName = "Änderungsdatum"
+      Aenderungsdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Person die das Dokument geändert hat. Wird vom System automatisch verwaltet.
+       */
+      !!@ ili2db.dispName = "Operator Änderung"
+      Operator_Aenderung : TEXT*255;
+    END Dokument;
+
+    STRUCTURE String_List =
+      String : MANDATORY TEXT*255;
+    END String_List;
+
+    /** Hier wird der Bewirtschafterwechsel dokumentiert
+     */
+    !!@ ili2db.dispName = "Vereinbarung Bewirtschafter-Historie"
+    CLASS Vereinbarung_Bewirtschafter_Historie =
+      !!@ ili2db.dispName = "Vereinbarungs-NR MJPNL"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      /** Jahr des neu zugewiesenen GELAN Bewirtschafters
+       */
+      !!@ ili2db.dispName = "Jahr des neuen Bewirtschafters"
+      Jahr_Bewirtschafterwechsel : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Änderungsdatum"
+      Aenderungszeitpunkt : INTERLIS.XMLDateTime;
+
+      /** Mehrere Änderungen pro Jahr sollen getrackt werden, doch nicht mehrere in der selben Transaktion.
+      Deshalb soll diese Kombi aus Vereinbungs_Nr und Anderungszeitpunkt nur einmal existieren.
+       */
+      UNIQUE Vereinbarungs_Nr, Aenderungszeitpunkt;
+    END Vereinbarung_Bewirtschafter_Historie;
+
+    DOMAIN
+
+      /** MJPNL Programmtyp oder Attribut Flächenart
+       */
+      Vereinbarungsart = (
+        !!@ ili2db.dispName = "Ackerlebensraum (Saum)"
+        ALR_Saum,
+        !!@ ili2db.dispName = "Ackerlebensraum (Buntbrache)"
+        ALR_Buntbrache,
+        !!@ ili2db.dispName = "Wasserbeeinflusste Lebensräume Weiden"
+        WBL_Weide,
+        !!@ ili2db.dispName = "Wasserbeeinflusste Lebensräume Wiesen"
+        WBL_Wiese,
+        !!@ ili2db.dispName = "Obstbaumlandschaft"
+        OBL,
+        !!@ ili2db.dispName = "Hostet"
+        Hostet,
+        !!@ ili2db.dispName = "Lebhag"
+        Lebhag,
+        !!@ ili2db.dispName = "Hecke"
+        Hecke,
+        !!@ ili2db.dispName = "Weide SöG"
+        Weide_SOEG,
+        !!@ ili2db.dispName = "Weide LN"
+        Weide_LN,
+        !!@ ili2db.dispName = "Wiese"
+        Wiese
+      );
+
+    /** Die Abrechnung aggregiert auf Bewirtschafter. 
+    Es werden hier die Abrechnungen der Vereinbarungen des Bewirtschafters aggregiert.
+     */
+    !!@ ili2db.dispName = "Abrechnung per Bewirtschafter"
+    CLASS Abrechnung_per_Bewirtschafter
+    EXTENDS Dokument =
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      /** Nachname und Vorname
+       */
+      !!@ ili2db.dispName = "GELAN Person"
+      GELAN_Person : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Ort des Bewirtschafters"
+      GELAN_Ortschaft : TEXT*255;
+      GELAN_IBAN : MANDATORY TEXT*34;
+      !!@ ili2db.dispName = " Total per Bewirtschafter (inkl. ausbezahlt)"
+      Betrag_Total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total bereits ausbezahlt (unter dem Jahr)"
+      Betrag_Ausbezahlt_Total : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total bereits ausbezahlt an Dritte"
+      Betrag_Ausbezahlt_An_Dritte_Total : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total abgeltungsloser Leistungen"
+      Betrag_Abgeltungslos_Total : -100000.00 .. 100000.00 [Units.CHF];
+      /** Status der Abrechnung / Auszahlung
+       */
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1990-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Auszahlungsjahr"
+      Auszahlungsjahr : 1900 .. 2100;
+      Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
+      !!@ ili2db.dispName = "Aus altem System migriert"
+      Migriert: BOOLEAN;
+    END Abrechnung_per_Bewirtschafter;
+
+    /** Abrechnung (total) per Vereinbarung.
+    Es werden hier die Abrechnungen der Leistungen der Vereinbarung aggregiert.
+     */
+    !!@ ili2db.dispName = "Abrechnung per Vereinbarung"
+    CLASS Abrechnung_per_Vereinbarung =
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      !!@ ili2db.dispName = "Bewirtschaftungseinheit ID"
+      GELAN_BewE_ID : MANDATORY TEXT*100;
+      !!@ ili2db.dispName = "GB-Nr"
+      GB_Nr : MANDATORY TEXT*1000;
+      !!@ ili2db.dispName = "Flurnamen"
+      Flurnamen : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Kultur-Ids"
+      Kultur_Ids : TEXT*255;
+      !!@ ili2db.dispName = "Gemeindename"
+      Gemeinde : MANDATORY TEXT*255;
+      /** Falls es sich um eine Fläche handelt */
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      /** Falls es sich um eine Hecke handelt*/
+      !!@ ili2db.dispName = "Laufmeter"
+      Laufmeter : 0 .. 10000 [INTERLIS.m];
+      /** Falls es sich um eine Anzahl Bäume handelt*/
+      !!@ ili2db.dispName = "Anzahl Bäume"
+      Anzahl_Baeume : MANDATORY 0 .. 100000;
+      !!@ ili2db.dispName = "Anzahl Bäume ab 40cm Ø"
+      Anzahl_Baeume_BaumAb40cmDurchmesser : 0 .. 10000;
+      !!@ ili2db.dispName = "Anzahl Bäume mit Erntepflicht"
+      Anzahl_Baeume_Erntepflicht : 0 .. 10000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Plus"
+      Anzahl_Baeume_OekoPlus : 0 .. 10000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Maxi"
+      Anzahl_Baeume_OekoMaxi : 0 .. 10000;
+      !!@ ili2db.dispName = "Betrag per Hektar"
+      Betrag_per_ha : 0.00 .. 2000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen für die Fläche"
+      Betrag_Flaeche : MANDATORY 0.00 .. 100000.00[Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen für die Bäume"
+      Betrag_Baeume : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der pauschalen regulären Abgeltungen"
+      Betrag_Pauschal_Regulaer : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der pauschalen einmaligen Abgeltungen (bereits ausbezahlt)"
+      Betrag_Pauschal_Einmalig_Ausbezahlt : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der pauschalen einmaligen Abgeltungen an Dritte (bereits ausbezahlt)"
+      Betrag_Pauschal_Einmalig_Ausbezahlt_An_Dritte : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der pauschalen einmaligen Abgeltungen (freigegeben)"
+      Betrag_Pauschal_Einmalig_Freigegeben : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Total der Abgeltungen (abgeltungslos)"
+      Betrag_Abgeltungslos : -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Gesamtbetrag"
+      Gesamtbetrag : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Jahr der Auszahlung"
+      Auszahlungsjahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      !!@ ili2db.dispName = "Datum der Abrechnung"
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Bei Wiese: Datum 1. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Bei Wiese: Mähen mit Messerbalken-Mähgerät"
+      BewirtschaftAbmachung_MesserbalkenMaehgeraet : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Emden, dabei Bodenheu machen"
+      BewirtschaftAbmachung_EmdenBodenheu : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Emden, wenn Bodenheu, dann nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
+      !!@ ili2db.dispName = "Rückzugstreifen"
+      BewirtschaftAbmachung_Rueckzugstreifen : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Herbstschnitt ab 20. September"
+      BewirtschaftAbmachung_Herbstschnitt : BOOLEAN;
+      !!@ ili2db.dispName = "Bei Wiese: Herbstweide"
+      BewirtschaftAbmachung_Herbstweide : BOOLEAN;
+      !!@ ili2db.dispName = "Alte Vereinbarungs-Nr"
+      Vereinbarungs_Nr_Alt : TEXT*50;
+      Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
+      !!@ ili2db.dispName = "Aus altem System migriert"
+      Migriert: BOOLEAN;
+    END Abrechnung_per_Vereinbarung;
+
+    /** Abrechnungen der einzelnen Leistungen. 
+    Diese können aus Beurteilungen kalkuliert oder auch direkt erstellt werden.
+     */
+    !!@ ili2db.dispName = "Leistungen"
+    CLASS Abrechnung_per_Leistung =
+      /** Die Beschreibung der Leistung in Textform
+       */
+      !!@ ili2db.dispName = "Leistungsbeschrieb"
+      Leistung_Beschrieb : MANDATORY TEXT*255;
+      /** Abgeltungsart: per Hektar, per Stück oder pauschal
+       */
+      !!@ ili2db.dispName = "Abgeltungsart"
+      Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Betrag per Einheit (z.B. per Hektar, pro Stück, pauschal)
+       */
+      !!@ ili2db.dispName = "Betrag per Einheit"
+      Betrag_per_Einheit : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Anzahl Einheiten"
+      Anzahl_Einheiten : MANDATORY 0.00 .. 10000.00;
+      !!@ ili2db.dispName = "Betrag in CHF total"
+      Betrag_Total : MANDATORY -100000.00 .. 100000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Auszahlungsjahr"
+      Auszahlungsjahr : 1900 .. 2100;
+      !!@ ili2db.dispName = "Status der Abrechnung"
+      Status_Abrechnung : MANDATORY Abrechnung_Status;
+      Datum_Abrechnung : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      Bemerkung : MTEXT*2000;
+      /** Generelles Info Feld
+       */
+      Info : MTEXT*2000;
+      !!@ ili2db.dispName = "Aus altem System migriert"
+      Migriert: BOOLEAN;
+      !!@ ili2db.dispName = "Einmalige / manuell Erfasste Leistung"
+      Einmalig: BOOLEAN;
+    END Abrechnung_per_Leistung;
+
+    /** Es gibt nur einen Basisvertrag pro GELAN Bewirtschafter.
+     */
+    !!@ ili2db.dispName = "Basisvertrag"
+    CLASS Basisvertrag
+    EXTENDS Dokument =
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY TEXT*20;
+      Datum_Vertrag : MANDATORY FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+    END Basisvertrag;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag des Ackerlebensraumes Buntbrache.
+     */
+    !!@ ili2db.dispName = "Beurteilung ALR Buntbrache"
+    CLASS Beurteilung_ALR_Buntbrache EXTENDS Beurteilung =
+      /** Betrieb liegt in der Regel innerhalb des Massnahmengebiet BFF zur Förderung von Feldhasen und Feldlerchen.
+       */
+      !!@ ili2db.dispName = "Massnahmengebiet Förderung von Feldhasen und Feldlerchen"
+      Einstiegskriterium_Massnahmengebiet_FeldhasenLerchen : MANDATORY BOOLEAN;
+      /** Betrieb verfügt über mind. 1.5 ha offene Ackerfläche in FFF.
+       */
+      !!@ ili2db.dispName = "Mind. 1.5 ha offene Ackerfläche in FFF."
+      Einstiegskriterium_min_Ackerflaeche : MANDATORY BOOLEAN;
+      /** Nicht längsseitig entlang von Flurwegen. In der Regel mind. 30 Meter von Wegen mit Hartbelag entfernt.
+       */
+      !!@ ili2db.dispName = "Nicht längsseitig entlang von Flurwegen."
+      Einstiegskriterium_nicht_entlang_Flurwegen : MANDATORY BOOLEAN;
+      /** Bevorzugt vor Ansaat Acker (keine Kunstwiese)
+       */
+      !!@ ili2db.dispName = "vor Ansaat Acker"
+      Einstiegskriterium_vor_Ansaat_Acker : MANDATORY BOOLEAN;
+      /** Standort nicht im Waldschatten, entlang von Hecken, Obstanlagen oder im Bereich von Gewässern.
+       */
+      !!@ ili2db.dispName = "Standort nicht im Waldschatten, entl. v. Hecken, Obstanlagen o. im Gewässerbereich."
+      Einstiegskriterium_Standort_diverse_Kriterien : MANDATORY BOOLEAN;
+      /** Maximale Breite von 12 Meter
+       */
+      !!@ ili2db.dispName = "Max. Breite 12 Meter"
+      Einstiegskriterium_MaxBreite_12m : MANDATORY BOOLEAN;
+      /** Mindestens 8 Jahre. Option für Verlängerung bei vorhandenen Arten der Faunaliste bis max. 12 Jahre. Anschliessend Verlängerung um jeweils ein Jahr in Absprache mit dem Kanton möglich.
+       */
+      !!@ ili2db.dispName = "Mind. 8 Jahre Artenschutz, Option für Verlängerung"
+      Einstiegskriterium_Mindestdauer_Artenschutz_Fauna : MANDATORY BOOLEAN;
+      /** Der Bewirtschafter verpflichtet sich die Fläche regelmässig auf Problempflanzen zu kontrollieren und fachgerecht (nach DZV) zu bekämpfen. Das ARP berät und ermahnt den Bewirtschafter vor Erreichen der Bekämpfungsschwelle der Problempflanzen zu geeigneten Massnahmen.
+       */
+      !!@ ili2db.dispName = "Verpflichtung Problempflanzen zu bekämpfen"
+      Einstiegskriterium_Problempflanzen_bekaempfen : MANDATORY BOOLEAN;
+      /** Zwischenbeurteilung gemeinsam alle 2 Jahre
+       */
+      !!@ ili2db.dispName = "Zwischenbeurteilung gemeinsam alle 2 Jahre"
+      Einstiegskriterium_Zwischenbeurteilung_alle_2Jahre : MANDATORY BOOLEAN;
+      /** Mithilfe beim Monitoring von Qualitätsindikatorarten durch Bewirtschafter.
+       */
+      !!@ ili2db.dispName = "Monitoring v. Qualitätsindikatorarten durch Bewirtschafter"
+      Einstiegskriterium_Monitoring_durch_Bewirtschafter : MANDATORY BOOLEAN;
+
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+
+      /** Faunabonus Anzahl Arten.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt - Anzahl Arten"
+      Faunabonus_Anzahl_Arten : MANDATORY 0 .. 3;
+      /** Artenvielfalt total (max. CHF 150.- pauschal). Pro Art 50.- CHF.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt total (max. CHF 150.- pauschal)"
+      Faunabonus_Artenvielfalt_Abgeltung_pauschal : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Fachgerechte Ansaat und Pflege (vgl. Merkblatt agridea)
+       */
+      !!@ ili2db.dispName = "Fachgerechte Ansaat und Pflege"
+      Bewirtschaftung_Ansaat_und_pflege : MANDATORY BOOLEAN;
+      /** Reinigungsschnitte im 1. Jahr bei grossem Unkrautdruck.
+       */
+      !!@ ili2db.dispName = "Reinigungsschnitte im 1. Jahr"
+      Bewirtschaftung_Reinigungsschnitte : MANDATORY BOOLEAN;
+      /** Schnittzeitpunkt: in der Regel zweite Hälfte August. Jeweils die Hälfte des Saums alternierend einmal jährlich schneiden.
+       */
+      !!@ ili2db.dispName = "Schnittzeitpunkt: i. d. Regel zw. Hälfte August."
+      Bewirtschaftung_Schnittzeitpunkt : MANDATORY BOOLEAN;
+      /** Schnitthöhe: 7 - 10 cm.
+       */
+      !!@ ili2db.dispName = "Schnitthöhe: 7 - 10 cm"
+      Bewirtschaftung_Schnitthoehe : MANDATORY BOOLEAN;
+      /** Schnittgut auf Fläche trocknen lassen, abführen oder vor Ort teilweise aufhäufen.
+       */
+      !!@ ili2db.dispName = "Schnittgut trocknen, abführen o. v. Ort aufhäufen"
+      Bewirtschaftung_Schnittgut_trocknen_lassen : MANDATORY BOOLEAN;
+      /** Bewirtschaftungs- und Pflegemassnahmen; Abgeltung per Hektar in CHF.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungs- / Pflegemassnahmen; Abgeltung per Hektar"
+      Bewirtschaftung_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Dornenreiche dichte einreihige Strauchgruppen nach Absprache anlegen (keine Hecken). Rückschnitt nach Bedarf und in gegenseitiger Absprache.
+       * Bestellung und Kosten für das Pflanzgut übernimmt das ARP.
+       */
+      !!@ ili2db.dispName = "Strauchgruppen nach Absprache anlegen"
+      Strukturelemente_Strauchgruppen : MANDATORY BOOLEAN;
+      /** Strauchgruppen; Abgeltung pauschal in CHF.
+       */
+      !!@ ili2db.dispName = "Strauchgruppen; Abgeltung pauschal"
+      Strukturelemente_Strauchgruppen_Abgeltung_pauschal : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Asthaufen, Totholz (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz (min. 2x2x1m)"
+      Strukturelemente_Asthaufen_Totholz : MANDATORY BOOLEAN;
+      /** Asthaufen, Totholz; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz; Abgeltung pauschal"
+      Strukturelemente_Asthaufen_Totholz_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Steinhaufen (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Steinhaufen (min. 2x2x1m)"
+      Strukturelemente_Steinhaufen : MANDATORY BOOLEAN;
+      /** Steinhaufen; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Steinhaufen; Abgeltung pauschal"
+      Strukturelemente_Steinhaufen_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Schnittguthaufen gemäss Absprache
+       */
+      !!@ ili2db.dispName = "Schnittguthaufen gem. Absprache"
+      Strukturelemente_Schnittguthaufen : MANDATORY BOOLEAN;
+      /** Schnittguthaufen; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Schnittguthaufen; Abgeltung pauschal"
+      Strukturelemente_Schnittguthaufen_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erdhaufen gemäss Absprache
+       */
+      !!@ ili2db.dispName = "Erdhaufen gem. Absprache"
+      Strukturelemente_Erdhaufen : MANDATORY BOOLEAN;
+      /** Erdhaufen; Abgeltung pauschal in CHF- max 50.-
+       */
+      !!@ ili2db.dispName = "Erdhaufen; Abgeltung pauschal"
+      Strukturelemente_Erdhaufen_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente; Abgeltung pauschal total in CHF
+       */
+      !!@ ili2db.dispName = "Strukturelemente; Abgeltung pauschal total"
+      Strukturelemente_Abgeltung_pauschal_total : MANDATORY 0.00 .. 500.00 [Units.CHF];
+      /** Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 1000.00 [Units.CHF];
+      /** Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)
+       */
+      !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
+      /** Abgeltung pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_ALR_Buntbrache;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag des Ackerlebensraumes Saum.
+     */
+    !!@ ili2db.dispName = "Beurteilung ALR Saum"
+    CLASS Beurteilung_ALR_Saum EXTENDS Beurteilung =
+      /** Betrieb liegt in der Regel innerhalb des Massnahmengebiet BFF zur Förderung von Feldhasen und Feldlerchen.
+       */
+      !!@ ili2db.dispName = "Massnahmengebiet Förderung von Feldhasen und Feldlerchen"
+      Einstiegskriterium_Massnahmengebiet_FeldhasenLerchen : MANDATORY BOOLEAN;
+      /** Betrieb verfügt über mind. 1.5 Hektar offene Ackerfläche in FFF.
+       */
+      !!@ ili2db.dispName = "Mind. 1.5 Hektar offene Ackerfläche in FFF."
+      Einstiegskriterium_min_Ackerflaeche : MANDATORY BOOLEAN;
+      /** Nicht längsseitig entlang von Flurwegen. In der Regel mind. 30 Meter von Wegen mit Hartbelag entfernt.
+       */
+      !!@ ili2db.dispName = "Nicht längsseitig entlang von Flurwegen."
+      Einstiegskriterium_nicht_entlang_Flurwegen : MANDATORY BOOLEAN;
+      /** Bevorzugt vor Ansaat Acker (keine Kunstwiese)
+       */
+      !!@ ili2db.dispName = "vor Ansaat Acker"
+      Einstiegskriterium_vor_Ansaat_Acker : MANDATORY BOOLEAN;
+      /** Standort nicht im Waldschatten, entlang von Hecken, Obstanlagen oder im Bereich von Gewässern.
+       */
+      !!@ ili2db.dispName = "Standort nicht im Waldschatten, entl. v. Hecken, Obstanlagen o. im Gewässerbereich."
+      Einstiegskriterium_Standort_diverse_Kriterien : MANDATORY BOOLEAN;
+      /** Maximale Breite von 12 Meter
+       */
+      !!@ ili2db.dispName = "Max. Breite 12 Meter"
+      Einstiegskriterium_MaxBreite_12m : MANDATORY BOOLEAN;
+      /** Mindestens 8 Jahre. Option für Verlängerung bei vorhandenen Arten der Faunaliste bis max. 12 Jahre. Anschliessend Verlängerung um jeweils ein Jahr in Absprache mit dem Kanton möglich.
+       */
+      !!@ ili2db.dispName = "Mind. 8 Jahre Artenschutz, Option für Verlängerung"
+      Einstiegskriterium_Mindestdauer_Artenschutz_Fauna : MANDATORY BOOLEAN;
+      /** Der Bewirtschafter verpflichtet sich die Fläche regelmässig auf Problempflanzen zu kontrollieren und fachgerecht (nach DZV) zu bekämpfen. Das ARP berät und ermahnt den Bewirtschafter vor Erreichen der Bekämpfungsschwelle der Problempflanzen zu geeigneten Massnahmen.
+       */
+      !!@ ili2db.dispName = "Verpflichtung Problempflanzen zu bekämpfen"
+      Einstiegskriterium_Problempflanzen_bekaempfen : MANDATORY BOOLEAN;
+      /** Zwischenbeurteilung gemeinsam alle 2 Jahre
+       */
+      !!@ ili2db.dispName = "Zwischenbeurteilung gemeinsam alle 2 Jahre"
+      Einstiegskriterium_Zwischenbeurteilung_alle_2Jahre : MANDATORY BOOLEAN;
+      /** Mithilfe beim Monitoring von Qualitätsindikatorarten durch Bewirtschafter.
+       */
+      !!@ ili2db.dispName = "Monitoring v. Qualitätsindikatorarten durch Bewirtschafter"
+      Einstiegskriterium_Monitoring_durch_Bewirtschafter : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Faunabonus Anzahl Arten.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt - Anzahl Arten"
+      Faunabonus_Anzahl_Arten : MANDATORY 0 .. 3;
+      /** Artenvielfalt total (max. CHF 150.- pauschal). Pro Art 50.- CHF.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt total (max. CHF 150.- pauschal)"
+      Faunabonus_Artenvielfalt_Abgeltung_pauschal : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Fachgerechte Ansaat und Pflege (vgl. Merkblatt agridea)
+       */
+      !!@ ili2db.dispName = "Fachgerechte Ansaat und Pflege"
+      Bewirtschaftung_Ansaat_und_pflege : MANDATORY BOOLEAN;
+      /** Reinigungsschnitte im 1. Jahr bei grossem Unkrautdruck.
+       */
+      !!@ ili2db.dispName = "Reinigungsschnitte im 1. Jahr"
+      Bewirtschaftung_Reinigungsschnitte : MANDATORY BOOLEAN;
+      /** Schnittzeitpunkt: in der Regel zweite Hälfte August. Jeweils die Hälfte des Saums alternierend einmal jährlich schneiden.
+       */
+      !!@ ili2db.dispName = "Schnittzeitpunkt: i. d. Regel zw. Hälfte August."
+      Bewirtschaftung_Schnittzeitpunkt : MANDATORY BOOLEAN;
+      /** Schnitthöhe: 7 – 10 cm.
+       */
+      !!@ ili2db.dispName = "Schnitthöhe: 7 – 10 cm"
+      Bewirtschaftung_Schnitthoehe : MANDATORY BOOLEAN;
+      /** Schnittgut auf Fläche trocknen lassen, abführen oder vor Ort teilweise aufhäufen
+       */
+      !!@ ili2db.dispName = "Schnittgut trocknen, abführen o. v. Ort aufhäufen"
+      Bewirtschaftung_Schnittgut_trocknen_lassen : MANDATORY BOOLEAN;
+      /** Bewirtschaftungs- und Pflegemassnahmen; Abgeltung per Hektar in CHF.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungs- / Pflegemassnahmen; Abgeltung per Hektar"
+      Bewirtschaftung_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Dornenreiche dichte einreihige Strauchgruppen nach Absprache anlegen (keine Hecken). Rückschnitt nach Bedarf und in gegenseitiger Absprache.
+       * Bestellung und Kosten für das Pflanzgut übernimmt das ARP.
+       */
+      !!@ ili2db.dispName = "Strauchgruppen nach Absprache anlegen"
+      Strukturelemente_Strauchgruppen : MANDATORY BOOLEAN;
+      /** Strauchgruppen; Abgeltung pauschal in CHF.
+       */
+      !!@ ili2db.dispName = "Strauchgruppen; Abgeltung pauschal"
+      Strukturelemente_Strauchgruppen_Abgeltung_pauschal : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Asthaufen, Totholz (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz (min. 2x2x1m)"
+      Strukturelemente_Asthaufen_Totholz : MANDATORY BOOLEAN;
+      /** Asthaufen, Totholz; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz; Abgeltung pauschal"
+      Strukturelemente_Asthaufen_Totholz_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Steinhaufen (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Steinhaufen (min. 2x2x1m)"
+      Strukturelemente_Steinhaufen : MANDATORY BOOLEAN;
+      /** Steinhaufen; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Steinhaufen; Abgeltung pauschal"
+      Strukturelemente_Steinhaufen_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Schnittguthaufen gem. Absprache
+       */
+      !!@ ili2db.dispName = "Schnittguthaufen gem. Absprache"
+      Strukturelemente_Schnittguthaufen : MANDATORY BOOLEAN;
+      /** Schnittguthaufen; Abgeltung pauschal in CHF. max 50.-
+       */
+      !!@ ili2db.dispName = "Schnittguthaufen; Abgeltung pauschal"
+      Strukturelemente_Schnittguthaufen_Abgeltung_pauschal : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente; Abgeltung pauschal total in CHF
+       */
+      !!@ ili2db.dispName = "Strukturelemente; Abgeltung pauschal total"
+      Strukturelemente_Abgeltung_pauschal_total : MANDATORY 0.00 .. 500.00 [Units.CHF];
+      /** Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 1000.00 [Units.CHF];
+      /** Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)
+       */
+      !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
+      /** Abgeltung pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_ALR_Saum;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Hecke
+     */
+    !!@ ili2db.dispName = "Beurteilung Hecke"
+    CLASS Beurteilung_Hecke EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche, zur Vernetzung oder auch zur spezifischen Artenförderung. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Gehölz mindestens 20m2 gross und 2m breit, Krautsaum zwischen 3m und 6m breit; 
+       * Ausnahme bei Arrondierungen oder angrenzend an einen anderen Programmtyp; keine Flächenbegrenzung bei Objekten von nationaler Bedeutung oder zur spezifischen Artenförderung. Keine separate Abgeltung.
+       */
+      Einstiegskriterium_Mindestdimension_Gehoelz_Krautsaum : MANDATORY BOOLEAN;
+      /** Unterhaltseingriffe sind mit dem Kanton (ARP) abzusprechen. Die Massnahmen werden gemeinsam besprochen. Keine separate Abgeltung.
+       */
+      Einstiegskriterium_Unterhalteingriffe_abgesprochen : MANDATORY BOOLEAN;
+      /** Verzicht auf Mähaufbereiter, Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" und Laubbläser ist punktuell und nur in Absprache gestattet.  Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen). Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      /** Die Kriterien der BFF Stufe I & II nach der Direktzahlungs-
+       * Verordnung (DZV) müssen erfüllt sein. Wichtig: Hecke muss in 6-8 Jahren einmal durchgepflegt werden. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium BFF Stufe I & II sind erfüllt"
+      Einstiegskriterium_BFF_Stufe_I_II_erfuellt : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Faunabonus Anzahl Arten.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt - Anzahl Arten"
+      Faunabonus_Anzahl_Arten : MANDATORY 0 .. 3;
+      /** Artenvielfalt total (max. CHF 150.- pauschal). Pro Art 50.- CHF.
+       */
+      !!@ ili2db.dispName = "Artenvielfalt total (max. CHF 150.- pauschal)"
+      Faunabonus_Artenvielfalt_Abgeltung_pauschal : 0.00 .. 150.00 [Units.CHF];
+      /** Ab 10 Strauch- und Baumarten auf 10m Länge oder grosser Anteil an Dornensträuchern (mehr als 30%), CHF 100.- per Hektar.
+       */
+      !!@ ili2db.dispName = "10 Strauch/Baumarten auf 10m Länge oder gr. Anteil Dornensträucher"
+      EinstufungBeurteilungIstZustand_Artenvielfalt_Strauch_Baumarten : MANDATORY BOOLEAN;
+      /** Asthaufen (2x2x1m / grösser), min. 1 per 20 Aren, CHF 100.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Asthaufen (2x2x1m / grösser), min. 1 per 20 Aren"
+      EinstufungBeurteilungIstZustand_Asthaufen : MANDATORY BOOLEAN;
+      /** Liegendes Totholz ? 1m lang (Ø ? 30 cm). CHF 50.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Liegendes Totholz ? 1m lang (Ø ? 30 cm)"
+      EinstufungBeurteilungIstZustand_Totholz : MANDATORY BOOLEAN;
+      /** Steinhaufen (Ø Steingrösse ? 15cm) min. 2 x 2 x 1m und -0,5m in Boden versenken (Frostfreiezone). CHF 150.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Steinhaufen (Ø Steingrösse ? 15cm) min. 2 x 2 x 1m"
+      EinstufungBeurteilungIstZustand_Steinhaufen : MANDATORY BOOLEAN;
+      /** Schichtholzbeigen (1x1x1m) mit hohem Laubholzanteil. CHF 150.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Schichtholzbeigen (1x1x1m) mit hohem Laubholzanteil"
+      EinstufungBeurteilungIstZustand_Schichtholzbeigen : BOOLEAN;
+      /** Nisthilfe für erdbewohnende Wildbienen (z.B Steinburgen/-bette mit Wandsand, Sand mit hohem Silt/ Tongehalt, gefüllt). CHF 200.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Nisthilfe für erdbewohnende Wildbienen"
+      EinstufungBeurteilungIstZustand_Nisthilfe_Wildbienen : MANDATORY BOOLEAN;
+      /** Höhlenbäume, Biotopbäume, stehendes Totholz 
+       * oder mit Efeu behangene Bäume, Weichhölzer, wertvolle Laubbäume (wie Eiche, Feldahorn, Traubenkirsche etc.) nach Absprache fördern und erhalten. CHF 100.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Höhlenbäume, Biotopbäume, stehendes Totholz"
+      EinstufungBeurteilungIstZustand_Hoehlenbaeume_Biotopbaeume_Totholz : MANDATORY BOOLEAN;
+      /** Sitzwarte (in Niederhecken). CHF 25.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Sitzwarte (in Niederhecken)"
+      EinstufungBeurteilungIstZustand_Sitzwarte : MANDATORY BOOLEAN;
+      /** Einstufung / Beurteilung Ist-Zustand - Abgeltung total.
+       */
+      !!@ ili2db.dispName = "Einstufung / Beurteilung Ist-Zustand - Abgeltung per Hektar total"
+      EinstufungBeurteilungIstZustand_Abgeltung_ha : MANDATORY 0.00 .. 800.00 [Units.CHF];
+      /** Heckentypen sind kombinierbar und die Übergänge sind oft fliessend. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Heckentyp Niederhecke"
+      Bewirtschaftung_Hecke_Typ_Niederhecke : BOOLEAN;
+      /** Heckentypen sind kombinierbar und die Übergänge sind oft fliessend. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Heckentyp Hochhecke"
+      Bewirtschaftung_Hecke_Typ_Hochhecke : BOOLEAN;
+      /** Heckentypen sind kombinierbar und die Übergänge sind oft fliessend. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Heckentyp Baumhecke"
+      Bewirtschaftung_Hecke_Typ_Baumhecke : BOOLEAN;
+      /** Heckentypen sind kombinierbar und die Übergänge sind oft fliessend. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Heckentyp Lebhag"
+      Bewirtschaftung_Hecke_Typ_Lebhag : BOOLEAN;
+      /** Unterhalt gemäss Merkblatt. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Unterhalt"
+      Bewirtschaftung_Hecke_Unterhalt : BOOLEAN;
+      !!@ ili2db.dispName = "Unterhaltsintervall in Jahren"
+      Bewirtschaftung_Hecke_Unterhaltsintervall : 1 .. 10;
+      !!@ ili2db.dispName = "Letzter Unterhalt (Jahr)"
+      Bewirtschaftung_Hecke_LetzterUnterhalt : 1900 .. 2100;
+      !!@ ili2db.dispName = "Anteil der zu bewirtschaftenden Fläche"
+      Bewirtschaftung_Hecke_UnterhaltAnteil : Bewirtschaftung_Anteile;
+      /** Der Krautsaum wird max. 2-mal jährlich geschnitten, erste Hälfte ab 15. Juni, zweite Hälfte frühestens 6 Wochen später (gestaffelt nie vollständig mähen) 1/2 alternierend mähen. Der Krautsaum bleibt über den Winter stehen. CHF 300.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftung Krautsaum"
+      !!@ Abgeltungsart="per_ha"
+      !!@ Abgeltung="300"
+      Bewirtschaftung_Krautsaum : MANDATORY BOOLEAN;
+      /** Anpassung der Schnittzeitpunkte bei seltenen Arten im
+       * Krautsaum. CHF 100.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Anpassung der Schnittzeitpunkte bei seltenen Arten"
+      Bewirtschaftung_Krautsaum_Schnittzeitpunkte : MANDATORY BOOLEAN;
+      /** Hier ist eigentlich nur Tag/Monat relevant. Das Jahr kann ignoriert werden.
+       */
+      !!@ ili2db.dispName = "1. Schnitt Krautsaum ab"
+      Bewirtschaftung_Krautsaum_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2099-12-31";
+      /** Hier ist eigentlich nur Tag/Monat relevant. Das Jahr kann ignoriert werden.
+       */
+      !!@ ili2db.dispName = "2. Schnit Krautsaum"
+      Bewirtschaftung_Krautsaum_Schnittzeitpunkt_2 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2099-12-31";
+      /** Offener Boden schaffen entlang Krautsaum max. 10% der Krautsaumfläche, erst möglich bei mehr als 3m breitem Krautsaum. CHF 300.- per Hektar.
+       */
+      !!@ ili2db.dispName = "Offener Boden"
+      Bewirtschaftung_Krautsaum_Offener_Boden : MANDATORY BOOLEAN;
+      /** Keine Beweidung des Krautsaums. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Keine Beweidung des Krautsaums"
+      Bewirtschaftung_Krautsaum_Keine_Beweidung : MANDATORY BOOLEAN;
+      /** Beweidung des Krautsaums nach Absprache möglich. Die Hecke zwingend mit Zaun schützen. Keine Trittschäden. Keine separate Abgeltung.
+       */
+      !!@ ili2db.dispName = "Beweidung des Krautsaums nach Absprache"
+      Bewirtschaftung_Krautsaum_Beweidung_nach_Absprache : MANDATORY BOOLEAN;
+      /** Bewirtschaftung Krautsaum Abgeltung total (per Hektar)
+       */
+      !!@ ili2db.dispName = "Bewirtschaftung Krautsaum Abgeltung per Hektar total"
+      Bewirtschaftung_Krautsaum_Abgeltung_ha : MANDATORY 0.00 .. 700.00 [Units.CHF];
+      /** Der Lebhag wird jährlich, auf allen Seiten, zurückgeschnitten. 
+       * Der Schnitt erfolgt in der Vegetationsruhe von Oktober - Februar.
+       */
+      !!@ ili2db.dispName = "Laufmeter Lebhag"
+      Bewirtschaftung_Lebhag_Laufmeter : 0 .. 3000 [INTERLIS.m];
+      /** pro Laufmeter und Seite CHF 1.50 (Pauschalbetrag (nicht per Hektar)).
+       */
+      !!@ ili2db.dispName = "Abgeltung Schnitt/Pflege"
+      Bewirtschaftung_Lebhag_Abgeltung_pauschal : 0.00 .. 6000.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1"
+      !!@ Abgeltung="100"
+      !!@ MetaAttribute="0"
+      !!@ Abgeltungsart="per_ha"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 100 CHF per Hektar).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2"
+      !!@ Abgeltung="100"
+      !!@ Abgeltungsart="per_ha"
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 100 CHF per Hektar).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 3
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 3"
+      !!@ Abgeltung="100"
+      !!@ Abgeltungsart="per_ha"
+      Erschwernis_Massnahme3 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 3.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 3 Beschreibung"
+      Erschwernis_Massnahme3_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 3 Abgeltung (max. 100 CHF per Hektar).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 3 Abgeltung per Hektar"
+      Erschwernis_Massnahme3_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit Massnahmen Abgeltung total (per Hektar).
+       */
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 2000.00 [Units.CHF];
+      /** Abgeltung Fläche total (Betrag x ha).
+       */
+      !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
+      /** Abgeltung total pauschal
+       */
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_Hecke;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Hostet
+     */
+    !!@ ili2db.dispName = "Beurteilung Hostet"
+    CLASS Beurteilung_Hostet EXTENDS Beurteilung =
+      /** Einstiegskriterien Hostet sind alle erfüllt. Details siehe Zusatz Blatt Leistungen.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterien Hostet erfüllt"
+      Einstiegskriterium_Hostet : MANDATORY BOOLEAN;
+      /** Beitragsberechnung gemäss Zusatzdokument vom
+       */
+      !!@ ili2db.dispName = "Zusatzdokument vom"
+      Zusatzdokument_Datum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Dateipfad des Zusatzdokuments
+       */
+      !!@ ili2db.dispName = "Zusatzdokument Dateipfad"
+      Zusatzdokument_Dateipfad : TEXT*255;
+      /** Grundbeitrag Baum - Anzahl Bäume. Ansatz: 5 CHF pro Baum.
+       */
+      !!@ ili2db.dispName = "Baum Anzahl"
+      Grundbeitrag_Baum_Anzahl : MANDATORY 0 .. 1000;
+      /** Grundbeitrag Baum Total in CHF.
+       */
+      !!@ ili2db.dispName = "Grundbeitrag Baum Total"
+      Grundbeitrag_Baum_Total : MANDATORY 0.00 .. 5000.00 [Units.CHF];
+      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 40 CHF.
+       */
+      !!@ ili2db.dispName = "Bäume ab 40cm Ø Anzahl"
+      Beitrag_BaumAb40cmDurchmesser_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag für Bäume ab 40cm Ø Totalbetrag in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag für Bäume ab 40cm Ø Totalbetrag"
+      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 40000.00 [Units.CHF];
+      /** Beitrag für Erntepflicht - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Erntepflicht Anzahl"
+      Beitrag_Erntepflicht_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag für Erntepflicht Total in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag für Erntepflicht Total"
+      Beitrag_Erntepflicht_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      /** Beitrag für Öko Plus - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Öko Plus Anzahl"
+      Beitrag_OekoPlus_Anzahl : MANDATORY 0 .. 1000;
+      /** Öko Plus Beitrag total in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag Öko Plus Total"
+      Beitrag_OekoPlus_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      /** Beitrag für Öko Maxi - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Öko Maxi Anzahl"
+      Beitrag_OekoMaxi_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag Öko Maxi Total in CHF
+       */
+      !!@ ili2db.dispName = "Beitrag Öko Maxi Total"
+      Beitrag_OekoMaxi_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_Hostet;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Obstbaumlandschaft
+     */
+    !!@ ili2db.dispName = "Beurteilung Obstbaumlandschaft"
+    CLASS Beurteilung_OBL EXTENDS Beurteilung =
+      /** Einstiegskriterien Obstbaumlandschaft sind alle erfüllt. Details siehe Zusatz Blatt Leistungen.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterien Obstbaumlandschaft erfüllt"
+      Einstiegskriterium_OBL : MANDATORY BOOLEAN;
+      /** Beitragsberechnung gemäss Zusatzdokument vom
+       */
+      !!@ ili2db.dispName = "Zusatzdokument vom"
+      Zusatzdokument_Datum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Zusatzdokument Dateipfad"
+      Zusatzdokument_Dateipfad : TEXT*255;
+      /** Grundbeitrag Baum - Anzahl Bäume. Ansatz: 10 CHF pro Baum.
+       */
+      !!@ ili2db.dispName = "Grundbeitrag Baum Anzahl Bäume"
+      Grundbeitrag_Baum_Anzahl : MANDATORY 0 .. 1000;
+      /** Grundbeitrag Baum Total in CHF.
+       */
+      !!@ ili2db.dispName = "Grundbeitrag Baum Total"
+      Grundbeitrag_Baum_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      /** Bäume ab 40cm Durchmesser - Anzahl Bäume. Ansatz: 40 CHF.
+       */
+      !!@ ili2db.dispName = "Bäume ab 40cm Ø Anzahl Bäume"
+      Beitrag_BaumAb40cmDurchmesser_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag für Bäume ab 40cm Ø Totalbetrag in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag für Bäume ab 40cm Ø Totalbetrag"
+      Beitrag_BaumAb40cmDurchmesser_Total : MANDATORY 0.00 .. 40000.00 [Units.CHF];
+      /** Beitrag für Erntepflicht - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag für Erntepflicht Anzahl"
+      Beitrag_Erntepflicht_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag für Erntepflicht Total in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag für Erntepflicht Total"
+      Beitrag_Erntepflicht_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      /** Beitrag für Öko Plus - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Öko Plus Anzahl"
+      Beitrag_OekoPlus_Anzahl : MANDATORY 0 .. 1000;
+      /** Öko Plus Beitrag total in CHF.
+       */
+      !!@ ili2db.dispName = "Beitrag Öko Plus Total"
+      Beitrag_OekoPlus_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      /** Beitrag für Öko Maxi - Anzahl. Ansatz: 10 CHF.
+       */
+      !!@ ili2db.dispName = "Öko Maxi Anzahl Bäume"
+      Beitrag_OekoMaxi_Anzahl : MANDATORY 0 .. 1000;
+      /** Beitrag Öko Maxi Total in CHF
+       */
+      !!@ ili2db.dispName = "Beitrag Öko Maxi Total"
+      Beitrag_OekoMaxi_Total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_OBL;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der WBL Weide.
+     */
+    !!@ ili2db.dispName = "Beurteilung WBL Weide"
+    CLASS Beurteilung_WBL_Weide EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche oder auch zur spezifischen Artenförderung.
+       */
+      !!@ ili2db.dispName = "Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Keine Zufütterung
+       */
+      !!@ ili2db.dispName = "Keine Zufütterung"
+      Einstiegskriterium_KeineZufuetterung : MANDATORY BOOLEAN;
+      /** Verzicht auf jegliche Düngung (Handels- und Hofdünger).
+       */
+      !!@ ili2db.dispName = "Verzicht Düngung"
+      Einstiegskriterium_VerzichtDuengung : MANDATORY BOOLEAN;
+      /** Verzicht auf Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" ist punktuell gestattet.
+       */
+      !!@ ili2db.dispName = "Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen).
+       */
+      !!@ ili2db.dispName = "Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden.
+       */
+      !!@ ili2db.dispName = "Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      /** Einstiegskriterium Abgeltung in CHF per Hektar
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (- Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: Nährsstoffzeiger (- Arten)"
+      EinstufungBeurteilungIstZustand_Flora_Naehrstoffzeiger : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (+ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: typische Arten (+ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_typische_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: besonders typische (++ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: bes. typische Arten (++ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_bes_typ_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: seltene Arten (s Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: seltene Arten (s Arten)"
+      EinstufungBeurteilungIstZustand_Flora_seltene_Arten : MANDATORY 0 .. 50;
+      /** Anzahl Arten Faunaliste total (maximal 3)
+       */
+      !!@ ili2db.dispName = "Anzahl Arten Faunaliste total"
+      EinstufungBeurteilungIstZustand_Anzahl_Fauna : MANDATORY 0 .. 3;
+      /** Abgeltung für Faunaarten pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung Faunaarten pauschal"
+      EinstufungBeurteilungIstZustand_Abgeltung_Faunaliste_pauschal : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Weiden Kat. (Art / Typ), Grundlagen: Floraliste"
+      EinstufungBeurteilungIstZustand_Weidenkategorie : MANDATORY Weidenkategorie;
+      /** Bis max Fr. 200.- per Hektar
+       */
+      !!@ ili2db.dispName = "Abgeltung Weidenkategorie per Hektar"
+      EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Weidenstruktur: optimal, beibehalten
+       */
+      !!@ ili2db.dispName = "Struktur - optimal, beibehalten"
+      EinstufungBeurteilungIstZustand_Struktur_optimal_beibehalten : MANDATORY BOOLEAN;
+      /** Weidenstruktur: verbessern, anlegen
+       */
+      !!@ ili2db.dispName = "Struktur - verbessern, anlegen"
+      EinstufungBeurteilungIstZustand_Struktur_verbessern_anlegen : MANDATORY BOOLEAN;
+      /** Weidenstruktur: Verbuschung, Eingriff nötig
+       */
+      !!@ ili2db.dispName = "Struktur - Verbuschung, Eingriff nötig"
+      EinstufungBeurteilungIstZustand_Struktur_Verbuschung_Eingriff_noetig : MANDATORY BOOLEAN;
+      /** Bei optimaler Struktur bis Fr. 100.- per Hektar
+       */
+      !!@ ili2db.dispName = "Abgeltung Struktur per Hektar"
+      EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Bodeneigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigenschaft_;
+      !!@ ili2db.dispName = "Weidnarbe"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.dispName = "Besondere Strukturen"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
+      /** per Hektar / Jahr
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung per Hektar"
+      EinstufungBeurteilungIstZustand_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Beweidung mit Rindern
+       */
+      !!@ ili2db.dispName = "Beweidung mit Rindern"
+      BewirtschaftAbmachung_BeweidungRinder : MANDATORY BOOLEAN;
+      /** Beweidung mit anderen geeigneten Tierrassen
+       */
+      !!@ ili2db.dispName = "Beweidung mit anderen Tierrassen"
+      BewirtschaftAbmachung_BeweidungAndereTierrassen : MANDATORY BOOLEAN;
+      /** Beweidung mit anderer geeigneter Tierart.
+       */
+      !!@ ili2db.dispName = "Beweidung andere Tierart"
+      BewirtschaftAbmachung_BeweidungAndereTierrasseArt : TEXT*255;
+      /** Beweidungszeitraum vom / bis
+       */
+      !!@ ili2db.dispName = "Beweidungszeitraum"
+      BewirtschaftAbmachung_Beweidungszeitraum : MANDATORY BOOLEAN;
+      /** Beweidungszeitraum von Datum
+       */
+      !!@ ili2db.dispName = "Beweidungszeitraum von [Datum]"
+      BewirtschaftAbmachung_Beweidungszeitraum_von : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Beweidungszeitraum bis Datum
+       */
+      !!@ ili2db.dispName = "Beweidungszeitraum bis [Datum]"
+      BewirtschaftAbmachung_Beweidungszeitraum_bis : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Besatzdichte gemäss Abmachung
+       */
+      !!@ ili2db.dispName = "Besatzdichte"
+      BewirtschaftAbmachung_Besatzdichte : MANDATORY BOOLEAN;
+      /** Besatzdichte gemäss Abmachung (Anzahl Tiere)- Text oder Zahl
+       */
+      !!@ ili2db.dispName = "Besatzdichte (Text/Zahl)"
+      BewirtschaftAbmachung_Besatzdichte_Zahl : TEXT*255;
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2"
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1"
+      Artenfoerderung_FF_Zielart1 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Massnahme"
+      Artenfoerderung_FF_Zielart1_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Abgeltung"
+      Artenfoerderung_FF_Zielart1_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2"
+      Artenfoerderung_FF_Zielart2 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Massnahme"
+      Artenfoerderung_FF_Zielart2_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Abgeltung"
+      Artenfoerderung_FF_Zielart2_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3"
+      Artenfoerderung_FF_Zielart3 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Massnahme"
+      Artenfoerderung_FF_Zielart3_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Abgeltung"
+      Artenfoerderung_FF_Zielart3_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Abgeltungsart per Hektar oder pauschal
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltungsart"
+      Artenfoerderung_Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Abgeltung Artenförderung total (pauschal max 300 oder per Hektar max 300)
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltung total"
+      Artenfoerderung_Abgeltung_total : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Strukturelmente - Permanente oder temporäre Gewässer (Jährlicher Unterhalt gemäss Absprache)
+       */
+      !!@ ili2db.dispName = "Strukturelemente - Permanente oder temporäre Gewässer"
+      Strukturelemente_Gewaesser : MANDATORY BOOLEAN;
+      /** Strukturelemente Gewässer Abgeltung (pauschal in CHF)
+       */
+      !!@ ili2db.dispName = "Gewässer Abgeltung"
+      Strukturelemente_Gewaesser_Abgeltung : MANDATORY 0.00 .. 400.00 [Units.CHF];
+      /** Strukturelemente - Hochstaudenfluren, Grossseggenriede und / oder Röhrichte
+       */
+      !!@ ili2db.dispName = "Hochstaudenfluren, Grossseggenriede und / oder Röhrichte"
+      Strukturelemente_HochstaudenflurenRiedeRoehrichte : MANDATORY BOOLEAN;
+      /** Strukturelemente Hochstaudenfluren, Riede, Röhrichte Abgeltung (pauschal in CHF) bis max 400 CHF.
+       */
+      !!@ ili2db.dispName = "Strukturelemente Hochstaudenfluren, Riede, Röhrichte Abgeltung"
+      Strukturelemente_HochstaudenflurenRiedeRoehrichte_Abgeltung : MANDATORY 0.00 .. 400.00 [Units.CHF];
+      /** Strukturelemente - Streuehaufen gemäss Absprache
+       */
+      !!@ ili2db.dispName = "Streuehaufen"
+      Strukturelemente_Streuehaufen : MANDATORY BOOLEAN;
+      /** Strukturelemente Streuehaufen Abgeltung (pauschal in CHF) bis max 300 CHF.
+       */
+      !!@ ili2db.dispName = "Streuehaufen Abgeltung"
+      Strukturelemente_Streuehaufen_Abgeltung : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Strukturelemente - Asthaufen, Totholz (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz"
+      Strukturelemente_AsthaufenTotholz : MANDATORY BOOLEAN;
+      /** Strukturelemente Asthaufen, Totholz Abgeltung (pauschal in CHF) bis max 100 CHF.
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz Abgeltung"
+      Strukturelemente_AsthaufenTotholz_Abgeltung : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Strukturelemente - Steinhaufen (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Steinhaufen"
+      Strukturelemente_Steinhaufen : MANDATORY BOOLEAN;
+      /** Strukturelemente Steinhaufen Abgeltung (pauschal in CHF) bis max 50 CHF.
+       */
+      !!@ ili2db.dispName = "Steinhaufen Abgeltung"
+      Strukturelemente_Steinhaufen_Abgeltung : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente - Gebüsch Gruppen (mindestens 3 Gruppen mit mindestens 3 Dornensträuchern)
+       */
+      !!@ ili2db.dispName = "Gebüsch Gruppen"
+      Strukturelemente_GebueschGruppen : MANDATORY BOOLEAN;
+      /** Strukturelemente Gebüsch Gruppen Abgeltung (pauschal in CHF) bis max 200 CHF.
+       */
+      !!@ ili2db.dispName = "Gebüsch Gruppen Abgeltung"
+      Strukturelemente_GebueschGruppen_Abgeltung : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente - Kopfweiden (mindestens 10 Exemplare) nach Absprache
+       */
+      !!@ ili2db.dispName = "Kopfweiden"
+      Strukturelemente_Kopfweiden : MANDATORY BOOLEAN;
+      /** Strukturelemente Kopfweiden Abgeltung (pauschal in CHF) bis max 200 CHF.
+       */
+      !!@ ili2db.dispName = "Kopfweiden Abgeltung"
+      Strukturelemente_Kopfweiden_Abgeltung : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente Abgeltung total in CHF (pauschal)
+       */
+      !!@ ili2db.dispName = "Strukturelemente Abgeltung total (pauschal)"
+      Strukturelemente_Abgeltung_total : MANDATORY 0.00 .. 1650.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 700.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung Fläche total"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_WBL_Weide;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der WBL Wiese.
+     */
+    !!@ ili2db.dispName = "Beurteilung WBL Wiese"
+    CLASS Beurteilung_WBL_Wiese EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche oder auch zur spezifischen Artenförderung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Verzicht auf jegliche Düngung (Handels- und Hofdünger).
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht Düngung"
+      Einstiegskriterium_VerzichtDuengung : MANDATORY BOOLEAN;
+      /** Verzicht auf Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" ist punktuell gestattet.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen).
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium - Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      /** Heuen, dabei Bodenheu machen.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium - Bodenheu"
+      Einstiegskriterium_Bodenheu : MANDATORY BOOLEAN;
+      /** Einstiegskriterium Abgeltung in CHF per Hektar
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (- Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: Nährsstoffzeiger (- Arten)"
+      EinstufungBeurteilungIstZustand_Flora_Naehrstoffzeiger : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (+ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: typische Arten (+ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_typische_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: besonders typische (++ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: bes. typische Arten (++ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_bes_typ_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: seltene Arten (s Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: seltene Arten (s Arten)"
+      EinstufungBeurteilungIstZustand_Flora_seltene_Arten : MANDATORY 0 .. 50;
+      /** Anzahl Arten Faunaliste total (maximal 3)
+       */
+      !!@ ili2db.dispName = "Anzahl Arten Faunaliste total"
+      EinstufungBeurteilungIstZustand_Anzahl_Fauna : MANDATORY 0 .. 3;
+      /** Abgeltung für Faunaarten pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung Faunaarten pauschal"
+      EinstufungBeurteilungIstZustand_Abgeltung_Faunaliste_pauschal : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Heumatten Kat. (Art / Typ), Grundlagen: Floraliste"
+      EinstufungBeurteilungIstZustand_Wiesenkategorie : MANDATORY Wiesenkategorie;
+      /** Abgeltung Wiesenkategorie per Hektar (abhängig von gewählter Wiesenkategorie)
+       * 
+       * Kat_RF: 0 - 0
+       * Kat_RF_II: 100 - 100
+       * Kat_II_RF: 200 - 300
+       * Kat_II_artenreicheWiese: 400 - 500
+       * Kat_I_besondersartenreicheWiese: 600 - 800
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Wiesenkategorie per Hektar"
+      EinstufungBeurteilungIstZustand_Wiesenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 800.00 [Units.CHF];
+      !!@ ili2db.dispName = "Exposition"
+      EinstufungBeurteilungIstZustand_LageWiese_Exposition : Exposition;
+      !!@ ili2db.dispName = "Topografische Eigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_LageWiese_Topografie : BAG {0..*} OF Topografische_Eigenschaften_;
+      !!@ ili2db.dispName = "Wiesenstruktur"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Wiesenstruktur : BAG {0..*} OF Wiesenstruktur_;
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachungen - Schnittzeitpunkte"
+      BewirtschaftAbmachung_Schnittzeitpunkte : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Datum 1. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Datum 2. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_2 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Emden, dabei Bodenheu machen
+       */
+      !!@ ili2db.dispName = "Emden, Bodenheu"
+      BewirtschaftAbmachung_EmdenBodenheu : MANDATORY BOOLEAN;
+      /** EmdenBodenheu true kann mit "Nach Bedarf" ergänzt werden
+      */
+      !!@ ili2db.dispName = "Nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
+      /** Bei jedem Schnitt mind. 10% der Fläche als Rückzugsstreifen stehen lassen (alternierend und überwinternd). Keine Beweidung.
+       */
+      !!@ ili2db.dispName = "Rückzugstreifen"
+      BewirtschaftAbmachung_Rueckzugstreifen : MANDATORY BOOLEAN;
+      /** Der Herbstschnitt (in der Regel 3. Nutzung) ab 20. September (darf siliert werden).
+       */
+      !!@ ili2db.dispName = "Herbstschnitt ab 20. September"
+      BewirtschaftAbmachung_Herbstschnitt : MANDATORY BOOLEAN;
+      /** Auf Grund der aktuellen Beurteilung ist eine kurze, schonende Herbstweide (ab Oktober) mit Rindern (ohne Zufütterung) ohne Trittschäden möglich.
+       */
+      !!@ ili2db.dispName = "Herbstweide"
+      BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Herbstbeweidung Tierart"
+      BewirtschaftAbmachung_Herbstweide_Tierart : Herbstweide_Tierart;
+      !!@ ili2db.dispName = "Herbstbeweidung Anzahl Tiere"
+      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : TEXT*255;
+      !!@ ili2db.dispName = "Keine Herbstweide"
+      BewirtschaftAbmachung_KeineHerbstweide : BOOLEAN;
+      /** Gesamte ID-Fläche: Mähen mit Messerbalken-Mähgerät (Verzicht auf Rotationsmähwerk, bzw. Kreiselmäher)
+       */
+      !!@ ili2db.dispName = "Mähen mit Messerbalken-Mähgerät"
+      BewirtschaftAbmachung_MesserbalkenMaehgeraet : MANDATORY BOOLEAN;
+      /** maximal 350 CHF per Hektar/Jahr
+       */
+      !!@ ili2db.dispName = "Abgeltung Bewirtschaftungsabmachung"
+      BewirtschaftAbmachung_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2"
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1"
+      Artenfoerderung_FF_Zielart1 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Massnahme"
+      Artenfoerderung_FF_Zielart1_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Abgeltung"
+      Artenfoerderung_FF_Zielart1_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2"
+      Artenfoerderung_FF_Zielart2 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Massnahme"
+      Artenfoerderung_FF_Zielart2_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Abgeltung"
+      Artenfoerderung_FF_Zielart2_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3"
+      Artenfoerderung_FF_Zielart3 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Massnahme"
+      Artenfoerderung_FF_Zielart3_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Abgeltung"
+      Artenfoerderung_FF_Zielart3_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Abgeltungsart"
+      Artenfoerderung_Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Abgeltung Artenförderung total (pauschal max 300 oder per Hektar max 300)
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltung total"
+      Artenfoerderung_Abgeltung_total : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Permanente oder temporäre Gewässer.
+       * (Jährlicher Unterhalt gem. Absprache.)
+       */
+      !!@ ili2db.dispName = "Permanente oder temporäre Gewässer"
+      Strukturelemente_Gewaesser : MANDATORY BOOLEAN;
+      /** Strukturelemente Gewässer Abgeltung (pauschal in CHF) bis 400 CHF.
+       */
+      !!@ ili2db.dispName = "Gewässer Abgeltung"
+      Strukturelemente_Gewaesser_Abgeltung : MANDATORY 0.00 .. 400.00 [Units.CHF];
+      /** Strukturelemente - Hochstaudenfluren, Grossseggenriede und / oder Röhrichte
+       */
+      !!@ ili2db.dispName = "Hochstaudenfluren, Grossseggenriede und / oder Röhrichte"
+      Strukturelemente_HochstaudenflurenRiedeRoehrichte : MANDATORY BOOLEAN;
+      /** Strukturelemente Hochstaudenfluren, Riede, Röhrichte Abgeltung (pauschal in CHF) bis max 400 CHF.
+       */
+      !!@ ili2db.dispName = "Hochstaudenfluren, Grossseggenriede und / oder Röhrichte Abgeltung"
+      Strukturelemente_HochstaudenflurenRiedeRoehrichte_Abgeltung : MANDATORY 0.00 .. 400.00 [Units.CHF];
+      /** Strukturelemente - Streuehaufen gemäss Absprache
+       */
+      !!@ ili2db.dispName = "Streuehaufen"
+      Strukturelemente_Streuehaufen : MANDATORY BOOLEAN;
+      /** Strukturelemente Streuehaufen Abgeltung (pauschal in CHF) bis max 300 CHF.
+       */
+      !!@ ili2db.dispName = "Streuehaufen Abgeltung"
+      Strukturelemente_Streuehaufen_Abgeltung : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Strukturelemente - Asthaufen, Totholz (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz"
+      Strukturelemente_AsthaufenTotholz : MANDATORY BOOLEAN;
+      /** Strukturelemente Asthaufen, Totholz Abgeltung (pauschal in CHF) bis max 100 CHF.
+       */
+      !!@ ili2db.dispName = "Asthaufen, Totholz Abgeltung"
+      Strukturelemente_AsthaufenTotholz_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Strukturelemente - Steinhaufen (min. 2x2x1m)
+       */
+      !!@ ili2db.dispName = "Steinhaufen"
+      Strukturelemente_Steinhaufen : MANDATORY BOOLEAN;
+      /** Strukturelemente Steinhaufen Abgeltung (pauschal in CHF) bis max 50 CHF.
+       */
+      !!@ ili2db.dispName = "Steinhaufen Abgeltung"
+      Strukturelemente_Steinhaufen_Abgeltung : MANDATORY 0.00 .. 50.00 [Units.CHF];
+      /** Strukturelemente - Gebüsch Gruppen (mindestens 3 Gruppen mit mindestens 3 Dornensträuchern)
+       */
+      !!@ ili2db.dispName = "Gebüsch Gruppen"
+      Strukturelemente_GebueschGruppen : MANDATORY BOOLEAN;
+      /** Strukturelemente Gebüsch Gruppen Abgeltung (pauschal in CHF) bis max 200 CHF.
+       */
+      !!@ ili2db.dispName = "Gebüsch Gruppen Abgeltung"
+      Strukturelemente_GebueschGruppen_Abgeltung : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente - Kopfweiden (mindestens 10 Exemplare) nach Absprache
+       */
+      !!@ ili2db.dispName = "Kopfweiden"
+      Strukturelemente_Kopfweiden : MANDATORY BOOLEAN;
+      /** Strukturelemente Kopfweiden Abgeltung (pauschal in CHF) bis max 200 CHF.
+       */
+      !!@ ili2db.dispName = "Kopfweiden Abgeltung"
+      Strukturelemente_Kopfweiden_Abgeltung : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Strukturelemente Abgeltung total in CHF (pauschal)
+       */
+      !!@ ili2db.dispName = "Strukturelemente Abgeltung total (pauschal)"
+      Strukturelemente_Abgeltung_total : MANDATORY 0.00 .. 1650.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 1800.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung Fläche total"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_WBL_Wiese;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Weide LN.
+     */
+    !!@ ili2db.dispName = "Beurteilung Weide LN"
+    CLASS Beurteilung_Weide_LN EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche oder auch zur spezifischen Artenförderung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Mindestfläche von 50 Aren (in der Regel); Ausnahme bei Arrondierungen oder angrenzend an einen anderen Programmtyp; keine Flächenbegrenzung bei Objekten von nationaler Bedeutung oder zur spezifischen Artenförderung
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Mindestfläche"
+      Einstiegskriterium_Mindestflaeche : MANDATORY BOOLEAN;
+      /** Keine Zufütterung
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Keine Zufütterung"
+      Einstiegskriterium_KeineZufuetterung : MANDATORY BOOLEAN;
+      /** Verzicht auf jegliche Düngung (Handels- und Hofdünger)
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht Düngung"
+      Einstiegskriterium_VerzichtDuengung : MANDATORY BOOLEAN;
+      /** Verzicht auf Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" ist punktuell gestattet.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen)
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : 0.00 .. 100.00 [Units.CHF];
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (- Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: Nährsstoffzeiger (- Arten)"
+      EinstufungBeurteilungIstZustand_Flora_Naehrstoffzeiger : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (+ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: typische Arten (+ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_typische_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: besonders typische (++ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: bes. typische Arten (++ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_bes_typ_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: seltene Arten (s Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: seltene Arten (s Arten)"
+      EinstufungBeurteilungIstZustand_Flora_seltene_Arten : MANDATORY 0 .. 50;
+      /** Anzahl Arten Faunaliste total (maximal 3)
+       */
+      !!@ ili2db.dispName = "Anzahl Arten Faunaliste total"
+      EinstufungBeurteilungIstZustand_Anzahl_Fauna : MANDATORY 0 .. 3;
+      /** Abgeltung für Faunaarten pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung Faunaarten pauschal"
+      EinstufungBeurteilungIstZustand_Abgeltung_Faunaliste_pauschal : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Weiden Kat. (Art / Typ), Grundlagen: Floraliste"
+      EinstufungBeurteilungIstZustand_Weidenkategorie : MANDATORY Weidenkategorie;
+      /** Bis max Fr. 200.- per Hektar
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Weidenkategorie per Hektar"
+      EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Weidenstruktur: optimal, beibehalten
+       */
+      !!@ ili2db.dispName = "Struktur - optimal, beibehalten"
+      EinstufungBeurteilungIstZustand_Struktur_optimal_beibehalten : MANDATORY BOOLEAN;
+      /** Weidenstruktur: verbessern, anlegen
+       */
+      !!@ ili2db.dispName = "Struktur - verbessern, anlegen"
+      EinstufungBeurteilungIstZustand_Struktur_verbessern_anlegen : MANDATORY BOOLEAN;
+      /** Weidenstruktur: Verbuschung, Eingriff nötig
+       */
+      !!@ ili2db.dispName = "Struktur - Verbuschung, Eingriff nötig"
+      EinstufungBeurteilungIstZustand_Struktur_Verbuschung_Eingriff_noetig : MANDATORY BOOLEAN;
+      /** Bei optimaler Struktur bis Fr. 100.- per Hektar
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur per Hektar"
+      EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigenschaft_;
+      !!@ ili2db.dispName = "Weidnarbe"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
+      /** per Hektar / Jahr
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung per Hektar"
+      EinstufungBeurteilungIstZustand_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Beweidung mit Rindern
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidung mit Rindern"
+      BewirtschaftAbmachung_BeweidungRinder : MANDATORY BOOLEAN;
+      /** auf Zusehen hin Beweidung mit Mutterkühen
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidung mit Mutterkühen"
+      BewirtschaftAbmachung_BeweidungMutterkuehe : MANDATORY BOOLEAN;
+      /** Beweidungszeitraum vom / bis
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum"
+      BewirtschaftAbmachung_Beweidungszeitraum : MANDATORY BOOLEAN;
+      /** Bewirtschaftungsabmachung - Beweidungszeitraum von Datum
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum von"
+      BewirtschaftAbmachung_Beweidungszeitraum_von : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Bewirtschaftungsabmachung - Beweidungszeitraum bis Datum
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum bis"
+      BewirtschaftAbmachung_Beweidungszeitraum_bis : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Besatzdichte gemäss Abmachung
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte"
+      BewirtschaftAbmachung_Besatzdichte : MANDATORY BOOLEAN;
+      /** Besatzdichte gemäss Abmachung (Anzahl Tiere). Text oder Zahl.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte (Text/Zahl)"
+      BewirtschaftAbmachung_Besatzdichte_Zahl : TEXT*255;
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2"
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1"
+      Artenfoerderung_FF_Zielart1 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Massnahme"
+      Artenfoerderung_FF_Zielart1_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Abgeltung"
+      Artenfoerderung_FF_Zielart1_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2"
+      Artenfoerderung_FF_Zielart2 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Massnahme"
+      Artenfoerderung_FF_Zielart2_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Abgeltung"
+      Artenfoerderung_FF_Zielart2_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3"
+      Artenfoerderung_FF_Zielart3 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Massnahme"
+      Artenfoerderung_FF_Zielart3_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Abgeltung"
+      Artenfoerderung_FF_Zielart3_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Abgeltungsart per Hektar oder pauschal
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltungsart"
+      Artenfoerderung_Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Abgeltung Artenförderung total (pauschal max 300 oder per Hektar max 250)
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltung total"
+      Artenfoerderung_Abgeltung_total : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 750.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung Fläche total"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 10000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_Weide_LN;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Weide SöG.
+     */
+    !!@ ili2db.dispName = "Beurteilung Weide SöG"
+    CLASS Beurteilung_Weide_SOEG EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche oder auch zur spezifischen Artenförderung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Mindestfläche von 50 Aren (in der Regel); Ausnahme bei Arrondierungen oder angrenzend an einen anderen Programmtyp; keine Flächenbegrenzung bei Objekten von nationaler Bedeutung oder zur spezifischen Artenförderung.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Mindestfläche"
+      Einstiegskriterium_Mindestflaeche : MANDATORY BOOLEAN;
+      /** Einstiegskriterium Keine Zufütterung
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Keine Zufütterung"
+      Einstiegskriterium_KeineZufuetterung : MANDATORY BOOLEAN;
+      /** Verzicht auf jegliche Düngung (Handels- und Hofdünger).
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht Düngung"
+      Einstiegskriterium_VerzichtDuengung : MANDATORY BOOLEAN;
+      /** Verzicht auf Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" ist punktuell gestattet.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen).
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      /** Einstiegskriterium Abgeltung per Hektar (max. 100 CHF)
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (- Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: Nährsstoffzeiger (- Arten)"
+      EinstufungBeurteilungIstZustand_Flora_Naehrstoffzeiger : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (+ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: typische Arten (+ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_typische_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: besonders typische (++ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: bes. typische Arten (++ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_bes_typ_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: seltene Arten (s Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: seltene Arten (s Arten)"
+      EinstufungBeurteilungIstZustand_Flora_seltene_Arten : MANDATORY 0 .. 50;
+      /** Anzahl Arten Faunaliste total (maximal 3)
+       */
+      !!@ ili2db.dispName = "Anzahl Arten Faunaliste total"
+      EinstufungBeurteilungIstZustand_Anzahl_Fauna : MANDATORY 0 .. 3;
+      /** Abgeltung für Faunaarten pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung Faunaarten pauschal"
+      EinstufungBeurteilungIstZustand_Abgeltung_Faunaliste_pauschal : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Weiden Kat. (Art / Typ), Grundlagen: Floraliste"
+      EinstufungBeurteilungIstZustand_Weidenkategorie : MANDATORY Weidenkategorie;
+      /** Bis max Fr. 300.- per Hektar
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Weidenkategorie per Hektar"
+      EinstufungBeurteilungIstZustand_Weidenkategorie_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Weidenstruktur: optimal, beibehalten
+       */
+      !!@ ili2db.dispName = "Struktur - optimal, beibehalten"
+      EinstufungBeurteilungIstZustand_Struktur_optimal_beibehalten : MANDATORY BOOLEAN;
+      /** Weidenstruktur: verbessern, anlegen
+       */
+      !!@ ili2db.dispName = "Struktur - verbessern, anlegen"
+      EinstufungBeurteilungIstZustand_Struktur_verbessern_anlegen : MANDATORY BOOLEAN;
+      /** Weidenstruktur: Verbuschung, Eingriff nötig
+       */
+      !!@ ili2db.dispName = "Struktur - Verbuschung, Eingriff nötig"
+      EinstufungBeurteilungIstZustand_Struktur_Verbuschung_Eingriff_noetig : MANDATORY BOOLEAN;
+      /** Bei optimaler Struktur bis Fr. 150.- per Hektar
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung Struktur per Hektar"
+      EinstufungBeurteilungIstZustand_Struktur_Abgeltung_ha : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Bodeneigenschaften"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Bodeneigenschaften : BAG {0..*} OF Bodeneigenschaft_;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Weidnarbe : BAG {0..*} OF Weidnarbe_;
+      !!@ ili2db.dispName = "Besondere Strukturen"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_BesondereStrukturen : BAG {0..*} OF Weide_BesondereStrukturen_;
+      /** per Hektar / Jahr
+       */
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Abgeltung per Hektar"
+      EinstufungBeurteilungIstZustand_Abgeltung_ha : MANDATORY 0.00 .. 450.00 [Units.CHF];
+      /** Beweidung mit Rindern
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidung mit Rindern"
+      BewirtschaftAbmachung_BeweidungRinder : MANDATORY BOOLEAN;
+      /** auf Zusehen hin Beweidung mit Mutterkühen
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidung mit Mutterkühen"
+      BewirtschaftAbmachung_BeweidungMutterkuehe : MANDATORY BOOLEAN;
+      /** Beweidungszeitraum vom / bis
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum"
+      BewirtschaftAbmachung_Beweidungszeitraum : MANDATORY BOOLEAN;
+      /** Bewirtschaftungsabmachung - Beweidungszeitraum von Datum
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum von"
+      BewirtschaftAbmachung_Beweidungszeitraum_von : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Bewirtschaftungsabmachung - Beweidungszeitraum bis Datum
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Beweidungszeitraum bis"
+      BewirtschaftAbmachung_Beweidungszeitraum_bis : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Besatzdichte gemäss Abmachung
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte"
+      BewirtschaftAbmachung_Besatzdichte : MANDATORY BOOLEAN;
+      /** Besatzdichte gemäss Abmachung (Anzahl Tiere). Text oder Zahl.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungsabmachung - Besatzdichte (Text/Zahl)"
+      BewirtschaftAbmachung_Besatzdichte_Zahl : TEXT*255;
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 300 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 300 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 3
+       */
+      Erschwernis_Massnahme3 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 3.
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 3 Beschreibung"
+      Erschwernis_Massnahme3_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 3 Abgeltung (max. 300 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 3 Abgeltung per Hektar"
+      Erschwernis_Massnahme3_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit Abgeltung per Hektar total
+       */
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1"
+      Artenfoerderung_FF_Zielart1 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Massnahme"
+      Artenfoerderung_FF_Zielart1_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1 Abgeltung"
+      Artenfoerderung_FF_Zielart1_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2"
+      Artenfoerderung_FF_Zielart2 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Massnahme"
+      Artenfoerderung_FF_Zielart2_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2 Abgeltung"
+      Artenfoerderung_FF_Zielart2_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3"
+      Artenfoerderung_FF_Zielart3 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Massnahme"
+      Artenfoerderung_FF_Zielart3_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3 Abgeltung"
+      Artenfoerderung_FF_Zielart3_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Abgeltungsart per Hektar oder pauschal
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltungsart"
+      Artenfoerderung_Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Abgeltung Artenförderung total (pauschal max 300 oder per Hektar max 300)
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltung total"
+      Artenfoerderung_Abgeltung_total : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 1300.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung Fläche total"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 15000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_Weide_SOEG;
+
+    /** Naturschützerische Zusatzleistungen ergänzend zum Basisvertrag der Wiese.
+     */
+    !!@ ili2db.dispName = "Beurteilung Wiese"
+    CLASS Beurteilung_Wiese EXTENDS Beurteilung =
+      /** Lage in der Regel in einem kantonalen Vorranggebiet Natur und Landschaft nach Richtplan oder zur Arrondierung einer bestehenden Vereinbarungsfläche oder auch zur spezifischen Artenförderung
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Lage"
+      Einstiegskriterium_Lage : MANDATORY BOOLEAN;
+      /** Mindestfläche von 50 Aren (in der Regel); Ausnahme bei Arrondierungen oder angrenzend an einen anderen Programmtyp; keine Flächenbegrenzung bei Objekten von nationaler Bedeutung oder zur spezifischen Artenförderung
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Mindestfläche"
+      Einstiegskriterium_Mindestflaeche : MANDATORY BOOLEAN;
+      /** Verzicht auf jegliche Düngung (Handels- und Hofdünger)
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht Düngung"
+      Einstiegskriterium_VerzichtDuengung : MANDATORY BOOLEAN;
+      /** Verzicht auf Mähaufbereiter, Laubbläser, Steinbrecher und land- und forstwirtschaftliche Mulchgeräte. Der Einsatz von Freischneidern/Trimmern mit "Mulchblatt" ist punktuell gestattet.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf Diverse Geräte"
+      Einstiegskriterium_VerzichtDiverseGeraete : MANDATORY BOOLEAN;
+      /** Verzicht auf chemisch- synthetische Hilfsstoffe (auch bei Einzelstockbekämpfung). Bei Bedarf mechanische Regulierung von "Problempflanzen" wie Blacken, Ackerkratzdisteln, Neophyten (abschneiden, ausreissen, ausstechen)
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Verzicht auf chemisch-synthetische Hilfsstoffe"
+      Einstiegskriterium_VerzichtHilfsstoffe : MANDATORY BOOLEAN;
+      /** Kein grossflächiger Einsatz von Wieseneggen, Striegel und Walzen. Falls nicht anders möglich, muss es vorgängig rechtzeitig mit dem Kanton abgesprochen werden.
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Kein Einsatz von Wieseneggen, Striegel und Walzen"
+      Einstiegskriterium_KeinEinsatzWieseneggenStriegelWalzen : MANDATORY BOOLEAN;
+      /** Heuen, dabei Bodenheu machen
+       */
+      Einstiegskriterium_Bodenheu : MANDATORY BOOLEAN;
+      /** Einstiegskriterium Abgeltung in CHF per Hektar
+       */
+      !!@ ili2db.dispName = "Einstiegskriterium Abgeltung per Hektar"
+      Einstiegskriterium_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (- Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: Nährsstoffzeiger (- Arten)"
+      EinstufungBeurteilungIstZustand_Flora_Naehrstoffzeiger : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: Nährstoffzeiger (+ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: typische Arten (+ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_typische_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: besonders typische (++ Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: bes. typische Arten (++ Arten)"
+      EinstufungBeurteilungIstZustand_Flora_bes_typ_Arten : MANDATORY 0 .. 50;
+      /** Zeigerarten gemäss Floraliste: seltene Arten (s Arten)
+       */
+      !!@ ili2db.dispName = "Zeigerarten: seltene Arten (s Arten)"
+      EinstufungBeurteilungIstZustand_Flora_seltene_Arten : MANDATORY 0 .. 50;
+      /** Anzahl Arten Faunaliste total (maximal 3)
+       */
+      !!@ ili2db.dispName = "Anzahl Arten Faunaliste total"
+      EinstufungBeurteilungIstZustand_Anzahl_Fauna : MANDATORY 0 .. 3;
+      /** Abgeltung für Faunaarten pauschal total
+       */
+      !!@ ili2db.dispName = "Abgeltung Faunaarten pauschal"
+      EinstufungBeurteilungIstZustand_Abgeltung_Faunaliste_pauschal : MANDATORY 0.00 .. 150.00 [Units.CHF];
+      !!@ ili2db.dispName = "Einstufung Beurteilung Ist-Zustand - Wiesen Kat. (Art / Typ), Grundlagen: Floraliste"
+      EinstufungBeurteilungIstZustand_Wiesenkategorie : MANDATORY Wiesenkategorie;
+      /** Abgeltung Wiesenkategorie per Hektar (abhängig von gewählter Wiesenkategorie)
+       * 
+       * Kat_RF: 0 - 0
+       * Kat_RF_II: 100 - 100
+       * Kat_II_RF: 200 - 300
+       * Kat_II_artenreicheWiese: 400 - 500
+       * Kat_I_besondersartenreicheWiese: 600 - 800
+       */
+      !!@ ili2db.dispName = "Wiesenkategorie Abgeltung per Hektar"
+      EinstufungBeurteilungIstZustand_Wiesenkategorie_Abgeltung_ha : 0.00 .. 800.00 [Units.CHF];
+      !!@ ili2db.dispName = "Exposition"
+      EinstufungBeurteilungIstZustand_LageWiese_Exposition : Exposition;
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_LageWiese_Topografie : BAG {0..*} OF Topografische_Eigenschaften_;
+      !!@ ili2db.dispName = "Wiesenstruktur"
+      !!@ ili2db.mapping="ARRAY"
+      EinstufungBeurteilungIstZustand_Wiesenstruktur : BAG {0..*} OF Wiesenstruktur_;
+      /** Heuschnitt abgesprochen
+       */
+      !!@ ili2db.dispName = "Heuschnitt abgesprochen"
+      BewirtschaftAbmachung_HeuschnittAbgesprochen : MANDATORY BOOLEAN;
+      /** Schnittzeitpunkt 1 (Tag / Monat)
+       */
+      !!@ ili2db.dispName = "Datum 1. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_1 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Schnittzeitpunkt 1 (Tag / Monat)
+       */
+      !!@ ili2db.dispName = "Datum 2. Schnitt (Tag / Monat)"
+      BewirtschaftAbmachung_Schnittzeitpunkt_2 : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Emden, dabei Bodenheu  machen
+       */
+      !!@ ili2db.dispName = "Emden, Bodenheu"
+      BewirtschaftAbmachung_EmdenBodenheu : MANDATORY BOOLEAN;
+      /** EmdenBodenheu true kann mit "Nach Bedarf" ergänzt werden
+      */
+      !!@ ili2db.dispName = "Nach Bedarf"
+      BewirtschaftAbmachung_EmdenBodenheu_NachBedarf : BOOLEAN;
+      /** Bei jedem Schnitt mind. 10% der Fläche als Rückzugsstreifen stehen lassen (alternierend und überwinternd). Keine Beweidung.
+       */
+      !!@ ili2db.dispName = "Rückzugstreifen"
+      BewirtschaftAbmachung_Rueckzugstreifen : MANDATORY BOOLEAN;
+      /** Der Herbstschnitt (in der Regel 3. Nutzung) ab 20. September (darf siliert werden).
+       */
+      !!@ ili2db.dispName = "Herbstschnitt ab 20. September"
+      BewirtschaftAbmachung_Herbstschnitt : MANDATORY BOOLEAN;
+      /** Auf Grund der aktuellen Beurteilung ist eine kurze, schonende Herbstweide (ab Oktober) mit Rindern (ohne Zufütterung) ohne Trittschäden möglich.
+       */
+      !!@ ili2db.dispName = "kurze Herbstweide ab Oktober"
+      BewirtschaftAbmachung_Herbstweide : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "Herbstbeweidung Tierart"
+      BewirtschaftAbmachung_Herbstweide_Tierart : Herbstweide_Tierart;
+      !!@ ili2db.dispName = "Herbstbeweidung Anzahl Tiere"
+      BewirtschaftAbmachung_Herbstweide_AnzahlTiere : TEXT*255;
+      !!@ ili2db.dispName = "Keine Herbstweide"
+      BewirtschaftAbmachung_KeineHerbstweide : MANDATORY BOOLEAN;
+      /** Gesamte ID-Fläche: Mähen mit Messerbalken-Mähgerät (Verzicht auf Rotationsmähwerk, bzw. Kreiselmäher)
+       */
+      !!@ ili2db.dispName = "Mähen mit Messerbalken-Mähgerät"
+      BewirtschaftAbmachung_MesserbalkenMaehgeraet : MANDATORY BOOLEAN;
+      /** maximal 350 CHF per Hektar/Jahr
+       */
+      !!@ ili2db.dispName = "Abgeltung Bewirtschaftungsabmachung"
+      BewirtschaftAbmachung_Abgeltung_ha : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 1
+       */
+      !!@ ili2db.dispName = "Erschwernis 1"
+      Erschwernis_Massnahme1 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 1.
+       */
+      !!@ ili2db.dispName = "Erschwernis 1 Beschreibung"
+      Erschwernis_Massnahme1_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 1 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 1 Abgeltung per Hektar"
+      Erschwernis_Massnahme1_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      /** Erschwernis aufwendige Handarbeit - Massnahme 2
+       */
+      !!@ ili2db.dispName = "Erschwernis 2"
+      Erschwernis_Massnahme2 : MANDATORY BOOLEAN;
+      /** Erschwernis aufwendige Handarbeit Massnahmentext 2.
+       */
+      !!@ ili2db.dispName = "Erschwernis 2 Beschreibung"
+      Erschwernis_Massnahme2_Text : MTEXT*1000;
+      /** Erschwernis Massnahme 2 Abgeltung (max. 200 CHF per Hektar, per Massnahme und auch ingesamt).
+       */
+      !!@ ili2db.dispName = "Erschwernis Massnahme 2 Abgeltung per Hektar"
+      Erschwernis_Massnahme2_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Erschwernis Abgeltung per Hektar total"
+      Erschwernis_Abgeltung_ha : MANDATORY 0.00 .. 200.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 1"
+      Artenfoerderung_FF_Zielart1 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 1 Massnahme"
+      Artenfoerderung_FF_Zielart1_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 1 Abgeltung"
+      Artenfoerderung_FF_Zielart1_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 2"
+      Artenfoerderung_FF_Zielart2 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 2 Massnahme"
+      Artenfoerderung_FF_Zielart2_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 2 Abgeltung"
+      Artenfoerderung_FF_Zielart2_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      !!@ ili2db.dispName = "Artenförderung Fauna oder Flora Zielart 3"
+      Artenfoerderung_FF_Zielart3 : TEXT*255;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 3 Massnahme"
+      Artenfoerderung_FF_Zielart3_Massnahme : MTEXT*1000;
+      !!@ ili2db.dispName = "Artenförderung Fauna Zielart 3 Abgeltung"
+      Artenfoerderung_FF_Zielart3_Abgeltung : MANDATORY 0.00 .. 100.00 [Units.CHF];
+      /** Abgeltungsart für Artenförderung: per Hektar oder pauschal
+       */
+      !!@ ili2db.dispName = "Artenförderung Abgeltungsart"
+      Artenfoerderung_Abgeltungsart : MANDATORY Abgeltungsart;
+      /** Abgeltung Artenförderung total (pauschal max 300 oder per Hektar max 300)
+       */
+      Artenfoerderung_Abgeltung_total : MANDATORY 0.00 .. 300.00 [Units.CHF];
+      /** max. 2000 CHF per Hektar
+       */
+      !!@ ili2db.dispName = "Abgeltung per Hektar total"
+      Abgeltung_per_ha_total : MANDATORY 0.00 .. 2000.00 [Units.CHF];
+      /** Abgeltung Fläche total (Betrag x ha).
+       */
+      !!@ ili2db.dispName = "Abgeltung Fläche total (Abgeltung per Hektar x Anzahl Hektar)"
+      Abgeltung_flaeche_total : MANDATORY 0.00 .. 20000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Abgeltung pauschal total"
+      Abgeltung_pauschal_total : MANDATORY -10000.00 .. 10000.00 [Units.CHF];
+    END Beurteilung_Wiese;
+
+    CLASS Foto
+    EXTENDS Dokument =
+      Aufnahmezeitpunkt : INTERLIS.XMLDateTime;
+    END Foto;
+
+    CLASS Baum =
+      !!@ ili2db.dispName = "GB-Nr"
+      !!@ ili2db.mapping="ARRAY"
+      GB_Nr : BAG {1..*} OF SO_ARP_MJPNL_20240606.MJPNL.String_List;
+      !!@ ili2db.dispName = "Baum-Nr"
+      Baum_Nr : MANDATORY 0 .. 1000000000;
+      Baumart : Baumart;
+      !!@ ili2db.dispName = "Grösser 40cm Ø"
+      Ab40cmDurchmesser : MANDATORY BOOLEAN; 
+      !!@ ili2db.dispName = "Dürr und grösser 25cm Ø"
+      Totholz_ab25cmDurchmesser : MANDATORY BOOLEAN; 
+      !!@ ili2db.dispName = "Geerntet"
+      Erntepflicht : MANDATORY BOOLEAN; 
+      !!@ ili2db.dispName = "Bemerkung"
+      Bemerkung : MTEXT*1000;  
+    END Baum;
+
+    !!@ ili2db.dispName = "Strukturelement Fläche"
+    CLASS Strukturelement_Flaeche =
+      /** Überlappungen sind erlaubt
+       */
+      !!@ ili2db.dispName = "Flächengeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      !!@ ili2db.dispName = "Kategorie"
+      Strukturelement_Kategorie : MANDATORY Strukturelement_Flaeche_Kategorie;
+      Bezeichnung : TEXT*255;
+    END Strukturelement_Flaeche;
+
+    !!@ ili2db.dispName = "Strukturelement Punkt"
+    CLASS Strukturelement_Punkt =
+      /** Punktgeometrie des Strukturelements
+       */
+      !!@ ili2db.dispName = "Punktgeometrie"
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      !!@ ili2db.dispName = "Kategorie"
+      Strukturelement_Kategorie : MANDATORY Strukturelement_Punkt_Kategorie;
+      Bezeichnung : TEXT*255;
+    END Strukturelement_Punkt;
+
+    ASSOCIATION Berater_Beurteilung =
+      Berater -- {0..1} Berater;
+      Beurteilung -- {0..*} Beurteilung;
+    END Berater_Beurteilung;
+
+    CLASS Vereinbarung
+    EXTENDS Dokument =
+      /** Die Vereinbarungs-Nr setzt sich wie folgt zusammen:
+       * 
+       * Bezirksnr_AbkuerzungProgrammtyp_FortlaufendeNummer
+       * 
+       * Z.B. 1102_Wi_00003
+       */
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Alte Vereinbarungs-Nr (Optional wenn migriert)"
+      Vereinbarungs_Nr_Alt : TEXT*50;
+      !!@ ili2db.dispName = "Alte Flächen-ID"
+      Flaechen_ID_Alt : 0 .. 1000000000;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Der Link zum Bewirtschafter im GELAN.
+       */
+      !!@ ili2db.dispName = "Personen ID GELAN"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      !!@ ili2db.dispName = "Bewirtschaftungseinheit ID"
+      GELAN_BewE_ID : MANDATORY TEXT*100;
+      /** Übersteuerung der automatischen Zuteilung des GELAN Bewirtschafters. Default: False.
+       */
+      !!@ ili2db.dispName = "Übersteuerung GELAN Bewirtschafter"
+      Uebersteuerung_Bewirtschafter : MANDATORY BOOLEAN;
+      /** Ob der Wechsel der BewE_ID nach GELAN update überprüft wurde, also die Vereinbarung wieder berücksichtigt werden kann.
+       */
+      !!@ ili2db.dispName = "Bewirtschaftungseinheit überprüft"
+      BewE_ID_geprueft : MANDATORY BOOLEAN;
+      /** Wird automatisch abgefüllt von Gemeindetabelle. Kann mehrere Gemeinden (BFS-Nr) betreffen (Array of Integer)
+       */
+      !!@ ili2db.dispName = "BFS-Nr"
+      !!@ ili2db.mapping="ARRAY"
+      Bfs_Nr : BAG {1..*} OF SO_ARP_MJPNL_20240606.MJPNL.BFS_Nr;
+      /** Wird automatisch abgefüllt von Gemeindetabelle. Kann mehrere Gemeinden (Gemeindenamen) betreffen (Array of String)
+       */
+      !!@ ili2db.dispName = "Gemeinde(n)"
+      !!@ ili2db.mapping="ARRAY"
+      Gemeinde : BAG {1..*} OF SO_ARP_MJPNL_20240606.MJPNL.String_List;
+      /** Wird automatisch abgefüllt von MO-Public Liegenschaften. Kann mehrere Liegenschaften betreffen (Array von String).
+       */
+      !!@ ili2db.dispName = "GB-Nr"
+      !!@ ili2db.mapping="ARRAY"
+      GB_Nr : BAG {1..*} OF SO_ARP_MJPNL_20240606.MJPNL.String_List;
+      /** Wird automatisch abgefüllt von MO-Public Flurnamen.
+       */
+      !!@ ili2db.dispName = "Flurname"
+      !!@ ili2db.mapping="ARRAY"
+      Flurname : BAG {1..*} OF SO_ARP_MJPNL_20240606.MJPNL.String_List;
+      /** Wird automatisch abgefüllt mit Kulturflaechen in GELAN
+       */
+      !!@ ili2db.dispName = "Kultur-Id"
+      !!@ ili2db.mapping="ARRAY"
+      Kultur_Id : BAG {0..*} OF SO_ARP_MJPNL_20240606.MJPNL.String_List;
+      !!@ ili2db.dispName = "Vereinbarungsart"
+      Vereinbarungsart : MANDATORY Vereinbarungsart;
+      /** Eine Nutzungsvereinbarung ist eine normale Vereinbarung ohne Abgeltungen. Defaultmässig ist es keine Nutzungsvereinbarung.
+       */
+      !!@ ili2db.dispName = "ist Nutzungsvereinbarung"
+      ist_Nutzungsvereinbarung : MANDATORY BOOLEAN;
+      /** Fläche in ha
+       */
+      !!@ ili2db.dispName = "Fläche"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      /** Nummer des Regierungsratsbeschlusses
+       */
+      !!@ ili2db.dispName = "RRB-Nr"
+      RRB_Nr : TEXT*50;
+      !!@ ili2db.dispName = "RRB Publikationsdatum"
+      RRB_publiziert_Ab : INTERLIS.XMLDateTime;
+      !!@ ili2db.dispName = "Status der Vereinbarung"
+      Status_Vereinbarung : MANDATORY Vereinbarung_Status;
+      /** Zur Unterscheidung ob Weide LN/SöG
+       * 
+       * True: Sömmerungsgebiet
+       * False: LN
+       */
+      !!@ ili2db.dispName = "Landwirtschaftliche Zone"
+      Soemmerungsgebiet : MANDATORY BOOLEAN;
+      !!@ ili2db.dispName = "MJPNL-Version"
+      MJPNL_Version : MANDATORY MJPNL_Version;
+      /** in Jahren
+       */
+      !!@ ili2db.dispName = "Kontrollintervall"
+      Kontrollintervall : MANDATORY 1 .. 10;
+
+      !!@ ili2db.dispName = "Laufzeit Startdatum"
+      Startdatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      /** Falls diese Vereinbarung befristet ist (wie bei Buntbrache auf zBs. 8 Jahren) ist das Enddatum das Ende der Laufzeit. Bei allen anderen Vereinbarungen ist es das Datum, auf das gekündigt werden kann (aber nicht muss).
+       */
+      !!@ ili2db.dispName = "Laufzeit Enddatum (kann je nach dem weiter laufen)"
+      Enddatum : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      !!@ ili2db.dispName = "Wird kantonsintern abgerechnet"
+      Kantonsintern : BOOLEAN;
+      !!@ ili2db.dispName = "Bemerkung"
+      Bemerkung : MTEXT*1000;
+    END Vereinbarung;
+
+    ASSOCIATION AbrechnungLeistung_AbrechnungPerVereinbarung =
+      AbrechnungLeistung -- {1..*} Abrechnung_per_Leistung;
+      AbrechnungPerVereinbarung -- {0..1} Abrechnung_per_Vereinbarung;
+    END AbrechnungLeistung_AbrechnungPerVereinbarung;
+
+    ASSOCIATION AbrechnungPerVereinbarung_AbrechnungPerBewirtschafter =
+      AbrechnungPerVereinbarung -- {1..*} Abrechnung_per_Vereinbarung;
+      AbrechnungPerBewirtschafter -- {0..1} Abrechnung_per_Bewirtschafter;
+    END AbrechnungPerVereinbarung_AbrechnungPerBewirtschafter;
+
+    ASSOCIATION Basisvertrag_Berater =
+      Basisvertrag -- {0..*} Basisvertrag;
+      Berater -- {0..1} Berater;
+    END Basisvertrag_Berater;
+
+    ASSOCIATION Beobachtung_Fauna =
+      Beurteilung -- {0..*} Beurteilung;
+      Art_Fauna (EXTERNAL) -- {0..*} SO_ARP_MJPNL_20240606.Kataloge.Faunaliste;
+      /** optional for now, maybe later mandatory
+       */
+      !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
+      Haeufigkeit_quantitativ : 1 .. 1000;
+    END Beobachtung_Fauna;
+
+    ASSOCIATION Beobachtung_Flora =
+      Beurteilung -- {0..*} Beurteilung;
+      Art_Flora (EXTERNAL) -- {0..*} SO_ARP_MJPNL_20240606.Kataloge.Floraliste;
+      !!@ ili2db.dispName = "Häufigkeit (qualitativ)"
+      Haeufigkeit_qualitativ : Floraliste_Haeufigkeit;
+      !!@ ili2db.dispName = "Häufigkeit (quantitativ)"
+      Haeufigkeit_quantitativ : 0 .. 10000;
+    END Beobachtung_Flora;
+
+    ASSOCIATION Foto_Beurteilung =
+      Foto -- {0..*} Foto;
+      Beurteilung -<#> {1} Beurteilung;
+    END Foto_Beurteilung;
+
+    /** Zusammenzug von Fauna und Floraliste (für Massnahmen Artenförderung)
+     */
+    !!@ ili2db.dispName = "Fauna- und Floraliste (kombiniert)"
+    VIEW Fauna_Flora_Liste
+    UNION OF
+      Fa ~ SO_ARP_MJPNL_20240606.Kataloge.Faunaliste,
+      Fl ~ SO_ARP_MJPNL_20240606.Kataloge.Floraliste;
+    =
+      Name_Lateinisch: MANDATORY TEXT*255 := Fa -> Name_Lateinisch,
+                                             Fl -> Name_Lateinisch;
+      Name_Deutsch: MANDATORY TEXT*255 := Fa -> Name_Deutsch,
+                                          Fl -> Name_Deutsch;
+      FF_Art: MANDATORY TEXT*50;
+    END Fauna_Flora_Liste;
+
+    ASSOCIATION AbrechnungLeistung_Vereinbarung =
+      Leistungsabrechnung -- {0..*} Abrechnung_per_Leistung;
+      Vereinbarung -- {0..1} Vereinbarung;
+    END AbrechnungLeistung_Vereinbarung;
+
+    ASSOCIATION AbrechnungPerVereinbarung_Vereinbarung =
+      AbrechnungPerVereinbarung -- {0..*} Abrechnung_per_Vereinbarung;
+      Vereinbarung -- {0..1} Vereinbarung;
+    END AbrechnungPerVereinbarung_Vereinbarung;
+
+    ASSOCIATION Beurteilung_Vereinbarung =
+      Beurteilung -- {0..*} Beurteilung;
+      Vereinbarung -- {1} Vereinbarung;
+    END Beurteilung_Vereinbarung;
+
+    ASSOCIATION Baum_Vereinbarung =
+      Baum -- {0..*} Baum;
+      Vereinbarung -- {0..*} Vereinbarung;
+    END Baum_Vereinbarung;
+
+    ASSOCIATION Strukturelement_Flaeche_Vereinbarung =
+      Strukturelement_Flaeche -- {0..*} Strukturelement_Flaeche;
+      Vereinbarung -- {0..*} Vereinbarung;
+    END Strukturelement_Flaeche_Vereinbarung;
+
+    ASSOCIATION Strukturelement_Punkt_Vereinbarung =
+      Strukturelement_Punkt -- {0..*} Strukturelement_Punkt;
+      Vereinbarung -- {0..*} Vereinbarung;
+    END Strukturelement_Punkt_Vereinbarung;
+
+    ASSOCIATION VB_Bewirtschafter_Historie =
+      Vereinbarung -<#> {1} Vereinbarung;
+      Bewirtschafter_Historie -- {0..*} Vereinbarung_Bewirtschafter_Historie;
+    END VB_Bewirtschafter_Historie;
+
+    /** Pro Vereinbarung gibt es nur 1 Subregion. Wenn 2 oder mehr Subregionen betroffen sind, wird die Subregion mit dem grössten Flächenanteil gewählt.
+     */
+    ASSOCIATION Vereinbarung_UZL_Subregion =
+      Vereinbarung -- {0..*} Vereinbarung;
+      UZL_Subregion (EXTERNAL) -- {0..1} SO_ARP_MJPNL_20240606.Umweltziele.UZL_Subregion;
+    END Vereinbarung_UZL_Subregion;
+
+  END MJPNL;
+
+  TOPIC Auswertung =
+    DEPENDS ON SO_ARP_MJPNL_20240606.MJPNL;
+
+    /** Liste von Bewirtschafter, die etwas übernommen haben und all die Vereinbarungen, die es betrifft, plus die Gemeinde.
+    */
+    !!@ ili2db.dispName = "Bewirtschafterwechsel"
+    CLASS RRB_Bewirtschafterwechsel =
+      Jahr : MANDATORY 1900 .. 2100;
+      Gemeinde : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Alte Vereinbarungs-Nr (Optional wenn migriert)"
+      Vereinbarungs_Nr_Alt : TEXT*50;
+      !!@ ili2db.dispName = "Neue Bewirtschafter ID (GELAN)"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      !!@ ili2db.dispName = "Neuer Bewirtschafter"
+      GELAN_Person : MANDATORY TEXT*255;
+    END RRB_Bewirtschafterwechsel;
+
+    /** Liste neuer Vereinbarungen plus Gemeinde, Bewirtschafter, Fläche und Jahr
+     */
+    !!@ ili2db.dispName = "Neue Vereinbarungen"
+    CLASS RRB_Neue_Vereinbarung =
+      Jahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Vereinbarungsart"
+      Vereinbarungsart : MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Vereinbarungsart;
+      Gemeinde : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Alte Vereinbarungs-Nr (Optional wenn migriert)"
+      Vereinbarungs_Nr_Alt : TEXT*50;
+      !!@ ili2db.dispName = "Bewirtschafter ID (GELAN)"
+      GELAN_PID_GELAN : MANDATORY 200000 .. 9999999;
+      !!@ ili2db.dispName = "Bewirtschafter"
+      GELAN_Person : MANDATORY TEXT*255;
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche : MANDATORY 0.01 .. 1000000.00 [Units.ha];
+      !!@ ili2db.dispName = "Betrag"
+      Betrag_Total : MANDATORY -100000.00 .. 1000000.00 [Units.CHF];
+    END RRB_Neue_Vereinbarung;
+
+    /** Abgeltung pro Jahr, Bezirk und Typ (Weide etc.)
+    */
+    CLASS Jahresbericht_Abgeltungen=
+      Jahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Vereinbarungsart"
+      Vereinbarungsart : MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Vereinbarungsart;
+      Bezirksnummer : MANDATORY 0 .. 9999;
+      Bezirk : MANDATORY TEXT*100;
+      !!@ ili2db.dispName = "Anzahl Bäume"
+      Anzahl_Vereinbarungen : MANDATORY 0 .. 100000;
+      !!@ ili2db.dispName = "Fläche in ha"
+      Flaeche_Total : MANDATORY 0.01 .. 100000000.00 [Units.ha];
+      !!@ ili2db.dispName = "Laufmeter"
+      Laufmeter_Total : 0 .. 3000000 [INTERLIS.m];
+      !!@ ili2db.dispName = "Anzahl Bäume"
+      Baeume_Total : 0 .. 100000000;
+      !!@ ili2db.dispName = "Anzahl Bäume ab 40cm Ø"
+      Baeume_BaumAb40cmDurchmesser_Total : 0 .. 100000000;
+      !!@ ili2db.dispName = "Anzahl Bäume mit Erntepflicht"
+      Baeume_Erntepflicht_Total : 0 .. 100000000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Plus"
+      Baeume_OekoPlus_Total : 0 .. 100000000;
+      !!@ ili2db.dispName = "Anzahl Bäume Öko Maxi"
+      Baeume_OekoMaxi_Total : 0 .. 100000000;
+      !!@ ili2db.dispName = "Abgeltung in FR"
+      Betrag_Total : MANDATORY -100000.00 .. 10000000000.00 [Units.CHF];
+      !!@ ili2db.dispName = "Anzahl betroffener Gemeinden"
+      Anzahl_Gemeinden : MANDATORY 0 .. 100;
+
+      UNIQUE Jahr, Vereinbarungsart, Bezirk;
+    END Jahresbericht_Abgeltungen;
+
+    /**
+    Basis für Mehrjahresauswertung betreffend Anzal pro:
+    - Kategorie
+    - Messerbalken-Mähgerät
+    */
+    CLASS Snapshot_Base (ABSTRACT) =
+      Jahr : MANDATORY 1900 .. 2100;
+      !!@ ili2db.dispName = "Vereinbarungs-Nr"
+      Vereinbarungs_Nr : MANDATORY TEXT*50;
+      !!@ ili2db.dispName = "Anzahl Nährsstoffzeiger (- Arten)"
+      Anzahl_Flora_Naehrstoffzeiger : 0 .. 50;
+      !!@ ili2db.dispName = "Anzahl Typische Arten (+ Arten)"
+      Anzahl_Flora_typ_Arten : 0 .. 50;
+      !!@ ili2db.dispName = "Anzahl Besonders typische Arten (++ Arten)"
+      Anzahl_Flora_bes_typ_Arten : 0 .. 50;
+      !!@ ili2db.dispName = "Anzahl Seltene Arten (s Arten)"
+      Anzahl_Flora_seltene_Arten : 0 .. 50;
+      !!@ ili2db.dispName = "Anzahl Fauna Arten"
+      Anzahl_Fauna : 0 .. 50;
+      !!@ ili2db.dispName = "Anzahl der geförderten Arten"
+      Anzahl_Artenfoerderungen : 0 .. 50;
+      !!@ ili2db.dispName = "Liste der geförderten Arten"
+      Artenfoerderung_Zielarten : TEXT*1000;
+    END Snapshot_Base;
+    
+    CLASS Snapshot_Wiese EXTENDS Snapshot_Base = 
+      Kategorie: MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Wiesenkategorie;
+      !!@ ili2db.dispName = "Messerbalken-Mähgerät"
+      MesserbalkenMaehgeraet : BOOLEAN;
+    END Snapshot_Wiese;
+
+    CLASS Snapshot_WBL_Wiese EXTENDS Snapshot_Base = 
+      Kategorie: MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Wiesenkategorie;
+      !!@ ili2db.dispName = "Messerbalken-Mähgerät"
+      MesserbalkenMaehgeraet : BOOLEAN;
+    END Snapshot_WBL_Wiese;
+    
+    CLASS Snapshot_Weide EXTENDS Snapshot_Base = 
+      Kategorie: MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Weidenkategorie;
+    END Snapshot_Weide;
+
+    CLASS Snapshot_WBL_Weide EXTENDS Snapshot_Base = 
+      Kategorie: MANDATORY SO_ARP_MJPNL_20240606.MJPNL.Weidenkategorie;
+    END Snapshot_WBL_Weide;
+
+  END Auswertung;
+  
+END SO_ARP_MJPNL_20240606.
