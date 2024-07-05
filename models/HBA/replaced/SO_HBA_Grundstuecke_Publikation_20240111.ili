@@ -1,0 +1,66 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-01-09 | sz  | Initialerstellung
+ *  !! 2024-01-11 | sz  | Anpassung an Edit-Modell
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/HBA/SO_HBA_Grundstuecke_Publikation_20240111.uml
+!!@ shortDescription="Publikationsmodell für die kantonseigenen Grundstücke"
+!!@ title="Grundstücke des Kantons"
+MODEL SO_HBA_Grundstuecke_Publikation_20240111 (de)
+AT "https://hba.so.ch"
+VERSION "2024-01-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Grundstuecke =
+
+    CLASS Liegenschaft =
+      /** Schweizweit eindeutiger Grundstücksindentifikator
+       */
+      EGRID : MANDATORY TEXT*14;
+      /** Fachliche Verantwortung innerhalb des Kantons
+       */
+      Fachverantwortung : TEXT*100;
+      /** Art des Vermögens
+       */
+      Vermoegensart : MANDATORY (
+        !!@ ili2db.dispName=Stiftungsvermögen
+        SV,
+        !!@ ili2db.dispName=Allmend
+        ALLM,
+        !!@ ili2db.dispName=Anmietobjekt
+        AM,
+        !!@ ili2db.dispName=Finanzvermögen
+        FV,
+        !!@ ili2db.dispName=Verwaltungsvermögen
+        VV
+      );
+      /** Eindeutiger Identifikator der Wirtschaftseinheit. HBA-interne Nummer.
+       */
+      Wirtschaftseinheit : MANDATORY TEXT*20;
+      /** Geometrie des Grundstückes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Baurecht zuhanden Dritter
+       */
+      Baurecht_Dritter : MANDATORY BOOLEAN;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      Prioritaet : (
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, verwertbar"
+        C,
+        !!@ ili2db.dispName="Nicht betriebsnotwendig, halten, periodische Überprüfung"
+        B,
+        !!@ ili2db.dispName=betriebsnotwendig
+        A
+      );
+      UNIQUE EGRID;
+    END Liegenschaft;
+
+  END Grundstuecke;
+
+END SO_HBA_Grundstuecke_Publikation_20240111.

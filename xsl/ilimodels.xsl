@@ -41,7 +41,7 @@
                     <input type="text" id="myInput" onkeyup="filterFnc()" placeholder="Search for models..." />
                 </div>
 
-                <xsl:apply-templates select="ili:TRANSFER/ili:DATASECTION/ili:IliRepository09.RepositoryIndex" />
+                <xsl:apply-templates select="ili:TRANSFER/ili:DATASECTION/ili:IliRepository20.RepositoryIndex" />
 
             </div>
 
@@ -72,8 +72,8 @@
 
 	</xsl:template>
 
-    <xsl:template match="ili:IliRepository09.RepositoryIndex">
-        <xsl:for-each select="ili:IliRepository09.RepositoryIndex.ModelMetadata">
+    <xsl:template match="ili:IliRepository20.RepositoryIndex">
+        <xsl:for-each select="ili:IliRepository20.RepositoryIndex.ModelMetadata">
             <xsl:sort select="substring(ili:File,1,3)" data-type="text"/>
             <xsl:sort select="ili:Name" data-type="text"/>
 
@@ -117,9 +117,9 @@
                                 </tr>
                                 <tr>
                                     <td>Abhängigkeiten:</td>
-                                        <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) > 0">
+                                        <xsl:if test="count(ili:dependsOnModel/ili:IliRepository20.ModelName_) > 0">
                                             <td>
-                                                <xsl:for-each select="ili:dependsOnModel/ili:IliRepository09.ModelName_">
+                                                <xsl:for-each select="ili:dependsOnModel/ili:IliRepository20.ModelName_">
                                                     <xsl:value-of select="ili:value"/>       
                                                     <xsl:if test="position()!=last()">
                                                         <xsl:text>, </xsl:text>
@@ -127,7 +127,7 @@
                                                 </xsl:for-each>
                                             </td>
                                         </xsl:if>
-                                        <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) = 0">
+                                        <xsl:if test="count(ili:dependsOnModel/ili:IliRepository20.ModelName_) = 0">
                                             <td>
                                                 <xsl:text>&#8212;</xsl:text>    
                                             </td>

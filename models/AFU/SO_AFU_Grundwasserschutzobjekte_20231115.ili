@@ -1,0 +1,321 @@
+INTERLIS 2.3;
+
+/** Modell zur Erfassung grundwasserschutzrelevanter Objekte des Kt. Solothurn.
+ * 
+ * ------------------------------------------------------------------------------
+ *  Version    | wer   | Aenderung
+ * ------------------------------------------------------------------------------
+ *  2023-10-17 | AfU   | Erstellung Fachmodell
+ *  2023-11-15 | AfU   | Ergänzung Constraints, Datum aktualisiert
+ * ==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/AFU/SO_AFU_Grundwasserschutzobjekte_20231115.uml
+MODEL SO_AFU_Grundwasserschutzobjekte_20231115 (de)
+AT "https://afu.so.ch"
+VERSION "2023-11-15"  =
+  IMPORTS GeometryCHLV95_V1,Units,Text;
+
+  /** Das Thema Grundwasserschutzobjekte (GWO) bewirtschaftet alle grundwasserschutzrelevante Objekte sowie die dazugehoerigen Dokumente
+   */
+  TOPIC Grundwasserschutzobjekte =
+
+    DOMAIN
+
+      /** Bezeichnung Messort der Referenzhoehe
+       */
+      Bezeichnung_obere_Hoehe = (
+        Innere_Kante_Schachtrand,
+        Oberkante_Rohr,
+        Oberkante_Schachtrand,
+        Terrain,
+        keine_Angabe
+      );
+
+      /** Hoehenangabe in m ü. M.
+       */
+      Hoehenangabe = 200.00 .. 9999.99 [INTERLIS.M];
+
+    /** Objekte der Grundwasserbewirtschaftung
+     */
+    CLASS Objekte_Grundwasserbewirtschaftung (ABSTRACT) =
+      /** Objektidentifikation (ehemalige VEGAS-ID)
+       */
+      Objekt_ID : MANDATORY 591212001 .. 648266999;
+      /** Objektname
+       */
+      Bezeichnung : MANDATORY TEXT*200;
+      /** Technische Beschreibung (enthält Notizen und z.T. Namen)
+       */
+      Beschreibung : MTEXT*2000;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : MTEXT*2000;
+      /** Datum der Objektaufnahme
+       */
+      Aufnahmedatum : MANDATORY FORMAT INTERLIS.XMLDate "1900-01-01" .. "2500-12-24";
+      /** Name des Datenerfassers
+       */
+      Erfasser : MANDATORY TEXT*200;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Die Objekt-ID muss eindeutig sein
+       */
+      UNIQUE Objekt_ID;
+    END Objekte_Grundwasserbewirtschaftung;
+
+    /** vorhandene Dokumente zum Objekt
+     */
+    CLASS Dokument =
+      /** Titel des Dokuments
+       */
+      Titel : MANDATORY TEXT*100;
+      /** Beschreibung des Dokumentes
+       */
+      Dokument_Beschreibung : MANDATORY TEXT*200;
+      /** Typ vom Dokument
+       */
+      Typ : MANDATORY (
+        Text,
+        Foto,
+        Plan,
+        Skizze
+      );
+      /** Datum der Dokumentzuordnung
+       */
+      Datum : MANDATORY FORMAT INTERLIS.XMLDate "1900-01-01" .. "2500-12-24";
+      /** Name des Dokuments (inkl. Pfad und Dateiendung)
+       */
+      Dateiname : MANDATORY TEXT*255;
+      UNIQUE Dateiname;
+    END Dokument;
+
+    /** (Bau)Gesuche für Einbauten ins Grundwasser
+     */
+    CLASS Einbaute
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Art der Wasserhaltung
+       */
+      Art : MANDATORY (
+        Wellpoint,
+        Pumpensumpf,
+        Filterbrunnen,
+        keine_Angabe
+      );
+      /** Geschaeftsnummer BauGK (falls vorhanden)
+       */
+      BauGK_Geschaeft : TEXT*20;
+      /** Ab dem Jahr 2024 darf bei der Art keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Art == #keine_Angabe));
+    END Einbaute;
+
+    /** Grundwasserwaermepumpen (GWWP)
+     */
+    CLASS Grundwasserwaermepumpe
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Geschäftnummer BauGK (falls vorhanden)
+       */
+      BauGK_Geschaeft : TEXT*20;
+      Schachttyp : MANDATORY (
+        Entnahme,
+        Rueckgabe,
+        keine_Angabe
+      );
+      Untertyp : MANDATORY (
+        /** Nur Waermetauscher ohne Waermepumpe
+         */
+        Nur_Waermetauscher,
+        /** Grundwasserwaermepumpe mit Waermetauscher
+         */
+        GWWP_mit_Waermetauscher,
+        keine_Angabe
+      );
+      Zustand : MANDATORY (
+        Voranfrage,
+        in_Betrieb,
+        stillgelegt,
+        aufgehoben,
+        keine_Angabe
+      );
+      /** Ab dem Jahr 2024 darf beim Schachttyp keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Schachttyp == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf beim Untertyp keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Untertyp == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf beim Zustand keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Zustand == #keine_Angabe));
+    END Grundwasserwaermepumpe;
+
+    ASSOCIATION Einbaute__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Einbaute_R -- {0..*} Einbaute;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Einbaute__Dokument;
+
+    /** Sondierschlitz  zur Untersuchung des Baugrundes
+     */
+    CLASS Baggerschlitz
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Geschaeftsnummer BauGK (falls vorhanden)
+       */
+      BauGK_Geschaeft : TEXT*20;
+      /** Tiefe des Baggerschlitzes ab Oberkante Terrain in Meter
+       */
+      Tiefe_ab_Oberkante : 0.00 .. 999.99 [INTERLIS.m];
+    END Baggerschlitz;
+
+    ASSOCIATION Grundwasserwaermepumpe__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Grundwasserwaermepumpe_R -- {0..*} Grundwasserwaermepumpe;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Grundwasserwaermepumpe__Dokument;
+
+    /** Bohrung zur Untersuchung des Baugrundes
+     */
+    CLASS Bohrung
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Geschaeftsnummer BauGK (falls vorhanden)
+       */
+      BauGK_Geschaeft : TEXT*20;
+      /** Typ der Bohrung
+       */
+      Bohrtyp : MANDATORY (
+        Kernbohrung,
+        Schlagbohrung,
+        Rammbohrung,
+        Spuehlborhung,
+        Rammkernbohrung,
+        Meiselbohrung,
+        keine_Angabe
+      );
+      /** Durchmesser der Bohrung (mm)
+       */
+      Bohrung_Durchmesser : 0 .. 2000 [Units.mm];
+      /** Obere Referenzhöhe in m ü. M.
+       */
+      Obere_Hoehe : Hoehenangabe;
+      /** Bezeichnung Messort der Referenzhoehe
+       */
+      Bezeichnung_obere_Hoehe : MANDATORY Bezeichnung_obere_Hoehe;
+      /** Hoehenkote der Sohle in m ü. M.
+       */
+      Sohle : Hoehenangabe;
+      /** Durchmesser Rohr (mm) - PIEZO
+       */
+      Rohr_Durchmesser : 0 .. 2000 [Units.mm];
+      /** Unterkante Filterrohr in m ü. M.
+       */
+      Unterkante_Filterrohr : Hoehenangabe;
+      /** Oberkante vom Filterrohr in m ü. M.
+       */
+      Oberkante_Filterrohr : Hoehenangabe;
+      /** Limnigraf vorhanden?
+       */
+      Limnigraf : MANDATORY BOOLEAN;
+      /** Piezometer vorhanden?
+       */
+      Piezometer : MANDATORY BOOLEAN;
+      /** Bohrtiefe (m)
+       */
+      Tiefe_Bohrung : 0.00 .. 999.99 [INTERLIS.m];
+      /** Ab dem Jahr 2024 darf beim Bohrtyp keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Bohrtyp == #keine_Angabe));
+      /** Ab dem Jahr 2024 darf bei der Bezeichnung_obere_Hoehe keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Bezeichnung_obere_Hoehe == #keine_Angabe));
+    END Bohrung;
+
+    ASSOCIATION Baggerschlitz__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Dokument_R -- {0..*} Dokument;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Baggerschlitz_R -- {0..*} Baggerschlitz;
+    END Baggerschlitz__Dokument;
+
+    /** Messrohr zur Messung des Grundwasserspiegels
+     */
+    CLASS Piezometer_gerammt
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Obere Referenzhoehe in m ü. M.
+       */
+      Obere_Hoehe : Hoehenangabe;
+      /** Bezeichnung Messort der Referenzhoehe
+       */
+      Bezeichnung_obere_Hoehe : MANDATORY Bezeichnung_obere_Hoehe;
+      /** Limnigraf vorhanden
+       */
+      Limnigraf : MANDATORY BOOLEAN;
+      /** Ab dem Jahr 2024 darf bei der Bezeichnung_obere_Hoehe keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Bezeichnung_obere_Hoehe == #keine_Angabe));
+    END Piezometer_gerammt;
+
+    /** Schachtbrunnen zum sammeln und entnehmen von Grundwasser
+     */
+    CLASS Sodbrunnen
+    EXTENDS Objekte_Grundwasserbewirtschaftung =
+      /** Limnigraf vorhanden?
+       */
+      Limnigraf : MANDATORY BOOLEAN;
+      /** Art der Verwendung
+       */
+      Verwendung : MANDATORY (
+        Trinkwasser,
+        Brauchwasser,
+        keine_Angabe
+      );
+      /** durchschnittliche minimiale Schuettung (l/min)
+       */
+      minimale_Schuettung : 0 .. 300000;
+      /** durchschnittliche minimiale Schuettung (l/min)
+       */
+      maximale_Schuettung : 0 .. 300000;
+      /** Konzessionsmenge in l/min
+       */
+      Konzessionsmenge : 0 .. 99999;
+      /** Ab dem Jahr 2024 darf bei der Verwendung keine_Angabe nicht mehr verwendet werden.
+       */
+      MANDATORY CONSTRAINT NOT ((Aufnahmedatum > "2023-12-31") AND (Verwendung == #keine_Angabe));
+    END Sodbrunnen;
+
+    ASSOCIATION Piezometer__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Piezometer_gerammt_R -- {0..*} Piezometer_gerammt;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Piezometer__Dokument;
+
+    ASSOCIATION Bohrung__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Bohrung_R -- {0..*} Bohrung;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Bohrung__Dokument;
+
+    ASSOCIATION Sodbrunnen__Dokument =
+      /** bezeichnet, zu welchen Objekten ein Dokument gehoert
+       */
+      Sodbrunnen_R -- {0..*} Sodbrunnen;
+      /** weitere Dokumente, die das Objekt besser beschreiben
+       */
+      Dokument_R -- {0..*} Dokument;
+    END Sodbrunnen__Dokument;
+
+  END Grundwasserschutzobjekte;
+
+END SO_AFU_Grundwasserschutzobjekte_20231115.

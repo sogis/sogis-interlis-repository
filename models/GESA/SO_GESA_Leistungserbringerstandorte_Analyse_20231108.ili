@@ -1,0 +1,145 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2023-11-08 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/GESA/SO_GESA_Leistungserbringerstandorte_Analyse_20231108.uml
+!!@ Name=Value
+MODEL SO_GESA_Leistungserbringerstandorte_Analyse_20231108 (de)
+AT "https://agi.so.ch"
+VERSION "2023-11-08"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Stammdaten =
+
+    /** Hektarraster mit Anzahl dauernder und nicht-dauernder Bewohner.
+     */
+    CLASS Hektarraster =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Wohnbevölkerung - nur ständige Wohnbevölkerung
+       */
+      Wohnbevoelkerung_staendig : MANDATORY 0 .. 10000;
+      /** Wohnbevölkerung Total (alle Wohnsitztypen)
+       */
+      Wohnbevoelkerung_total : MANDATORY 0 .. 10000;
+    END Hektarraster;
+
+    /** Für die Analyse relevanten Institute.
+     */
+    CLASS Institut =
+      /** Name des Instituts
+       */
+      Name : MANDATORY TEXT*512;
+      /** Kanton
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE Name;
+    END Institut;
+
+    /** Einzelne Standorte eines Instituts.
+     */
+    CLASS Standort =
+      /** Punktgeometrie des Standorts
+       */
+      Lage : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Standortname
+       */
+      Name : MANDATORY TEXT*512;
+      /** Strasse und Hausnummer
+       */
+      Strasse_Hausnummer : TEXT*512;
+      /** Postleitzahl und postalische Ortschaft
+       */
+      PLZ_Ortschaft : TEXT*512;
+      /** Erbrachte Leistungen am Standort
+       */
+      Leistungen : (
+        !!@ ili2db.dispName="ambulant und stationär"
+        ambulant_stationaer,
+        !!@ ili2db.dispName=stationär
+        stationaer,
+        ambulant
+      );
+      /** Kanton
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+    END Standort;
+
+    ASSOCIATION Institut__Standort =
+      Institut_R -<> {1} Institut;
+      Standort_R -- {1..*} Standort;
+    END Institut__Standort;
+
+  END Stammdaten;
+
+  TOPIC Auswertung =
+    DEPENDS ON SO_GESA_Leistungserbringerstandorte_Analyse_20231108.Stammdaten;
+
+    DOMAIN
+
+      Fahrzeitklassierung = (
+        !!@ ili2db.dispName="30-60 Minuten"
+        min_30_60,
+        !!@ ili2db.dispName="15-30 Minuten"
+        min_15_30,
+        !!@ ili2db.dispName="10-15 Minuten"
+        min_10_15,
+        !!@ ili2db.dispName="0-10 Minuten"
+        min_0_10
+      );
+
+    /** Erreichbarkeit pro Hektarraster der Leistungserbringer innerhalb verschiedener Fahrzeitklassen.
+     */
+    CLASS Versorgung_Hektarraster =
+      /** Fahrzeit-Klassierung: Erreichbarkeit des Standorts in Minuten
+       */
+      Fahrzeit : MANDATORY Fahrzeitklassierung;
+      /** Wohnbevölkerung Total (alle Wohnsitztypen)
+       */
+      Wohnbevoelkerung_total : MANDATORY 0 .. 350000;
+      /** Wohnbevölkerung - nur ständige Wohnbevölkerung
+       */
+      Wohnbevoelkerung_staendig : MANDATORY 0 .. 350000;
+    END Versorgung_Hektarraster;
+
+    /** Aggregierte Erreichbarkeit der Leistungserbringer innerhalb verschiedener Fahrzeitklassen.
+     */
+    CLASS Versorgung_Leistungserbringer =
+      /** Fahrzeit-Klassierung: Erreichbarkeit des Standorts in Minuten
+       */
+      Fahrzeit : MANDATORY Fahrzeitklassierung;
+      /** Wohnbevölkerung Total (alle Wohnsitztypen)
+       */
+      Wohnbevoelkerung_total : MANDATORY 0 .. 350000;
+      /** Wohnbevölkerung - nur ständige Wohnbevölkerung
+       */
+      Wohnbevoelkerung_staendig : MANDATORY 0 .. 350000;
+      /** Anzahl betroffene Hektarraster-Punkte
+       */
+      Haeufigkeit : MANDATORY 0 .. 100000;
+    END Versorgung_Leistungserbringer;
+
+    ASSOCIATION Hektarraster__Versorgung_Hektarraster =
+      Hektarraster_R (EXTERNAL) -- {1} SO_GESA_Leistungserbringerstandorte_Analyse_20231108.Stammdaten.Hektarraster;
+      Versorgung_Hektarraster_Hektarraster_R -- {0..*} Versorgung_Hektarraster;
+    END Hektarraster__Versorgung_Hektarraster;
+
+    ASSOCIATION Standort__Versorgung_Hektarraster =
+      Versorgung_Hektarraster_R -- {0..*} Versorgung_Hektarraster;
+      Standort_R (EXTERNAL) -- {1} SO_GESA_Leistungserbringerstandorte_Analyse_20231108.Stammdaten.Standort;
+    END Standort__Versorgung_Hektarraster;
+
+    ASSOCIATION Standort__Versorgung_Leistungserbringer =
+      Versorung_Leistungserbringer_R -- {0..*} Versorgung_Leistungserbringer;
+      Standort_R (EXTERNAL) -- {1} SO_GESA_Leistungserbringerstandorte_Analyse_20231108.Stammdaten.Standort;
+    END Standort__Versorgung_Leistungserbringer;
+
+  END Auswertung;
+
+END SO_GESA_Leistungserbringerstandorte_Analyse_20231108.

@@ -1,0 +1,69 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-02-19 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_LKMap_Publikation_20240219.uml
+MODEL SO_AGI_LKMap_Publikation_20240219 (de)
+AT "https://agi.so.ch"
+VERSION "2024-02-19"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  CLASS LKObjekt (ABSTRACT) =
+    ObjectId : MANDATORY TEXT*20;
+    DatasetId : MANDATORY TEXT*20;
+    Medium : MANDATORY TEXT*50;
+    Objektart : TEXT*50;
+    Lagebestimmung : TEXT*50;
+    Status : TEXT*50;
+    Eigentuemer : TEXT*512;
+    Datenherr : TEXT*512;
+    Datenlieferant : TEXT*512;
+    letzte_Aenderung : INTERLIS.XMLDate;
+    Textinhalt : TEXT*1024;
+  END LKObjekt;
+
+  CLASS LKFlaeche (ABSTRACT)
+  EXTENDS LKObjekt =
+    Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+  END LKFlaeche;
+
+  CLASS LKLinie (ABSTRACT)
+  EXTENDS LKObjekt =
+    Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    Breite : 0 .. 100000;
+    Profiltyp : TEXT*50;
+  END LKLinie;
+
+  CLASS LKPunkt (ABSTRACT)
+  EXTENDS LKObjekt =
+    Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    Dimension1 : 0 .. 100000;
+    Dimension2 : 0 .. 100000;
+    SymbolOri : 0.0 .. 359.9;
+  END LKPunkt;
+
+  TOPIC Wasser =
+
+    CLASS LKFlaeche
+    EXTENDS SO_AGI_LKMap_Publikation_20240219.LKFlaeche =
+      OID AS INTERLIS.STANDARDOID;
+    END LKFlaeche;
+
+    CLASS LKLinie
+    EXTENDS SO_AGI_LKMap_Publikation_20240219.LKLinie =
+      OID AS INTERLIS.STANDARDOID;
+    END LKLinie;
+
+    CLASS LKPunkt
+    EXTENDS SO_AGI_LKMap_Publikation_20240219.LKPunkt =
+      OID AS INTERLIS.STANDARDOID;
+    END LKPunkt;
+
+  END Wasser;
+
+END SO_AGI_LKMap_Publikation_20240219.

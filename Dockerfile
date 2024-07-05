@@ -18,6 +18,7 @@ COPY models/AMB /opt/repository/AMB
 COPY models/ARP /opt/repository/ARP 
 COPY models/AVT /opt/repository/AVT 
 COPY models/AWJF /opt/repository/AWJF
+COPY models/DSBJD /opt/repository/DSBJD
 COPY models/Gemeinden /opt/repository/Gemeinden
 COPY models/SGV /opt/repository/SGV
 COPY models/ADA /opt/repository/ADA
@@ -25,6 +26,7 @@ COPY models/KSTA /opt/repository/KSTA
 COPY models/AWA /opt/repository/AWA
 COPY models/AGS /opt/repository/AGS
 COPY models/HBA /opt/repository/HBA
+COPY models/GESA /opt/repository/GESA
 
 COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/

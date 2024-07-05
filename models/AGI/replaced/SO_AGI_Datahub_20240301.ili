@@ -1,0 +1,141 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-02-12 | sz  | Ersterfassung
+ *  !! 2024-03-01 | sz  | API-Key-Variante
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_Datahub_20240301.uml
+MODEL SO_AGI_Datahub_20240301 (de)
+AT "https://agi.so.ch"
+VERSION "2024-03-01"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Core =
+
+    CLASS ApiKey =
+      /** API-Key
+       */
+      apiKey : MANDATORY TEXT*256;
+      /** Zeitpunkt der Erstellung.
+       */
+      createdAt : MANDATORY INTERLIS.XMLDateTime;
+      /** Zeitpunkt des Invalidierens.
+       */
+      revokedAt : INTERLIS.XMLDateTime;
+      /** Zeitpunkt, an dem Key invalidiert wird.
+       */
+      dateOfExpiry : INTERLIS.XMLDateTime;
+    END ApiKey;
+
+    CLASS Operat =
+      /** Name resp. ID des Operates, z.B. DMAV-2601 für die Gemeinde Solothurn im DMAV.
+       */
+      name : MANDATORY TEXT*512;
+      /** ID des Operates ist eindeutig.
+       */
+      UNIQUE name;
+    END Operat;
+
+    CLASS Organisation =
+      /** Name der Organisation / Firma.
+       */
+      name : MANDATORY TEXT*512;
+      /** Unternehmens-Identifikationsnummer. Schweizweit eindeutig.
+       */
+      uid : TEXT*15;
+      /** Rolle der Organisation (Admin oder User).
+       */
+      role : TEXT*20;
+      email : MANDATORY TEXT*512;
+      /** Name der Organisation ist eindeutig.
+       */
+      UNIQUE name;
+      UNIQUE email;
+    END Organisation;
+
+    /** TODO
+     */
+    CLASS Theme =
+      /** Name / ID des Themas, z.B. DMAV
+       */
+      name : MANDATORY TEXT*20;
+      /** Name / ID der Config-Datei, die für die Validierung verwendet wird.
+       */
+      config : TEXT*512;
+      /** Name / ID der Meta-Config-Datei, die für die Validierung verwendet wird.
+       */
+      metaConfig : TEXT*512;
+      /** ID des Themas ist eindeutig.
+       */
+      UNIQUE name;
+    END Theme;
+
+    ASSOCIATION Operat_Organisation =
+      Organisation_R -- {1} Organisation;
+      Operat_R -- {0..*} Operat;
+    END Operat_Organisation;
+
+    ASSOCIATION Organisation_ApiKey =
+      ApiKey_R -- {0..*} ApiKey;
+      Organisation_R -- {1} Organisation;
+    END Organisation_ApiKey;
+
+    ASSOCIATION Theme_Operat =
+      Operat_R -- {0..*} Operat;
+      Theme_R -- {1} Theme;
+    END Theme_Operat;
+
+  END Core;
+
+  TOPIC Deliveries =
+    DEPENDS ON SO_AGI_Datahub_20240301.Core;
+
+    CLASS Asset =
+      originalFilename : MANDATORY TEXT*2048;
+      sanitizedFilename : TEXT*2048;
+      type : MANDATORY (
+        /** Reports created by the validation process.
+         */
+        ValidationReport,
+        /** Primary data delivered by the user.
+         */
+        PrimaryData
+      );
+    END Asset;
+
+    /** ID des Jobs muss eindeutig sein.
+     */
+    CLASS Delivery =
+      /** ID des (technischen) Jobs, der die Lieferung prozessiert hat. (UUID macht mit Apache Cayenne Probleme, müsste man händisch eingreifen in datamap.map.xml).
+       */
+      jobId : MANDATORY TEXT*36;
+      /** Datum und Uhrzeit der Lieferung
+       */
+      deliveryDate : MANDATORY INTERLIS.XMLDateTime;
+      isValid : BOOLEAN;
+      delivered : BOOLEAN;
+      UNIQUE jobId;
+    END Delivery;
+
+    ASSOCIATION ApiKey_Delivery =
+      Delivery_R -- {0..*} Delivery;
+      ApiKey_R (EXTERNAL) -- {1} SO_AGI_Datahub_20240301.Core.ApiKey;
+    END ApiKey_Delivery;
+
+    ASSOCIATION Delivery_Asset =
+      Asset_R -- {1..*} Asset;
+      Delivery_R -- {1} Delivery;
+    END Delivery_Asset;
+
+    ASSOCIATION Operat_Delivery =
+      Delivery_R -- {0..*} Delivery;
+      Operat_R (EXTERNAL) -- {1} SO_AGI_Datahub_20240301.Core.Operat;
+    END Operat_Delivery;
+
+  END Deliveries;
+
+END SO_AGI_Datahub_20240301.
