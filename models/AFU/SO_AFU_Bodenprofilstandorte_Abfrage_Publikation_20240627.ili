@@ -1,0 +1,377 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------------------
+ *  !! 2024-06-27 | PB | Erstfassung
+ *  !!===========================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Bodenprofilstandorte_Abfrage_Publikation_20240627.uml
+MODEL SO_AFU_Bodenprofilstandorte_Abfrage_Publikation_20240627 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2024-06-27"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  /** Daten kommen aus dem nationalen Bodeninformationssystem NABODAT (Modell: NABODAT_ErgebnisseBodenbelastung_Punktdaten_LV95_V1_1). Dieses Publikationsmodell wird für die Bodenprofilabfrage genutzt.
+   */
+  TOPIC Bodenprofilabfrage =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Bodenprofilabfrage Basisattribute
+     */
+    CLASS Bodenprofil_Basis (ABSTRACT) =
+      /** Höhe über Meer [m]
+       */
+      Hoehe : -2000 .. 1400;
+      /** Exposition codeid
+       */
+      Exposition : TEXT*5;
+      /** Exposition codetext_de
+       */
+      Exposition_Text : TEXT*50;
+      /** Klimaeignungszone codeid
+       */
+      Klimaeignungszone : TEXT*20;
+      /** Klimaeignungszone codetext_de
+       */
+      Klimaeignungszone_Text : TEXT*100;
+      /** Vegetation codeid
+       */
+      Vegetation : TEXT*20;
+      /** Vegetation codetext_de
+       */
+      Vegetation_Text : TEXT*100;
+      /** Ausgangsmaterial oben codeid
+       */
+      Ausgangsmaterial_oben : TEXT*20;
+      /** Ausgangsmaterial oben codetext_de
+       */
+      Ausgangsmaterial_oben_Text : TEXT*100;
+      /** Ausgangsmaterial Unten codeid
+       */
+      Ausgangsmaterial_unten : TEXT*20;
+      /** Ausgangsmaterial unten codtext_de
+       */
+      Ausgangsmaterial_unten_Text : TEXT*200;
+      /** Eiszeit Oberboden codeid
+       */
+      Eiszeit_Oberboden : TEXT*20;
+      /** Eiszeit codetext_de
+       */
+      Eiszeit_Oberboden_Text : TEXT*100;
+      /** Landschaftselement codeid
+       */
+      Landschaftselement : TEXT*20;
+      /** Landschaftselement codetext_de
+       */
+      Landschaftselement_Text : TEXT*200;
+      /** Kleinrelief codeid
+       */
+      Kleinrelief : TEXT*20;
+      /** Kleinrelief codetext_de
+       */
+      Kleinrelief_Text : TEXT*200;
+      /** Gemeindename
+       */
+      Gemeinde : TEXT*50;
+      /** Flurname
+       */
+      Flurname : TEXT*100;
+      /** BFS Nummer der Gemeinde
+       */
+      BFS_Nummer : 0 .. 9999;
+      /** Profilnummer, zusammengesetzt aus BFSNummer_Ersterfassung und Profilnummer
+       */
+      Profilnummer : MANDATORY TEXT*100;
+      /** BFS Nummer der Gemeinde bei Erfassung
+       */
+      BFS_Nummer_Erfassung : 0 .. 9999;
+      /** E- und N-Koordinaten
+       */
+      Koordinaten : TEXT*17;
+      /** Profilbezeichnung
+       */
+      Profilbezeichnung : TEXT*50;
+      /** Klassifikationssystem codeid (Datenschluessel)
+       */
+      Klassifikationssystem : TEXT*20;
+      /** Klassifikationssystem codetext_de
+       */
+      Klassifikationssystem_Text : TEXT*200;
+      /** Erhebungsart codeid
+       */
+      Erhebungsart : TEXT*20;
+      /** Erhebungsart codetext_de
+       */
+      Erhebungsart_Text : TEXT*200;
+      /** Probenehmer (Pedologe)
+       */
+      Probenehmer : TEXT*200;
+      /** Erhebungsdatum (Aufnahmedaten)
+       */
+      Erhebungsdatum : INTERLIS.XMLDate;
+      /** Bodentyp codeid
+       */
+      Bodentyp : TEXT*20;
+      /** Bodentyp codetext_de
+       */
+      Bodentyp_Text : TEXT*200;
+      /** Skelettgehalt Oberboden codeid
+       */
+      Skelettgehalt_Oberboden : TEXT*20;
+      /** Skelettgehalt Oberboden codtext_de
+       */
+      Skelettgehalt_Oberboden_Text : TEXT*200;
+      /** Skelettgehalt Unterboden codeid
+       */
+      Skelettgehalt_Unterboden : TEXT*20;
+      /** Skelettgehalt Unterboden codetext_de
+       */
+      Skelettgehalt_Unterboden_Text : TEXT*200;
+      /** Feinkoernung Oberboden codeid
+       */
+      Feinerdekoernung_Oberboden : TEXT*20;
+      /** Feinerdekoernung Oberboden codetext_de
+       */
+      Feinerdekoernung_Oberboden_Text : TEXT*200;
+      /** Feinerdekoernung Unterboden codeid
+       */
+      Feinerdekoernung_Unterboden : TEXT*20;
+      /** Feinerdekoernung Unterboden codetext_de
+       */
+      Feinerdekoernung_Unterboden_Text : TEXT*200;
+      /** Bodenwasserhaushaltsgruppe codeid
+       */
+      Bodenwasserhaushaltsgruppe : TEXT*20;
+      /** Bodenwasserhaushaltsgruppe codetext_de
+       */
+      Bodenwasserhaushaltsgruppe_Text : TEXT*200;
+      /** Pflanzengründigkeitswert codeid
+       */
+      Pflanzengruendigkeitswert : 0 .. 100;
+      /** Pflanzengründigkeit in cm codetext_de
+       */
+      Pflanzengruendigkeitswert_Text : TEXT*200;
+      /** Neigung in %
+       */
+      Neigung : 0 .. 100;
+      /** Gelaendeform codeid
+       */
+      Gelaendeform : TEXT*20;
+      /** Gelaendeform Text codetext_de
+       */
+      Gelaendeform_Text : TEXT*200;
+      /** Name des Bildes (filename)  mit der Topografieskizze
+       */
+      Topografieskizze : TEXT;
+      /** Geometrie
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Profilfoto
+       */
+      Profilfoto : TEXT;
+      /** Profilskizze
+       */
+      Profilskizze : TEXT;
+      /** Bemerkung
+       */
+      Bemerkung : MTEXT*200000;
+      /** Bemerkung zur Erhebung
+       */
+      Bemerkung_Erhebung : MTEXT*200000;
+      /** Krumenzustand codeid
+       */
+      Krumenzustand : TEXT*20;
+      /** Krumenzustand codetext_de
+       */
+      Krumenzustand_Text : TEXT*200;
+      /** Limitierungen codeid
+       */
+      Limitierungen : TEXT*20;
+      /** Limitierungen Text codetext_de
+       */
+      Limitierungen_Text : TEXT*200;
+      /** Nutzungsbeschränkung codeid
+       */
+      Nutzungsbeschraenkung : TEXT*20;
+      /** Nutzungsbeschränkung Text codetext_de
+       */
+      Nutzungsbeschraenkung_Text : TEXT*200;
+      /** Melioration Festegestellt codeid
+       */
+      Melioration_Festgestellt : TEXT*20;
+      /** Melioration Festegestellt codetext_de
+       */
+      Melioration_Festgestellt_Text : TEXT*200;
+      /** Melioration Empfohlen codeid
+       */
+      Melioration_Empfohlen : TEXT*20;
+      /** Melioration Empfohlen codetext_de
+       */
+      Melioration_Empfohlen_Text : TEXT*200;
+      /** Düngereinsatz Fest codeid
+       */
+      Duengereinsatz_Fest : TEXT*20;
+      /** Düngereinsatz Fest codetext_de
+       */
+      Duengereinsatz_Fest_Text : TEXT*200;
+      /** Düngereinsatz Flüssig codeid
+       */
+      Duengerrisiko_Fluessig : TEXT*20;
+      /** Düngereinsatz Flüssig codetext_de
+       */
+      Duengerrisiko_Fluessig_Text : TEXT*200;
+      /** Fruchtbarkeitsstufe codeid
+       */
+      Fruchtbarkeitsstufe : TEXT*20;
+      /** Fruchtbarkeitsstufe codetext_de
+       */
+      Fruchtbarkeitsstufe_Text : TEXT*200;
+      /** Bodenpunktezahl (Bodenprofilwert)
+       */
+      Bodenpunktezahl : 0 .. 100;
+      /** Nutzungseignung codeid
+       */
+      Nutzungseignung : TEXT*20;
+      /** Nutzungseignung codetext_de
+       */
+      Nutzungseignung_Text : TEXT*200;
+      /** Eignungsklasse codeid
+       */
+      Eignungsklasse : TEXT*20;
+      /** Eignungsklasse codetext_de
+       */
+      Eignungsklasse_Text : TEXT*200;
+      /** Humusform codeid
+       */
+      Humusform : TEXT*20;
+      /** Humusform codetext_de
+       */
+      Humusform_text : TEXT*200;
+      /** Produktionsfaehigkeitsstufe codeid
+       */
+      Produktionsfaehigkeitsstufe : TEXT*20;
+      /** Produktionsfaehigkeitsstufe codetext_de
+       */
+      Produktionsfaehigkeitsstufe_Text : TEXT*200;
+      /** Produktionsfaehigkeit Punkte
+       */
+      Produktionsfaehigkeit_Punkte : 0 .. 100;
+      /** Eiszeit Unterboden codeid
+       */
+      Eiszeit_Unterboden : TEXT*20;
+      /** Eiszeit Unterboden codetext_de
+       */
+      Eiszeit_Unterboden_Text : TEXT*200;
+      /** Aktuelle Gemeinde
+       */
+      Gemeinde_aktuell : TEXT*50;
+      /** Wasserspeichervermoegen codeid
+       */
+      Wasserspeichervermoegen : TEXT*20;
+      /** Wasserspeichervermögen codetext_de
+       */
+      Wasserspeichervermoegen_Text : TEXT*200;
+      /** Boden Untertyp codeid
+       */
+      Boden_Untertyp : TEXT*20;
+      /** Boden Untertyp Text codetext_de
+       */
+      Boden_Untertyp_Text : TEXT*400;
+      /** Ausgangsmateriall Alle - Zusammengesetzt aus Ausgangsmaterial Unten und Eiszeit Unterboden
+       */
+      Ausgangsmaterial_Alle : TEXT*100;
+      /** Kanton
+       */
+      Kanton : TEXT*5;
+      /** LK
+       */
+      LK : TEXT*400;
+      /** Link Profilblatt
+       */
+      Profilblatt : INTERLIS.URI;
+    END Bodenprofil_Basis;
+
+    /** Bodenprofil. Für die Abfrage der Bodenprofilattribute
+     */
+    CLASS Bodenprofil
+    EXTENDS Bodenprofil_Basis =
+    END Bodenprofil;
+
+    /** Horizontbeschreibung. Für die Abfrage der Horizontlayers.
+     * Enthält zusätzlich alle Daten aus Bodenprofil_Basis
+     */
+    CLASS Horizont
+    EXTENDS Bodenprofil_Basis =
+      /** Gefüge
+       */
+      Gefuege : TEXT*100;
+      /** Im Feld gemessener Zustand der organischen Substanz in %
+       */
+      Zustand_Organische_Substanz : 0.000 .. 100.000;
+      /** Im Labor gemessener Zustand der organischen Substanz in %
+       */
+      Zustand_Organische_Substanz_Labor : 0.000 .. 100.000;
+      /** Im Feld gemessener Tongehalt in %
+       */
+      Tongehalt : 0 .. 100;
+      /** Im Labor gemessener Tongehalt in %
+       */
+      Tongehalt_Labor : 0 .. 100;
+      /** Im Feld gemessener Schluffgehalt in %
+       */
+      Schluffgehalt : 0 .. 100;
+      /** Im Labor gemessener Schluffgehalt in %
+       */
+      Schluffgehalt_Labor : 0 .. 100;
+      /** Im Feld gemessener Sandgehalt in %
+       */
+      Sandgehalt : 0 .. 100;
+      /** Im Labor gemessener Sandgehalt in %
+       */
+      Sandgehalt_Labor : 0 .. 100;
+      /** Anteil Kies (0.2 - 5cm) in Vol. %
+       */
+      Kiesanteil : 0 .. 100;
+      /** Anteil Steine (> 5cm) in Vol. %
+       */
+      Steinanteil : 0 .. 100;
+      /** Kalkgehalt in %
+       */
+      Kalkgehalt : 0 .. 100;
+      /** CaCO2 gehalt in %
+       */
+      Kalkgehalt_Labor : 0 .. 100;
+      /** Ph-Wert
+       */
+      Ph_Wert : 0.000 .. 100.000;
+      /** CaCl2-Wert
+       */
+      CaCl2_Wert : 0.000 .. 100.000;
+      /** Farbe (Munsell)
+       */
+      Farbe : TEXT*100;
+      /** Kationenaustauschkapazitaet Potentiell
+       */
+      Kak_Pot : 0.00000 .. 10000.00000;
+      /** Kationenaustauschkapazitaet Effektiv
+       */
+      Kak_Eff : 0.00000 .. 10000.00000;
+      /** Horizontbezeichnung
+       */
+      Horizontbezeichung : TEXT*50;
+      /** Untergrenze des Probenahmebereichs (in cm unter Oberflaeche des mineralischen Bodens)
+       */
+      TiefeVon : -200 .. 1000;
+      /** Obergrenze des Probenahmebereichs (in cm unter Oberflaeche des mineralischen Bodens)
+       */
+      TiefeBis : -200 .. 1000;
+      /** Horizontnummer
+       */
+      Horizontnummer : 0 .. 100000;
+    END Horizont;
+
+  END Bodenprofilabfrage;
+
+END SO_AFU_Bodenprofilstandorte_Abfrage_Publikation_20240627.
