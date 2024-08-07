@@ -1,0 +1,98 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-08-07 | sz  | Initialerstellung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/DSBJD/SO_DSBJD_eBauSO_Rahmenmodell_20240807.uml
+!!@ shortDescription="Publikaitonsmodell für Data Service im Kontext der GIS-Schnittstelle für eBauSO"
+!!@ title="Rahmenmodell für eBauSO GIS-Schnittstelle"
+MODEL SO_DSBJD_eBauSO_Rahmenmodell_20240807 (de)
+AT "https://bjd.so.ch"
+VERSION "2024-07-08"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Fachthemen =
+
+    CLASS Fachthema (ABSTRACT) =
+      /** Artcode oder ähnliches Attribut
+       */
+      Artcode : TEXT*100;
+      /** Beschreibung des Artcodes im Sinne von Prosa ("Legendetext").
+       */
+      Beschreibung : TEXT*512;
+      /** Fachthema des Objekts
+       */
+      Thema : MANDATORY TEXT*20;
+    END Fachthema;
+
+    CLASS Fachthema_Linie
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Fachthema_Linie;
+
+    CLASS Fachthema_Polygon
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+    END Fachthema_Polygon;
+
+    CLASS Fachthema_Punkt
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Fachthema_Punkt;
+
+  END Fachthemen;
+
+  TOPIC Lokalisation =
+
+    CLASS Gebaeudeeingang =
+      /** Name der Lokalisation (Strasse und benanntes Gebiet)
+       */
+      Strassenname : MANDATORY TEXT*100;
+      /** Hausnummer
+       */
+      Hausnummer : TEXT*10;
+      /** Postleitzahl
+       */
+      PLZ : MANDATORY 1000 .. 9999;
+      /** Postalische Ortschaft
+       */
+      Ortschaft : MANDATORY TEXT*100;
+    END Gebaeudeeingang;
+
+    CLASS Grundstueck =
+      /** Nummer des Grundstückes
+       */
+      Nummer : MANDATORY TEXT*256;
+      /** Eidgenössischer Identifikator des Grundstückes
+       */
+      EGRID : MANDATORY TEXT*14;
+      /** Grundstücksart
+       */
+      Art : MANDATORY TEXT*50;
+      /** Fläche des Grundstückes
+       */
+      Flaechenmass : MANDATORY 1 .. 999999999;
+      /** Gemeindenummer in der das Grunstück liegt.
+       */
+      BFSNr : MANDATORY 2000 .. 3000;
+      /** Geometrie des Grundstueckes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Politische Gemeinde in der das Grunstück liegt.
+       */
+      Gemeinde : MANDATORY TEXT*100;
+      /** Grundbuchkreis in der das Grundstück liegt.
+       */
+      Grundbuchkreis : MANDATORY TEXT*100;
+      /** Zuständige Amtschreiberei
+       */
+      Amtschreiberei : MANDATORY TEXT*100;
+    END Grundstueck;
+
+  END Lokalisation;
+
+END SO_DSBJD_eBauSO_Rahmenmodell_20240807.
