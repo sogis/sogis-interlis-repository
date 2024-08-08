@@ -15,46 +15,9 @@ AT "https://bjd.so.ch"
 VERSION "2024-07-08"  =
   IMPORTS GeometryCHLV95_V1;
 
-  TOPIC Fachthemen =
-
-    CLASS Fachthema (ABSTRACT) =
-      /** Artcode oder ähnliches Attribut
-       */
-      Artcode : TEXT*100;
-      /** Beschreibung des Artcodes im Sinne von Prosa ("Legendetext").
-       */
-      Beschreibung : TEXT*512;
-      /** Fachthema des Objekts
-       */
-      Thema : MANDATORY TEXT*512;
-      /** Rechtsstatus des Objektes (nur für ÖREB-Themen)
-       */
-      Rechtsstatus : (
-        !!@  ili2db.dispName="Änderung ohne Vorwirkung"
-        AenderungOhneVorwirkung,
-        !!@  ili2db.dispName="Änderung mit Vorwirkung"
-        AenderungMitVorwirkung,
-        !!@  ili2db.dispName="in Kraft"
-        inKraft
-      );
-    END Fachthema;
-
-    CLASS Fachthema_Linie
-    EXTENDS Fachthema =
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
-    END Fachthema_Linie;
-
-    CLASS Fachthema_Polygon
-    EXTENDS Fachthema =
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-    END Fachthema_Polygon;
-
-    CLASS Fachthema_Punkt
-    EXTENDS Fachthema =
-      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-    END Fachthema_Punkt;
-
-  END Fachthemen;
+  STRUCTURE PointStructure =
+    Point : MANDATORY GeometryCHLV95_V1.Coord2;
+  END PointStructure;
 
   TOPIC Lokalisation =
 
@@ -109,5 +72,51 @@ VERSION "2024-07-08"  =
     END Grundstueck;
 
   END Lokalisation;
+
+  !!@ ili2db.mapping=MultiPoint
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF SO_DSBJD_eBauSO_Rahmenmodell_20240807.PointStructure;
+  END MultiPoint;
+
+  TOPIC Fachthemen =
+
+    CLASS Fachthema (ABSTRACT) =
+      /** Artcode oder ähnliches Attribut
+       */
+      Artcode : TEXT*100;
+      /** Beschreibung des Artcodes im Sinne von Prosa ("Legendetext").
+       */
+      Beschreibung : TEXT*512;
+      /** Fachthema des Objekts
+       */
+      Thema : MANDATORY TEXT*512;
+      /** Rechtsstatus des Objektes (nur für ÖREB-Themen)
+       */
+      Rechtsstatus : (
+        !!@  ili2db.dispName="Änderung ohne Vorwirkung"
+        AenderungOhneVorwirkung,
+        !!@  ili2db.dispName="Änderung mit Vorwirkung"
+        AenderungMitVorwirkung,
+        !!@  ili2db.dispName="in Kraft"
+        inKraft
+      );
+    END Fachthema;
+
+    CLASS Fachthema_Linie
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Fachthema_Linie;
+
+    CLASS Fachthema_Polygon
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Fachthema_Polygon;
+
+    CLASS Fachthema_Punkt
+    EXTENDS Fachthema =
+      Geometrie : MANDATORY SO_DSBJD_eBauSO_Rahmenmodell_20240807.MultiPoint;
+    END Fachthema_Punkt;
+
+  END Fachthemen;
 
 END SO_DSBJD_eBauSO_Rahmenmodell_20240807.
