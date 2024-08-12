@@ -1,0 +1,53 @@
+INTERLIS 2.4;
+
+MODEL DMAVTYM_V1_0_Validierung (de) 
+AT "https://www.kgk-cgc.ch/" 
+VERSION "2024-08-10" =
+  
+IMPORTS UNQUALIFIED INTERLIS;
+IMPORTS DMAV_FixpunkteAVKategorie3_V1_0;
+IMPORTS DMAV_Einzelobjekte_V1_0;
+
+    VIEW TOPIC FixpunkteKategorie3_Validierung = 
+    DEPENDS ON DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3;
+  
+        VIEW v_FixpunkteKategorie3
+            PROJECTION OF DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3.LFP3;
+        =
+            ALL OF LFP3;
+
+            !!@ ilivalid.msg="Hoehengometrie darf nicht gleich 0.0 sein";
+            !!@ ilivalid.msg_de="Hoehengometrie darf nicht gleich 0.0 sein";
+            !!@ ilivalid.msg_fr="Geomaltimetrie ne peut pas être égale à 0.0";
+            !!@ ilivalid.msg_it="La quota non puo' essere uguale a 0.0, in caso di non determinazione della quota lasciare il campo vuoto";
+            MANDATORY CONSTRAINT CH031151: (
+                Hoehengeometrie <> 0.0
+            );
+
+        END v_FixpunkteKategorie3;
+
+    END FixpunkteKategorie3_Validierung;
+
+    VIEW TOPIC Einzelobjekte_Validierung = 
+    DEPENDS ON DMAV_Einzelobjekte_V1_0.Einzelobjekte;
+  
+        VIEW v_Einzelobjekte
+            PROJECTION OF DMAV_Einzelobjekte_V1_0.Einzelobjekte.Einzelobjekt;
+        =
+            ALL OF Einzelobjekt;
+
+            !!@ ilivalid.msg="Bei Art=Rinnsal muss die Geometrie in Linienelement sein";
+            !!@ ilivalid.msg_de="Bei Art=Rinnsal muss die Geometrie in Linienelement sein";
+            !!@ ilivalid.msg_fr="Pour les objets du Genre=ru, il faut définir la géométrie dans la table Element_lineaire";
+            !!@ ilivalid.msg_it="Per il genere ruscello la geometria deve essere del tipo elemento lineare";
+            MANDATORY CONSTRAINT CH051151: (
+                (Einzelobjektart == #Rinnsal) => ((objectCount(Flaechenelement) == 0) AND (objectCount(Linienelement) > 0) AND (objectCount(Punktelement) == 0))
+            );
+    
+    END v_Einzelobjekte;
+
+  END Einzelobjekte_Validierung;
+
+
+
+END DMAVTYM_V1_0_Validierung.
