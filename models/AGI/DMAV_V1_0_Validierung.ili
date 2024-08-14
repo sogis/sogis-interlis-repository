@@ -7,11 +7,12 @@ VERSION "2024-08-10" =
 IMPORTS UNQUALIFIED INTERLIS;
 IMPORTS DMAV_FixpunkteAVKategorie3_V1_0;
 IMPORTS DMAV_Einzelobjekte_V1_0;
+IMPORTS DMAV_Rohrleitungen_V1_0;
 
     VIEW TOPIC FixpunkteKategorie3_Validierung = 
     DEPENDS ON DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3;
   
-        VIEW v_FixpunkteKategorie3
+        VIEW v_LFP3
             PROJECTION OF DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3.LFP3;
         =
             ALL OF LFP3;
@@ -24,14 +25,29 @@ IMPORTS DMAV_Einzelobjekte_V1_0;
                 Hoehengeometrie <> 0.0
             );
 
-        END v_FixpunkteKategorie3;
+        END v_LFP3;
+
+        VIEW v_HFP3
+            PROJECTION OF DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3.HFP3;
+        =
+            ALL OF HFP3;
+
+            !!@ ilivalid.msg="Hoehengeometrie darf nicht gleich 0.0 sein";
+            !!@ ilivalid.msg_de="Hoehengeometrie darf nicht gleich 0.0 sein";
+            !!@ ilivalid.msg_fr="GeomAlt ne peut pas être égale à 0";
+            !!@ ilivalid.msg_it="La quota non puo' essere uguale a 0";
+            MANDATORY CONSTRAINT CH033551: (
+                Hoehengeometrie <> 0.0
+            );
+
+        END v_HFP3;
 
     END FixpunkteKategorie3_Validierung;
 
     VIEW TOPIC Einzelobjekte_Validierung = 
     DEPENDS ON DMAV_Einzelobjekte_V1_0.Einzelobjekte;
   
-        VIEW v_Einzelobjekte
+        VIEW v_Einzelobjekt
             PROJECTION OF DMAV_Einzelobjekte_V1_0.Einzelobjekte.Einzelobjekt;
         =
             ALL OF Einzelobjekt;
@@ -44,10 +60,31 @@ IMPORTS DMAV_Einzelobjekte_V1_0;
                 (Einzelobjektart == #Rinnsal) => ((objectCount(Flaechenelement) == 0) AND (objectCount(Linienelement) > 0) AND (objectCount(Punktelement) == 0))
             );
     
-    END v_Einzelobjekte;
+    END v_Einzelobjekt;
 
   END Einzelobjekte_Validierung;
 
+
+
+  VIEW TOPIC Rohrleitungen_Validierung = 
+    DEPENDS ON DMAV_Rohrleitungen_V1_0.Rohrleitungen;
+  
+        VIEW v_Punktelement
+            PROJECTION OF DMAV_Rohrleitungen_V1_0.Rohrleitungen.Punktelement;
+        =
+            ALL OF Punktelement;
+
+            !!@ ilivalid.msg="Bei Art=Hoehe darf nicht 0.0 sein";
+            !!@ ilivalid.msg_de="Bei Art=Hoehe darf nicht 0.0 sein";
+            !!@ ilivalid.msg_fr="L'altitude ne peut pas être égale à 0";
+            !!@ ilivalid.msg_it="La quota non puo' essere 0";
+            MANDATORY CONSTRAINT CH092551: (
+                Hoehengeometrie <> 0.0
+             );
+        
+    END v_Punktelement;
+
+  END Rohrleitungen_Validierung;
 
 
 END DMAV_V1_0_Validierung.
