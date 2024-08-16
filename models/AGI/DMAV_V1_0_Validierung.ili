@@ -5,9 +5,18 @@ AT "https://www.kgk-cgc.ch/"
 VERSION "2024-08-10" =
   
 IMPORTS UNQUALIFIED INTERLIS;
+IMPORTS UNQUALIFIED Text_V2;
+IMPORTS UNQUALIFIED Math_V2;
 IMPORTS DMAV_FixpunkteAVKategorie3_V1_0;
+IMPORTS DMAV_Bodenbedeckung_V1_0;
 IMPORTS DMAV_Einzelobjekte_V1_0;
+IMPORTS DMAV_Nomenklatur_V1_0;
+IMPORTS DMAV_Grundstuecke_V1_0;
 IMPORTS DMAV_Rohrleitungen_V1_0;
+IMPORTS DMAV_HoheitsgrenzenAV_V1_0;
+IMPORTS DMAV_HoheitsgrenzenLV_V1_0;
+IMPORTS DMAV_Toleranzstufen_V1_0;
+IMPORTS DMAV_Gebaeudeadressen_V1_0;
 
     VIEW TOPIC FixpunkteKategorie3_Validierung = 
     DEPENDS ON DMAV_FixpunkteAVKategorie3_V1_0.FixpunkteAVKategorie3;
@@ -25,6 +34,17 @@ IMPORTS DMAV_Rohrleitungen_V1_0;
                 Hoehengeometrie <> 0.0
             );
 
+            !! TODO: CH031252
+            !! TODO: CH031253
+            !! TODO: CH031254
+            !! TODO: CH031255
+            !! TODO: CH031256
+            !! TODO: CH031454
+            !! TODO: CH031455
+            !! TODO: CH031456
+            !! TODO: CH031457
+            !! TODO: CH031458
+
         END v_LFP3;
 
         VIEW v_HFP3
@@ -40,9 +60,35 @@ IMPORTS DMAV_Rohrleitungen_V1_0;
                 Hoehengeometrie <> 0.0
             );
 
+            !! TODO: CH033652
+            !! TODO: CH033653
+            !! TODO: CH033654
+            !! TODO: CH033655
+            !! TODO: CH033656
+            !! TODO: CH033852
+            !! TODO: CH033853
+            !! TODO: CH033854
+            !! TODO: CH033855
+            !! TODO: CH033856
+
         END v_HFP3;
 
     END FixpunkteKategorie3_Validierung;
+
+    VIEW TOPIC Bodenbedeckung_Validierung = 
+    DEPENDS ON DMAV_Bodenbedeckung_V1_0.Bodenbedeckung;
+  
+        VIEW v_Bodenbedeckung
+            PROJECTION OF DMAV_Bodenbedeckung_V1_0.Bodenbedeckung.Bodenbedeckung;
+        =
+            ALL OF Bodenbedeckung;
+
+            !! TODO: CH043451 / warning
+            !! TODO: CH043452 
+
+        END v_Bodenbedeckung;
+
+    END Bodenbedeckung_Validierung;
 
     VIEW TOPIC Einzelobjekte_Validierung = 
     DEPENDS ON DMAV_Einzelobjekte_V1_0.Einzelobjekte;
@@ -351,11 +397,109 @@ IMPORTS DMAV_Rohrleitungen_V1_0;
                 (Einzelobjektart == #uebriger_Gebaeudeteil) => (objectCount(Punktelement) == 0)
             );
 
-    END v_Einzelobjekt;
+            !! TODO: CH054351
 
-  END Einzelobjekte_Validierung;
+        END v_Einzelobjekt;
 
-  VIEW TOPIC Rohrleitungen_Validierung = 
+    END Einzelobjekte_Validierung;
+
+    VIEW TOPIC Nomenklatur_Validierung = 
+    DEPENDS ON DMAV_Nomenklatur_V1_0.Nomenklatur;
+    
+        VIEW v_Flurname
+            PROJECTION OF DMAV_Nomenklatur_V1_0.Nomenklatur.Flurname;
+        =
+            ALL OF Flurname;
+
+            !! TODO: CH070951 / warning
+
+        END v_Flurname;
+
+    END Nomenklatur_Validierung;
+
+
+
+    VIEW TOPIC Grundstuecke_Validierung = 
+    DEPENDS ON DMAV_Grundstuecke_V1_0.Grundstuecke;
+  
+        VIEW v_Grundstueck
+            PROJECTION OF DMAV_Grundstuecke_V1_0.Grundstuecke.Grundstueck;
+        =
+            ALL OF Grundstueck;
+
+            !! TODO: CH085551
+
+            !!@ ilivalid.msg="EGRID darf nicht mit der Zahl 0 beginnen";            
+            !!@ ilivalid.msg_de="EGRID darf nicht mit der Zahl 0 beginnen";
+            !!@ ilivalid.msg_fr="L'EGRID ne doit pas commencer par un 0 (zéro)";
+            !!@ ilivalid.msg_it="L'EGRID non deve comincare con uno 0 (zero)";
+            MANDATORY CONSTRAINT CH085554: (
+                substring(EGRID,0,1) != "0" 
+            );
+        
+            !!@ ilivalid.msg="Summe der Teilflaechen aus Flaechenmass ist ungleich Gesamtflaechenmass";
+            !!@ ilivalid.msg_de="Summe der Teilflaechen aus Flaechenmass ist ungleich Gesamtflaechenmass";
+            !!@ ilivalid.msg_fr="La somme des parties de surface inscrite sous Superficie n'est pas égale à la donnée correspondante sous Superficie_totale";
+            !!@ ilivalid.msg_it="La somma delle superfici delle parti di Bene_immobile/DSSP/Miniera non corrisponde alla superficie totale del fondo";
+            MANDATORY CONSTRAINT CH058902: (
+                Gesamtflaechenmass == add(add(sum(SelbstaendigesDauerndesRecht->Flaechenmass), sum(Bergwerk->Flaechenmass)), sum(Liegenschaft->Flaechenmass))
+            );
+
+        END v_Grundstueck;
+
+        VIEW v_Liegenschaft
+            PROJECTION OF DMAV_Grundstuecke_V1_0.Grundstuecke.Liegenschaft;
+        =
+            ALL OF Liegenschaft;
+
+            !! TODO: CH086951 / warning
+
+            !!@ ilivalid.msg="NummerTeilgrundstueck muss innerhalb des gleichen Grundstuecks eindeutig sein";
+            !!@ ilivalid.msg_de="NummerTeilgrundstueck muss innerhalb des gleichen Grundstuecks eindeutig sein";
+            !!@ ilivalid.msg_fr="L'attribut PartieNumeroImmeubledoit être univoque pour un même immeuble";
+            !!@ ilivalid.msg_it="Il NumeroParteFondo deve essere univoco all'interno dello stesso fondo";
+            UNIQUE CH086851: NummerTeilgrundstueck, Grundstueck;
+
+            !! TODO: CH086852
+
+        END v_Liegenschaft;
+
+        VIEW v_SelbstaendigesDauerndesRecht
+            PROJECTION OF DMAV_Grundstuecke_V1_0.Grundstuecke.SelbstaendigesDauerndesRecht;
+        =
+            ALL OF SelbstaendigesDauerndesRecht;
+
+            !!@ ilivalid.msg="NummerTeilgrundstueck muss innerhalb des gleichen Grundstuecks eindeutig sein";
+            !!@ ilivalid.msg_de="NummerTeilgrundstueck muss innerhalb des gleichen Grundstuecks eindeutig sein";
+            !!@ ilivalid.msg_fr="L'attribut PartieNumeroImmeubledoit être univoque pour un même immeuble";
+            !!@ ilivalid.msg_it="Il NumeroParteFondo deve essere univoco all'interno dello stesso fondo";
+            UNIQUE CH087251: NummerTeilgrundstueck, Grundstueck;
+
+            !! TODO: CH087252
+            !! TODO: CH087351
+
+        END v_SelbstaendigesDauerndesRecht;
+
+
+        VIEW v_Bergwerk
+            PROJECTION OF DMAV_Grundstuecke_V1_0.Grundstuecke.Bergwerk;
+        =
+            ALL OF Bergwerk;
+
+            !!@ ilivalid.msg="NummerTeilgrundstueck muss innerhalb des gleichen Grundstücks eindeutig sein";
+            !!@ ilivalid.msg_de="NummerTeilgrundstueck muss innerhalb des gleichen Grundstücks eindeutig sein";
+            !!@ ilivalid.msg_fr="PartieNumeroImmeuble doit être univoque à l'intérieur du même immeuble";
+            !!@ ilivalid.msg_it="Il NumeroParteFondo deve essere univoco all'interno dello stesso fondo";
+            UNIQUE CH087651: NummerTeilgrundstueck, Grundstueck;
+
+            !! TODO: CH087652
+
+        END v_Bergwerk;
+
+
+    END Grundstuecke_Validierung;
+
+    VIEW TOPIC Rohrleitungen_Validierung = 
     DEPENDS ON DMAV_Rohrleitungen_V1_0.Rohrleitungen;
   
         VIEW v_Punktelement
@@ -371,9 +515,137 @@ IMPORTS DMAV_Rohrleitungen_V1_0;
                 Hoehengeometrie <> 0.0
             );
         
-    END v_Punktelement;
+        END v_Punktelement;
 
-  END Rohrleitungen_Validierung;
+    END Rohrleitungen_Validierung;
 
+    VIEW TOPIC HoheitsgrenzenAV_Validierung = 
+    DEPENDS ON DMAV_HoheitsgrenzenAV_V1_0.HoheitsgrenzenAV;
+  
+        VIEW v_Gemeinde
+            PROJECTION OF DMAV_HoheitsgrenzenAV_V1_0.HoheitsgrenzenAV.Gemeinde;
+        =
+            ALL OF Gemeinde;
+
+            !! TODO: CH112352
+            !! TODO: CH112951
+        
+        END v_Gemeinde;
+
+        VIEW v_Gemeindegrenze
+            PROJECTION OF DMAV_HoheitsgrenzenAV_V1_0.HoheitsgrenzenAV.Gemeindegrenze;
+        =
+            ALL OF Gemeindegrenze;
+
+            !! TODO: CH113051 / warning
+        
+        END v_Gemeindegrenze;
+
+        VIEW v_Bezirksgrenzabschnitt
+            PROJECTION OF DMAV_HoheitsgrenzenAV_V1_0.HoheitsgrenzenAV.Bezirksgrenzabschnitt;
+        =
+            ALL OF Bezirksgrenzabschnitt;
+
+            !! TODO: CH120153
+        
+        END v_Bezirksgrenzabschnitt;
+
+        VIEW v_Kantonsgrenzabschnitt
+            PROJECTION OF DMAV_HoheitsgrenzenAV_V1_0.HoheitsgrenzenAV.Kantonsgrenzabschnitt;
+        =
+            ALL OF Kantonsgrenzabschnitt;
+
+            !! TODO: CH130153
+        
+        END v_Kantonsgrenzabschnitt;
+
+    END HoheitsgrenzenAV_Validierung;
+
+    VIEW TOPIC HoheitsgrenzenLV_Validierung = 
+    DEPENDS ON DMAV_HoheitsgrenzenLV_V1_0.HoheitsgrenzenLV;
+  
+        VIEW v_Landesgrenze
+            PROJECTION OF DMAV_HoheitsgrenzenLV_V1_0.HoheitsgrenzenLV.Landesgrenze;
+        =
+            ALL OF Landesgrenze;
+
+            !! TODO: CH140153
+        
+        END v_Landesgrenze;
+
+    END HoheitsgrenzenLV_Validierung;
+
+    !! TODO fix me
+    /*
+    VIEW TOPIC Toleranzstufen_Validierung = 
+    DEPENDS ON DMAV_Toleranzstufen_V1_0.Toleranzstufen;
+  
+        VIEW v_Toleranzstufe
+            PROJECTION OF DMAV_Toleranzstufen_V1_0.Toleranzstufen.Toleranzstufe;
+        =
+            ALL OF Toleranzstufe;
+
+            !! TODO: CH160351 / warning
+        
+        END v_Toleranzstufe;
+
+    END Toleranzstufen_Validierung;
+    */            
+
+    VIEW TOPIC Gebaeudeadressen_Validierung = 
+    DEPENDS ON DMAV_Gebaeudeadressen_V1_0.Gebaeudeadressen;
+  
+        VIEW v_Gebaeudeeingang
+            PROJECTION OF DMAV_Gebaeudeadressen_V1_0.Gebaeudeadressen.Gebaeudeeingang;
+        =
+            ALL OF Gebaeudeeingang;
+
+            !! TODO: warning
+            !!@ ilivalid.msg="Status=real muss mit Status von Lokalisation übereinstimmen";
+            !!@ ilivalid.msg_de="Status=real muss mit Status von Lokalisation übereinstimmen";
+            !!@ ilivalid.msg_fr="Validite=reel doit correspondre a la validite de la localisation";
+            !!@ ilivalid.msg_it="Stato=reale deve corrispondere con lo stato della Localizzazione";
+            MANDATORY CONSTRAINT CH193851: (
+                (Gebaeudestatus == #real) => (Lokalisation->Lokalisationsstatus == #real)
+            );
+
+            !!@ ilivalid.msg="Bei Status=projektiert muss AttributeProvisorisch=true sein";
+            !!@ ilivalid.msg_de="Bei Status=projektiert muss AttributeProvisorisch=true sein";
+            !!@ ilivalid.msg_fr="Si Validite=projete, il faut que Attributs_provisoires=true";
+            !!@ ilivalid.msg_it="Per la Validità= in progetto, il campo Attributi_provvisori deve essere = true";
+            MANDATORY CONSTRAINT CH194051: (
+                (Gebaeudestatus == #projektiert) => (AttributeProvisorisch == #true)
+            );
+
+            !! TODO: CH194254
+
+            !! TODO: warning
+            !!@ ilivalid.msg="In Hausnummer (Polizeinummer oder Gebaeudeversicherungsnummer) darf vor, zwischen oder nach Hausnummer und Buchstabenzusatz kein Leerschlag oder kein Trennzeichen sein";
+            !!@ ilivalid.msg_de="In Hausnummer (Polizeinummer oder Gebaeudeversicherungsnummer) darf vor, zwischen oder nach Hausnummer und Buchstabenzusatz kein Leerschlag oder kein Trennzeichen sein";
+            !!@ ilivalid.msg_fr="Il n'est pas licite d'insérer un espace ou un signe quelconque avant, entre, ou après le numéro de maison et sa particule (lettre). Concerne aussi le numéro de police ou le numéro d'assurance du bâtiment";
+            !!@ ilivalid.msg_it="Per il Numero_casa, tra il numero e la lettera non devono esistere spazi vuoti,sottolineature o tratti";
+            MANDATORY CONSTRAINT CH194451: (
+                NOT(matches(Hausnummer,"\\s"))
+            );
+
+            !!@ ilivalid.msg="EGID und EDID müssen zusammen eindeutig sein";
+            !!@ ilivalid.msg_de="EGID und EDID müssen zusammen eindeutig sein";
+            !!@ ilivalid.msg_fr="La combinaison des identifiants EGID et EDID doit être univoque";
+            !!@ ilivalid.msg_it="REA_EGID e EDID devono, insieme, essere univoci";
+            UNIQUE CH194651: EGID, EDID;
+
+            !!@ ilivalid.msg="Bei Gebaeudeeingang mit EGID fehlt der zugehörige EDID";
+            !!@ ilivalid.msg_de="Bei Gebaeudeeingang mit EGID fehlt der zugehörige EDID";
+            !!@ ilivalid.msg_fr="Une entrée de bâtiment possédant un identifiant EGID devrait aussi posséder un identifiant GWR_EDID";
+            !!@ ilivalid.msg_it="Per l'entrata di edificio con REA_EGID, manca il relativo REA_EDID";
+            MANDATORY CONSTRAINT CH194751: (
+                DEFINED(EGID) => DEFINED(EDID)
+            );
+
+            !! TODO: GWR-Gedöns
+
+        END v_Gebaeudeeingang;
+
+    END Gebaeudeadressen_Validierung;
 
 END DMAV_V1_0_Validierung.
