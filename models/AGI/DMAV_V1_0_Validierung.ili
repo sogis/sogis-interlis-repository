@@ -445,6 +445,17 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
                 Gesamtflaechenmass == add(add(sum("SelbstaendigesDauerndesRecht->Flaechenmass"), sum("Bergwerk->Flaechenmass")), sum("Liegenschaft->Flaechenmass"))
                 !!Gesamtflaechenmass == sum("Liegenschaft->Flaechenmass") 
             );
+            
+            !! TODO: in ähnlicher Form bereits im Originamodell:
+            !! MANDATORY CONSTRAINT CH041402: NOT(DEFINED(NummerTeilgrundstueck)) == Grundstueck->IstVollstaendig;
+
+            !!@ ilivalid.msg="Bei Grundstueck mit istVollstaendigkeit=true und mit nur 1 Objekt in Liegenschaft muss NummerTeilgrundstueck leer sein";
+            !!@ ilivalid.msg_de="Bei Grundstueck mit istVollstaendigkeit=true und mit nur 1 Objekt in Liegenschaft muss NummerTeilgrundstueck leer sein";
+            !!@ ilivalid.msg_fr="Pour un immeuble dont l'attribut Integralite=complet, et formé d'un seul objet dans la table Bien_fonds, l'attribut PartieNumeroImmeuble doit être vide";
+            !!@ ilivalid.msg_it="Per i fondi con integralità = si, e un solo oggetto in Bene_immobile, numero_parte_fondo deve restare vuoto";
+            MANDATORY CONSTRAINT CH086852: (
+                (THIS->IstVollstaendig AND elementCount(Liegenschaft) == 1) => NOT(DEFINED(Liegenschaft->NummerTeilgrundstueck)) 
+            );
 
         END v_Grundstueck;
 
@@ -460,8 +471,6 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
             !!@ ilivalid.msg_fr="L'attribut PartieNumeroImmeubledoit être univoque pour un même immeuble";
             !!@ ilivalid.msg_it="Il NumeroParteFondo deve essere univoco all'interno dello stesso fondo";
             UNIQUE CH086851: NummerTeilgrundstueck, Grundstueck;
-
-            !! TODO: CH086852
 
         END v_Liegenschaft;
 
