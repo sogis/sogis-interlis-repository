@@ -250,15 +250,15 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
             !!@ ilivalid.msg_it="Per il genere silo_torre_gasoemetro la geometria deve essere con superficie";
             !!@ cprof="all";
             MANDATORY CONSTRAINT CH051659: (
-                (Einzelobjektart == #Silo_Turm_Gasometer) => ((objectCount(Flaechenelement) == 0) AND (objectCount(Linienelement) == 0) AND (objectCount(Punktelement) > 0))
+                (Einzelobjektart == #Silo_Turm_Gasometer) => ((objectCount(Flaechenelement) > 0) AND (objectCount(Linienelement) == 0) AND (objectCount(Punktelement) == 0))
             );
 
-            !!@ ilivalid.msg="Bei Art=Landungssteg muss die Geometrie in Flaechenelement sein";
+            !!@ ilivalid.msg="Bei Art=Landungssteg darf die Geometrie nicht in Punktelement sein";
             !!@ ilivalid.msg_de="Bei Art=Landungssteg muss die Geometrie in Flaechenelement sein";
             !!@ ilivalid.msg_fr="Pour les objets du Genre=Debarcadere, il faut définir la géométrie dans la table Element_surfacique";
             !!@ ilivalid.msg_it="Per il genere debarcadero la geometria deve essere con superficie";
             MANDATORY CONSTRAINT CH051660: (
-                (Einzelobjektart == #Landungssteg) => ((objectCount(Flaechenelement) > 0) AND (objectCount(Linienelement) == 0) AND (objectCount(Punktelement) == 0))
+                (Einzelobjektart == #Landungssteg) => (objectCount(Punktelement) == 0)
             );
 
             !!@ ilivalid.msg="Bei Art=unterirdisches Gebaeude darf die Geometrie nicht in Punktelement sein";
@@ -349,12 +349,12 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
                 (Einzelobjektart == #Schwelle) => (objectCount(Punktelement) == 0)
             );
 
-            !!@ ilivalid.msg="Bei Art=Lawinenverbauung muss die Geometrie in Linienelement sein";
+            !!@ ilivalid.msg="Bei Art=Lawinenverbauung darf die Geometrie nicht in Punktelement sein";
             !!@ ilivalid.msg_de="Bei Art=Lawinenverbauung muss die Geometrie in Linienelement sein";
             !!@ ilivalid.msg_fr="Pour les objets du Genre=paravalanche, il faut définir la géométrie dans la table Element_lineaire";
             !!@ ilivalid.msg_it="Per il genere riparo_antivalanghe la geometria deve essere del tipo elemento lineare";
             MANDATORY CONSTRAINT CH052164: (
-                (Einzelobjektart == #Lawinenverbauung) => ((objectCount(Flaechenelement) == 0) AND (objectCount(Linienelement) > 0) AND (objectCount(Punktelement) == 0))
+                (Einzelobjektart == #Lawinenverbauung) => (objectCount(Punktelement) == 0)
             );
 
             !!@ ilivalid.msg="Bei Art=massiver_Sockel darf die Geometrie nicht in Punktelement sein";
@@ -396,7 +396,16 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
             MANDATORY CONSTRAINT CH052178: (
                 (Einzelobjektart == #uebriger_Gebaeudeteil) => (objectCount(Punktelement) == 0)
             );
-
+			
+		    !!@ ilivalid.msg="Bei Art=Jauchengrube_Mistlege darf die Geometrie nicht in Punktelement sein";
+            !!@ ilivalid.msg_de="Bei Art=Jauchengrube_Mistlege darf die Geometrie nicht in Punktelement sein";
+            !!@ ilivalid.msg_fr="Pour les objets du Genre=fosse_purin_tas_fumier, la géométrie ne peut pas être définie dans la table Element_ponctuel";
+            !!@ ilivalid.msg_it="Per il genere Pozzo nero la geometria non deve essere del tipo puntiforme";
+            MANDATORY CONSTRAINT CH052178: (
+                (Einzelobjektart == #Jauchengrube_Mistlege) => (objectCount(Punktelement) == 0)
+            );
+			
+			!! TODO: Landungssteg ... umhüllend eine Fläche. Linien dürfen nur innerhalb der Fläche sein. Neue Anforderung noch keine CheckID
             !! TODO: CH054351
 
         END v_Einzelobjekt;
@@ -436,8 +445,8 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
             MANDATORY CONSTRAINT CH085554: (
                 substring(EGRID,0,1) != "0" 
             );
-        
-            /*
+			
+			/*
             !!@ ilivalid.msg="Summe der Teilflaechen aus Flaechenmass ist ungleich Gesamtflaechenmass";
             !!@ ilivalid.msg_de="Summe der Teilflaechen aus Flaechenmass ist ungleich Gesamtflaechenmass";
             !!@ ilivalid.msg_fr="La somme des parties de surface inscrite sous Superficie n'est pas égale à la donnée correspondante sous Superficie_totale";
@@ -446,7 +455,7 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
                 Gesamtflaechenmass == add(add(sum("SelbstaendigesDauerndesRecht->Flaechenmass"), sum("Bergwerk->Flaechenmass")), sum("Liegenschaft->Flaechenmass"))
                 !!Gesamtflaechenmass == sum("Liegenschaft->Flaechenmass") 
             );
-            */
+			*/
             
             !! TODO: in ähnlicher Form bereits im Originamodell:
             !! MANDATORY CONSTRAINT CH041402: NOT(DEFINED(NummerTeilgrundstueck)) == Grundstueck->IstVollstaendig;
@@ -609,6 +618,7 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
         =
             ALL OF Gebaeudeeingang;
 
+            !!@ ilivalid.check = warning
             !!@ ilivalid.msg="Status=real muss mit Status von Lokalisation übereinstimmen";
             !!@ ilivalid.msg_de="Status=real muss mit Status von Lokalisation übereinstimmen";
             !!@ ilivalid.msg_fr="Validite=reel doit correspondre a la validite de la localisation";
@@ -627,6 +637,7 @@ IMPORTS DMAV_Gebaeudeadressen_V1_0;
 
             !! TODO: CH194254
 
+            !!@ ilivalid.check = warning
             !!@ ilivalid.msg="In Hausnummer (Polizeinummer oder Gebaeudeversicherungsnummer) darf vor, zwischen oder nach Hausnummer und Buchstabenzusatz kein Leerschlag oder kein Trennzeichen sein";
             !!@ ilivalid.msg_de="In Hausnummer (Polizeinummer oder Gebaeudeversicherungsnummer) darf vor, zwischen oder nach Hausnummer und Buchstabenzusatz kein Leerschlag oder kein Trennzeichen sein";
             !!@ ilivalid.msg_fr="Il n'est pas licite d'insérer un espace ou un signe quelconque avant, entre, ou après le numéro de maison et sa particule (lettre). Concerne aussi le numéro de police ou le numéro d'assurance du bâtiment";
