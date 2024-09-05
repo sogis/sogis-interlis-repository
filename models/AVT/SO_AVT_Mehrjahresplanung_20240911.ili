@@ -1,0 +1,152 @@
+INTERLIS 2.3;
+
+/** !
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-09-11 | AW  | Erste Version
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AVT_Mehrjahresplanung_20240911 (de)
+AT "http://www.geo.so.ch/models/AVT"
+VERSION "2024-09-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Kantonsstrassen =
+
+    /** Kopie der Klasse Achse aus dem Modell SO_AVT_Kantonsstrassen_Publikation_20200707 mit reduzierter Anzahl Attribute.
+     */
+    CLASS Achse =
+      /** Achsnummer der Kantonsstrassenachse. Enthält vereinzelt Buchstaben.
+       */
+      AchseNummer : MANDATORY TEXT*100;
+      /** Liniengeometrie der Achse
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Achse;
+
+    /** Kopie der Klasse Bezugspunkt aus dem Modell SO_AVT_Kantonsstrassen_Publikation_20200707 mit reduzierter Anzahl Attribute.
+     */
+    CLASS Bezugspunkt =
+      /** Nummer eines Bezugspunktes. Enhält vereinzelt auch Buchstaben.
+       */
+      Bezeichnung : MANDATORY TEXT*80;
+      /** Nummer der zugeordneten Achse (= Achse.AchseNummer).
+       */
+      AchseNummer : MANDATORY TEXT*100;
+      /** Koordinaten des Bezugspunktes (auf der Achse).
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Bezugspunkt;
+
+  END Kantonsstrassen;
+
+  TOPIC Projekte =
+
+    /** Klasse welche den CSV Export aus der LOGO Applikation abbildet.
+     */
+    CLASS Projekt =
+      /** Abteilung welche das Projekt betreut
+       */
+      Abteilung : MANDATORY (
+        Strassenbau,
+        Strassenunterhalt,
+        Kunstbauten,
+        Verkehrsplanung
+      );
+      /** Projektmanagementkreis welcher das Projekt betreut
+       */
+      Kreis : MANDATORY (
+        I,
+        II,
+        III,
+        X
+      );
+      /** Kürzel Projektleiter
+       */
+      Projektleiter : MANDATORY TEXT*20;
+      /** Gemeinde in welcher Projekt liegt
+       */
+      Gemeinde : MANDATORY TEXT*80;
+      /** Bezeichnung der betroffenen Strasse
+       */
+      Strasse : MANDATORY TEXT*80;
+      /** Projektbezeichnung ("Was wird gemacht")
+       */
+      Projekt : MANDATORY TEXT*100;
+      /** Projekt Nummer
+       */
+      ProjektNr : MANDATORY TEXT*20;
+      /** Kreditjahr Projektierung
+       */
+      Kreditjahr_P : TEXT*20;
+      /** Kreditjahr Ausführung
+       */
+      Kreditjahr_A : TEXT*20;
+      /** Jahr in dem Bauarbeiten gestartet werden sollen
+       */
+      Start : MANDATORY INTERLIS.GregorianYear;
+      /** Jahr in dem Bauarbeiten beendet sein sollen
+       */
+      Ende : MANDATORY INTERLIS.GregorianYear;
+      /** Klassierung Gross-/Kleinprojekt
+       */
+      Klasse : (
+        Kleinprojekt,
+        Grossprojekt
+      );
+      /** Projektphase
+       */
+      Phase : (
+        Betriebs_und_Gestaltungskonzept,
+        Vorprojekt,
+        Bauprojekt,
+        Auflageprojekt,
+        Submission,
+        Realisierung,
+        Abschluss,
+        Abrechnung,
+        Verfahrensstop
+      );
+      /** Achsnummer der betroffenen Strasse
+       */
+      AchsNr : MANDATORY 0 .. 10000;
+      /** Anfangsbezugspunkt
+       */
+      BpAnfang : MANDATORY TEXT*40;
+      /** Endbezugspunkt
+       */
+      BpEnde : MANDATORY TEXT*40;
+      /** Feld für Bemerkungen
+       */
+      Bemerkungen : TEXT*120;
+      /** Ergänzung zu Projekt-Nr. zur Unterscheidung von Teilprojekten
+       */
+      ProjektSuffix : 0 .. 100;
+      /** Die Projekt Identifikation setzt sich zusammen aus der Projekt Nummer
+       * und dem Projekt Suffix. Gibt es einen Projekt Suffix, ist das Format
+       * {ProjektNr}.{ProjektSuffix} ansonsten entspricht die Projekt Identifikation
+       * der Projekt Nummer.
+       */
+      ProjektIdentifikation : MANDATORY TEXT*100;
+      /** Prüft ob die Kombination von Projekt Nummer und Suffix eindeutig ist
+       */
+      !!@ name=UniqueProjektIdentifikation
+      !!@ ilivalid.msg="Projekt Identifikation ist nicht eindeutig"
+      UNIQUE ProjektNr, ProjektSuffix;
+    END Projekt;
+
+    /** Klasse für manuell erfasste Liniengeometrie für bestehende Projekte.
+     */
+    CLASS ProjektGeometrie =
+      /** Setzt sich zusammen aus der Projektnummer und dem Projektsuffix.
+       */
+      ProjektIdentifikation : MANDATORY TEXT*80;
+      Obsolet : INTERLIS.XMLDate;
+      Geometrie : GeometryCHLV95_V1.MultiLine;
+    END ProjektGeometrie;
+
+  END Projekte;
+
+END SO_AVT_Mehrjahresplanung_20240911.
