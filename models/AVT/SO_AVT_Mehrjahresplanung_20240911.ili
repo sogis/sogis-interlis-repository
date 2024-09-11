@@ -7,7 +7,8 @@ INTERLIS 2.3;
  * !! 2024-09-11 | AW  | Erste Version
  * !!==============================================================================
  */
-!!@ technicalContact=mailto:agi@so.ch
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AVT/SO_AVT_Mehrjahresplanung_20240911.uml
 MODEL SO_AVT_Mehrjahresplanung_20240911 (de)
 AT "http://www.geo.so.ch/models/AVT"
 VERSION "2024-09-11"  =
@@ -45,7 +46,7 @@ VERSION "2024-09-11"  =
   TOPIC Projekte =
     DEPENDS ON SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen;
 
-    /** Klasse welche den CSV Export aus der LOGO Applikation abbildet.
+    /** Klasse welche den CSV Export aus der Mehrjahresplanung abbildet.
      */
     CLASS Projekt =
       /** Abteilung welche das Projekt betreut
@@ -132,7 +133,6 @@ VERSION "2024-09-11"  =
       !!@ name=UniqueProjektIdentifikation
       !!@ ilivalid.msg="Projekt Identifikation ist nicht eindeutig"
       UNIQUE ProjektNr, ProjektSuffix;
-      EXISTENCE CONSTRAINT BpAnfang REQUIRED IN SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt : Bezeichnung; /*AND AchsNr REQUIRED IN SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt : AchseNummer;*/
     END Projekt;
 
     /** Klasse für manuell erfasste Liniengeometrie für bestehende Projekte.
@@ -141,9 +141,36 @@ VERSION "2024-09-11"  =
       /** Setzt sich zusammen aus der Projektnummer und dem Projektsuffix.
        */
       ProjektIdentifikation : MANDATORY TEXT*80;
+      /** Das Obsolet Datum zeigt an, dass die manuell erfasste Geometrie in den
+       * Projekten nicht mehr vorkommt.
+       */
       Obsolet : INTERLIS.XMLDate;
+      /** Eine manuell erfasste Geometrie
+       */
       Geometrie : GeometryCHLV95_V1.MultiLine;
     END ProjektGeometrie;
+
+    /** Beziehung zwischen Projekt und dem Anfangsbezugspunkt.
+     * Mit dieser Beziehung kann sicher gestellt werden, dass 
+     * referenzierte Anfangspunkte in dem Datensatz der Kantons-
+     * strassen auch wirklich existieren.
+     */
+    !!@ name=Projekt_Anfangspunkt
+    ASSOCIATION Projekt_Anfangspunkt =
+      rProjekt -- {0..*} Projekt;
+      rAnfangsBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt;
+    END Projekt_Anfangspunkt;
+
+    /** Beziehung zwischen Projekt und dem Endbezugspunkt.
+     * Mit dieser Beziehung kann sicher gestellt werden, dass 
+     * referenzierte Endpunkte in dem Datensatz der Kantons-
+     * strassen auch wirklich existieren.
+     */
+    !!@ name=Projekt_Endpunkt
+    ASSOCIATION Projekt_Endpunkt =
+      rProjekte -- {0..*} Projekt;
+      rEndBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt;
+    END Projekt_Endpunkt;
 
   END Projekte;
 
