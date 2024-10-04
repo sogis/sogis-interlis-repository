@@ -1,0 +1,161 @@
+INTERLIS 2.3;
+
+/** !
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-11-24 | AW  | Erste Version
+ * !! 2023-12-11 | AW  | Anpassung Rollenname
+ * !! 2024-10-15 | AW  | Modellerweiterung und Umbenennung
+ * !!==============================================================================
+ */
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_LK_Netzgebiete_20241015.uml
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AGI_LK_Netzgebiete_20241015 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2024-10-15"  =
+  IMPORTS GeometryCHLV95_V1,Text;
+
+  TOPIC Netzgebiete =
+
+    DOMAIN
+
+      /** Die verschiedenen Leitungsmedien gemäss SIA405
+       * erweitert um die drei Netzebenen des Stromnetz
+       * siehe z.B. https://www.swissgrid.ch/de/home/operation/power-grid/grid-levels.html
+       */
+      Medium = (
+        Abwasser,
+        !!@ ili2db.dispName=Elektrizität
+        Elektrizitaet(
+          Netzebene_3,
+          Netzebene_5,
+          Netzebene_7
+        ),
+        !!@ ili2db.dispName=Fernwärme
+        Fernwaerme,
+        Gas,
+        Kommunikation,
+        Wasser,
+        !!@ ili2db.dispName="weitere Medien"
+        weitereMedien
+      );
+
+    /** Das Netzgebiet ist ein zusammenhängendes Leitungsnetz eines Werkes, welches einem Werkeigentümer gehört und von einer Nachführungsstelle nachgeführt wird.
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( amedium ), '; ', represent_value( perimeter ), '; ', represent_value( nachfuehrungsstelle ))"
+    CLASS Netzgebiet =
+      OID AS INTERLIS.UUIDOID;
+      /** Das Medium des Leitungsnetz
+       */
+      Medium : MANDATORY Medium;
+      /** Die letzte Änderung an dieser Nachführungseinheit
+       */
+      Letzte_Aenderung : MANDATORY INTERLIS.XMLDate;
+    END Netzgebiet;
+
+    /** Eine Organisation kann eine private Firma oder eine öffentliche Verwaltungseinheit sein, welche eine bestimmte Rolle im Leitungskataster übernimmt
+     */
+    !!@ qgis.modelbaker.dispExpression="concat(organisation_name, ', ', strasse, ' ', hausnummer, ', ', plz, ' ', ortschaft)"
+    CLASS Organisation =
+      OID AS INTERLIS.UUIDOID;
+      /** Titel bzw. Name der Organisation
+       */
+      Organisation_Name : MANDATORY TEXT*255;
+      /** Strasse der Postadresse
+       */
+      Strasse : MANDATORY TEXT*255;
+      /** Hausnummer der Postadresse inkl. Zusatzzeichen wie Buchstaben etc.
+       */
+      Hausnummer : TEXT*20;
+      /** Postleitzahl
+       */
+      PLZ : MANDATORY 1000 .. 9999;
+      /** Postalische Ortschaft
+       */
+      Ortschaft : MANDATORY TEXT*255;
+      /** Allgemeine Telefonnummer der Organisation in der Form +41 32 123 45 67
+       */
+      Telefon : MANDATORY TEXT*255;
+      /** Webseite der Organisation
+       */
+      Web : MANDATORY INTERLIS.URI;
+      /** Allgemeine Email Adresse
+       */
+      Email : MANDATORY INTERLIS.URI;
+      /** Unternehmens-Identifikationsnummer UID gemäss https://www.uid.admin.ch/
+       */
+      UID : TEXT*80;
+      /** Prüft die Formatierung der Telefonnummer
+       */
+      !!@ ilivalid.msg="{Telefon} ist keine gültige Telefonnummer. Eine korrekte Formatierung muss in der Form '+41 79 123 45 67' sein"
+      !!@ name=CheckTelefonFormat
+      MANDATORY CONSTRAINT Text.matches(Telefon, "^[\\+][0-9]{2}[\\ ]?[0-9]{2}[\\ ]?[0-9]{3}[\\ ]?[0-9]{2}[\\ ]?[0-9]{2}$");
+      /** Prüft die Formatierung der UID
+       */
+      !!@ ilivalid.msg="{UID} ist keine gültige Unternehmens-Identifikationsnummer. Die UID muss in der Form 'CHE-123.456.789' sein"
+      !!@ name=CheckUIDFormat
+      MANDATORY CONSTRAINT Text.matches(UID, "^CHE-[0-9]{3}\\.[0-9]{3}\\.[0-9]{3}$");
+      /** Prüft die Formatierung der Webadresse
+       */
+      !!@ ilivalid.msg="{Web} ist keine gültige Web-URL"
+      !!@ name=CheckWebAdresseFormat
+      MANDATORY CONSTRAINT Text.matches(Web, "^http[s]?://.*");
+      /** Prüft die Formatierung der Email Adresse. Wichtig ist der Präfix mailto:
+       */
+      !!@ ilivalid.msg="{Email} ist keine gültige Email-Adresse"
+      !!@ name=CheckEmailAdresseFormat
+      MANDATORY CONSTRAINT Text.matches(Email, "^mailto:.*@.*[\\.].*");
+    END Organisation;
+
+    /** (Teil-)Perimeter einer Nachführungseinheit
+     */
+    !!@ qgis.modelbaker.dispExpression=concat(bezeichnung)
+    CLASS Perimeter =
+      OID AS INTERLIS.UUIDOID;
+      !!@ ili2db.mapping=MultiSurface
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier die BFS Nummer abgefüllt. Ansonsten kann das Feld leer bleiben.
+       */
+      BFSNr : 0 .. 9999;
+      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt.
+       * Ansonsten im Freitext eine Bezeichnung für den Perimeter.
+       */
+      Bezeichnung : MANDATORY TEXT*255;
+      /** Entspricht der Perimeter einer Gemeinde ist die Ausdehnung kommunal, bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend regional oder kantonal.
+       */
+      Ausdehnung : (
+        kommunal,
+        regional,
+        kantonal
+      );
+      /** Entspricht der Perimeter einer Gemeinde (Ausdehung ist kommunal), muss eine BFS Nummer abgefüllt werden
+       */
+      !!@ name=CheckBFSNrWennAusdehnungKommunal
+      MANDATORY CONSTRAINT (Ausdehnung == #kommunal AND DEFINED (BFSNr)) OR (Ausdehnung <> #kommunal AND NOT (DEFINED (BFSNr)));
+    END Perimeter;
+
+    ASSOCIATION Betreiber_Netzgebiet =
+      Betreiber -- {0..1} Organisation;
+      Netzgebiet_Betreiber -- {0..*} Netzgebiet;
+    END Betreiber_Netzgebiet;
+
+    ASSOCIATION Nachfuehrungsstelle_Netzgebiet =
+      Nachfuehrungsstelle -- {0..1} Organisation;
+      Netzgebiet_Nachfuehrungsstelle -- {0..*} Netzgebiet;
+    END Nachfuehrungsstelle_Netzgebiet;
+
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( perimeter ), '; ', represent_value( netzgebiet ))"
+    ASSOCIATION Perimeter_Netzgebiet =
+      Perimeter -- {1} Perimeter;
+      Netzgebiet -- {1..*} Netzgebiet;
+    END Perimeter_Netzgebiet;
+
+    ASSOCIATION Werkeigentuemer_Netzgebiet =
+      Werkeigentuemer -- {0..1} Organisation;
+      Netzgebiet_Werkeigentuemer -- {0..*} Netzgebiet;
+    END Werkeigentuemer_Netzgebiet;
+
+  END Netzgebiete;
+
+END SO_AGI_LK_Netzgebiete_20241015.

@@ -1,0 +1,94 @@
+INTERLIS 2.3;
+
+/** !
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-11-24 | AW  | Erste Version
+ * !! 2024-10-15 | AW  | Modellerweiterung und Umbenennung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AGI/SO_AGI_LK_Netzgebiete_Publikation_20241015.uml
+MODEL SO_AGI_LK_Netzgebiete_Publikation_20241015 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2024-10-15"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Netzgebiete =
+
+    DOMAIN
+
+      /** Die verschiedenen Leitungsmedien gemäss SIA405
+       * erweitert um die drei Netzebenen des Stromnetz
+       * siehe z.B. https://www.swissgrid.ch/de/home/operation/power-grid/grid-levels.html
+       */
+      Medium = (
+        Abwasser,
+        !!@ ili2db.dispName=Elektrizität
+        Elektrizitaet(
+          Netzebene_3,
+          Netzebene_5,
+          Netzebene_7
+        ),
+        !!@ ili2db.dispName=Fernwärme
+        Fernwaerme,
+        Gas,
+        Kommunikation,
+        Wasser,
+        !!@ ili2db.dispName="weitere Medien"
+        weitereMedien
+      );
+
+    CLASS Netzgebiet =
+      /** Die verschiedenen Leitungsmedien gemäss SIA405
+       */
+      Medium : MANDATORY Medium;
+      /** Die letzte Änderung an dieser Nachführungseinheit
+       */
+      Letzte_Aenderung : MANDATORY INTERLIS.XMLDate;
+      /** Perimeter der Nachführungseinheit
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Falls die Einheit einer Gemeinde entspricht, steht hier die entsprechend BFS Nummer
+       */
+      BFSNr : 0 .. 9999;
+      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt.
+       * Ansonsten im Freitext eine Bezeichnung für den Perimeter.
+       */
+      Bezeichnung : MANDATORY TEXT*255;
+      /** Name der Nachführungsstelle
+       */
+      Nachfuehrungsstelle_Name : TEXT*255;
+      /** Postadresse der Nachführungsstelle
+       */
+      Nachfuehrungsstelle_Postadresse : TEXT*255;
+      /** Allgemeine Telefonnummer der Nachführungsstelle
+       */
+      Nachfuehrungsstelle_Telefon : TEXT*255;
+      /** Webseite der Nachführungsstelle
+       */
+      Nachfuehrungsstelle_Web : INTERLIS.URI;
+      /** Allgemeine Email Adresse der Nachführungsstelle
+       */
+      Nachfuehrungsstelle_Email : INTERLIS.URI;
+      /** Name des Betreibers
+       */
+      Betreiber_Name : TEXT*255;
+      /** Postadresse des Betreibers
+       */
+      Betreiber_Postadresse : TEXT*255;
+      /** Allgemeine Telefonnummer des Betreibers
+       */
+      Betreiber_Telefon : TEXT*255;
+      /** Webseite des Betreibers
+       */
+      Betreiber_Web : INTERLIS.URI;
+      /** Allgemeine Email Adresse des Betreibers
+       */
+      Betreiber_Email : INTERLIS.URI;
+    END Netzgebiet;
+
+  END Netzgebiete;
+
+END SO_AGI_LK_Netzgebiete_Publikation_20241015.
