@@ -1,0 +1,241 @@
+INTERLIS 2.3;
+
+/** !!---------------------------------------------------------------------------------------------
+ * !! Version    | wer             | Änderung
+ * !!--------------------------------------------------------------------------------------------
+ * !! 2021-03-15 | Lorenz Eugster    | Ersterfassung; Modell für die Erfassung von Massnahmegebieten  der Tierseuchen.
+ * !! 2024-10-14 | Martin Schweizer | Erweiterung des Modells auf Pflanzengesundheit
+ * !!============================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ALW/SO_ALW_Tiergesundheit_Pflanzengesundheit_Massnahmen_20241014.uml
+MODEL SO_ALW_Tiergesundheit_Pflanzengesundheit_Massnahmen_20241014 (de)
+AT "https://alw.so.ch"
+VERSION "2024-10-14"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  /** Massnahmengebiete Tiergesundheit und Pflanzengesundheit werden durch den Kanton erfasst und insbesondere für den Vollzug Seuchenbekämpfung oder -profilaxe verwendet.
+   */
+  TOPIC Massnahmengebiete_Tiergesundheit_Pflanzengesundheit =
+
+    /** Verwaltung der Sperrgebiete zur Kontrolle und Eindämmung von Bienenseuchen.
+     */
+    CLASS Bienensperrgebiet =
+      /** Geometrie des Sperrgebietes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Jahr der Bienen-Seuchensperre. Jahr bildet das Jahr der Verfügung der Sperre ab.
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Art der Bienenseuche bzw. des verwalteten Sperrgebiets:
+       * - Faulbrut (in der Regel Radius von 2 km)
+       * - Sauerbrut (in der Regel Radius von 1 km)
+       * - Kleiner Beutekäfer (Festlegung durch Kantonstierarzt)
+       */
+      Typ_Sperre : MANDATORY (
+        Beutekaefer,
+        Sauerbrut,
+        Faulbrut
+      );
+      /** Art/Verwendungszweck des Gebiets. Bei Faulbrut und Sauerbrut wird ein Sperrgebiet festgelegt, beim kleinen Beutekäfer eine Schutzzone.
+       * 
+       * - Faulbrut (zu bekämpfende Seuche): Der Kantonstierarzt legt nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 2 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 271 Abs. 1bis TSV).
+       * - Sauerbrut (zu bekämpfende Seuche): Der Kantonstierarzt legt nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 1 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 273 Abs. 2 TSV).
+       * - Beim Kleinen Beutenkäfer legt der Kantonstierarzt nach Rücksprache mit dem zuständigen Bieneninspektor die Schutzzonen fest.
+       */
+      Verwendungszweck : MANDATORY (
+        Sperrgebiet,
+        Schutzzone
+      );
+      /** Datum der Erfassung des Objektes bzw. der Installation des Sperrgebiets.
+       */
+      Datum_Installation : MANDATORY INTERLIS.XMLDate;
+      /** Sperrgebiet ist noch aktiv oder inaktiv.
+       * - 1 bzw. true = aktives Sperrgebiet
+       * - 0 bzw. false = inaktives Sperrgebiet
+       */
+      aktiv : MANDATORY BOOLEAN;
+      /** Datum ab wann das Sperrgebiet nicht mehr aktiv ist und damit ausser Kraft gesetzt wurde.
+       */
+      Datum_inaktiv : MANDATORY INTERLIS.XMLDate;
+      /** Link zu den verfügten oder auferlegten Massnahmen.
+       */
+      Link_Massnahmen : MANDATORY TEXT*200;
+      /** Link zu Fachinformation zum jeweiligen Schadorganismus
+       */
+      Link_Fachinfo : MANDATORY TEXT*200;
+      /** Wert zur Steuerung der Darstellung; aufgrund der Codierung erfolgt die Darstellung spezifisch pro Organismus und Verwendungszweck. Hinweis: gleiche Farbe, aber unterschiedliche Darstellung, ergibt unterschiedliche Darstellungswerte.
+       */
+      Darstellung : MANDATORY 1 .. 30;
+      /** Wert zur Steuerung der öffentlichen Publikation 
+       * 
+       * 1 bzw. true =aktive Datensätze sind zur öffentlichen Publikation vorgesehen 
+       * 0 bzw. false =aktive Datensätze sind nur zur internen/geschützten Publikation vorgesehen
+       */
+      public : MANDATORY BOOLEAN;
+    END Bienensperrgebiet;
+
+    /** Verwaltung der Massnahmengebiete zur Kontrolle und Eindämmung oder gar Tilgung von Schadorganismen (Quarantäneorganismen) im Interesse der Pflanzengesundheit. Der zuständige kantonale Dienst grenzt in Absprache mit dem zuständigen Bundesamt das Gebiet ab, in dem besondere Massnahmen durchgeführt werden. Das Gebiet umfasst üblicherweise den Befallsherd und eine Pufferzone.
+     */
+    CLASS Pflanzengesundheit_schadorganismen =
+      /** Geometrie des Massnahmegebietes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Jahr der Installation eines Massnahmengebietes. Jahr bildet das Jahr der Verfügung/Verhängung der Massnahmen ab.
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Art des Schadorganismus (Quarantäneorganismus)
+       */
+      Schadorganismus : MANDATORY TEXT*50;
+      /** Die zur Kontrolle und Eindämmung oder gar Tilgung des Schadorganismus notwendigen Massnahmen werden publiziert oder verfügt. Link zu den auferlegten Massnahmen wird im Attribut "Link_Massnahmen" geführt.  Der zuständige kantonale Dienst grenzt in Absprache mit dem zuständigen Bundesamt das Gebiet ab, in dem besondere Massnahmen durchgeführt werden. Das Gebiet umfasst üblicherweise den Befallsherd und eine Pufferzone.
+       * 
+       * Zusatzinfo:
+       * 
+       * Befallsherd: einzelne von besonders gefährlichen Schadorganismen befallene Pflanzen und ihre unmittelbare Umgebung ausserhalb der Befallszone, einschliesslich Pflanzen mit Befallsverdacht.
+       * 
+       * Pufferzone: befallsfreies Gebiet, das eine Befallszone oder einen Befallsherd umgibt. Die Festlegung der Ausdehnung der Pufferzone richtet sich nach dem Risiko, das besteht, dass der Organismus sich auf natürlichem Weg oder wegen einer Tätigkeit des Menschen ausbreitet.
+       * 
+       * Befallszone: Gebiet, in dem die Verbreitung eines Quarantäneorganismus so weit fortgeschritten ist, dass in diesem Gebiet die Tilgung des Organismus nicht mehr möglich ist.
+       * 
+       * Schutzgebiet: Ist in einem Gebiet ein besonders gefährlicher Schadorganismus, der in anderen Gebieten der Schweiz verbreitet ist, noch nicht nachgewiesen worden (Schutzgebiet-Quarantäneorganismus), so können dr Bund dieses Gebiet nach Anhörung der betroffenen Kantone als Schutzgebiet betreffend diesen Organismus ausscheiden.
+       */
+      Verwendungszweck : MANDATORY TEXT*100;
+      /** Datum der Erfassung des Objektes bzw. der Installation des Massnahmengebietes.
+       */
+      Datum_Installation : MANDATORY INTERLIS.XMLDate;
+      /** Massnahmengebiet zum Schadorganismus ist noch aktiv oder inaktiv.
+       * 
+       * 1 bzw. true =aktives Massnahmengebiet
+       * 0 bzw. false =inaktives Massnahmengebiet0 bzw. false =inaktives Massnahmengebiet
+       */
+      aktiv : MANDATORY BOOLEAN;
+      /** Datum ab wann das Massnahmegebiet nicht mehr aktiv ist und damit ausser Kraft gesetzt wurde.
+       */
+      Datum_inaktiv : MANDATORY INTERLIS.XMLDate;
+      /** Link zu den verfügten oder auferlegten Massnahmen.
+       */
+      Link_Massnahmen : MANDATORY TEXT*200;
+      /** Link zu Fachinformation zum jeweiligen Schadorganismus.
+       */
+      Link_Fachinfo : MANDATORY TEXT*200;
+      /** Wert zur Steuerung der Darstellung; aufgrund der Codierung erfolgt die Darstellung spezifisch pro Organismus und Verwendungszweck. Hinweis: gleiche Farbe, aber unterschiedliche Darstellung, ergibt unterschiedliche Darstellungswerte.
+       */
+      Darstellung : MANDATORY 1 .. 30;
+      /** Wert zur Steuerung der öffentlichen Publikation. 
+       * 
+       * 1 bzw. true =aktive Datensätze sind zur öffentlichen Publikation vorgesehen 
+       * 0 bzw. false =aktive Datensätze sind nur zur internen/geschützten Publikation vorgesehen
+       */
+      public : MANDATORY BOOLEAN;
+    END Pflanzengesundheit_schadorganismen;
+
+    /** Massnahmengebiete in Zusammenhang mit Tiergesundheit zur Beobachtung, Überwachung und Bekämfpung von Seuchen und Krankheiten
+     */
+    CLASS Tiergesundheit_Massnahmengebiet =
+      /** Geometrie des Massnahmegebietes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Jahr der Installation eines Massnahmengebietes. Jahr bildet das Jahr der Verfügung/Verhängung der Massnahmen ab.
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      /** Art der Seuche
+       * (Infostand 20.3.2021)
+       * - Schutzzone: 
+       * Verwendung des Begriffs im Zusammenhang mit hochansteckenden Tierseuchen (im Grundsatz: wenn eine hochansteckende Seuche festgestellt wird, es gibt aber auch einzelne hochansteckende Seuchen, wo andere «Gebiete» festgelegt werden oder keine Zonierung stattfindet) (Art. 88 TSV). Der Begriff wird auch im Zusammenhang mit Seuchenfällen des Kleinen Beutekäfers (zu bekämpfende Seuche) verwendet (Art. 274 d).
+       * Die Schutzzone erfasst in der Regel ein Gebiet im Umkreis von 3 km vom verseuchten Bestand und wird vom BLV nach Anhören des Kantonstierarztes festgelegt. Beim Kleinen Beutenkäfer legt der Kantonstierarzt nach Rücksprache mit dem zuständigen Bieneninspektor die Zonen fest.
+       * - Überwachungszone: 
+       * Verwendung des Begriffs im Zusammenhang mit hochansteckenden Tierseuchen (im Grundsatz: wenn eine hochansteckende Seuche festgestellt wird, es gibt aber auch einzelne hochansteckende Seuchen, wo andere «Gebiete» festgelegt werden oder keine Zonierung stattfindet) (Art. 88 TSV). Der Begriff wird auch im Zusammenhang mit Seuchenfällen des Kleinen Beutekäfers (zu bekämpfende Seuche) verwendet (Art. 274 d)
+       * Die Überwachungszone erfasst in der Regel ein Gebiet im Umkreis von 10 km vom verseuchten Bestand und wird vom BLV nach Anhören des Kantonstierarztes festgelegt. Beim Kleinen Beutenkäfer legt der Kantonstierarzt nach Rücksprache mit dem zuständigen Bieneninspektor die Zonen fest.
+       * - Pferdepest-Zone: 
+       * Verwendung des Begriffs ausschliesslich im Zusammenhang mit der Pferdepest (bei Feststellung der Seuche). Bei der Pferdepest (hochansteckend) gibt es keine Schutz- und Überwachungszonen.
+       * Umfasst ein Gebiet im Umkreis von ungefähr 100 km um die verseuchten Bestände und wird durch das BLV nach Anhören der Kantone festgelegt (Art. 112d TSV).
+       * - Vektorfreie Gebiete:
+       * Verwendung des Begriffs in Zusammenhang mit Seuchen, die über Vektoren (in der Regel verschiedene Mückenarten) übertragen werden (Pferdepest Art. 122e TSV, Blauzungenkrankheit Art. 239f TSV)
+       * In diesen Gebieten kann der Kantonstierarzt auf die Anordnung von Sperrmassnahmen, Massnahmen zur Verminderung des Mückenbefalls und Impfungen ganz oder teilweise verzichten.
+       * - Sperrgebiet:
+       * Der Begriff ist nicht klar definiert, die Definition erfolgt aus dem Kontext der betreffenden Seuche. Der Begriff wird im Zusammenhang mit folgenden Seuchen verwendet:
+       * -- Tollwut (auszurottende Seuche): bestimmt der Kantonstierarzt ein den Umständen des Falles und den topographischen Verhältnissen angemessenes Sperrgebiet (Art. 146 Abs. 2 und Art. 147 TSV)
+       * -- Myxomatose (zu bekämpfende Tierseuche): der Kantonstierarzt bestimmt bei Feststellung von Myxomatose bei Haus- oder Wildkaninchen ein den Umständen angepasstes Sperrgebiet (Art. 267 Abs. 2 TSV)
+       * -- Faulbrut (zu bekämpfende Seuche): Der Kantonstierarzt ordnet nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 2 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 271 Abs. 1bis TSV).
+       * -- Sauerbrut (zu bekämpfende Seuche): Der Kantonstierarzt ordnet nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 1 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 273 Abs. 2 TSV).
+       * -- Krebspest (zu bekämpfende Seuche): Der Kantonstierarzt bestimmt bei Feststellung der Krebspest ein Sperrgebiet, wel¬ches das betroffene Wassereinzugsgebiet umfasst (Art. 289 Abs. 1 TSV).
+       * - Kontrollgebiete und Beobachtungsgebiete
+       * Verwendung des Begriffs im Zusammenhang mit folgenden Seuchen
+       * -- Hochpathogene Aviäre Influenza bei freilebenden Wildvögeln (hochansteckend) (Art. 122f Abs. 2 TSV)
+       * -- Tuberkulose bei freilebenden Wildtieren (auszurottende Seuche) (Art 165a TSV)
+       * - Infektiöse Anämie (es gibt keine spezielle Gebietsbezeichnung):
+       * Bei Feststellung von Infektiöser Anämie ordnet der Kantonstierarzt zusätzlich die Ausdehnung der einfachen Sperre 1. Grades auf alle Equidenhaltungen im Umkreis von mindestens einem Kilometer um den verseuchten Bestand an (Art. 206 Abs. 2bis TSV).
+       * - Blauzungen oder EHD-Zone
+       * Die Blauzungen- oder EHD-Zone umfasst ein Gebiet im Umkreis von ungefähr 100 km um die verseuchten Bestände. Bei der Festlegung der Zone sind geografische Gegebenheiten, Kontrollmöglichkeiten und epidemiologische Erkenntnisse zu berücksichtigen (Art. 239e Abs. 1 TSV).
+       * Das BLV legt den Umfang der Zone nach Anhören der Kantone fest . Es hebt die Zone nach Anhören der Kantone auf, wenn während mindestens zwei Jahren bei empfänglichen Tieren keine Blauzungen- beziehungsweise EHD-Viren festgestellt wurden. (Art. 239e Abs. 1 TSV). Vektorfreie Gebiete sind möglich (siehe oben, gem. Art. 239f TSV)
+       * - Initialsperrgebiet, Kontrollgebiet (als Kern- und Puffergebiet), Beobachtungsgebiet:
+       * Verwendung des Begriffs im Zusammenhang mit folgenden Seuchen
+       * -- Afrikanische Schweinepest AFP
+       */
+      Seuchenart : MANDATORY TEXT*50;
+      /** Art/Verwendungszweck des Gebietes:
+       * (Infostand 20.3.2021)
+       * - Schutzzone: 
+       * Verwendung des Begriffs im Zusammenhang mit hochansteckenden Tierseuchen (im Grundsatz: wenn eine hochansteckende Seuche festgestellt wird, es gibt aber auch einzelne hochansteckende Seuchen, wo andere «Gebiete» festgelegt werden oder keine Zonierung stattfindet) (Art. 88 TSV). Der Begriff wird auch im Zusammenhang mit Seuchenfällen des Kleinen Beutekäfers (zu bekämpfende Seuche) verwendet (Art. 274 d).
+       * Die Schutzzone erfasst in der Regel ein Gebiet im Umkreis von 3 km vom verseuchten Bestand und wird vom BLV nach Anhören des Kantonstierarztes festgelegt. Beim Kleinen Beutenkäfer legt der Kantonstierarzt nach Rücksprache mit dem zuständigen Bieneninspektor die Zonen fest.
+       * - Überwachungszone: 
+       * Verwendung des Begriffs im Zusammenhang mit hochansteckenden Tierseuchen (im Grundsatz: wenn eine hochansteckende Seuche festgestellt wird, es gibt aber auch einzelne hochansteckende Seuchen, wo andere «Gebiete» festgelegt werden oder keine Zonierung stattfindet) (Art. 88 TSV). Der Begriff wird auch im Zusammenhang mit Seuchenfällen des Kleinen Beutekäfers (zu bekämpfende Seuche) verwendet (Art. 274 d)
+       * Die Überwachungszone erfasst in der Regel ein Gebiet im Umkreis von 10 km vom verseuchten Bestand und wird vom BLV nach Anhören des Kantonstierarztes festgelegt. Beim Kleinen Beutenkäfer legt der Kantonstierarzt nach Rücksprache mit dem zuständigen Bieneninspektor die Zonen fest.
+       * - Pferdepest-Zone: 
+       * Verwendung des Begriffs ausschliesslich im Zusammenhang mit der Pferdepest (bei Feststellung der Seuche). Bei der Pferdepest (hochansteckend) gibt es keine Schutz- und Überwachungszonen.
+       * Umfasst ein Gebiet im Umkreis von ungefähr 100 km um die verseuchten Bestände und wird durch das BLV nach Anhören der Kantone festgelegt (Art. 112d TSV).
+       * - Vektorfreie Gebiete:
+       * Verwendung des Begriffs in Zusammenhang mit Seuchen, die über Vektoren (in der Regel verschiedene Mückenarten) übertragen werden (Pferdepest Art. 122e TSV, Blauzungenkrankheit Art. 239f TSV)
+       * In diesen Gebieten kann der Kantonstierarzt auf die Anordnung von Sperrmassnahmen, Massnahmen zur Verminderung des Mückenbefalls und Impfungen ganz oder teilweise verzichten.
+       * - Sperrgebiet:
+       * Der Begriff ist nicht klar definiert, die Definition erfolgt aus dem Kontext der betreffenden Seuche. Der Begriff wird im Zusammenhang mit folgenden Seuchen verwendet:
+       * -- Tollwut (auszurottende Seuche): bestimmt der Kantonstierarzt ein den Umständen des Falles und den topographischen Verhältnissen angemessenes Sperrgebiet (Art. 146 Abs. 2 und Art. 147 TSV)
+       * -- Myxomatose (zu bekämpfende Tierseuche): der Kantonstierarzt bestimmt bei Feststellung von Myxomatose bei Haus- oder Wildkaninchen ein den Umständen angepasstes Sperrgebiet (Art. 267 Abs. 2 TSV)
+       * -- Faulbrut (zu bekämpfende Seuche): Der Kantonstierarzt ordnet nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 2 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 271 Abs. 1bis TSV).
+       * -- Sauerbrut (zu bekämpfende Seuche): Der Kantonstierarzt ordnet nach Rücksprache mit dem zuständigen Bieneninspektor ein Sperrgebiet fest, das in der Regel ein Gebiet im Umkreis von 1 km vom verseuchten Stand erfasst. Bei der Festlegung des Gebiets sind geografische Gegebenheiten zu berücksichtigen, insbesondere Gemeinde-, Kantons- und Landesgrenzen sowie Geländehindernisse wie Wälder, Kuppen, Kreten, Täler oder Seen (Art. 273 Abs. 2 TSV).
+       * -- Krebspest (zu bekämpfende Seuche): Der Kantonstierarzt bestimmt bei Feststellung der Krebspest ein Sperrgebiet, wel¬ches das betroffene Wassereinzugsgebiet umfasst (Art. 289 Abs. 1 TSV).
+       * - Kontrollgebiete und Beobachtungsgebiete
+       * Verwendung des Begriffs im Zusammenhang mit folgenden Seuchen
+       * -- Hochpathogene Aviäre Influenza bei freilebenden Wildvögeln (hochansteckend) (Art. 122f Abs. 2 TSV)
+       * -- Tuberkulose bei freilebenden Wildtieren (auszurottende Seuche) (Art 165a TSV)
+       * - Infektiöse Anämie (es gibt keine spezielle Gebietsbezeichnung):
+       * Bei Feststellung von Infektiöser Anämie ordnet der Kantonstierarzt zusätzlich die Ausdehnung der einfachen Sperre 1. Grades auf alle Equidenhaltungen im Umkreis von mindestens einem Kilometer um den verseuchten Bestand an (Art. 206 Abs. 2bis TSV).
+       * - Blauzungen oder EHD-Zone
+       * Die Blauzungen- oder EHD-Zone umfasst ein Gebiet im Umkreis von ungefähr 100 km um die verseuchten Bestände. Bei der Festlegung der Zone sind geografische Gegebenheiten, Kontrollmöglichkeiten und epidemiologische Erkenntnisse zu berücksichtigen (Art. 239e Abs. 1 TSV).
+       * Das BLV legt den Umfang der Zone nach Anhören der Kantone fest . Es hebt die Zone nach Anhören der Kantone auf, wenn während mindestens zwei Jahren bei empfänglichen Tieren keine Blauzungen- beziehungsweise EHD-Viren festgestellt wurden. (Art. 239e Abs. 1 TSV). Vektorfreie Gebiete sind möglich (siehe oben, gem. Art. 239f TSV)
+       * - Initialsperrgebiet, Kontrollgebiet (als Kern- und Puffergebiet), Beobachtungsgebiet:
+       * Verwendung des Begriffs im Zusammenhang mit folgenden Seuchen
+       * -- Afrikanische Schweinepest AFP
+       */
+      Verwendungszweck : MANDATORY TEXT*100;
+      /** Datum der Erfassung des Objektes bzw. der Installation des Massnahmengebietes.
+       */
+      Datum_Installation : MANDATORY INTERLIS.XMLDate;
+      /** Massnahmegebiet ist noch aktiv oder inaktiv.
+       * - 1 bzw. true =aktives Sperrgebiet
+       * - 0 bzw. false =inaktives Sperrgebiet
+       */
+      aktiv : MANDATORY BOOLEAN;
+      /** Datum ab wann das Massnahmegebiet nicht mehr aktiv ist und damit ausser Kraft gesetzt wurde.
+       */
+      Datum_inaktiv : MANDATORY INTERLIS.XMLDate;
+      /** Link zu den verfügten oder auferlegten Massnahmen.
+       */
+      Link_Massnahmen : MANDATORY TEXT*200;
+      /** Link zu Fachinformation zum jeweiligen Schadorganismus.
+       */
+      Link_Fachinfo : MANDATORY TEXT*200;
+      /** Wert zur Steuerung der Darstellung; aufgrund der Codierung erfolgt die Darstellung spezifisch pro Organismus und Verwendungszweck. Hinweis: gleiche Farbe, aber unterschiedliche Darstellung, ergibt unterschiedliche Darstellungswerte.
+       */
+      Darstellung : MANDATORY 1 .. 30;
+      /** Wert zur Steuerung der öffentlichen Publikation 
+       * 
+       * 1 bzw. true =aktive Datensätze sind zur öffentlichen Publikation vorgesehen 
+       * 0 bzw. false =aktive Datensätze sind nur zur internen/geschützten Publikation vorgesehen
+       */
+      public : MANDATORY BOOLEAN;
+    END Tiergesundheit_Massnahmengebiet;
+
+  END Massnahmengebiete_Tiergesundheit_Pflanzengesundheit;
+
+END SO_ALW_Tiergesundheit_Pflanzengesundheit_Massnahmen_20241014.
