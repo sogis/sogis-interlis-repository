@@ -41,9 +41,11 @@ VERSION "2024-10-15"  =
         weitereMedien
       );
 
-    /** Das Netzgebiet ist ein zusammenhängendes Leitungsnetz eines Werkes, welches einem Werkeigentümer gehört und von einer Nachführungsstelle nachgeführt wird.
+    /** Das Netzgebiet ist ein zusammenhängendes Leitungsnetz eines Werkes,
+     * welches einem Werkeigentümer gehört und von einer Nachführungsstelle
+     * nachgeführt wird.
      */
-    !!@ qgis.modelbaker.dispExpression="concat( represent_value( amedium ), '; ', represent_value( perimeter ), '; ', represent_value( nachfuehrungsstelle ))"
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( amedium ), '; ', represent_value( perimeter ), '; ', represent_value( nachfuehrungsstelle ), '; ', represent_value( betreiber ))"
     CLASS Netzgebiet =
       OID AS INTERLIS.UUIDOID;
       /** Das Medium des Leitungsnetz
@@ -54,7 +56,9 @@ VERSION "2024-10-15"  =
       Letzte_Aenderung : MANDATORY INTERLIS.XMLDate;
     END Netzgebiet;
 
-    /** Eine Organisation kann eine private Firma oder eine öffentliche Verwaltungseinheit sein, welche eine bestimmte Rolle im Leitungskataster übernimmt
+    /** Eine Organisation kann eine private Firma oder eine öffentliche
+     * Verwaltungseinheit sein, welche eine bestimmte Rolle im
+     * Leitungskataster übernimmt.
      */
     !!@ qgis.modelbaker.dispExpression="concat(organisation_name, ', ', strasse, ' ', hausnummer, ', ', plz, ' ', ortschaft)"
     CLASS Organisation =
@@ -122,21 +126,36 @@ VERSION "2024-10-15"  =
       OID AS INTERLIS.UUIDOID;
       !!@ ili2db.mapping=MultiSurface
       Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier die BFS Nummer abgefüllt. Ansonsten kann das Feld leer bleiben.
+      /** Falls der Perimeter einer politischen Gemeinde entspricht,
+       * wird hier die BFS Nummer abgefüllt.
+       * Ansonsten kann das Feld leer bleiben.
        */
       BFSNr : 0 .. 9999;
-      /** Falls der Perimeter einer politischen Gemeinde entspricht, wird hier der Gemeindename eingesetzt.
+      /** Falls der Perimeter einer politischen Gemeinde entspricht,
+       * wird hier der Gemeindename eingesetzt.
        * Ansonsten im Freitext eine Bezeichnung für den Perimeter.
        */
       Bezeichnung : MANDATORY TEXT*255;
-      /** Entspricht der Perimeter einer Gemeinde ist die Ausdehnung kommunal, bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend regional oder kantonal.
+      /** Entspricht der Perimeter einer politischen Gemeinde ist die Ausdehnung kommunal,
+       * bei regionalen oder kantonalen Leitungsnetze ist die Ausdehnung entsprechend
+       * regional oder kantonal.
        */
       Ausdehnung : (
+        /** Ein kleines, lokales Netzgebiet welches innerhalb
+         * einer politischen Gemeinde liegt
+         */
+        lokal,
+        /** Ein Netzgebiet welches einer politischen 
+         * Gemeinde entspricht
+         */
         kommunal,
+        /** Netzgebiete über mehrere Gemeinden
+         */
         regional,
         kantonal
       );
-      /** Entspricht der Perimeter einer Gemeinde (Ausdehung ist kommunal), muss eine BFS Nummer abgefüllt werden
+      /** Entspricht der Perimeter einer Gemeinde (Ausdehung ist kommunal),
+       * muss eine BFS Nummer abgefüllt werden.
        */
       !!@ name=CheckBFSNrWennAusdehnungKommunal
       MANDATORY CONSTRAINT (Ausdehnung == #kommunal AND DEFINED (BFSNr)) OR (Ausdehnung <> #kommunal AND NOT (DEFINED (BFSNr)));
