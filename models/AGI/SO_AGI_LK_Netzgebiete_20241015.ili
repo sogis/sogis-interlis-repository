@@ -76,13 +76,15 @@ VERSION "2024-10-15"  =
       Ortschaft : MANDATORY TEXT*255;
       /** Allgemeine Telefonnummer der Organisation in der Form +41 32 123 45 67
        */
-      Telefon : MANDATORY TEXT*255;
+      Telefon : TEXT*255;
       /** Webseite der Organisation
+       * Kein zwingendes Feld, insbesondere Wärmeverbünde haben
+       * in mehreren Fällen keine eigene Webseite
        */
-      Web : MANDATORY INTERLIS.URI;
+      Web : INTERLIS.URI;
       /** Allgemeine Email Adresse
        */
-      Email : MANDATORY INTERLIS.URI;
+      Email : INTERLIS.URI;
       /** Unternehmens-Identifikationsnummer UID gemäss https://www.uid.admin.ch/
        */
       UID : TEXT*80;
@@ -106,9 +108,14 @@ VERSION "2024-10-15"  =
       !!@ ilivalid.msg="{Email} ist keine gültige Email-Adresse"
       !!@ name=CheckEmailAdresseFormat
       MANDATORY CONSTRAINT Text.matches(Email, "^mailto:.*@.*[\\.].*");
+      /** Prüft ob entweder eine Telefonnummer oder eine Email-Adresse vorhanden ist
+       */
+      !!@ name=DefinitionEmailTelefon
+      !!@ ilivalid.msg="Entweder Telefon oder Email darf nicht leer sein"
+      MANDATORY CONSTRAINT DEFINED(Telefon) OR DEFINED(Email);
     END Organisation;
 
-    /** (Teil-)Perimeter einer Nachführungseinheit
+    /** Perimeter eines Netzgebietes
      */
     !!@ qgis.modelbaker.dispExpression=concat(bezeichnung)
     CLASS Perimeter =
