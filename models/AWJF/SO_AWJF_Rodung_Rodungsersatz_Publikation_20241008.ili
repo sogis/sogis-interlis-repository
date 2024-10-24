@@ -10,7 +10,7 @@ INTERLIS 2.3;
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AWJF_Rodung_Rodungsersatz_Publikation_20241008 (de)
 AT "https://geo.so.ch/models/AWJF"
-VERSION "2023-07-25"  =
+VERSION "2023-10-08"  =
   IMPORTS GeometryCHLV95_V1;
 
   TOPIC Rodungsvorhaben =
@@ -27,18 +27,19 @@ VERSION "2023-07-25"  =
         Gesuch_gestellt,
         !!@ ili2db.dispName="Öffentliche Auflage"
         Oeffentliche_Auflage,
+        /** Einsprachen können nach der öffentlichen Auflage erfolgen.
+         */
         Einsprachebehandlung,
-        Bewilligt,
-        Abgelehnt,
         /** Beschwerden können nach der Bewilligung erfolgen.
          */
         Beschwerdebehandlung,
+        /** Das Rodungsgesuch ist rechtskräftig
+         */
         !!@ ili2db.dispName=Rechtskräftig
         Rechtskraeftig,
-        Abgenommen(
-          Rodung,
-          Rodungsersatz
-        ),
+        /** Rodung und Rodungsersatz wurden abgenommen
+         */
+        Abgenommen,
         Abgeschlossen,
         !!@ ili2db.dispName=Zurückgezogen
         Zurueckgezogen
@@ -50,9 +51,6 @@ VERSION "2023-07-25"  =
       /** Bezeichnung des Dokuments
        */
       Bezeichnung : MANDATORY TEXT*150;
-      /** Dokumentenpfad
-       */
-      Dateipfad : MANDATORY TEXT;
       /** Typ des Dokuments
        */
       Typ : (
@@ -91,34 +89,122 @@ VERSION "2023-07-25"  =
         Bestaetigung_Grundbuchamt,
         Diverses
       );
-      /** Publizierdatum des Dokumentes
-       */
-      publiziertAb : INTERLIS.XMLDate;
-      /** Offizielle Nummer des Dokuments
-       */
-      OffizielleNr : TEXT*30;
-      /** Bemerkung zum Dokument
-       */
-      Bemerkung : MTEXT;
-      /** Verweis auf öffentlich zugängliche Verfügung (Dokument im Internet)
-       */
-      Verfuegung_URL : INTERLIS.URI;
       /** Zuordnung des Dokumentes zum Status des Rodungsprozesses
        */
       Status : Verfahrensstatus;
+      /** Offizielle Nummer des Dokuments
+       */
+      OffizielleNr : TEXT*30;
+      /** Publizierdatum des Dokumentes
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Verweis auf öffentlich zugängliche Verfügung (Dokument im Internet)
+       */
+      Verfuegung_URL : INTERLIS.URI;
+      /** Dokumentenpfad
+       */
+      Dateipfad : MANDATORY TEXT;
+      /** Bemerkung zum Dokument
+       */
+      Bemerkung : MTEXT;
     END Dokument;
 
-    CLASS Rodung (ABSTRACT) =
-      /** Eindeutige Nummer des Vorhabens
+    /** Attribute welche für das ganze Rodungsvorhaben bzw. die Rodungsbewilligung gelten.
+     */
+    CLASS Rodungsdaten (ABSTRACT) =
+      /** Eindeutige Nummer des Vorhabens - MGDM obligatorisch
        */
       Nr_Kanton : TEXT*30;
-      /** Eingang der Ausgleichsabgabe
+      /** Eindeutige Nummer des Vorhabens für Rodungen nach Bundesverfahren
        */
-      Ausgleichsabgabe_Eingang : (
-        pruefen,
-        ok,
-        offen
+      Nr_Bund : TEXT*30;
+      /** Name und/oder Bezeichnung des Vorhabens
+       */
+      Vorhaben : TEXT*500;
+      /** Status des Rodungsprozesses
+       */
+      Status : Verfahrensstatus;
+      /** Zuständige Behörde (Art. 6 Abs. 1 WaG)
+       */
+      Zustaendigkeit : (
+        /** Z1: Kanton
+         */
+        Kanton,
+        /** Z2: Bund
+         */
+        Bund
       );
+      /** Zweck der Rodung
+       */
+      Rodungszweck : (
+        /** R1: Strassenverkehr
+         */
+        Strassenverkehr,
+        /** R2: Schienenverkehr
+         */
+        Schienenverkehr,
+        /** R3: Schifffahrt
+         */
+        Schifffahrt,
+        /** R4: Luftfahrt
+         */
+        Luftfahrt,
+        /** R5: Erzeugung, Übertragung und Lagerung von Energie
+         */
+        Energie,
+        /** R6: Anlagen und Leitungen zur Grundwasserfassung oder Grundwasseranreicherung
+         */
+        !!@ ili2db.dispName="Anlagen Grundwasser"
+        Anlagen_Grundwasser,
+        /** R7: Rohstoffe (insbesondere: Kies- und Sandgruben, Steinbrüche und andere nicht der Energiegewinnung dienende Materialentnahmen aus dem Boden)
+         */
+        Rohstoffe,
+        /** R8: Entsorgung
+         */
+        Entsorgung,
+        /** R9: Kombinierte Rodungszwecke: Rohstoffe und Entsorgung
+         */
+        !!@ ili2db.dispName="Rohstoffe Entsorgung"
+        Rohstoffe_Entsorgung,
+        /** R10: Sport, Tourismus und Freizeit
+         */
+        Freizeit,
+        /** R11: Hochbau
+         */
+        Hochbau,
+        /** R12: Rückgewinnung von Landwirtschaftlichem Kulturland (Art. 7 Abs. 3 Bst. a WaG)
+         */
+        Kulturland,
+        /** R13: Wasserbau / Gewässerkorrektionen
+         */
+        Wasserbau,
+        /** R14: Revitalisierung
+         */
+        Revitalisierung,
+        /** R15: Kombinierte Rodungszwecke: Gewässerkorrektionen und Revitalisierungen
+         */
+        !!@ ili2db.dispName="Wasserbau Revitalisierung"
+        Wasserbau_Revitalisierung,
+        /** R16: Erhaltung und Aufwertung von Biotopen (Art. 7 Abs. 3 Bst. c WaG)
+         */
+        Biotope,
+        /** R17: Industrielle Betriebe, Einkaufszentren, Fachmärkte, Güterumschlagsplätze und Verteilzentren
+         */
+        Industrie,
+        /** R18: Ortsfeste Funkanlagen
+         */
+        Funkanlagen,
+        /** R19: Militärische Bauten und Anlagen
+         */
+        !!@ ili2db.dispName=Militär
+        Militaer,
+        /** R20: Verschiedenes
+         */
+        Verschiedenes
+      );
+      /** Ergänzende Bemerkungen zum Rodungszweck
+       */
+      Rodungszweck_Bemerkung : MTEXT;
       /** Art des Bewilligungsverfahrens für das Rodungsgesuch
        */
       Art_Bewilligungsverfahren : (
@@ -129,169 +215,75 @@ VERSION "2023-07-25"  =
         Plangenehmigungsverfahren_Militaer,
         Rodungsverfahren
       );
-      /** Eindeutige Nummer des Vorhabens für Rodungen nach Bundesverfahren
-       */
-      Nr_Bund : TEXT*30;
-      /** Status des Rodungsprozesses
-       */
-      Status : Verfahrensstatus;
-      /** Zweck der Rodung
-       */
-      Rodungszweck : (
-        Strassenverkehr,
-        Schienenverkehr,
-        Schifffahrt,
-        Luftfahrt,
-        /** Erzeugung, Übertragung und Lagerung von Energie
-         */
-        Energie,
-        /** Anlagen und Leitungen zur Grundwasserfassung oder Grundwasseranreicherung
-         */
-        !!@ ili2db.dispName="Anlagen Grundwasser"
-        Anlagen_Grundwasser,
-        /** Rohstoffe (insbesondere: Kies- und Sandgruben, Steinbrüche und andere nicht der Energiegewinnung dienende Materialentnahmen aus dem Boden)
-         */
-        Rohstoffe,
-        Entsorgung,
-        /** Kombinierte Rodungszwecke: Rohstoffe und Entsorgung
-         */
-        !!@ ili2db.dispName="Rohstoffe Entsorgung"
-        Rohstoffe_Entsorgung,
-        /** Sport, Tourismus und Freizeit
-         */
-        Freizeit,
-        Hochbau,
-        /** Rückgewinnung von Landwirtschaftlichem Kulturland (Art. 7 Abs. 3 Bst. a WaG)
-         */
-        Kulturland,
-        /** Wasserbau / Gewässerkorrektionen
-         */
-        Wasserbau,
-        Revitalisierung,
-        /** Kombinierte Rodungszwecke: Gewässerkorrektionen und Revitalisierungen
-         */
-        !!@ ili2db.dispName="Wasserbau Revitalisierung"
-        Wasserbau_Revitalisierung,
-        /** Erhaltung und Aufwertung von Biotopen (Art. 7 Abs. 3 Bst. c WaG)
-         */
-        Biotope,
-        /** Industrielle Betriebe, Einkaufszentren, Fachmärkte, Güterumschlagsplätze und Verteilzentren
-         */
-        Industrie,
-        /** Ortsfeste Funkanlagen
-         */
-        Funkanlagen,
-        /** Militärische Bauten und Anlagen
-         */
-        !!@ ili2db.dispName=Militär
-        Militaer,
-        Verschiedenes
-      );
-      /** Name und/oder Bezeichnung des Vorhabens
-       */
-      Vorhaben : TEXT*500;
-      /** Datum der Verfügung / des RRB
-       */
-      Datum_Entscheid : INTERLIS.XMLDate;
-      /** Vorhaben inkl. der Ersatzmassnahme ist abgeschlossen
-       * das Dossier ist geschlossen
-       * Ausgleichsabgabe wurde bezahlt
-       * Waldplan wurde nachgeführt.
-       */
-      Datum_Abschluss_Rodung : INTERLIS.XMLDate;
-      /** Datum der Anzeige der Rodungsbewilligung an das BAFU
-       */
-      Datum_Anzeige_BAFU : INTERLIS.XMLDate;
-      /** Datum der Bekanntmachung der Rodungsbewilligung im Amtsblatt
-       */
-      Datum_Amtsblatt_Bewilligung : INTERLIS.XMLDate;
       /** Publikationsdatum des Rodungsgesuchs im Amtsblatt
        */
       Datum_Amtsblatt_Gesuch : INTERLIS.XMLDate;
-      /** ID/Nr Sobau-Eintrag
+      /** Datum der Bekanntmachung der Rodungsbewilligung im Amtsblatt
        */
-      SobauID : TEXT*6;
+      Datum_Amtsblatt_Bewilligung : INTERLIS.XMLDate;
       /** Startdatum der Auflage
        */
       AuflageStart : INTERLIS.XMLDate;
       /** Enddatum der öffentlichen Auflage
        */
       AuflageEnde : INTERLIS.XMLDate;
-      /** Gab es während des Rodungsprozesses Einsprachen?
+      /** Datum der Verfügung / des RRB
+       */
+      Datum_Entscheid : INTERLIS.XMLDate;
+      /** Datum ab dem das Rodungsgesuch rechtskräftig ist.
+       */
+      Datum_Rechtskraft : INTERLIS.XMLDate;
+      /** Datum der Anzeige der Rodungsbewilligung an das BAFU
+       */
+      Datum_Anzeige_BAFU : INTERLIS.XMLDate;
+      /** Vorhaben inkl. der Ersatzmassnahme ist abgeschlossen
+       * das Dossier ist geschlossen
+       * Ausgleichsabgabe wurde bezahlt
+       * Waldplan wurde nachgeführt.
+       */
+      Datum_Abschluss_Rodung : INTERLIS.XMLDate;
+      /** Eingang der Ausgleichsabgabe
+       */
+      Ausgleichsabgabe_Eingang : (
+        !!@ ili2db.dispName=prüfen
+        pruefen,
+        ok,
+        offen
+      );
+      /** Kantonaler Rodungsentscheid über das Rodungsgesuch
+       */
+      Rodungsentscheid : (
+        positiv,
+        negativ
+      );
+      /** ID/Nr Sobau-Eintrag
+       */
+      SobauID : TEXT*6;
+      /** Wurde gegen das Rodungsgesuch Einsprache erhoben?
        */
       Einsprache : BOOLEAN;
-      /** Zuständige Behörde (Art. 6 Abs. 1 WaG)
+      /** Wurde im Rahmen der öffentlichen Auflage Beschwerde erhoben?
        */
-      Zustaendigkeit : (
-        Kanton,
-        Bund
-      );
-      /** Bemerkungen zum Rodungsprojekt
-       */
-      Bemerkung_Rodung : MTEXT;
-      /** Wurde der Waldplan nachgeführt?
-       */
-      Waldplan_nachgefuehrt : BOOLEAN;
+      Beschwerde : BOOLEAN;
       /** Wurden die Ersatzmassnahmen im Rahmen eines Massnahmenpools realisiert?
        */
       MassnahmenNL_Pool : BOOLEAN;
-      /** Ergänzende Bemerkungen zum Rodungszweck
-       */
-      Rodungszweck_Bemerkung : TEXT*500;
-      /** Bedeutung der Geometrie
-       */
-      ObjektTyp : (
-        /** temporäre Rodungsfläche
-         */
-        !!@ ili2db.dispName="Rodung temporär"
-        Rodung_temporaer,
-        /** definitive Rodungsfläche
-         */
-        !!@ ili2db.dispName="Rodung definitv"
-        Rodung_definitiv,
-        Realersatz,
-        /** Massnahmen Natur und Landschaft
-         */
-        MassnahmenNL
-      );
-      /** Grund des Verzichtes auf Rodungsersatz
+      /** Wird ganz oder teilweise auf Rodungsersatz verzichtet? (Art. 7 Abs. 3 WaG)
        */
       ErsatzVerzicht : (
-        /** keine Massnahmen
+        /** V1: Es wird nicht auf Ersatz verzichtet
          */
-        keinen,
-        /** Erhalt und Aufwertung von Biotopen (Art. 7 Abs. 3 Bst. c WaG)
+        Nein,
+        /** V2: Ja, Rückgewinnung landwirtschaftliches Kulturland (Art. 7 Abs. 3 Bst. a WaG)
          */
-        Biotope,
-        /** Hochwasserschutz / Gewässerrevitalisierung (Art 7 Abs. 3 Bst. b WaG)
+        Kulturland,
+        /** V3: Ja, Hochwasserschutz / Gewässerrevitalisierung (Art 7 Abs. 3 Bst. b WaG)
          */
         !!@ ili2db.dispName="Hochwasserschutz / Gewaesserrevitalisierung"
         Hochwasserschutz_Revitalisierung,
-        /** Rückgewinnung landwirtschaftliches Kulturland (Art. 7 Abs. 3 Bst. a WaG)
+        /** V4: Ja, Erhalt und Aufwertung von Biotopen (Art. 7 Abs. 3 Bst. c WaG)
          */
-        Kulturland
-      );
-      /** Flächengrösse gemäss Rodungsgesuch in m2
-       */
-      Flaeche_Rodungsgesuch : 0.000 .. 9999999.999;
-      /** Anmerkung der Ersatzaufforstungspflicht im Grundbuch.
-       */
-      Anmerkung_Grundbuch : (
-        keine,
-        pendent,
-        eingetragen
-      );
-      /** Zuständiger Forstkreis
-       */
-      Forstkreis : (
-        !!@ ili2db.dispName=Thal-Gäu
-        Thal_Gaeu,
-        !!@ ili2db.dispName="Region Solothurn"
-        Region_Solothurn,
-        !!@ ili2db.dispName=Olten-Gösgen
-        Olten_Goesgen,
-        !!@ ili2db.dispName=Dorneck-Thierstein
-        Dorneck_Thierstein
+        Biotope
       );
       /** Art der Sicherung des Rodungsersatzes
        */
@@ -300,50 +292,65 @@ VERSION "2023-07-25"  =
         Waldareal,
         keine
       );
-      /** Bemerkung zur Fläche / zum Punkt
+      /** Anmerkung der Ersatzaufforstungspflicht im Grundbuch.
+       */
+      Anmerkung_Grundbuch : (
+        keine,
+        pendent,
+        eingetragen
+      );
+      /** Müssen die Daten an das BAFU geliefert werden?
+       */
+      Lieferung_BAFU : BOOLEAN;
+      /** Wurde der Waldplan nachgeführt?
+       */
+      Waldplan_nachgefuehrt : BOOLEAN;
+      /** Bemerkungen zum Rodungsprojekt
+       */
+      Bemerkung : MTEXT;
+      /** Bedeutung der Geometrie
+       */
+      Objekttyp : (
+        /** G1: Rodung temporär
+         */
+        !!@ ili2db.dispName="Rodung temporär"
+        Rodung_temporaer,
+        /** G2: Rodung definitiv
+         */
+        !!@ ili2db.dispName="Rodung definitv"
+        Rodung_definitiv,
+        /** G3: Realersatz
+         */
+        Realersatz,
+        /** G4: Massnahmen Natur und Landschaft
+         */
+        MassnahmenNL
+      );
+      /** Bemerkung zur Geometrie
        */
       Bemerkung_Geometrie : MTEXT;
-      !!@ ili2db.mapping=JSON
       Dokumente : BAG {0..*} OF SO_AWJF_Rodung_Rodungsersatz_Publikation_20241008.Rodungsvorhaben.Dokument;
-    END Rodung;
+    END Rodungsdaten;
 
     /** Flächengeometrie Rodung und Rodungsersatz
      */
     CLASS Flaeche
-    EXTENDS Rodung =
+    EXTENDS Rodungsdaten =
       /** Sind Massnahmen zu Gunsten des Natur- und Landschaftsschutzes zu treffen? (Art. 7 Abs. 2 WaG)
        */
       ErsatzMassnahmenNL : (
-        /** Ja. Ersatzmassnahme in Gebiet mit zunehmender Waldfläche (Art. 7 Abs. 2 Bst. a WaG)
+        /** N1: Verzicht auf Massnahmen
          */
-        !!@ ili2db.dispName="Waldfläche gleichbleibend"
-        Gebiet_Waldflaeche_zunehmend,
-        /** Ja. Ersatzmassnahme in übrigem Gebiet (Art 7 Abs. 2 Bst. b WaG)
+        Nein,
+        /** N2: Ersatzmassnahme in Gebiet mit zunehmender Waldfläche (Art. 7 Abs. 2 Bst. a WaG)
          */
         !!@ ili2db.dispName="Waldfläche zunehmend"
-        Gebiet_uebrige,
-        /** Verzicht auf Massnahmen
+        Gebiet_Waldflaeche_zunehmend,
+        /** N3: Ja. Ersatzmassnahme in übrigem Gebiet (Art 7 Abs. 2 Bst. b WaG)
          */
-        Nein
+        !!@ ili2db.dispName="Waldfläche gleichbleibend"
+        Gebiet_uebrige
       );
-      /** Einzelflächen können thematisch zusammengehören und die gleichen Attribute verwenden. Daher wird eine Multipolygon-Geometrie verwendet.
-       */
-      Geometrie : GeometryCHLV95_V1.MultiSurface;
-      /** Fristdatum zur Durchführung des Objekttyps
-       */
-      Frist : INTERLIS.XMLDate;
-      /** Bemerkung zum Fristdatum
-       */
-      Frist_Bemerkung : MTEXT;
-      /** Fristverlängerungsdatum zur Durchführung des Objekttyps
-       */
-      Frist_Verlaengerung : INTERLIS.XMLDate;
-      /** Bemerkung zur Fristverlängerung
-       */
-      Frist_Verlaengerung_Bemerkung : MTEXT;
-      /** Datum an dem die Arbeiten auf der Fläche abgeschlossen wurden.
-       */
-      Datum_Abschluss : INTERLIS.XMLDate;
       /** Typ Massnahmen Natur und Landschaft
        */
       MassnahmenNL_Typ : (
@@ -375,6 +382,27 @@ VERSION "2023-07-25"  =
          */
         Andere
       );
+      /** Fristdatum zur Durchführung des Objekttyps
+       */
+      Frist : INTERLIS.XMLDate;
+      /** Bemerkung zum Fristdatum
+       */
+      Frist_Bemerkung : MTEXT;
+      /** Fristverlängerungsdatum zur Durchführung des Objekttyps
+       */
+      Frist_Verlaengerung : INTERLIS.XMLDate;
+      /** Bemerkung zur Fristverlängerung
+       */
+      Frist_Verlaengerung_Bemerkung : MTEXT;
+      /** Datum an dem die Arbeiten auf der Fläche abgeschlossen und abgenommen wurden.
+       */
+      Datum_Abnahme : INTERLIS.XMLDate;
+      /** Flächengrösse gemäss Rodungsgesuch in m2
+       */
+      Flaeche_Rodungsgesuch : 0.000 .. 9999999.999;
+      /** Einzelflächen können thematisch zusammengehören und die gleichen Attribute verwenden. Daher wird eine Multipolygon-Geometrie verwendet.
+       */
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
       /** Bezeichnung der Ausgleichsabgabe
        */
       Ausgleichsabgabe_Bezeichnung : TEXT*150;
@@ -392,7 +420,7 @@ VERSION "2023-07-25"  =
     /** Punktgeometrie
      */
     CLASS Punkt
-    EXTENDS Rodung =
+    EXTENDS Rodungsdaten =
       /** Multipoint Geometrie
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
