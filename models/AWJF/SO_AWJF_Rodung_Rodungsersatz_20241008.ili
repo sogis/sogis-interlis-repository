@@ -10,7 +10,7 @@ INTERLIS 2.3;
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AWJF_Rodung_Rodungsersatz_20241008 (de)
 AT "http://geo.so.ch/models/AWJF"
-VERSION "2024-07-25"  =
+VERSION "2024-10-08"  =
   IMPORTS GeometryCHLV95_V1;
 
   TOPIC Rodungsvorhaben =
@@ -67,9 +67,6 @@ VERSION "2024-07-25"  =
     /** Attribute, welche sowohl für die Flächen- als auch Punktgeometrie relevant sind.
      */
     CLASS Geometrie (ABSTRACT) =
-      /** Bemerkung zur Geometrie
-       */
-      Bemerkung : MTEXT;
       /** Bedeutung der Geometrie
        */
       ObjektTyp : (
@@ -88,6 +85,9 @@ VERSION "2024-07-25"  =
          */
         MassnahmenNL
       );
+      /** Bemerkung zur Geometrie
+       */
+      Bemerkung : MTEXT;
     END Geometrie;
 
     /** Dokumente im Zusammenhang mit dem Rodungsvorhaben
@@ -96,9 +96,6 @@ VERSION "2024-07-25"  =
       /** Bezeichnung des Dokuments
        */
       Bezeichnung : TEXT*150;
-      /** Dokumentenpfad
-       */
-      Dateipfad : TEXT;
       /** Typ des Dokuments
        */
       Typ : (
@@ -141,21 +138,24 @@ VERSION "2024-07-25"  =
         Bestaetigung_Grundbuchamt,
         Diverses
       );
-      /** Publizierdatum des Dokumentes
-       */
-      publiziertAb : INTERLIS.XMLDate;
-      /** Offizielle Nummer des Dokuments
-       */
-      OffizielleNr : TEXT*30;
-      /** Bemerkung zum Dokument
-       */
-      Bemerkung : MTEXT;
-      /** Verweis auf öffentlich zugängliche Verfügung (Dokument im Internet)
-       */
-      Verfuegung_URL : INTERLIS.URI;
       /** Zuordnung des Dokumentes zum Status des Rodungsprozesses
        */
       Status : Verfahrensstatus;
+      /** Offizielle Nummer des Dokuments
+       */
+      OffizielleNr : TEXT*30;
+      /** Publizierdatum des Dokumentes
+       */
+      publiziertAb : INTERLIS.XMLDate;
+      /** Verweis auf öffentlich zugängliche Verfügung (Dokument im Internet)
+       */
+      Verfuegung_URL : INTERLIS.URI;
+      /** Dokumentenpfad
+       */
+      Dateipfad : TEXT;
+      /** Bemerkung zum Dokument
+       */
+      Bemerkung : MTEXT;
       /** Nur RRB-Entscheide werden online publiziert und können daher eine öffentliche URL besitzen.
        */
       !!@ ilivalid.msg="Verfuegung_URL darf nur definiert sein, wenn Typ = Rodungsentscheid.RRB"
@@ -182,24 +182,6 @@ VERSION "2024-07-25"  =
         !!@ ili2db.dispName="Waldfläche gleichbleibend"
         Gebiet_uebrige
       );
-      /** Einzelflächen können thematisch zusammengehören und die gleichen Attribute verwenden. Daher wird eine Multipolygon-Geometrie verwendet.
-       */
-      Geometrie : GeometryCHLV95_V1.MultiSurface;
-      /** Fristdatum zur Durchführung des Objekttyps
-       */
-      Frist : INTERLIS.XMLDate;
-      /** Bemerkung zum Fristdatum
-       */
-      Frist_Bemerkung : MTEXT;
-      /** Fristverlängerungsdatum zur Durchführung des Objekttyps
-       */
-      Frist_Verlaengerung : INTERLIS.XMLDate;
-      /** Bemerkung zur Fristverlängerung
-       */
-      Frist_Verlaengerung_Bemerkung : MTEXT;
-      /** Datum an dem die Arbeiten auf der Fläche abgeschlossen und abgenommen wurden.
-       */
-      Datum_Abnahme : INTERLIS.XMLDate;
       /** Typ Massnahmen Natur und Landschaft
        */
       MassnahmenNL_Typ : (
@@ -231,9 +213,27 @@ VERSION "2024-07-25"  =
          */
         Andere
       );
+      /** Fristdatum zur Durchführung des Objekttyps
+       */
+      Frist : INTERLIS.XMLDate;
+      /** Bemerkung zum Fristdatum
+       */
+      Frist_Bemerkung : MTEXT;
+      /** Fristverlängerungsdatum zur Durchführung des Objekttyps
+       */
+      Frist_Verlaengerung : INTERLIS.XMLDate;
+      /** Bemerkung zur Fristverlängerung
+       */
+      Frist_Verlaengerung_Bemerkung : MTEXT;
+      /** Datum an dem die Arbeiten auf der Fläche abgeschlossen und abgenommen wurden.
+       */
+      Datum_Abnahme : INTERLIS.XMLDate;
       /** Flächengrösse gemäss Rodungsgesuch in m2
        */
       Flaeche_Rodungsgesuch : 0.000 .. 9999999.999;
+      /** Einzelflächen können thematisch zusammengehören und die gleichen Attribute verwenden. Daher wird eine Multipolygon-Geometrie verwendet.
+       */
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
       /** Ersatzmassnahmen sollten dem ObjektTyp MassnahmenNL zugeordnet sein.
        */
       !!@ ilivalid.msg="ErsatzMassnahmenNL darf nur definiert sein, wenn ObjektTyp = MassnahmenNL"
@@ -261,15 +261,25 @@ VERSION "2024-07-25"  =
       /** Eindeutige Nummer des Vorhabens - MGDM obligatorisch
        */
       Nr_Kanton : TEXT*30;
-      /** Name und/oder Bezeichnung des Vorhabens
-       */
-      Vorhaben : TEXT*500;
       /** Eindeutige Nummer des Vorhabens für Rodungen nach Bundesverfahren
        */
       Nr_Bund : TEXT*30;
+      /** Name und/oder Bezeichnung des Vorhabens
+       */
+      Vorhaben : TEXT*500;
       /** Status des Rodungsprozesses
        */
       Status : Verfahrensstatus;
+      /** Zuständige Behörde (Art. 6 Abs. 1 WaG)
+       */
+      Zustaendigkeit : (
+        /** Z1: Kanton
+         */
+        Kanton,
+        /** Z2: Bund
+         */
+        Bund
+      );
       /** Zweck der Rodung
        */
       Rodungszweck : (
@@ -338,13 +348,9 @@ VERSION "2024-07-25"  =
          */
         Verschiedenes
       );
-      /** Eingang der Ausgleichsabgabe
+      /** Ergänzende Bemerkungen zum Rodungszweck
        */
-      Ausgleichsabgabe_Eingang : (
-        pruefen,
-        ok,
-        offen
-      );
+      Rodungszweck_Bemerkung : MTEXT;
       /** Art des Bewilligungsverfahrens für das Rodungsgesuch
        */
       Art_Bewilligungsverfahren : (
@@ -355,78 +361,59 @@ VERSION "2024-07-25"  =
         Plangenehmigungsverfahren_Militaer,
         Rodungsverfahren
       );
-      /** Datum der Verfügung / des RRB
-       */
-      Datum_Entscheid : INTERLIS.XMLDate;
-      /** Vorhaben inkl. der Ersatzmassnahme ist abgeschlossen
-       * das Dossier ist geschlossen
-       * Ausgleichsabgabe wurde bezahlt
-       * Waldplan wurde nachgeführt.
-       */
-      Datum_Abschluss_Rodung : INTERLIS.XMLDate;
-      /** Datum der Anzeige der Rodungsbewilligung an das BAFU
-       */
-      Datum_Anzeige_BAFU : INTERLIS.XMLDate;
       /** Publikationsdatum des Rodungsgesuchs im Amtsblatt
        */
       Datum_Amtsblatt_Gesuch : INTERLIS.XMLDate;
       /** Datum der Bekanntmachung der Rodungsbewilligung im Amtsblatt
        */
       Datum_Amtsblatt_Bewilligung : INTERLIS.XMLDate;
-      /** Datum ab dem das Rodungsgesuch rechtskräftig ist.
-       */
-      Datum_Rechtskraft : INTERLIS.XMLDate;
-      /** ID/Nr Sobau-Eintrag
-       */
-      SobauID : TEXT*6;
       /** Startdatum der Auflage
        */
       AuflageStart : INTERLIS.XMLDate;
       /** Enddatum der öffentlichen Auflage
        */
       AuflageEnde : INTERLIS.XMLDate;
+      /** Datum der Verfügung / des RRB
+       */
+      Datum_Entscheid : INTERLIS.XMLDate;
+      /** Datum ab dem das Rodungsgesuch rechtskräftig ist.
+       */
+      Datum_Rechtskraft : INTERLIS.XMLDate;
+      /** Datum der Anzeige der Rodungsbewilligung an das BAFU
+       */
+      Datum_Anzeige_BAFU : INTERLIS.XMLDate;
+      /** Vorhaben inkl. der Ersatzmassnahme ist abgeschlossen
+       * das Dossier ist geschlossen
+       * Ausgleichsabgabe wurde bezahlt
+       * Waldplan wurde nachgeführt.
+       */
+      Datum_Abschluss_Rodung : INTERLIS.XMLDate;
+      /** Eingang der Ausgleichsabgabe
+       */
+      Ausgleichsabgabe_Eingang : (
+        !!@ ili2db.dispName=prüfen
+        pruefen,
+        ok,
+        offen
+      );
+      /** Kantonaler Rodungsentscheid über das Rodungsgesuch
+       */
+      Rodungsentscheid : (
+        positiv,
+        negativ
+      );
+      /** ID/Nr Sobau-Eintrag
+       */
+      SobauID : TEXT*6;
       /** Wurde gegen das Rodungsgesuch Einsprache erhoben?
        */
       Einsprache : BOOLEAN;
-      /** Zuständige Behörde (Art. 6 Abs. 1 WaG)
+      /** Wurde im Rahmen der öffentlichen Auflage Beschwerde erhoben?
        */
-      Zustaendigkeit : (
-        /** Z1: Kanton
-         */
-        Kanton,
-        /** Z2: Bund
-         */
-        Bund
-      );
-      /** Bemerkungen zum Rodungsprojekt
-       */
-      Bemerkung : MTEXT;
-      /** Wurde der Waldplan nachgeführt?
-       */
-      Waldplan_nachgefuehrt : BOOLEAN;
+      Beschwerde : BOOLEAN;
       /** Wurden die Ersatzmassnahmen im Rahmen eines Massnahmenpools realisiert?
        */
       MassnahmenNL_Pool : BOOLEAN;
-      /** Ergänzende Bemerkungen zum Rodungszweck
-       */
-      Rodungszweck_Bemerkung : MTEXT;
-      /** Müssen die Daten an das BAFU geliefert werden?
-       */
-      Lieferung_BAFU : BOOLEAN;
-      /** Anmerkung der Ersatzaufforstungspflicht im Grundbuch.
-       */
-      Anmerkung_Grundbuch : (
-        keine,
-        pendent,
-        eingetragen
-      );
-      /** Art der Sicherung des Rodungsersatzes
-       */
-      Art_Sicherung : (
-        Grundbuch,
-        Waldareal,
-        keine
-      );
       /** Wird ganz oder teilweise auf Rodungsersatz verzichtet? (Art. 7 Abs. 3 WaG)
        */
       ErsatzVerzicht : (
@@ -444,15 +431,29 @@ VERSION "2024-07-25"  =
          */
         Biotope
       );
-      /** Wurde im Rahmen der öffentlichen Auflage Beschwerde erhoben?
+      /** Art der Sicherung des Rodungsersatzes
        */
-      Beschwerde : BOOLEAN;
-      /** Kantonaler Rodungsentscheid über das Rodungsgesuch
-       */
-      Rodungsentscheid : (
-        positiv,
-        negativ
+      Art_Sicherung : (
+        Grundbuch,
+        Waldareal,
+        keine
       );
+      /** Anmerkung der Ersatzaufforstungspflicht im Grundbuch.
+       */
+      Anmerkung_Grundbuch : (
+        keine,
+        pendent,
+        eingetragen
+      );
+      /** Müssen die Daten an das BAFU geliefert werden?
+       */
+      Lieferung_BAFU : BOOLEAN;
+      /** Wurde der Waldplan nachgeführt?
+       */
+      Waldplan_nachgefuehrt : BOOLEAN;
+      /** Bemerkungen zum Rodungsprojekt
+       */
+      Bemerkung : MTEXT;
       /** Dokumente können nur vom Kanton publiziert werden, wenn sie selbst auch zuständig sind.
        */
       !!@ ilivalid.msg="Datum_Amtsblatt_Gesuch darf nur definiert sein, wenn Zustaendigkeit = Kanton"
