@@ -1,0 +1,530 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2023-10-16 | MS  | Ersterfassung
+ * !! 2024-07-04 | MS  | Umbenennung in Publikation und kleinere Anpassungen
+ * !! 2024-10-25 | MS  | Änderungen gemäss Ticket 2640
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Naturgefahren_Publikation_20241025 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2024-10-25"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Naturgefahren =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      beurteilung_einfach_typ (FINAL) = (
+        !!@ ili2db.dispName="nicht beurteilt"
+        nicht_beurteilt,
+        !!@ ili2db.dispName="Beurteilung nicht nötig"
+        beurteilung_nicht_noetig,
+        !!@ ili2db.dispName=beurteilt
+        beurteilt
+      );
+
+      beurteilung_komplex_typ (FINAL) = (
+        nicht_beurteilt,
+        beurteilung_nicht_noetig,
+        beurteilt_und_vollstaendig,
+        beurteilt_und_nicht_vollstaendig,
+        beurteilt_und_nicht_bestimmbar,
+        beurteilt_und_in_abklaerung
+      );
+
+      hauptprozess (FINAL) = (
+        !!@ ili2db.dispName=Wasser
+        wasser,
+        !!@ ili2db.dispName=Rutschung
+        rutschung,
+        !!@ ili2db.dispName=Sturz
+        sturz,
+        !!@ ili2db.dispName=Lawine
+        lawine
+      );
+
+      intensitaet_typ (FINAL) = (
+        !!@ ili2db.dispName="keine Einwirkung"
+        keine_einwirkung,
+        !!@ ili2db.dispName="Einwirkung vorhanden"
+        einwirkung_vorhanden,
+        !!@ ili2db.dispName=schwach
+        schwach,
+        !!@ ili2db.dispName=mittel
+        mittel,
+        !!@ ili2db.dispName=stark
+        stark
+      );
+
+      jaehrlichkeit_typ = -1 .. 10000;
+
+      m_geschwindigkeit_typ = (
+        !!@ ili2db.dispName="mehr als 1 m/s"
+        mehr_als_1_m_s,
+        !!@ ili2db.dispName="bis 1 m/s"
+        bis_1_m_s
+      );
+
+      /** Übermurungshöhe
+       */
+      m_hoehe_typ = (
+        !!@ ili2db.dispName="mehr als 100 cm"
+        mehr_als_100_cm,
+        !!@ ili2db.dispName="bis 100 cm"
+        bis_100_cm
+      );
+
+      teilprozess_quellen (FINAL) = (
+        !!@ ili2db.dispName=Überschwemmung
+        ueberschwemmung,
+        !!@ ili2db.dispName=Übermurung
+        uebermurung,
+        !!@ ili2db.dispName=Ufererosion
+        ufererosion,
+        !!@ ili2db.dispName="permanente Rutschung"
+        permanente_rutschung,
+        !!@ ili2db.dispName="spontane Rutschung"
+        spontane_rutschung,
+        !!@ ili2db.dispName=Hangmure
+        hangmure,
+        !!@ ili2db.dispName=Stein-/Blockschlag
+        stein_blockschlag,
+        !!@ ili2db.dispName=Fels-/Bergsturz
+        fels_bergsturz,
+        !!@ ili2db.dispName=Einsturz
+        einsturz,
+        !!@ ili2db.dispName=Absenkung
+        absenkung
+      );
+
+      teilprozess_synoptisch (FINAL) = (
+        !!@ ili2db.dispName=Überschwemmung
+        ueberschwemmung,
+        !!@ ili2db.dispName=Übermurung
+        uebermurung,
+        !!@ ili2db.dispName=Ufererosion
+        ufererosion,
+        !!@ ili2db.dispName="permanente Rutschung"
+        permanente_rutschung,
+        !!@ ili2db.dispName="spontane Rutschung"
+        spontane_rutschung,
+        !!@ ili2db.dispName=Hangmure
+        hangmure,
+        !!@ ili2db.dispName=Stein-/Blockschlag
+        stein_blockschlag,
+        !!@ ili2db.dispName=Fels-/Bergsturz
+        fels_bergsturz,
+        !!@ ili2db.dispName=Einsturz/Absenkung
+        einsturz_absenkung,
+        !!@ ili2db.dispName=Einsturz
+        einsturz,
+        !!@ ili2db.dispName=Absenkung
+        absenkung
+      );
+
+      ue_fliessgeschwindigkeit_typ = (
+        !!@ ili2db.dispName="mehr als 5 m/s"
+        mehr_als_5_m_s,
+        !!@ ili2db.dispName="von 4 bis 5 m/s"
+        von_4_bis_5_m_s,
+        !!@ ili2db.dispName="von 3 bis 4 m/s"
+        von_3_bis_4_m_s,
+        !!@ ili2db.dispName="von 2 bis 3 m/s"
+        von_2_bis_3_m_s,
+        !!@ ili2db.dispName="von 1 bis 2 m/s"
+        von_1_bis_2_m_s,
+        !!@ ili2db.dispName="von 0.5 bis 1 m/s"
+        von_0_5_bis_1_m_s,
+        !!@ ili2db.dispName="von 0 bis 0.5 m/s"
+        von_0_bis_0_5_m_s
+      );
+
+      /** Überflutungshöhe (Einteilung gemäss altem Modell)
+       */
+      ueberflutungshoehe_wasser (FINAL) = (
+        !!@ ili2db.dispName="Keine Überflutung"
+        keine_Ueberflutung,
+        !!@ ili2db.dispName="grösser als 200cm"
+        groesser_200cm,
+        !!@ ili2db.dispName="von 100 bis 200 cm"
+        von_100_bis_200cm,
+        !!@ ili2db.dispName="von 75 bis 100 cm"
+        von_75_bis_100cm,
+        !!@ ili2db.dispName="von 50 bis 75 cm"
+        von_50_bis_75cm,
+        !!@ ili2db.dispName="von 25 bis 50 cm"
+        von_25_bis_50cm,
+        !!@ ili2db.dispName="von 0 bis 25 cm"
+        von_0_bis_25cm
+      );
+
+      vollstaendigkeit_typ (FINAL) = (
+        !!@ ili2db.dispName=vollständig
+        vollstaendig,
+        !!@ ili2db.dispName="nicht vollständig"
+        nicht_vollstaendig,
+        !!@ ili2db.dispName="nicht bestimmbar"
+        nicht_bestimmbar,
+        !!@ ili2db.dispName="in Abklärung"
+        in_abklaerung
+      );
+
+    /** Strukturklasse für die Dokumente
+     */
+    STRUCTURE Dokument =
+      /** Titel des Berichts
+       */
+      Titel : MANDATORY TEXT*255;
+      /** Name der PDF-Datei in der Ablage
+       */
+      Dateiname : MANDATORY TEXT*255;
+      /** URL-Adresse des Berichts
+       */
+      Link : MANDATORY TEXT*500;
+      /** Aktuell relevante im Bericht beschriebene Hauptprozesse
+       */
+      Hauptprozesse : MANDATORY TEXT*255;
+      /** Erstellungsjahr
+       */
+      Jahr : MANDATORY TEXT*20;
+    END Dokument;
+
+    /** Enthält alle Attribute, die für jede Klasse im Kernmodell gelten z.B. Datenherkunft.
+     */
+    CLASS Kernmodell_Attribute (ABSTRACT) =
+      /** Beschreibt aus welchem Modell die Daten stammen (Altdaten; Neudaten)
+       */
+      Datenherkunft : MANDATORY TEXT*255;
+      /** Kennung des Auftrags, in welchem die Daten zuletzt bearbeitet wurden.
+       */
+      Auftrag_Neudaten : TEXT*80;
+    END Kernmodell_Attribute;
+
+    DOMAIN
+
+      gefahrenstufe_typ (FINAL) = (
+        !!@ ili2db.dispName="nicht gefährdet"
+        nicht_gefaehrdet,
+        !!@ ili2db.dispName=Restgefährdung
+        restgefaehrdung,
+        !!@ ili2db.dispName=gering
+        gering,
+        !!@ ili2db.dispName=mittel
+        mittel,
+        !!@ ili2db.dispName=erheblich
+        erheblich
+      );
+
+    /** Die einzelnen Perimeter, in welchen ein Teilprozess abgeklärt wurde.
+     */
+    CLASS Abklaerungsperimeter
+    EXTENDS Kernmodell_Attribute =
+      /** Untersuchter Teilprozess
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Zeigt den Erhebungsstand des Teilprozesses auf
+       */
+      Erhebungsstand : MANDATORY TEXT*200;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Abklaerungsperimeter;
+
+    /** Sammlung der Berichte, usw. zu den im Gemeindegebiet erfolgten Gefahrenbeurteilungen.
+     */
+    CLASS Dokumente_pro_Gemeinde =
+      /** Bfs-Nummer der Gemeinde
+       */
+      Gemeinde_BfsNr : MANDATORY 0 .. 9999;
+      /** Name der Gemeinde
+       */
+      Gemeinde_Name : MANDATORY TEXT*255;
+      /** Liste der verknüpften Dokumente.
+       */
+      !!@ ili2db.mapping=JSON
+      Dokumente : BAG {0..*} OF SO_AFU_Naturgefahren_Publikation_20241025.Naturgefahren.Dokument;
+      /** Gemeinde Polygon
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Dokumente_pro_Gemeinde;
+
+    /** Flaechendeckende Gliederung des Kantons in unterschiedliche Erhebungsgebiete gemäss Beurteilungsstand der Teilprozesse. Erhebungsgebiete innerhalb desselben Hauptprozesses überlagern sich nicht.
+     */
+    CLASS Erhebungsgebiet =
+      flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      status_ueberschwemmung : MANDATORY beurteilung_komplex_typ;
+      status_uebermurung : MANDATORY beurteilung_komplex_typ;
+      status_ufererosion : MANDATORY beurteilung_komplex_typ;
+      status_permanente_rutschung : MANDATORY beurteilung_komplex_typ;
+      status_spontane_rutschung : MANDATORY beurteilung_komplex_typ;
+      status_hangmure : MANDATORY beurteilung_komplex_typ;
+      status_stein_block_schlag : MANDATORY beurteilung_komplex_typ;
+      status_fels_berg_sturz : MANDATORY beurteilung_komplex_typ;
+      status_einsturz : MANDATORY beurteilung_einfach_typ;
+      status_absenkung : MANDATORY beurteilung_einfach_typ;
+      Kommentar : TEXT*250;
+    END Erhebungsgebiet;
+
+    /** Fliessrichtungen pro Jaehrlichkeit für den Teilprozess Ueberflutung.
+     */
+    CLASS Fliessrichtung
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses 
+       * (Nicht gemäss MGDM)
+       */
+      Jaehrlichkeit : MANDATORY TEXT*30;
+      /** Fliessrichtung
+       */
+      Fliessrichtung : MANDATORY 0 .. 365;
+      /** Name des beurteilten Gewässers / Abschnitt(e) von Gerinnen
+       */
+      Prozessquelle_Neudaten : TEXT*80;
+      /** Ort des Fliessrichtungspfeils
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Fliessrichtung;
+
+    /** Klassierte Fliesstiefen pro Jaehrlichkeit für den Teilprozess Ueberschwemmung, in ca. 70 % der Altdaten vorhanden (siehe Dokumente). Keine Ueberlappungen innerhalb der gleichen klassierten Fliesstiefe und Jaehrlichkeit. Prozessquelle optional.
+     */
+    CLASS Fliesstiefen
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       * (Nicht gemäss MGDM)
+       */
+      Jaehrlichkeit : MANDATORY TEXT*30;
+      /** Überschwemmungstiefe
+       */
+      Ueberschwemmung_Tiefe : MANDATORY ueberflutungshoehe_wasser;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle_Neudaten : TEXT*80;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Fliesstiefen;
+
+    /** Klassierte Fliessgeschwindigkeit pro Jährlichkeit für den Prozess Übermurung.  Keine Ueberlappungen innerhalb der gleichen klassierten Fliessgeschwindigkeit, Jaehrlichkeit und Prozessquelle.
+     */
+    CLASS Kennwert_Uebermurung_Geschwindigkeit
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Fliessgeschwindigkeit
+       */
+      Fliessgeschwindigkeit : MANDATORY m_geschwindigkeit_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Uebermurung_Geschwindigkeit;
+
+    /** Klassierte Fliesshöhe pro Jährlichkeit für den Prozess Übermurung. Keine Ueberlappungen innerhalb der gleichen klassierten Fliesshoehe, Jaehrlichkeit, und Prozessquelle.
+     */
+    CLASS Kennwert_Uebermurung_Hoehe
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Übermurungshöhe
+       */
+      Uebermurungshoehe : MANDATORY m_hoehe_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Uebermurung_Hoehe;
+
+    /** Klassierte Fliessgeschwindigkeit pro Jährlichkeit für den Prozess Überschwemmung. Keine Ueberlappungen innerhalb der gleichen klassierten Fliessgeschwindigkeit, Jaehrlichkeit und Prozessquelle.
+     */
+    CLASS Kennwert_Ueberschwemmung_Geschwindigkeit
+    EXTENDS Kernmodell_Attribute =
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : MANDATORY jaehrlichkeit_typ;
+      /** Fliessgeschwindigkeit
+       */
+      Fliessgeschwindigkeit : MANDATORY ue_fliessgeschwindigkeit_typ;
+      /** Name des beurteilten Gewässers
+       */
+      Prozessquelle : MANDATORY TEXT*50;
+      /** Bemerkungsfeld
+       */
+      Bemerkung : TEXT*200;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Kennwert_Ueberschwemmung_Geschwindigkeit;
+
+    /** Intensitaetskarten pro Jaehrlichkeit für die verschiedenen Teilprozesse. Keine Ueberlappungen innerhalb der gleichen Jaehrlichkeit.
+     */
+    CLASS Synoptische_Intensitaet
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozess gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_synoptisch;
+      /** Eintretenswahrscheinlichkeit des Prozesses
+       */
+      Jaehrlichkeit : jaehrlichkeit_typ;
+      /** Intensität des Prozesses
+       */
+      Intensitaet : MANDATORY intensitaet_typ;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Synoptische_Intensitaet;
+
+    /** Gefahrenhinweis ohne Jährlichkeit und Intensität für den Teilprozess Ufererosion.
+     */
+    CLASS Ufererosion
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozesse Ufererosion gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Ufererosion;
+
+    DOMAIN
+
+      ue_tiefe_typ = 0.00 .. 10.00 [INTERLIS.m];
+
+    /** Datengrundlage für die Gefahrenkarten für die Hauptprozesse. Die Flächen der verschiedenen Objekte dieser Klasse zum selben Hauptprozess  dürfen sich aus Gründen der Eindeutigkeit nicht überlappen
+     */
+    CLASS Gefahrengebiet_Hauptprozesse (ABSTRACT)
+    EXTENDS Kernmodell_Attribute =
+      /** Hauptprozess gemäss MGDM
+       */
+      Hauptprozess : MANDATORY hauptprozess;
+      /** Beteiligter Teilprozess
+       */
+      Teilprozess : MANDATORY TEXT*200;
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt. Eine Fläche kann von mehreren Prozessarten in der gleichen Gefahrenstufe betroffen sein.
+       */
+      Charakterisierung : MANDATORY TEXT*30;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Gefahrengebiet_Hauptprozesse;
+
+    /** Allgemeine Klasse für die Klassen Teilgebiet_*
+     */
+    CLASS Gefahrengebiet_Teilprozesse (ABSTRACT)
+    EXTENDS Kernmodell_Attribute =
+      /** Teilprozesse Rutsch gemäss MGDM
+       */
+      Teilprozess : MANDATORY teilprozess_quellen;
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt.
+       */
+      Charakterisierung : MANDATORY TEXT*30;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Gefahrengebiet_Teilprozesse;
+
+    /** Synoptische Gefahrengebiete der veröffentlichten synoptischen Gefahrenkarte. Die Flächen der verschiedenen Objekte dieser Klasse dürfen sich aus Gründen der Eindeutigkeit nicht überlappen
+     */
+    CLASS Synoptisches_Gefahrengebiet =
+      /** Gefahrenstufe
+       */
+      Gefahrenstufe : MANDATORY gefahrenstufe_typ;
+      /** Auflistung, welche die entsprechende Prozessart (Abkuerzung) und die Gefahrenstufe wiedergibt. Eine Fläche kann von mehreren Prosessarten in der gleichen Gefahrenstufe betroffen sein.
+       */
+      Charakterisierung : MANDATORY TEXT*100;
+      /** Räumliche Darstellung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Beteiligter Hauptprozess
+       */
+      Hauptprozess : MANDATORY hauptprozess;
+    END Synoptisches_Gefahrengebiet;
+
+    /** Gefahrengebiet des Hauptprozesses Rutschung
+     */
+    CLASS Gefahrengebiet_Hauptprozess_Rutschung
+    EXTENDS Gefahrengebiet_Hauptprozesse =
+    END Gefahrengebiet_Hauptprozess_Rutschung;
+
+    /** Gefahrengebiet des Hauptprozesses Sturz
+     */
+    CLASS Gefahrengebiet_Hauptprozess_Sturz
+    EXTENDS Gefahrengebiet_Hauptprozesse =
+    END Gefahrengebiet_Hauptprozess_Sturz;
+
+    /** Gefahrengebiete des Hauptprozess Wasser
+     */
+    CLASS Gefahrengebiet_Hauptprozess_Wasser
+    EXTENDS Gefahrengebiet_Hauptprozesse =
+    END Gefahrengebiet_Hauptprozess_Wasser;
+
+    /** Gefahrengebiet Teilprozess Absenkungen / Einsturz
+     */
+    CLASS Gefahrengebiet_Teilprozess_Absenkung_Einsturz
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Absenkung_Einsturz;
+
+    /** Gefahrengebiete Felssturz, Bergsturz
+     */
+    CLASS Gefahrengebiet_Teilprozess_Fels_Bergsturz
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Fels_Bergsturz;
+
+    /** Gefahrengebiet Teilprozess Hangmure
+     */
+    CLASS Gefahrengebiet_Teilprozess_Hangmure
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Hangmure;
+
+    /** Gefahrengebiet des Teilprozesses Murgang
+     */
+    CLASS Gefahrengebiet_Teilprozess_Murgang
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Murgang;
+
+    /** Gefahrengebiet Teilprozess permanente Rutschung (kontinuierliche Rutschung, Sackung)
+     */
+    CLASS Gefahrengebiet_Teilprozess_permanente_Rutschung
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_permanente_Rutschung;
+
+    /** Gefahrengebiet Teilprozess spontane Rutschung
+     */
+    CLASS Gefahrengebiet_Teilprozess_spontane_Rutschung
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_spontane_Rutschung;
+
+    /** Gefahrengebite Steinschlag, Blockschlag
+     */
+    CLASS Gefahrengebiet_Teilprozess_Stein_Blockschlag
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Stein_Blockschlag;
+
+    /** Gefahrengebiete der Teilprozesse Überflutung
+     */
+    CLASS Gefahrengebiet_Teilprozess_Ueberflutung
+    EXTENDS Gefahrengebiet_Teilprozesse =
+    END Gefahrengebiet_Teilprozess_Ueberflutung;
+
+  END Naturgefahren;
+
+END SO_AFU_Naturgefahren_Publikation_20241025.
