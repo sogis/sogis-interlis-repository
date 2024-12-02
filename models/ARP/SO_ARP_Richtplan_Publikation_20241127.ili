@@ -1,0 +1,616 @@
+INTERLIS 2.3;
+
+/** !!--------------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!--------------------------------------------------------------------------------------
+ * !! 2018-10-08 | NS  | Ersterfassung
+ * !! 2018-10-29 | NS  | Anpassung Attributnamen und Enumerationeintraege
+ * !! 2018-11-02 | NS  | abstrakte Klasse integriert
+ * !! 2018-12-03 | NS  | Aenderungen aus dem Erfassungsmodell uebernommen
+ * !! 2018-12-14 | NS  | Anpassung Grundnutzung zu Grundnutzung_erweitert
+ * !! 2019-02-22 | NS  | Anpassung Grundnutzung_erweitert zu Grundnutzung
+ * !! 2019-03-01 | NS  | Nationalstrasse.Autobahn_Autostrasse zu
+ * Nationalstrasse.Strasse umbenannt
+ * Ueberlagerungen bei Juraschutzzonen entfernt
+ * !! 2021-02-10 | PS  | Detailkarte neu mit ueberlagernder Linie
+ * !! 2022-06-30 | PS  | neuer Objekttyp in ueberlagernder Linie: historische Verkehrswege
+ * !! 2023-10-18 | AL  | Neue Attrbitue von Klasse Anpassung und neues Topic Raumkonzept
+ * !! 2023-10-18 | PB  | Kleinere Anpassungen: Objekttyp fuer Detailkarten,
+ * !!               Anpassung Objekttyp richtplankarte.ueberlagernder_punkt
+ * !! 2024-11-27 | PB  | Zusätzliche Aufzählelemente für Objekttyp im Topic Richtplankarte, Klasse ueberlagernder_Punkt
+ * !!======================================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_ARP_Richtplan_Publikation_20241127 (de)
+AT "http://geo.so.ch/models/ARP"
+VERSION "2024-11-27"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Kategorie der Abstimmung
+     */
+    Abstimmungskategorie = (
+      Ausgangslage,
+      Vororientierung,
+      Zwischenergebnis,
+      Festsetzung
+    );
+
+    /** Stand der Planung
+     */
+    Planungsstand = (
+      !!@ ili2db.dispName="in Auflage"
+      in_Auflage,
+      !!@ ili2db.dispName=rechtsgültig
+      rechtsgueltig
+    );
+
+    /** Status des Objekts
+     */
+    Status = (
+      neu,
+      bestehend,
+      /** Werden nach der Genehmigung gelöscht
+       */
+      !!@ ili2db.dispName="zu löschen"
+      zu_loeschen,
+      Erweiterung
+    );
+
+  TOPIC Raumkonzept =
+
+    /** Flächenobjekte des Raumkonzepts
+     */
+    CLASS Flaeche =
+      /** Name des Objekts
+       */
+      Objektname : TEXT*150;
+      /** Typ der Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Siedlung_Handlungsraum(
+          /** Agglomerationsgeprägten Raum aufwerten
+           */
+          !!@ ili2db.dispName="Agglomerationsgeprägten Raum aufwerten"
+          agglogepraegt,
+          /** Ländlichen Raum erhalten
+           */
+          !!@ ili2db.dispName="Ländlichen Raum erhalten"
+          laendlich,
+          /** Urbanen Raum verdichten
+           */
+          !!@ ili2db.dispName="Urbanen Raum verdichten"
+          urban
+        ),
+        Freizeit_Sport_Erholung,
+        Landschaft(
+          /** Vorranggebiete Landschaft erhalten
+           */
+          !!@ ili2db.dispName="Vorranggebiete Landschaft erhalten"
+          Vorranggebiet,
+          /** Pärke von nationaler Bedeutung entwickeln
+           */
+          !!@ ili2db.dispName="Pärke von nationaler Bedeutung entwickeln"
+          Park_nationaler_Bedeutung,
+          naturnaher_Landschaftsraum
+        ),
+        Metropolitanraum,
+        Agglomeration
+      );
+      /** Geometrie der Fläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschluss
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+    END Flaeche;
+
+    /** Linienobjekte des Raumkonzepts
+     */
+    CLASS Linie =
+      /** Name des Objekts
+       */
+      Objektname : TEXT*150;
+      /** Typ der Linie
+       */
+      Objekttyp : MANDATORY (
+        Verkehr_regional(
+          Bahnlinie,
+          Strasse
+        ),
+        Verkehr_national(
+          Bahnlinie,
+          Autobahn
+        )
+      );
+      /** Geometrie der Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschluss
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+    END Linie;
+
+    /** Punktobjekte des Raumkonzepts
+     */
+    CLASS Punkt =
+      /** Typ des Punktes
+       */
+      Objekttyp : MANDATORY (
+        /** Freizeitnutzungen konzentrieren
+         */
+        Landschaft_Freizeitnutzung,
+        Siedlung_Zentrumsstruktur(
+          Hauptzentrum,
+          Regionalzentrum,
+          Stuetzpunktgemeinde
+        )
+      );
+      /** Geometrie des Punktes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Objektname : TEXT*20;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschluss
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+    END Punkt;
+
+  END Raumkonzept;
+
+  TOPIC Detailkarten =
+
+    /** Flaechen der Detailkarten
+     */
+    CLASS Flaeche =
+      /** Name der Flaeche
+       */
+      Objektname : TEXT*150;
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        !!@ ili2db.dispName=Bodenaufwertungsfläche
+        Bodenaufwertungsflaeche,
+        Deponie,
+        !!@ ili2db.dispName="Freizeit, Sport, Erholung"
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20241127.Abstimmungskategorie;
+      /** Flaechengeometrie der ueberlagernden Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Kapitel vom Richtplantext zu dem die Karte gehört.
+       */
+      Richtplantext : TEXT*300;
+      /** Namen der betroffenen Gemeinden
+       */
+      Gemeindenamen : TEXT*255;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschlusses
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : URI;
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+      /** Stand der Planung
+       */
+      Status : SO_ARP_Richtplan_Publikation_20241127.Status;
+      /** Link zum Richtplantext
+       */
+      Richtplantext_URL : URI;
+    END Flaeche;
+
+    /** Linien der Detailkarten
+     */
+    CLASS Linie =
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        !!@ ili2db.dispName=Bodenaufwertungsfläche
+        Bodenaufwertungsflaeche,
+        Deoponie,
+        !!@ ili2db.dispName="Freizeit, Sport, Erholung"
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
+      /** Linienengeometrie der ueberlagernden Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : SO_ARP_Richtplan_Publikation_20241127.Abstimmungskategorie;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschlusses
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : URI;
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+      /** Kapitel vom Richtplantext zu dem die Karte gehört.
+       */
+      Richtplantext : TEXT*300;
+      /** Link zum Richtplantext
+       */
+      Richtplantext_URL : URI;
+      /** Stand der Planung
+       */
+      Status : SO_ARP_Richtplan_Publikation_20241127.Status;
+      /** Name der Linie
+       */
+      Objektname : TEXT*150;
+    END Linie;
+
+    /** Punkte der Detailkarten
+     */
+    CLASS Punkt =
+      /** Name des Punktes
+       */
+      Objektname : TEXT*150;
+      Objekttyp : MANDATORY (
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        !!@ ili2db.dispName=Bodenaufwertungsfläche
+        Bodenaufwertungsflaeche,
+        Deponie,
+        !!@ ili2db.dispName="Freizeit, Sport, Erholung"
+        Freizeit_Sport_Erholung,
+        Grundwasserschotterkarstkluft,
+        Windenergie,
+        weitere
+      );
+      /** Status des Punktes
+       */
+      Status : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Status;
+      /** Geometrie des Punktes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Name der Gemeinde
+       */
+      Gemeindename : TEXT*150;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschlusses
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : URI;
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+      /** Kapitel vom Richtplantext zu dem die Karte gehört.
+       */
+      Richtplantext : TEXT*300;
+      /** Link zum Richtplantext
+       */
+      Richtplantext_URL : URI;
+    END Punkt;
+
+  END Detailkarten;
+
+  TOPIC Richtplankarte =
+
+    DOMAIN
+
+      /** Bedeutung des Objekts
+       */
+      Bedeutung = (
+        regional,
+        kantonal,
+        national
+      );
+
+    /** Grundnutzung des Richtplans
+     */
+    CLASS Grundnutzung =
+      /** Abstimmungskategorie
+       */
+      Abstimmungskategorie : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Abstimmungskategorie;
+      /** Art der Grundnutzung
+       */
+      Grundnutzungsart : MANDATORY (
+        Gewaesser,
+        Nationalstrasse,
+        Wald,
+        Landwirtschaftsgebiet,
+        Siedlungsgebiet(
+          Wohnen_oeffentliche_Bauten,
+          Industrie_Arbeiten
+        ),
+        Strasse,
+        Reservezone
+      );
+      /** Flaechengeometrie der Grundnutzung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Auflistung der Dokumente
+       */
+      Dokumente : MTEXT;
+      /** Stand der Planung
+       */
+      Planungsstand : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Planungsstand;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+    END Grundnutzung;
+
+    /** Geometrien, welche die Grundnutzung ueberlagern
+     */
+    CLASS ueberlagernde_Geometrie (ABSTRACT) =
+      /** Name der ueberlagernden Geometrie
+       */
+      Objektname : TEXT*150;
+      /** Kategorie der Abstimmung
+       */
+      Abstimmungskategorie : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Abstimmungskategorie;
+      /** Bedeutung der ueberlagernden Geometrie
+       */
+      Bedeutung : Bedeutung;
+      /** Stand der Planung
+       */
+      Planungsstand : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Planungsstand;
+      /** Auflistung der dazugehoerigen Dokumente
+       */
+      Dokumente : MTEXT;
+      /** Status der ueberlagernden Geometrie
+       */
+      Status : MANDATORY SO_ARP_Richtplan_Publikation_20241127.Status;
+      /** Jahr der Anpassung
+       */
+      Richtplananpassung : INTERLIS.GregorianYear;
+      /** Nummer der Regierungsratsbeschlusses
+       */
+      RRB_Nr : TEXT*20;
+      /** Datum des Regierungsratsbeschlusses
+       */
+      RRB_Datum : INTERLIS.XMLDate;
+      /** Link zum Regierungsratsbeschlusses
+       */
+      RRB_URL : URI;
+      Anpassung_Bemerkung : TEXT;
+      /** Bundesblatt Nummer (BBl)
+       */
+      Bundesblatt_Nr : TEXT*100;
+      /** Link zum Bundesblatt
+       */
+      Bundesblatt_URL : URI;
+      Bundesblatt_Datum : INTERLIS.XMLDate;
+      /** Identifikator für Daten aus anderen Quellen wie z.B. Nutzungsplanung, Fruchtfolgefläche usw. Wird benutzt, um die Daten zu unterschiedlichen Zeitpunkten zu aktualisieren
+       */
+      Datenquelle : TEXT*100;
+    END ueberlagernde_Geometrie;
+
+    /** Polygonthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Flaeche
+    EXTENDS ueberlagernde_Geometrie =
+      /** Nummer der ueberlagernden Flaeche
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Flaeche
+       */
+      Objekttyp : MANDATORY (
+        Deponie,
+        Windenergie,
+        Naturpark,
+        kantonales_Vorranggebiet,
+        Sondernutzungsgebiet,
+        Witischutzzone,
+        kantonale_Uferschutzzone,
+        Entwicklungsgebiet_Arbeiten,
+        Grundwasserschutzzone_areal,
+        Siedlungstrennguertel,
+        kantonales_Naturreservat,
+        BLN_Gebiet,
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        Fruchtfolgeflaeche,
+        Juraschutzzone
+      );
+      /** weitere Informationen zu der ueberlagernden Flaeche
+       */
+      weitere_Informationen : TEXT*255;
+      /** Polygongeometrie der ueberlagernden Flaeche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** betroffene Gemeinden
+       */
+      Gemeindenamen : MANDATORY TEXT*1024;
+    END ueberlagernde_Flaeche;
+
+    /** Linienthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernde_Linie
+    EXTENDS ueberlagernde_Geometrie =
+      /** Objektnummer der ueberlagernden Linie
+       */
+      Objektnummer : TEXT*10;
+      /** Typ der ueberlagernden Linie
+       */
+      Objekttyp : MANDATORY (
+        Erdgastransportleitung,
+        Hochspannungsleitung,
+        Bahnlinie(
+          Schiene,
+          Tunnel
+        ),
+        Nationalstrasse(
+          Strasse,
+          Tunnel
+        ),
+        Kantonsstrasse,
+        Wildtierkorridor,
+        Historischer_Verkehrsweg
+      );
+      /** Liniengeometrie der ueberlagernden Linie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END ueberlagernde_Linie;
+
+    /** Punktthemen, welche die Grundnutzung des Richtplans ueberlagern.
+     */
+    CLASS ueberlagernder_Punkt
+    EXTENDS ueberlagernde_Geometrie =
+      /** Art des ueberlagernden Punkts
+       */
+      Objekttyp : MANDATORY (
+        !!@ ili2db.dispName="Schiess- / Übungsplatz"
+        Schiess_Uebungsplatz,
+        Kehrrichtverbrennungsanlage,
+        Kernkraftwerk,
+        Wasserkraftwerk(
+          Aare,
+          Birs,
+          Emmenkanal
+        ),
+        Flugplatz,
+        !!@ ili2db.dispName="Bus- / Bahnhaltestelle"
+        Bahn_Bus_Haltestelle,
+        Autobahnanschluss(
+          Vollanschluss,
+          Halbanschluss
+        ),
+        !!@ ili2db.dispName="öffentliche Bauten"
+        oeffentliche_Bauten,
+        Deponie,
+        Windenergie,
+        Umstrukturierungsgebiet,
+        Einkaufszentrum,
+        Bahnhofgebiet,
+        Arbeitszone,
+        Abbaustelle(
+          Kies,
+          Kalkstein,
+          Ton
+        ),
+        !!@ ili2db.dispName="UNESCO Welterbe"
+        UNESCO_Welterbe,
+        Ortsbild,
+        !!@ ili2db.dispName="Freizeit- / Sportanlage"
+        Freizeit_Sport_Anlage,
+        !!@ ili2db.dispName=Güterregulierung
+        Gueterregulierung,
+        !!@ ili2db.dispName="Erweiterung Siedlungsgebiet"
+        Erweiterung_Siedlungsgebiet,
+        !!@ ili2db.dispName=Gewächshaus
+        Gewaechshaus,
+        !!@ ili2db.displName="Güterverkehrsintensive Anlage"
+        Anlage_Gueterverkehr,
+        Wildruhezone
+      );
+      /** weitere Spezifikationen des ueberlagernden Punkts
+       */
+      Spezifikation : TEXT*255;
+      /** Geometrie des ueberlagernden Punkts
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** betroffene Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*150;
+    END ueberlagernder_Punkt;
+
+  END Richtplankarte;
+
+END SO_ARP_Richtplan_Publikation_20241127.
