@@ -1,0 +1,163 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-12-03 | MS  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=https://geo.so.ch/models/AFU/SO_AFU_Karst_20241203.uml
+MODEL SO_AFU_Karst_20241203 (de)
+AT "http://geo.so.ch"
+VERSION "2024-12-03"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Das Thema Karst_Karte bewirtschaftet die Ergebnisse der Arbeit "Karst-grundwasser im Kanton Solothurn /Anwendung KARSYS"(SISKA 2020)
+   */
+  TOPIC Karst =
+
+    DOMAIN
+
+      Maechtigkeit = (
+        /** > 50 m
+         */
+        !!@ ili2db.dispName="> 50 m"
+        mehr_als_50_m,
+        /** 20-50 m
+         */
+        !!@ ili2db.dispName="20 - 30 m"
+        von_20_bis_50_m,
+        /** 5-20 m
+         */
+        !!@ ili2db.dispName="5 - 20 m"
+        von_5_bis_20_m,
+        /** 2-5 m
+         */
+        !!@ ili2db.dispName="2 - 5 m"
+        von_2_bis_5_m,
+        /** 1-2 m
+         */
+        !!@ ili2db.dispName="1 - 2 m"
+        von_1_bis_2_m,
+        /** 0.5-1 m
+         */
+        !!@ ili2db.dispName="0.5 - 1 m"
+        von_0_5_bis_1_m,
+        /** 0.2-0.5 m
+         */
+        !!@ ili2db.dispName="0.2 - 0.5 m"
+        von_0_2_bis_0_5_m,
+        /** 0-0.2 m
+         */
+        !!@ ili2db.dispName="0 - 0.2 m"
+        von_0_bis_0_2_m,
+        !!@ ili2db.dispName=unbestimmt
+        unbestimmt
+      );
+
+    /** Gebiete mit Sedimenten, die nicht vor Ort entstanden sind
+     */
+    CLASS allogene_Gebiete =
+      /** Untere Hoehe [m ü. M.] von allogenem Einzugsgebiet (ausserhalb Zustroembereich)
+       */
+      Untere_Hoehe : 0.00 .. 2000.00;
+      /** obere Hoehe [m ü. M.] des allogenenen Einzugsgebiets (ausserhalb Zustroembereich)
+       */
+      Obere_Hoehe : 0.00 .. 2000.00;
+      /** Flaeche des Polygons
+       */
+      Area : 1 .. 9999999;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Gibt an, ob sich das Polygon innerhalb des Kantons Solothurns befindet
+       */
+      Innerhalb_SO : BOOLEAN;
+    END allogene_Gebiete;
+
+    /** Gibt Auskunft über die Mächtigkeit der felsüberdeckenen Schichten (Boden und Quartaer).
+     */
+    CLASS Felsueberdeckung =
+      /** Mächtigkeitsmodell des Lockergesteins. Diente als Grundlage für Berechnung der Felsüberdeckungskarte
+       */
+      ETM : MANDATORY 0 .. 5;
+      /** Mächtigkeit der felsüberdeckenden Schicht, eingeteilt in  neun Klassen [m]
+       */
+      Maechtigkeit : MANDATORY Maechtigkeit;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Gibt an, ob sich das Polygon innerhalb des Kantons Solothurns befindet
+       */
+      Innerhalb_SO : BOOLEAN;
+    END Felsueberdeckung;
+
+    /** Subartesische Zonen sind Lockergesteinstalfüllungen.
+     */
+    CLASS subartesische_Zone =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Gibt an, ob sich das Polygon innerhalb des Kantons Solothurns befindet
+       */
+      Innerhalb_SO : BOOLEAN;
+    END subartesische_Zone;
+
+    /** Darstellung des Grads der Verkarstung.
+     */
+    CLASS Verkarstung =
+      /** Gibt Auskunft darüber,ob in diesem Gebiet an oder unterhalb der Oberfläche Karst vorkommt
+       */
+      Verkarstungsgrad : MANDATORY (
+        /** Mehr als 2 m überdeckter evaporitischer Karst.
+         */
+        !!@ ili2db.dispName="Evaporitischer Karst bedeckt"
+        evaporitischer_Karst_bedeckt,
+        /** Weniger als 2 m überdeckter evaporitischer Karst.
+         */
+        !!@ ili2db.dispName="Evaporitischer Karst"
+        evaporitischer_Karst,
+        /** Teilweise verkarstet, Mehr als 2 m überdeckt.
+         */
+        !!@ ili2db.dispName="Teilweise verkarstet bedeckt"
+        teilweise_verkarstet_bedeckt,
+        /** Teilweise verkarstet, Weniger als 2 m überdeckt.
+         */
+        !!@ ili2db.dispName="Teilweise verkarstet"
+        teilweise_verkarstet,
+        /** mehr als 2 m überdeckter Karst
+         */
+        !!@ ili2db.dispName="Bedeckter Karst"
+        bedeckter_Karst,
+        /** Verkarstetes Gebiet
+         */
+        !!@ ili2db.dispName=Verkarstet
+        verkarstet,
+        /** Unbestimmt
+         */
+        !!@ ili2db.dispName=Unbestimmt
+        unbestimmt,
+        /** Nicht verkarstetes Gebiet
+         */
+        !!@ ili2db.dispName="Nicht Verkarstet"
+        nicht_verkarstet
+      );
+      /** Bezeichnung der geologischen Einheit (Grundlage geologischer Atlas GA 25)
+       */
+      Geologische_Einheit_GA25 : TEXT*20;
+      /** lithostratigraphische Formation
+       */
+      Lithostratigraphische_Formation : TEXT*200;
+      /** Tektonische Einheit
+       */
+      Tektonische_Einheit : TEXT*200;
+      /** Mächtigkeitsmodell des Lockergesteins. Diente als Grundlage für Berechnung der Felsüberdeckungskarte
+       */
+      ETM : 0 .. 5;
+      /** Mächtigkeit der felsüberdeckenden Schicht, eingeteilt in  neun Klassen [m]
+       */
+      Maechtigkeit : MANDATORY Maechtigkeit;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Gibt an, ob sich das Polygon innerhalb des Kantons Solothurns befindet
+       */
+      Innerhalb_SO : BOOLEAN;
+    END Verkarstung;
+
+  END Karst;
+
+END SO_AFU_Karst_20241203.
