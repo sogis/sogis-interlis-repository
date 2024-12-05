@@ -29,7 +29,7 @@
                     <ul class="breadcrumb">
                         <li><a href="https://agi.so.ch">Home</a></li>
                         <li><a href=".">Modellablage</a></li>
-                        <li class="active">ilimodels.xml</li>
+                        <li class="active">ilimodels.html</li>
                     </ul>
                 </div>
 
