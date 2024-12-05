@@ -5,6 +5,7 @@ buildscript {
     }
     dependencies {
         classpath("ch.interlis:ili2c-tool:5.4.0")
+        classpath("xalan:xalan:2.7.2")
     }
 }
 
@@ -54,6 +55,11 @@ tasks.register('createIliModelsXml', ModelRepositoryCreator) {
 }
 createIliModelsXml.configure { finalizedBy versionTxt }
 
+/*
+    Nach Diskussion mit claeis sollen die ilitools Processing Instructions
+    nicht unterstützen. Zu viele Dinge sind unklar, z.B. soll die 
+    transformierte Datei geprüft werden oder die Originaldatei.
+*/
 tasks.register('addXslDeclaration') {
     group = GROUP
     description = "Add XSL declaration to ilimodels.xml"
@@ -65,6 +71,21 @@ tasks.register('addXslDeclaration') {
         file.write content
     }
 }    
+
+tasks.register('createIliModelsHtml', JavaExec) {
+    group = GROUP
+    classpath buildscript.configurations.classpath
+    errorOutput = new FileOutputStream('docout.err')
+    def inxml = "ilimodels.xml"
+    def inxsl = "xsl/ilimodels.xsl"
+    def out = "ilimodels.html"
+    main = 'org.apache.xalan.xslt.Process'
+    args = [
+    '-IN', inxml,
+    '-XSL', inxsl,
+    '-OUT', out
+    ].toList()
+}
 
 tasks.register('createConfigDataXml', ConfigDataRepositoryCreator) {
     group = GROUP
