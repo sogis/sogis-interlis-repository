@@ -1,0 +1,149 @@
+INTERLIS 2.3;
+
+/** !! Publikationsmodell der Denkmaeler des Kantons Solothurn.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-05-27 | OJ  | Initial erstellt.
+ * !! 2021-02-18 | sz | Abstraktes Topic 
+ * !! 2021-10-11 | ms | ID der Objekte aus Basisklasse in Denkmal-Klassen verschoben, da nur dort eindeutig
+ * !! 2024-12-24 | ms | Ergänzt mit Objektblattlink und Rechtsvorschriften.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_ADA_Denkmal_Pub_20241224 (de)
+AT "http://geo.so.ch/models/ADA/"
+VERSION "2024-12-24"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Punkt-Geometriestruktur
+   */
+  STRUCTURE PointStructure =
+    Point : GeometryCHLV95_V1.Coord2;
+  END PointStructure;
+
+  /** MultiPoint-Struktur (das Metaattribut ili2db.mapping stellt sicher, dass bei
+   * der Schemakonfiguration in PostGIS direkt MultiPoint-Geometrien erzeugt werden)
+   */
+  !!@ ili2db.mapping=MultiPoint
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF SO_ADA_Denkmal_Pub_20241224.PointStructure;
+  END MultiPoint;
+
+  /** Umfasst abstrakte Basis-Klassen.
+   */
+  TOPIC Basisklassen(ABSTRACT) =
+
+    /** Klasse für die JSON-Struktur der Rechtsvorschriften
+     */
+    STRUCTURE Rechtsvorschriften =
+      /** Titel des Dokuments
+       */
+      Titel : MANDATORY TEXT*200;
+      /** Link zum Dokument
+       */
+      Link : MANDATORY TEXT*500;
+      /** Datum, an welchem die Rechtsvorschrift beschlossen wurde.
+       * Bei RRB: Datum der RRB-Sitzung, an welcher der Beschluss gefasst wurde.
+       * Kann bei vorbereiteten Daten NULL sein (Bsp. Wenn Einsprachefrist laeuft).
+       */
+      Datum : TEXT*20;
+      /** Nummer der Schutzverfuegung (so vorhanden).
+       */
+      Nummer : TEXT*200;
+    END Rechtsvorschriften;
+
+    /** In ArtPlus gefuerte Informationen zu einem Denkmal.
+     */
+    CLASS Denkmal (ABSTRACT) =
+      /** ArtPlusAttribut: Objekt.Objektname
+       */
+      Objektname : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeindeteil
+       */
+      Gemeindeteil : TEXT*4000;
+      /** Adresse: Strassenname
+       * 
+       * ArtPlusAttribut: Objekte.Strasse
+       */
+      Adr_Strasse : TEXT*4000;
+      /** Adresse: Hausnummer und Suffix
+       * 
+       * ArtPlusAttribut: Objekte.Hausnummer
+       */
+      Adr_Hausnummer : TEXT*4000;
+      /** Code fuer die Art des Objektes. Bsp.: Schloss, Ruine, Portal, ...
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Code : TEXT*4000;
+      /** Sprechender Text fuer die Art des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Text : TEXT*4000;
+      /** Code fuer die kantonale Schutzstufe des Objektes.
+       * (geschuetzt, schuetzenswert, erhaltenswert, ...)
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Code : MANDATORY TEXT*4000;
+      /** Sprechender Text fuer die kantonale Schutzstufe des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Text : MANDATORY TEXT*4000;
+      /** Gibt an, ob das Denkmal kommunal geschuetzt ist.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutz Gemeinde
+       */
+      SchutzDurchGemeinde : MANDATORY BOOLEAN;
+      /** Link zum Objektblatt, welches von ArtPlus generiert wird.
+       */
+      Objektblatt : MANDATORY TEXT*200;
+      /** Rechtsvorschriften des Schutzobjekts
+       */
+      !!@ ili2db.mapping=JSON
+      Rechtsvorschriften : BAG {0..*} OF SO_ADA_Denkmal_Pub_20241224.Basisklassen.Rechtsvorschriften;
+      
+    END Denkmal;
+
+  END Basisklassen;
+
+  /** Umfasst die publizierten "Nutzklassen".
+   */
+  TOPIC Denkmal =
+
+    /** Denkmal als Multipoint
+     */
+    CLASS Denkmal_Punkt
+    EXTENDS SO_ADA_Denkmal_Pub_20241224.Basisklassen.Denkmal =
+      MPunkt : MANDATORY SO_ADA_Denkmal_Pub_20241224.MultiPoint;
+      /** Interner Schluessel des Denkmals in Artplus. Ist stabil und pro Geometrie (Punkt oder Polygon) eindeutig
+       * 
+       * ArtPlusAttribut: Objekte.ID
+       */
+      ID : 1 .. 2147483647;
+    END Denkmal_Punkt;
+
+    /** Denkmal als Multipolygon
+     */
+    CLASS Denkmal_Polygon
+    EXTENDS SO_ADA_Denkmal_Pub_20241224.Basisklassen.Denkmal =
+      MPoly : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Interner Schluessel des Denkmals in Artplus. Ist stabil und pro Geometrie (Punkt oder Polygon) eindeutig
+       * 
+       * ArtPlusAttribut: Objekte.ID
+       */
+      ID : MANDATORY 1 .. 2147483647;
+    END Denkmal_Polygon;
+
+  END Denkmal;
+
+END SO_ADA_Denkmal_Pub_20241224.
