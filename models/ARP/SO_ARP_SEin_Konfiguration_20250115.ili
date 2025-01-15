@@ -1,0 +1,82 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2025-01-15 | sz  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_SEin_Konfiguration_20250115.uml
+!!@ title="SEin-App Konfiguration"
+!!@ shortDescription="Datenmodell für die (Teil-)Konfiguration der SEin-App"
+MODEL SO_ARP_SEin_Konfiguration_20250115 (de)
+AT "https://arp.so.ch"
+VERSION "2025-01-15"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Enthält Informationen zu einem (generischen) Objekt. Das sind ein Name / eine Beschreibung / eine Umbschreibung und ein Link z.B zu einem PDF oder eine Webseite.
+   */
+  STRUCTURE Objektinfo =
+    Information : TEXT*1000;
+    Link : INTERLIS.URI;
+  END Objektinfo;
+
+  TOPIC Auswertung =
+
+  END Auswertung;
+
+  TOPIC Grundlagen =
+
+    CLASS Gemeinde =
+      /** Name der Gemeinde (gemäss amtlichem Verzeichnis)
+       */
+      Name : MANDATORY TEXT*500;
+      /** Offizielle Gemeindenummer
+       */
+      BFSNr : MANDATORY 2000 .. 3000;
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Gemeinde;
+
+    CLASS Gruppe =
+      /** Name der Themengruppe
+       */
+      Name : MANDATORY TEXT*500;
+    END Gruppe;
+
+    CLASS Objektinfo
+    EXTENDS SO_ARP_SEin_Konfiguration_20250115.Objektinfo =
+    END Objektinfo;
+
+    CLASS Thema =
+      /** Titel (Anzeigename) des Layers / der Layer.
+       */
+      Name : MANDATORY TEXT*500;
+      /** Layer-ID (Name) des Layers gemäss Web GIS Client resp. GetCapabilities.
+       */
+      LayerId : MANDATORY TEXT*500;
+      /** Transparenz in Prozent
+       */
+      LayerTransparenz : 0 .. 100;
+    END Thema;
+
+    ASSOCIATION Gemeinde_Objektinfo =
+      Objektinfo_R -- {0..*} Objektinfo;
+      Gemeinde_R -- {0..*} Gemeinde;
+    END Gemeinde_Objektinfo;
+
+    ASSOCIATION Gruppe_Thema =
+      Thema_R -- {0..*} Thema;
+      Gruppe_R -- {1} Gruppe;
+    END Gruppe_Thema;
+
+    ASSOCIATION Thema_Objektinfo =
+      Objektinfo_R -- {0..*} Objektinfo;
+      Thema_R -- {1} Thema;
+    END Thema_Objektinfo;
+
+  END Grundlagen;
+
+END SO_ARP_SEin_Konfiguration_20250115.
