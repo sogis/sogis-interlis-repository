@@ -1,0 +1,181 @@
+INTERLIS 2.3;
+
+/** !! Seitenwagenmodell fuer die Fachapplikation
+ * !! ArtPlus.
+ * !! Auf die Verwendung von UUIDOID wurde aufgrund des
+ * !! Anwendungsfalles bewusst verzichtet.
+ * !! In den Attributen mit Suffix _Code sind die in der Fachapplikation
+ * !! vergebenen Codes enthalten.
+ * !! Todo nach Einführung von Projekt Metadatenpflege:
+ * !! - DummyGeometrie aus Rechtsvorschrift_Link entfernen
+ * !! - Menscheneditierte Strings umstellen auf MTEXT (Wegen Absatzzeichen) 
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2019-11-29 | OJ  | Initial erstellt.
+ * !! 2025-01-14 | MS | Dummy Geometrie entfernt
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_ADA_Denkmal_20250114 (de)
+AT "http://geo.so.ch/models/ADA/"
+VERSION "2025-01-14"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Umfasst die Klassen, deren Daten mittels Dataservice von
+   * ArtPlus gepflegt werden. Datenoriginal in ArtPlus.
+   */
+  TOPIC Fachapplikation =
+
+    /** In ArtPlus gefuerte Informationen zu einem Denkmal.
+     */
+    CLASS Denkmal =
+      /** Interner Schluessel des Denkmals in Artplus. Ist stabil und eindeutig.
+       * 
+       * ArtPlusAttribut: Objekte.ID
+       */
+      ID : MANDATORY 1 .. 2147483647;
+      /** ArtPlusAttribut: Objekt.Objektname
+       */
+      Objektname : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeinde
+       */
+      Gemeindename : MANDATORY TEXT*4000;
+      /** Name der Gemeinde, in welcher das Denkmal liegt
+       * 
+       * ArtPlusAttribut: Objekt.Gemeindeteil
+       */
+      Gemeindeteil : TEXT*4000;
+      /** Adresse: Strassenname
+       * 
+       * ArtPlusAttribut: Objekte.Strasse
+       */
+      Adr_Strasse : TEXT*4000;
+      /** Adresse: Hausnummer und Suffix
+       * 
+       * ArtPlusAttribut: Objekte.Hausnummer
+       */
+      Adr_Hausnummer : TEXT*4000;
+      /** Code fuer die Art des Objektes. Bsp.: Schloss, Ruine, Portal, ...
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Code : TEXT*4000;
+      /** Sprechender Text fuer die Art des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Gattung/Typo
+       */
+      Objektart_Text : TEXT*4000;
+      /** Code fuer die kantonale Schutzstufe des Objektes.
+       * (geschuetzt, schuetzenswert, erhaltenswert, ...)
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Code : MANDATORY TEXT*4000;
+      /** Sprechender Text fuer die kantonale Schutzstufe des Objektes.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Einstufung Kanton
+       */
+      Schutzstufe_Text : MANDATORY TEXT*4000;
+      /** Gibt an, ob das Denkmal kommunal geschuetzt ist.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutz Gemeinde
+       */
+      SchutzDurchGemeinde : MANDATORY BOOLEAN;
+      /** In ArtPlus gefuerte "Zentrumskoordinaten" zu einem Denkmal.
+       * 
+       * Sie bestehen, da die GIS-Koordinaten nur kostspielig in die
+       * ArtPlus-Reports etc. einzubinden sind.
+       * Fuer ein im GIS als Einzelpunkt repraesentiertes Denkmal sind
+       * die Koordinaten redundant.
+       * 
+       * ArtPlusAttribute: Objekte.Koordinaten
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      UNIQUE ID;
+    END Denkmal;
+
+    /** Link-Tabelle auf die Rechtsvorschrift.
+     * 
+     * In ArtPlus sind die Informationen zu einer Schutzverfuegung
+     * (= Rechtsvorschrift) n:1 zu einem Denkmal modelliert.
+     * Bei allen Rechtsvorschriften mit Bezug zu mehr als einem Denkmal
+     * sind die Informationen in dieser Klasse folglich mehrfach vorhanden.
+     */
+    CLASS Rechtsvorschrift_Link =
+      /** Fremdschluessel auf Denkmal
+       */
+      Denkmal_ID : MANDATORY 1 .. 2147483647;
+      /** Fremdschluessel auf die im Multimedia-Modul von
+       * ArtPlus abgelegte Datei der Rechtsvorschrift.
+       * 
+       * ArtPlusAttribut: Multimedia.ID
+       */
+      Multimedia_ID : 1 .. 2147483647;
+      /** URL, unter welcher die entsprechende Schutzverfuegung
+       * mittels HTTP(S) geladen werden kann.
+       * 
+       * ArtPlusAttribut: Keines (dynamisch generiert)
+       */
+      Multimedia_Link : URI;
+      /** Titel der Schutzverfuegung.
+       * 
+       * Wird aufgrund der bestehenden Feldverwendung in ArtPlus auf
+       * das Bemerkungsfeld gemappt.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutzverfuegung.Titel
+       */
+      Titel : MANDATORY TEXT*4000;
+      /** Nummer der Schutzverfuegung (so vorhanden).
+       * 
+       * Falls Schutzverfuegung = RRB --> RRB-Nr.
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutzverfuegung.RRB-Nr
+       */
+      Nummer : TEXT*4000;
+      /** Datum, an welchem die Rechtsvorschrift beschlossen wurde.
+       * Bei RRB: Datum der RRB-Sitzung, an welcher der Beschluss gefasst wurde.
+       * Kann bei vorbereiteten Daten NULL sein (Bsp. Wenn Einsprachefrist laeuft).
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutzverfuegung.Datum
+       */
+      Datum : INTERLIS.XMLDate;
+      /** Bei von Gemeinde erlassener Schutzverfuegung: BfS-Nummer der Gemeinde
+       * 
+       * ArtPlusAttribut: Objekte.Grunddaten.Schutzverfuegung.BfS-Nummer
+       */
+      BfsNummer : 0 .. 2147483647;
+    END Rechtsvorschrift_Link;
+
+  END Fachapplikation;
+
+  /** Umfasst die Klassen, deren Daten direkt mittels QGIS gepflegt werden
+   * (Geometrie und "Soft-Referenz" auf die entsprechende Klasse im TOPIC ArtPlus).
+   * Datenoriginal in der Edit-DB, mittels QGIS-Desktop gepflegt.
+   */
+  TOPIC GIS =
+
+    /** Enthaelt die Geometrie in der Form von Polygonen oder Punkten:
+     * - Polygon beispielsweise bei Gebaeuden.
+     * - Punkt beispielsweise bei Wirtshaus-Schild.
+     * Fuer beispielsweise Kreuzwege koennen mehrere Punkte dem gleichen
+     * Denkmal (= ganzer Kreuzweg) zugewiesen werden.
+     */
+    CLASS Geometrie =
+      /** Fremdschluessel auf das Denkmal.
+       */
+      Denkmal_ID : MANDATORY 1 .. 2147483647;
+      /** Denkmalgeometrie, falls als Polygon abgebildet
+       */
+      Polygon : GeometryCHLV95_V1.Surface;
+      /** Denkmalgeometrie, falls als Point abgebildet
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      MANDATORY CONSTRAINT
+        DEFINED (Polygon) OR DEFINED (Punkt);
+    END Geometrie;
+
+  END GIS;
+
+END SO_ADA_Denkmal_20250114.
