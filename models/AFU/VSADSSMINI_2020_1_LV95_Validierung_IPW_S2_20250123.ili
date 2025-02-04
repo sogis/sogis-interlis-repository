@@ -1,0 +1,611 @@
+INTERLIS 2.3;
+
+CONTRACTED MODEL VSADSSMINI_2020_1_LV95_Validierung_IPW_S2_20250123 (de)
+AT "https://geo.so.ch"
+VERSION "2025-01-31" =
+  
+IMPORTS SIA405_Base_Abwasser_LV95;
+IMPORTS VSADSSMINI_2020_1_LV95;
+IMPORTS UNQUALIFIED INTERLIS;
+  
+  VIEW TOPIC VSADSSMini_Validierung = 
+  DEPENDS ON VSADSSMINI_2020_1_LV95.VSADSSMini, SIA405_Base_Abwasser_LV95.Administration;
+  
+    VIEW v_ALR
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.ALR;
+      =
+      ALL OF ALR;
+
+      !!@ name = 10001
+      !!@ ilivalid.msg = "ALR: Attribut 'Beseitigung_Ist' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Beseitigung_Ist);
+
+      !!@ name = 10003
+      !!@ ilivalid.msg = "ALR: Attribut 'Einwohnerwerte' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Einwohnerwerte);
+
+      !!@ name = 10004
+      !!@ ilivalid.msg = "ALR: Attribut 'Lage' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Lage);
+
+      !!@ name = 10012
+      !!@ ilivalid.msg = "ALR: Attribut 'Sanierungsbedarf' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Sanierungsbedarf) AND Sanierungsbedarf != #unbekannt;
+
+      !!@ name = 10201
+      !!@ ilivalid.msg = "ALR: mehr als 50% Beseitigung_Ist mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Beseitigung_Ist) AND Beseitigung_Ist == #unbekannt;
+
+      !!@ name = 10202
+      !!@ ilivalid.msg = "ALR: mehr als 50% Sanierungsbedarf mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Sanierungsbedarf) AND Sanierungsbedarf == #unbekannt;
+
+    END v_ALR;
+
+    VIEW v_Knoten
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Knoten;
+      =
+      ALL OF Knoten;
+
+      !!@ name = 11015
+      !!@ ilivalid.msg = "Knoten: Attribut 'Lage' (= Geometrie) ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Lage);
+
+      !!@ name = 11025
+      !!@ ilivalid.msg = "Knoten: Attribut 'Status' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Status) OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11206a
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 10% Status mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Status) AND Status == #unbekannt AND FunktionHierarchisch == #PAA AND Funktion != #Leitungsknoten;
+
+      !!@ name = 11206b
+      !!@ ilivalid.msg = "Knoten (SAA): mehr als 50% Status mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Status) AND Status == #unbekannt AND FunktionHierarchisch == #SAA AND Funktion != #Leitungsknoten;
+
+    END v_Knoten;
+
+    VIEW v_Knoten_inBetrieb
+      PROJECTION OF K ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Knoten;
+      WHERE isEnumSubVal(K->Status, #in_Betrieb);
+      =
+      ALL OF K;
+
+      !!@ name = 11001
+      !!@ ilivalid.msg = "Knoten: Attribut 'ARA_Nr' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(ARA_Nr);
+
+      !!@ name = 11003
+      !!@ ilivalid.msg = "Knoten: Attribut 'BaulicherZustand' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(BaulicherZustand) OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11005
+      !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Betreiber (BetreiberRef)' fehlt."
+      MANDATORY CONSTRAINT DEFINED(BetreiberRef) OR FunktionHierarchisch == #SAA OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11006
+      !!@ ilivalid.msg = "Knoten: Attribut 'Bezeichnung' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Bezeichnung);
+
+      !!@ name = 11007
+      !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Deckelkote' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Deckelkote) OR FunktionHierarchisch == #SAA OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11012
+      !!@ ilivalid.msg = "Knoten: Attribut 'Finanzierung' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Finanzierung) OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11013
+      !!@ ilivalid.msg = "Knoten: Attribut 'Funktion' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Funktion);
+
+      !!@ name = 11014
+      !!@ ilivalid.msg = "Knoten: Attribut 'FunktionHierarchisch' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(FunktionHierarchisch) OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11017
+      !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Nutzungsart_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT (DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant != #unbekannt) OR FunktionHierarchisch == #SAA OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11018
+      !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Nutzungsart_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Nutzungsart_Ist) OR FunktionHierarchisch == #SAA OR Funktion == #Leitungsknoten;
+
+      !!@ name = 11024
+      !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Sohlenkote' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Sohlenkote) OR FunktionHierarchisch == #SAA;
+
+      !!@ name = 11028
+      !!@ ilivalid.msg = "Knoten: Attribut 'Zustandserhebung_Jahr' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Zustandserhebung_Jahr) OR Funktion == #Leitungsknoten;
+
+    END v_Knoten_inBetrieb;
+
+    VIEW v_Knoten_inBetrieb_PAA
+      PROJECTION OF K ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Knoten;
+      WHERE isEnumSubVal(K->Status, #in_Betrieb);
+      WHERE K->FunktionHierarchisch == #PAA;
+      =
+      ALL OF K;
+
+      !!@ name = 11201
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 50% BaulicherZustand mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(BaulicherZustand) AND BaulicherZustand == #unbekannt AND Funktion != #Leitungsknoten;
+
+      !!@ name = 11202a
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 10% Finanzierung mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Finanzierung) AND Finanzierung == #unbekannt AND Funktion != #Leitungsknoten;
+
+      !!@ name = 11203
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 10% Funktion mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Funktion) AND Funktion == #unbekannt;
+
+      !!@ name = 11204
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 10% Nutzungsart_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant == #unbekannt AND Funktion != #Leitungsknoten;
+
+      !!@ name = 11205
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 10% Nutzungsart_Ist mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Nutzungsart_Ist) AND Nutzungsart_Ist == #unbekannt AND Funktion != #Leitungsknoten;
+
+      !!@ name = 11301
+      !!@ ilivalid.msg = "Knoten (PAA): mehr als 50% Zustandserhebung_Jahr mit Wert /1800/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Zustandserhebung_Jahr) AND Zustandserhebung_Jahr == 1800 AND Funktion != #Leitungsknoten;
+
+    END v_Knoten_inBetrieb_PAA;
+
+    VIEW v_Knoten_inBetrieb_SAA
+      PROJECTION OF K ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Knoten;
+      WHERE isEnumSubVal(K->Status, #in_Betrieb);
+      WHERE K->FunktionHierarchisch == #SAA;
+      =
+      ALL OF K;
+
+      !!@ name = 11202b
+      !!@ ilivalid.msg = "Knoten (SAA): mehr als 50% Finanzierung mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Finanzierung) AND Finanzierung == #unbekannt AND Funktion != #Leitungsknoten;
+
+    END v_Knoten_inBetrieb_SAA;
+
+    VIEW v_Leitung
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Leitung;
+      =
+      ALL OF Leitung;
+
+      !!@ name = 12035
+      !!@ ilivalid.msg = "Leitung: Attribut 'Status' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Status);
+
+      !!@ name = 12036
+      !!@ ilivalid.msg = "Leitung: Attribut 'Verlauf' (= Geometrie) ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Verlauf);
+
+      !!@ name = 12210a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% Status mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Status) AND Status == #unbekannt AND isEnumSubVal(FunktionHierarchisch, #PAA);
+
+      !!@ name = 12210b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% Status mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Status) AND Status == #unbekannt AND isEnumSubVal(FunktionHierarchisch, #SAA);
+
+    END v_Leitung;
+
+    VIEW v_Leitung_inBetrieb
+      PROJECTION OF L ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Leitung;
+      WHERE isEnumSubVal(L->Status, #in_Betrieb);
+      =
+      ALL OF L;
+
+      !!@ name = 12001
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Baujahr' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Baujahr) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12002
+      !!@ ilivalid.msg = "Leitung: Attribut 'BaulicherZustand' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(BaulicherZustand);
+
+      !!@ name = 12004
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Betreiber (BetreiberRef)' fehlt."
+      MANDATORY CONSTRAINT DEFINED(BetreiberRef) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12005
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Bezeichnung' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Bezeichnung) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12007
+      !!@ ilivalid.msg = "Leitung: Attribut 'Finanzierung' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Finanzierung);
+
+      !!@ name = 12008
+      !!@ ilivalid.msg = "Leitung: Attribut 'FunktionHierarchisch' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(FunktionHierarchisch);
+
+      !!@ name = 12009
+      !!@ ilivalid.msg = "Leitung: Attribut 'FunktionHydraulisch' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(FunktionHydraulisch);
+
+      !!@ name = 12013
+      !!@ ilivalid.msg = "Leitung (PAA): Beziehung zu Endknoten (Knoten_nachRef) ist obligatorisch."
+      MANDATORY CONSTRAINT INTERLIS.objectCount(Knoten_nachRef) == 1 OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12014
+      !!@ ilivalid.msg = "Leitung (PAA): Beziehung zu Startknoten (Knoten_vonRef) ist obligatorisch."
+      MANDATORY CONSTRAINT INTERLIS.objectCount(Knoten_vonRef) == 1 OR isEnumSubVal(FunktionHierarchisch,#SAA);
+
+      !!@ name = 12015
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Kote_nach' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Kote_nach) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12016
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Kote_von' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Kote_von) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12019
+      !!@ ilivalid.msg = "Leitung: Attribut 'Leckschutz' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Leckschutz);
+
+      !!@ name = 12021
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Lichte_Breite' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Lichte_Breite) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12022
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Lichte_Hoehe' fehlt."
+      MANDATORY CONSTRAINT DEFINED(Lichte_Hoehe) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12023
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Material' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Material) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12024
+      !!@ ilivalid.msg = "Leitung: Attribut 'Nutzungsart_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant != #unbekannt;
+
+      !!@ name = 12025
+      !!@ ilivalid.msg = "Leitung: Attribut 'Nutzungsart_Ist' ist obligatorisch und darf nicht /unbekannt/ sein."
+      MANDATORY CONSTRAINT DEFINED(Nutzungsart_Ist) AND Nutzungsart_Ist != #unbekannt;
+
+      !!@ name = 12030
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Profiltyp' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Profiltyp) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12041
+      !!@ ilivalid.msg = "Leitung: Attribut 'Zustandserhebung_Jahr' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Zustandserhebung_Jahr);
+
+    END v_Leitung_inBetrieb;
+
+    VIEW v_Leitung_inBetrieb_PAA
+      PROJECTION OF L ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Leitung;
+      WHERE isEnumSubVal(L->Status, #in_Betrieb);
+      WHERE isEnumSubVal(L->FunktionHierarchisch, #PAA);
+      =
+      ALL OF L;
+
+      !!@ name = 12201
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 50% BaulicherZustand mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(BaulicherZustand) AND BaulicherZustand == #unbekannt;
+
+      !!@ name = 12202a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% Finanzierung mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Finanzierung) AND Finanzierung == #unbekannt;
+
+      !!@ name = 12203a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% FunktionHierarchisch mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(FunktionHierarchisch) AND FunktionHierarchisch == #PAA.unbekannt;
+
+      !!@ name = 12204a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% FunktionHydraulisch mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(FunktionHydraulisch) AND FunktionHydraulisch == #unbekannt;
+
+      !!@ name = 12205a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% Leckschutz mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Leckschutz) AND Leckschutz == #unbekannt;
+
+      !!@ name = 12206
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 50% Material mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Material) AND Material == #unbekannt;
+
+      !!@ name = 12207a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% Nutzungsart_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant == #unbekannt;
+
+      !!@ name = 12208a
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 10% Nutzungsart_Ist mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 10% DEFINED(Nutzungsart_Ist) AND Nutzungsart_Ist == #unbekannt;
+
+      !!@ name = 12209
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 50% Profiltyp mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Profiltyp) AND Profiltyp == #unbekannt;
+
+      !!@ name = 12301
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 50% Baujahr mit Wert /1800/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Baujahr) AND Baujahr == 1800;
+
+      !!@ name = 12302
+      !!@ ilivalid.msg = "Leitung (PAA): mehr als 50% Zustandserhebung_Jahr mit Wert /1800/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Zustandserhebung_Jahr) AND Zustandserhebung_Jahr == 1800;
+
+    END v_Leitung_inBetrieb_PAA;
+
+    VIEW v_Leitung_inBetrieb_SAA
+      PROJECTION OF L ~ VSADSSMINI_2020_1_LV95.VSADSSMini.Leitung;
+      WHERE isEnumSubVal(L->Status, #in_Betrieb);
+      WHERE isEnumSubVal(L->FunktionHierarchisch, #SAA);
+      =
+      ALL OF L;
+
+      !!@ name = 12202b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% Finanzierung mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Finanzierung) AND Finanzierung == #unbekannt;
+
+      !!@ name = 12203b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% FunktionHierarchisch mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(FunktionHierarchisch) AND FunktionHierarchisch == #SAA.unbekannt;
+
+      !!@ name = 12204b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% FunktionHydraulisch mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(FunktionHydraulisch) AND FunktionHydraulisch == #unbekannt;
+
+      !!@ name = 12205b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% Leckschutz mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Leckschutz) AND Leckschutz == #unbekannt;
+
+      !!@ name = 12207b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% Nutzungsart_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant == #unbekannt;
+
+      !!@ name = 12208b
+      !!@ ilivalid.msg = "Leitung (SAA): mehr als 50% Nutzungsart_Ist mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Nutzungsart_Ist) AND Nutzungsart_Ist == #unbekannt;
+
+    END v_Leitung_inBetrieb_SAA;
+
+    VIEW v_Massnahme
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Massnahme;
+      =
+      ALL OF Massnahme;
+
+      !!@ name = 13002
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Beschreibung' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Beschreibung);
+
+      !!@ name = 13004
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Datum_Eingang' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Datum_Eingang);
+
+      !!@ name = 13005
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Gesamtkosten' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Gesamtkosten);
+
+      !!@ name = 13006
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Handlungsbedarf' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Handlungsbedarf);
+
+      !!@ name = 13008
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Jahr_Umsetzung_geplant' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Jahr_Umsetzung_geplant);
+
+      !!@ name = 13009
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Kategorie' ist obligatorisch und darf nicht /unbekannt/ sein."
+      MANDATORY CONSTRAINT DEFINED(Kategorie) AND Kategorie != #unbekannt;
+
+      !!@ name = 13017
+      !!@ ilivalid.msg = "Massnahme: Attribut 'Status' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Status) AND Status != #unbekannt;
+
+      !!@ name = 13019
+      !!@ ilivalid.msg = "Massnahme: Beziehung zu Trägerschaft (TraegerschaftRef) ist obligatorisch."
+      MANDATORY CONSTRAINT INTERLIS.objectCount(TraegerschaftRef) == 1;
+
+      !!@ name = 13020
+      !!@ ilivalid.msg = "Massnahme: Beziehung zu Verantwortliche für Auslösung (Verantwortlich_AusloesungRef) ist obligatorisch."
+      MANDATORY CONSTRAINT INTERLIS.objectCount(Verantwortlich_AusloesungRef) == 1;
+
+    END v_Massnahme;
+
+    VIEW v_Rohrprofil_Geometrie
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Rohrprofil_Geometrie;
+      =
+      ALL OF Rohrprofil_Geometrie;
+
+      !!@ name = 16002
+      !!@ ilivalid.msg = "Rohrprofil_Geometrie: Attribut 'Reihenfolge' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Reihenfolge);
+
+      !!@ name = 16004
+      !!@ ilivalid.msg = "Rohrprofil_Geometrie: Attribut 'X' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(X);
+
+      !!@ name = 16005
+      !!@ ilivalid.msg = "Rohrprofil_Geometrie: Attribut 'Y' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Y);
+
+    END v_Rohrprofil_Geometrie;
+
+    VIEW v_Teileinzugsgebiet
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Teileinzugsgebiet;
+      =
+      ALL OF Teileinzugsgebiet;
+
+      !!@ name = 17013
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Direkteinleitung_in_Gewaesser_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Direkteinleitung_in_Gewaesser_geplant) AND Direkteinleitung_in_Gewaesser_geplant != #unbekannt;
+
+      !!@ name = 17014
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Direkteinleitung_in_Gewaesser_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Direkteinleitung_in_Gewaesser_Ist);
+
+      !!@ name = 17017
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Entwaesserungssystem_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Entwaesserungssystem_geplant) AND Entwaesserungssystem_geplant != #unbekannt;
+
+      !!@ name = 17018
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Entwaesserungssystem_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Entwaesserungssystem_Ist);
+
+      !!@ name = 17019
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Flaeche' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Flaeche);
+
+      !!@ name = 17027
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Perimeter' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Perimeter);
+
+      !!@ name = 17028
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Retention_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Retention_geplant) AND Retention_geplant != #unbekannt;
+
+      !!@ name = 17029
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Retention_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Retention_Ist);
+
+      !!@ name = 17037
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Versickerung_geplant' fehlt oder ist /unbekannt/."
+      MANDATORY CONSTRAINT DEFINED(Versickerung_geplant) AND Versickerung_geplant != #unbekannt;
+
+      !!@ name = 17038
+      !!@ ilivalid.msg = "Teileinzugsgebiet: Attribut 'Versickerung_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Versickerung_Ist);
+
+      !!@ name = 17201
+      !!@ ilivalid.msg = "Teileinzugsgebiet: mehr als 50% Direkteinleitung_in_Gewaesser_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Direkteinleitung_in_Gewaesser_geplant) AND Direkteinleitung_in_Gewaesser_geplant == #unbekannt;
+
+      !!@ name = 17202
+      !!@ ilivalid.msg = "Teileinzugsgebiet: mehr als 50% Entwaesserungssystem_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Entwaesserungssystem_geplant) AND Entwaesserungssystem_geplant == #unbekannt;
+
+      !!@ name = 17203
+      !!@ ilivalid.msg = "Teileinzugsgebiet: mehr als 50% Retention_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Retention_geplant) AND Retention_geplant == #unbekannt;
+
+      !!@ name = 17204
+      !!@ ilivalid.msg = "Teileinzugsgebiet: mehr als 50% Versickerung_geplant mit Wert /unbekannt/ erfasst."
+      CONSTRAINT <= 50% DEFINED(Versickerung_geplant) AND Versickerung_geplant == #unbekannt;
+
+    END v_Teileinzugsgebiet;
+
+    VIEW v_Ueberlauf_Foerderaggregat
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Ueberlauf_Foerderaggregat;
+      =
+      ALL OF Ueberlauf_Foerderaggregat;
+
+      !!@ name = 18001
+      !!@ ilivalid.msg = "Ueberlauf_Foerderaggregat: Attribut 'Art' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Art);
+
+    END v_Ueberlauf_Foerderaggregat;
+
+    VIEW v_Bauwerkskomponente
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Bauwerkskomponente;
+      =
+      ALL OF Bauwerkskomponente;
+
+      !!@ name = 19901
+      !!@ ilivalid.msg = "Bauwerkskomponente wird ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_Bauwerkskomponente;
+
+    VIEW v_Kennlinie_Stuetzpunkt
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.Kennlinie_Stuetzpunkt;
+      =
+      ALL OF Kennlinie_Stuetzpunkt;
+
+      !!@ name = 20901
+      !!@ ilivalid.msg = "Kennlinie_Stuetzpunkt wird ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_Kennlinie_Stuetzpunkt;
+
+    VIEW v_SK_Duekeroberhaupt
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Duekeroberhaupt;
+      =
+      ALL OF SK_Duekeroberhaupt;
+
+      !!@ name = 22901
+      !!@ ilivalid.msg = "SK_Duekeroberhaupt: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Duekeroberhaupt;
+
+    VIEW v_SK_Einleitstelle
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Einleitstelle;
+      =
+      ALL OF SK_Einleitstelle;
+
+      !!@ name = 23901
+      !!@ ilivalid.msg = "SK_Einleitstelle: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Einleitstelle;
+ 
+    VIEW v_SK_Pumpwerk
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Pumpwerk;
+      =
+      ALL OF SK_Pumpwerk;
+                
+      !!@ name = 24901
+      !!@ ilivalid.msg = "SK_Pumpwerk: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Pumpwerk;
+        
+    VIEW v_SK_Regenrueckhaltebecken_kanal
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Regenrueckhaltebecken_kanal;
+      =
+      ALL OF SK_Regenrueckhaltebecken_kanal;
+
+      !!@ name = 25901
+      !!@ ilivalid.msg = "SK_Regenrueckhaltebecken_kanal: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Regenrueckhaltebecken_kanal;
+  
+    VIEW v_SK_Regenueberlauf
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Regenueberlauf;
+      =
+      ALL OF SK_Regenueberlauf;
+
+      !!@ name = 26901
+      !!@ ilivalid.msg = "SK_Regenueberlauf: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Regenueberlauf;
+        
+    VIEW v_SK_Regenueberlaufbecken
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Regenueberlaufbecken;
+      =
+      ALL OF SK_Regenueberlaufbecken;
+
+      !!@ name = 27901
+      !!@ ilivalid.msg = "SK_Regenueberlaufbecken: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Regenueberlaufbecken;
+
+    VIEW v_SK_Trennbauwerk
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Trennbauwerk;
+      =
+      ALL OF SK_Trennbauwerk;
+
+      !!@ name = 28901
+      !!@ ilivalid.msg = "SK_Trennbauwerk: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+
+    END v_SK_Trennbauwerk;
+
+    VIEW v_SK_Uebrige
+      PROJECTION OF VSADSSMINI_2020_1_LV95.VSADSSMini.SK_Uebrige;
+      =
+      ALL OF SK_Uebrige;
+
+      !!@ name = 29901
+      !!@ ilivalid.msg = "SK_Uebrige: Stammkarten werden ignoriert"
+      SET CONSTRAINT INTERLIS.objectCount(ALL)==0; 
+      
+    END v_SK_Uebrige;
+
+  END VSADSSMini_Validierung;
+
+END VSADSSMINI_2020_1_LV95_Validierung_IPW_S2_20250123.
