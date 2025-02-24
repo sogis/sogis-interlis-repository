@@ -1,0 +1,90 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-05-21 | cur | Erstfassung
+ * !! 2024-07-05 | sz | Gebäudeingange als Struktur
+ * !! 2025-02-24 | sz | Vereinzelte GWR-Attribute hinzugefügt (Energiefachststelle)
+ * !!==============================================================================
+ */
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AGI_Gebaeudeflaechen_Publikation_20250224 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2024-05-21"  =
+  IMPORTS GeometryCHLV95_V1,Units,CHAdminCodes_V1;
+
+  TOPIC Gebaeude =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Gebäudeeingang
+     */
+    STRUCTURE Gebaeudeeingang =
+      Strassenname : TEXT*200;
+      Hausnummer : TEXT*20;
+      PLZ : MANDATORY 1000 .. 9999;
+      Ortschaft : MANDATORY TEXT*200;
+      EDID : 0 .. 99;
+      ist_offizielle_Bezeichung : BOOLEAN;
+      Hoehenlage : -99 .. 250;
+      Status : TEXT*20;
+    END Gebaeudeeingang;
+
+    CLASS Gebaeude =
+      /** Gemeindenummer (BfS-Nummer) der Gemeinde in welcher das Objekt liegt.
+       */
+      BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      EGID : 0 .. 999999999;
+      /** Namen des Gebäudes (kommasepariert)
+       */
+      Gebaeudename : TEXT*500;
+      /** Link zu Eidg. Gebäude- und Wohnungsregister
+       */
+      Link_GWR : TEXT*200;
+      /** Gebäudeeingänge
+       */
+      !!@ ili2db.mapping=JSON
+      Gebaeudeeingang : BAG {0..*} OF SO_AGI_Gebaeudeflaechen_Publikation_20250224.Gebaeude.Gebaeudeeingang;
+      /** Status des Gebäudes
+       */
+      Status : MANDATORY (
+        projektiert,
+        real
+      );
+      /** Gebäudeklasse (GWR)
+       */
+      Gebaeudeklasse : TEXT*100;
+      /** Gebäudefläche (GWR)
+       */
+      Gebaeudeflaeche_GWR : 0 .. 9999999;
+      /** Gebäudefläches (abgeleitet aus der amtlichen Vermessung)
+       */
+      Gebaeudeflaeche_AV : MANDATORY 0 .. 999999;
+      /** Anzahl Geschosse (GWR)
+       */
+      Anzahl_Geschosse : 0 .. 999;
+      /** Energiebezugsfläche (GWR)
+       */
+      Energiebezugsflaeche : 0 .. 999999;
+      /** Wärmeerzeuger Heizung 1 (GWR)
+       */
+      Waermeerzeuger_Heizung_1 : TEXT*100;
+      /** Energie-/Wärmequelle Heizung 1 (GWR)
+       */
+      Energie_Waermequelle_Heizung_1 : TEXT*100;
+      /** Wärmeerzeuger Warmwasser 1 (GWR)
+       */
+      Waermeerzeuger_Warmwasser_1 : TEXT*100;
+      /** Energie-/Wärmequelle Warmwasser 1 (GWR)
+       */
+      Energie_Waermequelle_Warmwasser_1 : TEXT*100;
+    END Gebaeude;
+
+  END Gebaeude;
+
+END SO_AGI_Gebaeudeflaechen_Publikation_20250224.
