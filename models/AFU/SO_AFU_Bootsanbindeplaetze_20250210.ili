@@ -59,7 +59,6 @@ VERSION "2025-02-10"  =
       /** Gebühr für den Steg. Diese werden entweder direkt dem Bootsanbindeplatz-Mieter oder dem Standort-Besitzer in Rechnung gestellt.
        */
       Steggebuehr : 0.00 .. 10000.00;
-      Steggebuehr_Rechnung : TEXT;
       /** Mietkosten für den Bootsanbindeplatz. Wird nur bei Bootsanbindeplätzen, welche sich in kantonalem Besitz befinden, dem Bootsanbindeplazt-Mieter in Rechnung gestellt.
        */
       Mietkosten : 0.00 .. 10000.00;
@@ -168,29 +167,51 @@ VERSION "2025-02-10"  =
       Privatvermietung : BOOLEAN;
     END Standort;
 
-    ASSOCIATION Bootsanbindeplatz_Persononendaten =
+    /** Ein Bootsanbindeplatz kann maximal von einer Person genutzt/gemietet werden.
+     * Eine Person darf maximal einen Botsanbindeplatz nutzen/mieten.
+     */
+    ASSOCIATION Nutzer_Bootsanbindeplatz =
       /** Ein Bootsanbindeplatz kann maximal an eine Person vermietet werden.
        */
-      Person -- {0..1} Personendaten;
-      /** Eine Person kann maximal einen Bootsanbindeplatz mieten
+      Nutzer -- {0..1} Personendaten;
+      /** Eine Person kann maximal einen Bootsanbindeplatz mieten/nutzen
        */
-      Bootsanbindeplatz -- {0..1} Bootsanbindeplatz;
-    END Bootsanbindeplatz_Persononendaten;
+      Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
+    END Nutzer_Bootsanbindeplatz;
 
     ASSOCIATION Person_Dokument =
+      /** Einer Person können mehrere Dokumente zugeordnet sein.
+       */
       Dokument -- {0..*} Dokument;
-      Person -- {0..*} Personendaten;
-    END Person_Dokument;
-
-    ASSOCIATION Hauptstandort_Dokument =
       /** Ein Dokument muss entweder einem Hauptstandort oder einer Person zugeordnet sein.
        */
-      Dokument -- {0..*} Dokument;
-      /** Ein Dokument muss mindestens einem Hauptstandort oder einer Person zugeordnet werden.
+      Person -- {0..1} Personendaten;
+    END Person_Dokument;
+
+    /** Die Steggebühren werden immer dem Vermieter in Rechnung gestellt.
+     */
+    ASSOCIATION Rechnungssteller_Steggebuehr =
+      /** Die Steggebühren für einen Bootsanbindeplatz müssen, sofern es sich um einen privaten Standort handelt, dem Vermieter in Rechnung gestellt werden.
        */
-      Hauptstandort -- {0..*} Hauptstandort;
+      Rechnungssteller -- {0..1} Personendaten;
+      /** Ein Rechnungssteller kann mehrere Bootsanbindeplätze besitzen/vermieten.
+       */
+      Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
+    END Rechnungssteller_Steggebuehr;
+
+    /** Ein Dokument kann maximal einem Hauptstandort oder einer Person zugeteilt sein
+     */
+    ASSOCIATION Hauptstandort_Dokument =
+      /** Einem Hauptstandort können keine oder mehrere Dokumente zugeordnet sein.
+       */
+      Dokument -- {0..*} Dokument;
+      /** Ein Dokument kann einem Hauptstandort oder einer Person zugeordnet werden.
+       */
+      Hauptstandort -- {0..1} Hauptstandort;
     END Hauptstandort_Dokument;
 
+    /** Ein Hauptstandort kann einen oder mehrere (Unter-)Standorte besitzen. Umgekehrt muss ein Standort immer genau einem Haupstandort zugeteilt sein.
+     */
     ASSOCIATION Hauptstandort_Standort =
       /** Ein Standort wird genau einem Hauptstandort zugeordnet
        */
@@ -200,13 +221,15 @@ VERSION "2025-02-10"  =
       Standort -- {1..*} Standort;
     END Hauptstandort_Standort;
 
+    /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
+     */
     ASSOCIATION Standort_Bootsanbindeplatz =
       /** Ein Bootsanbindeplatz ist genau einem Standort zugeordnet
        */
       Standort -- {1} Standort;
       /** Ein Standort kann mehrere Bootsanbindeplätze haben.
        */
-      Bootsanbindeplatz -- {0..*} Bootsanbindeplatz;
+      Bootsanbindeplatz -- {1..*} Bootsanbindeplatz;
     END Standort_Bootsanbindeplatz;
 
     ASSOCIATION Standort_Personendaten =
