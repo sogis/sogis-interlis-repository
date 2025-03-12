@@ -47,6 +47,13 @@ IMPORTS UNQUALIFIED INTERLIS;
     END v_Leitung;
 
 
+
+    /**
+     Die Zugehörigkeit zum Drainagenetz wird für Leitungen wie folgt definiert (Regel 101):
+     MANDATORY CONSTRAINT FunktionHierarchisch == #SAA.andere AND
+                        (FunktionHydraulisch == #Sickerleitung OR FunktionHydraulisch == #Drainagetransportleitung OR FunktionHydraulisch == #Pumpendruckleitung) AND
+                        Nutzungsart_Ist == #Reinabwasser;
+     */
     VIEW v_Drainageleitung
       PROJECTION OF L ~ VSADSSMINI_2020_LV95.VSADSSMini.Leitung;
       WHERE L->FunktionHierarchisch == #SAA.andere;
@@ -56,16 +63,6 @@ IMPORTS UNQUALIFIED INTERLIS;
       WHERE L->Nutzungsart_Ist == #Reinabwasser;
       =
       ALL OF L;
-
-      /**
-       Die Zugehörigkeit zum Drainagenetz wird für Leitungen wie folgt definiert (Regel 101):
-
-       MANDATORY CONSTRAINT FunktionHierarchisch == #SAA.andere AND
-                           (FunktionHydraulisch == #Sickerleitung OR FunktionHydraulisch == #Drainagetransportleitung OR FunktionHydraulisch == #Pumpendruckleitung) AND
-                           Nutzungsart_Ist == #Reinabwasser;
-
-       Diese Bedingung erscheint deshalb in allen nachfolgenden Ausdrücken (sowohl für Leitungen als auch für Knoten).
-       */
 
       !!@ name = 102_1
       !!@ ilivalid.msg = "Leitung: Attribut 'Baujahr' ist obligatorisch für Drainageleitungen (Regel 102)."
