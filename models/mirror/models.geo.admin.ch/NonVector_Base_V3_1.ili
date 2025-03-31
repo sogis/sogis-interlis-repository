@@ -1,0 +1,125 @@
+/* ########################################################################
+   BASE MODEL FOR MODELLING OF NON-VECTOR GEODATA SETS
+
+   PROVIDER: GKG/KOGIS - GCS/COSIG             CONTACT: models@geo.admin.ch
+   PUBLISHED: 2012-06-22
+   ########################################################################
+*/
+INTERLIS 2.3;
+
+!!@technicalContact=mailto:models@geo.admin.ch
+!!@furtherInformation=https://www.geo.admin.ch/de/geoinformation-schweiz/geobasisdaten/geodatenmodelle.html
+MODEL NonVector_Base_LV03_V3_1 (en)
+  AT "http://models.geo.admin.ch/CH/" VERSION "2016-08-02" =
+
+  IMPORTS INTERLIS;
+  IMPORTS Units;
+  IMPORTS GeometryCHLV03_V1; !!from CHBase
+
+  TOPIC NonVector (ABSTRACT) =
+
+    CLASS NonVector_Dataset (ABSTRACT) =
+      PerimeterGBDS : GeometryCHLV03_V1.Surface;
+      Description : MTEXT;
+    END NonVector_Dataset;
+
+    CLASS Clipping (ABSTRACT) =
+      ClippingPerimeter : MANDATORY GeometryCHLV03_V1.Surface;
+      Description : MTEXT;
+    END Clipping;
+
+    CLASS ImageGraphicRasterObject (ABSTRACT) =
+      SpecialIdentifier : MANDATORY URI;
+      GroundResolution : MANDATORY 0.00 .. 1000000.00 [INTERLIS.m];
+      /*case A: spatial referencing for TILED non-vector objects*/
+      SpatialReference_Tile : GeometryCHLV03_V1.Coord2;
+      ImageTileSizeH : 1 .. 1000000000;
+      ImageTileSizeW : 1 .. 1000000000;
+      ImageTileOrientation_DEG : 0.00 .. 359.99 CIRCULAR [Units.Angle_Degree];
+      ImageTileOrientation_GON : 0.00 .. 399.99 CIRCULAR [Units.Gon];
+      /*case B: spatial referencing for IRREGULAR non-vector objects*/
+      SpatialReference_Polygon : GeometryCHLV03_V1.Surface;
+    MANDATORY CONSTRAINT
+      ((DEFINED(SpatialReference_Tile))
+        AND (DEFINED(ImageTileSizeH))
+        AND (DEFINED(ImageTileSizeW)))
+      OR (DEFINED(SpatialReference_Polygon));
+    END ImageGraphicRasterObject;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject;
+      perimeter -<> {1} NonVector_Dataset;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject;
+      belongsTo -- {0..*} Clipping;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} NonVector_Dataset;
+      covers -- {0..*} Clipping;
+    END inCovers;
+
+  END NonVector;
+
+END NonVector_Base_LV03_V3_1.
+
+
+!!@technicalContact=mailto:models@geo.admin.ch
+!!@furtherInformation=https://www.geo.admin.ch/de/geoinformation-schweiz/geobasisdaten/geodatenmodelle.html
+MODEL NonVector_Base_LV95_V3_1 (en)
+  AT "http://models.geo.admin.ch/CH/" VERSION "2016-08-02" =
+
+  IMPORTS INTERLIS;
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1; !!from CHBase
+
+  TOPIC NonVector (ABSTRACT) =
+
+    CLASS NonVector_Dataset (ABSTRACT) =
+      PerimeterGBDS : GeometryCHLV95_V1.Surface;
+      Description : MTEXT;
+    END NonVector_Dataset;
+
+    CLASS Clipping (ABSTRACT) =
+      ClippingPerimeter : MANDATORY GeometryCHLV95_V1.Surface;
+      Description : MTEXT;
+    END Clipping;
+
+    CLASS ImageGraphicRasterObject (ABSTRACT) =
+      SpecialIdentifier : MANDATORY URI;
+      GroundResolution : MANDATORY 0.00 .. 1000000.00 [INTERLIS.m];
+      /*case A: spatial referencing for TILED non-vector objects*/
+      SpatialReference_Tile : GeometryCHLV95_V1.Coord2;
+      ImageTileSizeH : 1 .. 1000000000;
+      ImageTileSizeW : 1 .. 1000000000;
+      ImageTileOrientation_DEG : 0.00 .. 359.99 CIRCULAR [Units.Angle_Degree];
+      ImageTileOrientation_GON : 0.00 .. 399.99 CIRCULAR [Units.Gon];
+      /*case B: spatial referencing for IRREGULAR non-vector objects*/
+      SpatialReference_Polygon : GeometryCHLV95_V1.Surface;
+    MANDATORY CONSTRAINT
+      ((DEFINED(SpatialReference_Tile))
+        AND (DEFINED(ImageTileSizeH))
+        AND (DEFINED(ImageTileSizeW)))
+      OR (DEFINED(SpatialReference_Polygon));
+    END ImageGraphicRasterObject;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject;
+      perimeter -<> {1} NonVector_Dataset;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject;
+      belongsTo -- {0..*} Clipping;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} NonVector_Dataset;
+      covers -- {0..*} Clipping;
+    END inCovers;
+
+  END NonVector;
+
+END NonVector_Base_LV95_V3_1.
