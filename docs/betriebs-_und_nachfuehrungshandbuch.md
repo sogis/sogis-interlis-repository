@@ -67,6 +67,9 @@ Das Modell definiert die Funktionsköpfe der selber programmierten [Zusatzfunkti
 
 Es ist auch das erste Modell, das von einem anderen Modell (`OeREBKRMvs_V1_1_Validierung_20200605`) in unserer Modellablage importiert wird. Aus diesem Grund musste das [Gradle-Plugin](https://github.com/sogis/interlis-repository-creator) zum Erstellen der Modellablage dahingehend erweitert werden, dass es beim Kompilieren von Modellen auch lokale Verzeichnisse berücksichtigt. Diese müssen ggf. ergänzt werden (bei Bedarf).
 
+## Mirror
+TODO
+
 ## Testen
 Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installiert sein):
 
