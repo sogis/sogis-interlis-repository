@@ -69,6 +69,8 @@ Es ist auch das erste Modell, das von einem anderen Modell (`OeREBKRMvs_V1_1_Val
 
 ## Mirror
 TODO
+- Muss eingecheckt werden.
+- Manueller Task
 
 ## Testen
 Lokal kann man mit folgendem Befehl das Repository testen (Docker muss installiert sein):
