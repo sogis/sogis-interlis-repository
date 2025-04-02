@@ -1,0 +1,227 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.4
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_Immeubles_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_Grundstuecke_V1_0 ["2024-05-15"]
+  =
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_Topologie_V1_0;
+  IMPORTS DMAVTYM_Marquage_V1_0;
+  IMPORTS DMAVTYM_Qualite_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC Immeubles =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      GenreImmeuble = (
+        bien_fonds,
+        droit_distinct_permanent,
+        mine
+      );
+      
+      GenreMutation = (
+        Normal,
+        MutationProjet,
+        ClotureMutationProjet
+      );
+
+    CLASS MiseAJourIM =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      GenreMutation : MANDATORY GenreMutation;
+      EnVigueur : MANDATORY DATETIME;
+      InscriptionRegistreFoncier : DATETIME;
+      UNIQUE CH040101: IdentDN, Identification;
+    END MiseAJourIM;
+
+    CLASS point_limite =
+      IdentDN : TEXT*12;
+      Numero : TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : DMAVTYM_Qualite_V1_0.Fiabilite;
+      Signe : MANDATORY DMAVTYM_Marquage_V1_0.GenreAbornement;
+      PointLimiteTerritoriale : MANDATORY BOOLEAN;
+      EstAncBorneSpeciale : MANDATORY BOOLEAN;
+      EstDefiniExactement : MANDATORY BOOLEAN;
+      OriSymbole : DMAVTYM_Grafique_V1_0.Rotation;
+      MANDATORY CONSTRAINT CH040201: DEFINED(GeometrieAltitude) == DEFINED(PrecisionAltimetrie);
+      MANDATORY CONSTRAINT CH040202: DEFINED(GeometrieAltitude) == DEFINED(EstFiableAltimetrie);
+      MANDATORY CONSTRAINT CH040203: EstDefiniExactement OR Signe == #NonMaterialise;
+    END point_limite;
+
+    ASSOCIATION Origine_PointLimite =
+      Origine -- {1} MiseAJourIM;
+      PointLimite_bientotcree -- {0..*} point_limite;
+    END Origine_PointLimite;
+
+    ASSOCIATION Caducite_PointLimite =
+      Caducite  -- {0..1} MiseAJourIM;
+      PointLimite_bientotcaduc -- {0..*} point_limite;
+    END Caducite_PointLimite;
+
+    ASSOCIATION Predecesseur_Successeur_PointLimite =
+      Predecesseur -- {0..1} point_limite;
+      Successeur -- {0..*} point_limite;
+    END Predecesseur_Successeur_PointLimite;
+
+    VIEW PointLimite_Valable
+      PROJECTION OF point_limite;
+      WHERE
+        DEFINED(point_limite->Origine) AND DEFINED(point_limite->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(point_limite->Caducite )) OR NOT (DEFINED(point_limite->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF point_limite;
+      UNIQUE CH040601: Geometrie;
+    END PointLimite_Valable;
+
+    CLASS Immeuble =
+      IdentDN : MANDATORY TEXT*12;
+      Numero : MANDATORY TEXT*12;
+      EGRID : TEXT*14;
+      EstLitigieux : MANDATORY BOOLEAN;
+      EstComplete : MANDATORY BOOLEAN;
+      GenreImmeuble : MANDATORY GenreImmeuble;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+      Fictif : MANDATORY BOOLEAN;
+      SuperficieTotale : 1 .. 999999999 [Units.m2];
+      MANDATORY CONSTRAINT CH040701: EstComplete == NOT (DEFINED(SuperficieTotale));
+    END Immeuble;
+
+    ASSOCIATION Origine_Immeuble =
+      Origine -- {1} MiseAJourIM;
+      Immeuble_bientotcree -- {0..*} Immeuble;
+    END Origine_Immeuble;
+
+    ASSOCIATION Caducite_Immeuble =
+      Caducite  -- {0..1} MiseAJourIM;
+      Immeuble_bientotcaduc -- {0..*} Immeuble;
+    END Caducite_Immeuble;
+
+    ASSOCIATION Predecesseur_Successeur_Immeuble =
+      Predecesseur -- {0..1} Immeuble;
+      Successeur -- {0..*} Immeuble;
+    END Predecesseur_Successeur_Immeuble;
+
+    VIEW Immeuble_Valable
+      PROJECTION OF Immeuble;
+      WHERE
+        DEFINED(Immeuble->Origine) AND DEFINED(Immeuble->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(Immeuble->Caducite )) OR NOT (DEFINED(Immeuble->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF Immeuble;
+      UNIQUE CH041101: IdentDN, Numero;
+      UNIQUE CH041102: EGRID;
+    END Immeuble_Valable;
+
+    CLASS bien_fonds =
+      NumeroImmeublePartiel : TEXT*12;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Fictif : MANDATORY BOOLEAN;
+      Superficie : MANDATORY 1 .. 999999999 [Units.m2];
+      Litigieux : GeometryCHLV95_V2.MultiLine;
+      StandardQualite : MANDATORY DMAVTYM_Qualite_V1_0.StandardQualite;
+      MANDATORY CONSTRAINT CH041201: NOT (DEFINED(Litigieux)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Litigieux);
+    END bien_fonds;
+
+    ASSOCIATION ImmeubleBienFonds =
+      Immeuble -<#> {1} Immeuble;
+      bien_fonds -- {0..*} bien_fonds;
+      MANDATORY CONSTRAINT CH041301: Immeuble->GenreImmeuble == #bien_fonds;
+      MANDATORY CONSTRAINT CH041302: bien_fonds->Fictif == Immeuble->Fictif;
+    END ImmeubleBienFonds;
+
+    CONSTRAINTS OF bien_fonds=
+      MANDATORY CONSTRAINT CH041401: DEFINED(Litigieux) == Immeuble->EstLitigieux;
+      MANDATORY CONSTRAINT CH041402: NOT (DEFINED(NumeroImmeublePartiel)) == Immeuble->EstComplete;
+    END;
+
+    VIEW BienFonds_Valable
+      PROJECTION OF bien_fonds;
+      WHERE
+        DEFINED(bien_fonds->Immeuble->Origine) AND DEFINED(bien_fonds->Immeuble->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(bien_fonds->Immeuble->Caducite )) OR NOT (DEFINED(bien_fonds->Immeuble->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF bien_fonds;
+      SET CONSTRAINT CH041501:
+        INTERLIS.areAreas(ALL, UNDEFINED, >>Geometrie);
+    END BienFonds_Valable;
+
+    CLASS droit_distinct_permanent =
+      NumeroImmeublePartiel : TEXT*12;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Superficie : MANDATORY 1 .. 999999999 [Units.m2];
+      Litigieux : GeometryCHLV95_V2.MultiLine;
+      MANDATORY CONSTRAINT CH041601: NOT (DEFINED(Litigieux)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Litigieux);
+    END droit_distinct_permanent;
+
+    ASSOCIATION ImmeubleDroitDistinctPermanent =
+      Immeuble -<#> {1} Immeuble;
+      droit_distinct_permanent -- {0..*} droit_distinct_permanent;
+      MANDATORY CONSTRAINT CH041701: Immeuble->GenreImmeuble == #droit_distinct_permanent;
+      MANDATORY CONSTRAINT CH041702: NOT (Immeuble->Fictif);
+    END ImmeubleDroitDistinctPermanent;
+
+    CONSTRAINTS OF droit_distinct_permanent=
+      MANDATORY CONSTRAINT CH041801: DEFINED(Litigieux) == Immeuble->EstLitigieux;
+      MANDATORY CONSTRAINT CH041802: NOT (DEFINED(NumeroImmeublePartiel)) == Immeuble->EstComplete;
+    END;
+
+    VIEW DroitDistinctPermanent_Valable
+      PROJECTION OF droit_distinct_permanent;
+      WHERE
+        DEFINED(droit_distinct_permanent->Immeuble->Origine) AND DEFINED(droit_distinct_permanent->Immeuble->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(droit_distinct_permanent->Immeuble->Caducite )) OR NOT (DEFINED(droit_distinct_permanent->Immeuble->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF droit_distinct_permanent;
+    END DroitDistinctPermanent_Valable;
+
+    CLASS mine =
+      NumeroImmeublePartiel : TEXT*12;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Superficie : MANDATORY 1 .. 999999999 [Units.m2];
+      Litigieux : GeometryCHLV95_V2.MultiLine;
+      MANDATORY CONSTRAINT CH042001: NOT (DEFINED(Litigieux)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Litigieux);
+    END mine;
+
+    ASSOCIATION ImmeubleMine =
+      Immeuble -<#> {1} Immeuble;
+      mine -- {0..*} mine;
+      MANDATORY CONSTRAINT CH042101: Immeuble->GenreImmeuble == #mine;
+      MANDATORY CONSTRAINT CH042102: NOT (Immeuble->Fictif);
+    END ImmeubleMine;
+
+    CONSTRAINTS OF mine=
+      MANDATORY CONSTRAINT CH042201: DEFINED(Litigieux) == Immeuble->EstLitigieux;
+      MANDATORY CONSTRAINT CH042202: NOT (DEFINED(NumeroImmeublePartiel)) == Immeuble->EstComplete;
+    END;
+
+    VIEW Mine_Valable
+      PROJECTION OF mine;
+      WHERE
+        DEFINED(mine->Immeuble->Origine) AND DEFINED(mine->Immeuble->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(mine->Immeuble->Caducite )) OR NOT (DEFINED(mine->Immeuble->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF mine;
+    END Mine_Valable;
+
+    CONSTRAINTS OF Immeuble=
+      MANDATORY CONSTRAINT CH042401: DEFINED(SuperficieTotale) == ((INTERLIS.objectCount(bien_fonds) + INTERLIS.objectCount(droit_distinct_permanent) + INTERLIS.objectCount(mine)) > 1);
+      MANDATORY CONSTRAINT CH042402: (INTERLIS.objectCount(bien_fonds) > 0 AND INTERLIS.objectCount(droit_distinct_permanent) == 0 AND INTERLIS.objectCount(mine) == 0) OR (INTERLIS.objectCount(bien_fonds) == 0 AND INTERLIS.objectCount(droit_distinct_permanent) > 0 AND INTERLIS.objectCount(mine) == 0) OR (INTERLIS.objectCount(bien_fonds) == 0 AND INTERLIS.objectCount(droit_distinct_permanent) == 0 AND INTERLIS.objectCount(mine) > 0);
+    END;
+
+  END Immeubles;
+
+END DMAV_Immeubles_V1_0.

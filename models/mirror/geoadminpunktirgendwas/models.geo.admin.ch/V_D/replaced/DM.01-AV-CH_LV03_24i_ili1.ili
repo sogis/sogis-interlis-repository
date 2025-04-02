@@ -1,0 +1,2004 @@
+
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Modello dei dati 2001 della misurazione ufficiale "Confederazione" (MD.01-MU-CH)
+!! decrizione in INTERLIS versione 1 (SN 612030).
+!!
+!! Ufficio federale di topografia (swisstopo)
+!! Direzione federale delle misurazioni catastali (D+M)
+!! CH-3084 Wabern
+!! www.swisstopo.ch e www.interlis.ch
+!!
+!! Versione: 24 italiano
+!! Nome del file: DM.01-AV-CH_LV03_24i_ili1.ili (data: 4 giugno 2004)
+!!
+!! Il presente modello dei dati e valido nel quadro di riferimento "Misurazione
+!! Nazionale 1903 (MN03)". Per il quadro di riferimento "Misurazione Nazionale 1995
+!! (MN95)", esiste un modello dei dati MD.01-MU-MN95-CH che si differenzia dal
+!! presente modello dei dati unicamente per la definizione del DOMAIN (estensione
+!! delle coordinate).
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2018-02-16 | KOGIS | Definition of attribute Margine_del_piano.Linea_coordinate.Geometria adapted
+!! 2019-05-07 | KOGIS | Missing OPTIONAL in attribute Indirizzi_degli_edifici.PosNumero_casa.Ori added
+!! 2020-01-14 | KOGIS | Explanation of attribute Indirizzi_degli_edifici.PosNumero_casa.Ori added
+
+MODEL MD01MUCH24I
+
+DOMAIN
+
+  CoordP = COORD2    480000.000     70000.000
+                     850000.000    310000.000;
+
+  CoordA = COORD3    480000.000     70000.000     -200.000
+                     850000.000    310000.000     5000.000;
+
+  Quota = DIM1         -200.000      5000.000;
+
+  Precisione = [0.0 .. 700.0]; !! in cm
+
+  Attendibilita = (
+    si,  !! sufficente
+    no); !! insufficente
+
+  Stato = (
+    in_progetto,
+    valevole);
+
+  StandardQualita = (
+    MU93,
+    MP74,
+    DP,
+    PRP,     !! Prodotti sostitutivi provvisori
+    altro);  !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+  Rotazione = GRADS 0.0 399.9;
+
+  DimensioneCarattere  = (
+    piccolo,
+    medio,
+    grande);
+
+
+  StileScrittura = (
+    normale,
+    spaziato,
+    altro);  !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+  Materiale = (
+    termine_cippo ,
+    termine_artificiale,
+    bullone,
+    tubo,
+    palo_picchetto,
+    croce_scolpito,
+    non_materializzato,
+    altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+    Stato_IE = ( !!  Per indirizzi degli edifici, vedi SN 612040
+        in_progetto,    !! nuovo oggetto in elaborazione
+                        !! Stato provvisorio o non riconosciuto
+        reale,          !! L'oggetto esiste veramente
+        passato);       !! L'oggetto non esiste piu
+
+
+    TipoLingua = ( !! Per indirizzo degli edifici, vedi SN 612040
+          de,  !! deutsch
+          fr,  !! francais
+          it,  !! italiano
+          rm,  !! rhaeto rumantsch
+          en);  !! english
+
+
+
+
+  TOPIC Punti_fissiCategoria1 =
+
+    TABLE Tenuta_a_giornoPFP1 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! assegnato da swisstopo
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFP1;
+
+    !! Quando un PFP1 coincide con un punto di confine territoriale, bisogna
+    !! specificare il Segno, visto che questo punto viene copiato in
+    !! Confini_comunali.PCGiurisdizionale
+    TABLE PFP1 =  !! punto di triangolazione I-III ordine
+      Origine: -> Tenuta_a_giornoPFP1; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12; !! assegnato da  swisstopo
+      Geometria: CoordP;
+      GeomAlt: OPTIONAL Quota;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      PrecAlt: OPTIONAL Precisione; !! dipendente da GeomAlt
+      AttendAlt: OPTIONAL Attendibilita; !! dipendente da GeomAlt
+      Accessibilita: (
+        accessibile,
+        inaccessibile);
+      Segno: OPTIONAL Materiale;
+    IDENT IdentAN, Numero;
+    END PFP1;
+
+    TABLE PosPFP1 =
+      PosPFP1_di: -> PFP1; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFP1_di;
+    END PosPFP1;
+
+    TABLE SimboloPFP1 =
+      SimboloPFP1_di: -> PFP1; !! relazione 1-c
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    IDENT SimboloPFP1_di;
+    END SimboloPFP1;
+
+
+    TABLE Tenuta_a_giornoPFA1 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! assegnato da swisstopo
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+          IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFA1;
+
+    TABLE PFA1 =  !! livellazione federale
+      Origine: -> Tenuta_a_giornoPFA1; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12; !! assegnato da swisstopo
+      Geometria: CoordP;
+      GeomAlt: Quota;
+      PrecPlan: OPTIONAL Precisione;
+      AttendPlan: OPTIONAL Attendibilita;
+      PrecAlt: Precisione;
+      AttendAlt: Attendibilita;
+    IDENT IdentAN, Numero; Geometria;
+    END PFA1;
+
+    TABLE PosPFA1 =
+      PosPFA1_di: -> PFA1; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFA1_di;
+    END PosPFA1;
+
+ END Punti_fissiCategoria1.
+
+
+
+  TOPIC Punti_fissiCategoria2 =
+
+    TABLE Tenuta_a_giornoPFP2 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFP2;
+
+    !! Quando un PFP2 coincide con un punto di confine territoriale, bisogna
+    !! specificare il Segno, visto che questo punto viene copiato in
+    !! Confini_comunali.PCGiurisdizionale
+    TABLE PFP2 = !! punto di triangolazione IV ordine
+      Origine: -> Tenuta_a_giornoPFP2; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12; !! assegnato da swisstopo
+      Geometria: CoordP;
+      GeomAlt: OPTIONAL Quota;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      PrecAlt: OPTIONAL Precisione; !! dipendente da GeomAlt
+      AttendAlt: OPTIONAL Attendibilita; !! dipendente da GeomAlt
+      Accessibilita: (
+        accessibile,
+        inaccessibile);
+      Segno: OPTIONAL Materiale;
+    IDENT IdentAN, Numero;
+    END PFP2;
+
+    TABLE PosPFP2 =
+      PosPFP2_di: -> PFP2; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFP2_di;
+    END PosPFP2;
+
+    TABLE SimboloPFP2 =
+      SimboloPFP2_di: -> PFP2; !! relazione 1-c
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    IDENT SimboloPFP2_di;
+    END SimboloPFP2;
+
+
+   TABLE Tenuta_a_giornoPFA2 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFA2;
+
+    TABLE PFA2 = !! livellazione cantonale
+      Origine: -> Tenuta_a_giornoPFA2; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12; !! assegnato dal cantone
+      Geometria: CoordP;
+      GeomAlt: Quota;
+      PrecPlan: OPTIONAL Precisione;
+      AttendPlan: OPTIONAL Attendibilita;
+      PrecAlt: Precisione;
+      AttendAlt: Attendibilita;
+    IDENT IdentAN, Numero; Geometria;
+    END PFA2;
+
+    TABLE PosPFA2 =
+      PosPFA2_di: -> PFA2; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFA2_di;
+    END PosPFA2;
+
+ END Punti_fissiCategoria2.
+
+
+
+  TOPIC Punti_fissiCategoria3 =
+
+    TABLE Tenuta_a_giornoPFP3 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFP3;
+
+TABLE PFP3 =
+      !! finora punti di base, punti intercalati,
+      !! punti poligonometrici, punti d'appoggio.
+      Origine: -> Tenuta_a_giornoPFP3; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12;  !! assegnato dal cantone
+      Geometria: CoordP;
+      GeomAlt: OPTIONAL Quota;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      PrecAlt: OPTIONAL Precisione;  !! dipendente da GeomAlt
+      AttendAlt: OPTIONAL Attendibilita; !! dipendente da GeomAlt
+      Segno: Materiale; !! Solamente non_materializzato non ammesso
+      Protocollo: (
+        si,
+        no);
+    IDENT IdentAN, Numero; Geometria;
+    END PFP3;
+
+    TABLE PosPFP3 =
+      PosPFP3_di: -> PFP3; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFP3_di;
+    END PosPFP3;
+
+    TABLE SimboloPFP3 =
+      SimboloPFP3_di: -> PFP3; !! relazione 1-c
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    IDENT SimboloPFP3_di;
+    END SimboloPFP3;
+
+
+ TABLE Tenuta_a_giornoPFA3 =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoPFA3;
+
+    TABLE PFA3 = !! livellazione comunale, se i PFP3 sono senza Quota
+      Origine: -> Tenuta_a_giornoPFA3; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12; !! assegnato dal cantone
+      Geometria: CoordP;
+      GeomAlt: Quota;
+      PrecPlan: OPTIONAL Precisione;
+      AttendPlan: OPTIONAL Attendibilita;
+      PrecAlt: Precisione;
+      AttendAlt: Attendibilita;
+    IDENT IdentAN, Numero; Geometria;
+    END PFA3;
+
+    TABLE PosPFA3 =
+      PosPFA3_di: -> PFA3; !! relazione 1-1; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPFA3_di;
+    END PosPFA3;
+
+  END Punti_fissiCategoria3.
+
+
+
+  TOPIC Copertura_del_suolo =
+
+    DOMAIN
+
+      Genere_CS = (
+        edificio,
+        rivestimento_duro (
+          strada_sentiero,
+          marciapiede,
+          spartitraffico,
+          ferrovia,
+          aeroporto,
+          bacino_idrico,
+          altro_rivestimento_duro),
+        humus (
+          campo_prato_pascolo,
+          coltura_intensiva (
+            vigna,
+            altra_coltura_intensiva),
+          giardino,
+          torbiera,
+          altro_humus),
+        acque (
+          specchio_acqua,
+          corso_acqua,
+          canneti),
+        bosco (
+          bosco_fitto,
+          pascolo_boscato ( !! vedi commento cap. 3.4
+            pascolo_boscato_fitto,
+            pascolo_boscato_rado),
+          altro_bosco),
+        senza_vegetazione (
+          roccia,
+          ghiacciaio_nevaio,
+          pietraia_sabbia,
+          cava_di_ghiaia_discarica,
+          altra_senza_vegetazione));
+
+    TABLE Tenuta_a_giornoCS =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoCS;
+
+
+    TABLE SuperficieCSProg =
+      Origine: -> Tenuta_a_giornoCS
+        // Validita = in_progetto //; !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Qualita: StandardQualita;
+      Genere: Genere_CS;
+    NO IDENT
+    END SuperficieCSProg;
+
+    TABLE NumeroEdificioProg =
+      NumeroEdificioProg_di: -> SuperficieCSProg // Genere = edificio //;
+                             !! relazione 1-mc
+      Numero: TEXT*12; !! assegnato dal cantone (risp. dal comune)
+      !! REA_EGID se la definizione dell'edificio corrisponde a quella dell'UFS
+      REA_EGID: OPTIONAL [1..999999999];
+    NO IDENT
+    END NumeroEdificioProg;
+
+    TABLE PosNumeroEdificioProg =
+      PosNumeroEdificioProg_di: -> NumeroEdificioProg; !! relazione 1-mc;
+                                !! iscrizione del Numero
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosNumeroEdificioProg;
+
+    TABLE NomeOggettoProg =
+      NomeOggettoProg_di: -> SuperficieCSProg; !! relazione 1-mc
+      Nome: TEXT*30;
+    NO IDENT
+    END NomeOggettoProg;
+
+    TABLE PosNomeOggettoProg =
+      PosNomeOggettoProg_di: -> NomeOggettoProg; !! relazione 1-mc;
+                             !! iscrizione del Nome
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosNomeOggettoProg;
+
+    !! Vedi anche le osservazioni della tabella SimboloSuperficieCS.
+    TABLE SimboloSuperficieCSProg =
+      SimboloSupCSProg_di: -> SuperficieCSProg; !! relazione 1-mc
+      Pos: CoordP // Pos interna alla SuperficieCSProg //;
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    NO IDENT
+    END SimboloSuperficieCSProg;
+
+
+    TABLE SuperficieCS =
+      Origine: -> Tenuta_a_giornoCS
+        // Validita = valevole //; !! relazione 1-mc
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Qualita: StandardQualita;
+      Genere: Genere_CS;
+    NO IDENT
+    END SuperficieCS;
+
+    TABLE Numero_di_edificio =
+      Numero_di_edificio_di: -> SuperficieCS // Genere = edificio //;
+                             !! relazione 1-mc
+      Numero: TEXT*12;
+      !! REA_EGID se la definizione dell'edificio corrisponde a quella dell'UFS
+      REA_EGID: OPTIONAL [1..999999999];
+    NO IDENT
+    END Numero_di_edificio;
+
+    TABLE PosNumero_di_edificio =
+      PosNumero_di_edificio_di: -> Numero_di_edificio; !! relazione 1-mc;
+                             !! iscrizione del Numero
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosNumero_di_edificio;
+
+    TABLE Nome_Oggetto =
+      Nome_Oggetto_di: -> SuperficieCS; !! relazione 1-mc
+      Nome: TEXT*30;
+    NO IDENT
+    END Nome_Oggetto;
+
+    TABLE PosNome_Oggetto =
+      PosNome_Oggetto_di: -> Nome_Oggetto; !! relazione 1-mc; iscrizione del Nome
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosNome_Oggetto;
+
+    !! Sul piano per il registro fondiario, le surperfici della copertura del suolo
+    !! saranno evidenziate con una trama, oppure con dei simboli. In funzione
+    !! del Genere, unicamente i simboli seguenti sono sensati:
+    !! rivestimento_duro.bacino_idrico, humus.vigna, humus.torbiera
+    !! (simbolo torbiera), acque.specchio_acqua(simbolo bacino_idrico),
+    !! acque.corso_acqua (simbolo direzione della corrente),
+    !! acque.canneti (simbolo canneti).
+    TABLE SimboloSuperficieCS =
+      SimboloSuperficieCS_di: -> SuperficieCS; !! relazione 1-mc
+      Pos: CoordP // Pos interna alla SuperficieCS //;
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    NO IDENT
+    END SimboloSuperficieCS;
+
+
+    TABLE Punto_singolo =
+      Origine: OPTIONAL -> Tenuta_a_giornoCS; !! relazione c-mc
+      Identificatore: OPTIONAL TEXT*12;
+      Geometria: CoordP
+      // non PFP1, PFP2, PFP3, Punto_di_confine o PCGiurisdizionale //;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      Definito_esattamente: ( !! tenere conto delle tolleranze prescritte nell'OTEMU
+        si,
+        no);
+    IDENT Geometria;
+    END Punto_singolo;
+
+    TABLE PosPunto_singolo =
+      PosPunto_singolo_di: -> Punto_singolo; !! relazione 1-c;
+                           !! iscrizione dell'Identificatore
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPunto_singolo_di;
+    END PosPunto_singolo;
+
+
+  END Copertura_del_suolo.
+
+
+  TOPIC Oggetti_singoli =
+
+    DOMAIN
+
+      Genere_OS = (
+        muro,
+        edificio_sotterraneo,
+        altra_parte_di_edificio,
+        acqua_sotterranea_canalizzata,
+        scala_importante,
+        tunnel_sottopassaggio_galleria,
+        ponte_passerella,
+        banchina, !! banchina ferroviaria
+        fontana,
+        serbatoio,
+        pilastro,
+        riparo,
+        silo_torre_gasometro,
+        ciminiera,
+        monumento,
+        palo_antenna,
+        torre_panoramica,
+        arginatura,
+        briglia,
+        riparo_antivalanghe,
+        zoccolo_massiccio,
+        rovina_oggetto_archeologico,
+        debarcadero,
+        masso_erratico,
+        fascia_boscata,
+        ruscello,
+        sentiero,
+        linea_aerea_ad_alta_tensione,
+        condotta_forzata,
+        binari_ferrovia,
+        teleferica,
+        telecabina_seggiovia,
+        teleferica_per_il_materiale,
+        scilift,
+        traghetto,
+        grotta_entrata_di_caverna,
+        asse,
+        albero_importante,
+        cappella_statua_crocifisso,
+        sorgente,
+        punto_di_riferimento,
+        altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+
+
+    TABLE Tenuta_a_giornoOS =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoOS;
+
+    TABLE Oggetto_singolo =
+      Origine: -> Tenuta_a_giornoOS; !! relazione 1-mc
+      Qualita: StandardQualita;
+      Genere: Genere_OS;
+    NO IDENT
+    END Oggetto_singolo;
+
+    TABLE Elemento_con_superficie =
+      Elemento_con_sup_di: -> Oggetto_singolo; !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END Elemento_con_superficie;
+
+    TABLE SimboloEl_con_superficie =  !! per es. direzione della corrente
+                                            !! di un ruscello
+      SimboloEl_con_sup_di: -> Elemento_con_superficie;  !! relazione 1-mc
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    NO IDENT
+    END SimboloEl_con_superficie;
+
+    TABLE Elemento_lineare =
+      Elemento_lineare_di: -> Oggetto_singolo; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+    NO IDENT
+    END Elemento_lineare;
+
+    TABLE SimboloElemento_lineare = !! per es. traghetto
+      SimboloEl_lineare_di: -> Elemento_lineare; !! relazione 1-mc
+      Pos: CoordP;
+      Ori: Rotazione;
+    NO IDENT
+    END SimboloElemento_lineare;
+
+    TABLE Elemento_puntiforme =
+      Elemento_puntiforme_di: -> Oggetto_singolo; !! relazione 1-mc
+      Geometria: CoordP;
+      Ori: Rotazione;
+    NO IDENT
+    END Elemento_puntiforme;
+
+
+    TABLE Nome_Oggetto =
+      Nome_Oggetto_di: -> Oggetto_singolo; !! relazione 1-mc
+      Nome: TEXT*30;
+    NO IDENT
+    END Nome_Oggetto;
+
+    TABLE PosNome_Oggetto =
+      PosNome_Oggetto_di: -> Nome_Oggetto; !! relazione 1-mc; iscrizione del Nome
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+    NO IDENT
+    END PosNome_Oggetto;
+
+    TABLE Numero_Oggetto =
+      Numero_Oggetto_di: -> Oggetto_singolo; !! relazione 1-mc
+      Numero: TEXT*12;
+      !! REA_EGID se la definizione dell'edificio corrisponde a quella dell'UFS
+      REA_EGID: OPTIONAL [1..999999999];
+    NO IDENT
+    END Numero_Oggetto;
+
+    TABLE PosNumero_Oggetto =
+      PosNumero_Oggetto_di: -> Numero_Oggetto; !! relazione 1-mc;
+                            !! iscrizione del Numero
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+    NO IDENT
+    END PosNumero_Oggetto;
+
+    TABLE Punto_singolo =
+      Origine: OPTIONAL -> Tenuta_a_giornoOS; !! relazione c-mc
+      Identificatore: OPTIONAL TEXT*12;
+      Geometria: CoordP
+      // non PFP1, PFP2, PFP3, Punto_di_confine o PCGiurisdizionale //;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      Definito_esattamente: (  !! tenere conto delle tolleranze prescritte nell'OTEMU
+        si,
+        no);
+    IDENT Geometria;
+    END Punto_singolo;
+
+    TABLE PosPunto_singolo =
+      PosPunto_singolo_di: -> Punto_singolo; !! relazione 1-c;
+                           !! iscrizione dell'Identificatore
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPunto_singolo_di;
+    END PosPunto_singolo;
+
+  END Oggetti_singoli.
+
+
+
+
+  TOPIC Altimetria =
+
+    TABLE Tenuta_a_giornoAL =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoAL;
+
+    TABLE Punto_quotato = !! valevole o in_progetto
+      Origine: -> Tenuta_a_giornoAL; !! relazione 1-mc
+      Geometria: CoordA;
+      Qualita: StandardQualita;
+      IDENT Geometria;
+    END Punto_quotato;
+
+    TABLE PosPunto_quotato =
+      PosPunto_quotato_di: -> Punto_quotato; !! relazione 1-c;
+                           !! iscrizione della Geometria
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPunto_quotato_di;
+    END PosPunto_quotato;
+
+    TABLE Linea =
+      Origine: -> Tenuta_a_giornoAL; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS) VERTEX CoordA; !! senza ARCS !
+      Qualita: StandardQualita;
+      Genere: (
+        linea_di_rottura,
+        linea_di_struttura,
+        altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+    NO IDENT
+    END Linea;
+
+    TABLE Superficie_vuota =
+      Origine: -> Tenuta_a_giornoAL;  !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Qualita: StandardQualita;
+      Genere: (
+        superficie_morta,
+        altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+    NO IDENT
+    END Superficie_vuota;
+
+  END Altimetria.
+
+
+
+
+  TOPIC Nomenclatura =
+
+    TABLE Tenuta_a_giornoNO =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. data dell'elaborazione
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoNO;
+
+    TABLE Nome_locale =
+      Origine: -> Tenuta_a_giornoNO; !! relazione 1-mc
+      Nome: TEXT*40;
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+    NO IDENT
+    END Nome_locale;
+
+    TABLE PosNome_locale =
+      PosNome_locale_di: -> Nome_locale; !! relazione 1-mc; iscrizione del Nome
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+      Stile: OPTIONAL StileScrittura // non_definito= normale //;
+    NO IDENT
+    END PosNome_locale;
+
+    TABLE Nome_di_localita =
+      Origine: -> Tenuta_a_giornoNO; !! relazione 1-mc
+      Nome: TEXT*40;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      Tipo: OPTIONAL TEXT*30; !! assegnato dal cantone
+    NO IDENT
+    END Nome_di_localita;
+
+    TABLE PosNome_di_localita =
+      PosNome_di_localita_di: -> Nome_di_localita; !! relazione 1-mc;
+                              !! iscrizione del Nome
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+      Stile: OPTIONAL StileScrittura // non_definito= normale //;
+    NO IDENT
+    END PosNome_di_localita;
+
+    TABLE Nome_del_luogo =
+      Origine: -> Tenuta_a_giornoNO; !! relazione 1-mc
+      Nome: TEXT*40;
+    NO IDENT
+    END Nome_del_luogo;
+
+    TABLE PosNome_del_luogo =
+      PosNome_del_luogo_di: -> Nome_del_luogo;  !! relazione 1-m; iscrizione del Nome
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+      Stile: OPTIONAL StileScrittura // non_definito= normale //;
+    NO IDENT
+    END PosNome_del_luogo;
+
+  END Nomenclatura.
+
+
+
+
+  TOPIC Beni_immobili =
+
+    DOMAIN
+
+      Genere_Fondo = (
+        bene_immobile,
+        diritto_per_se_stante_e_permanente (
+          superficie,
+          sorgente,
+          concessione,
+          altro), !! Nessun oggetto nella categoria altro,
+                  !! unicamente per le estensioni
+        miniera);
+
+    TABLE Tenuta_a_giornoBI =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, le date da inserire sono In_vigore
+      !! e Iscrizione_RF. Data1 e Data2 corrispondono ai vecchi aggiornamenti e non
+      !! vengono piu usati.
+      !! Nelle prossime revisioni del modello dei dati Data1 e Data2 saranno soppressi
+      !! e In_vigore e Iscrizione_RF diventeranno obbligatorie.
+      In_vigore: OPTIONAL DATE; !! elaborazione tecnica
+      Iscrizione_RF: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. elaborazione tecnica
+      Data2: OPTIONAL DATE; !! assegnata dal cantone
+                            !! per es. iscrizione nel registro fondiario,
+                            !! approvazione della MU
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoBI;
+
+    !! Comprende tutti i punti di confine di un bene immobile ad eccezione dei
+    !! punti di confine che sono anche punti di confine giurisdizionale e/o PFP1,
+    !! PFP2, PFP3.
+    !! Vedi anche le osservazioni riguardo
+    !! i punti di confine giurisdizionale (Topic Confini_comunali).
+    TABLE Punto_di_confine =
+      Origine: -> Tenuta_a_giornoBI; !! relazione 1-mc
+      Identificatore: OPTIONAL TEXT*12;
+      Geometria: CoordP;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      Segno: Materiale;
+      Definito_esattamente: ( !! tenere conto delle tolleranze prescritte nell'OTEMU
+        si,
+        no);
+      !! Unicamente in seguito al declassamento di un vecchio cippo speciale di limite
+      !! territoriale in un punto di confine (vedi anche commento cap. 3.11).
+      Vecchio_cippo_speciale: ( !! indicazione sulla materializzazione
+        si,
+        no);
+    IDENT Geometria;
+    END Punto_di_confine;
+
+
+    TABLE PosPunto_di_confine =
+      PosPunto_di_confine_di: -> Punto_di_confine; !! relazione 1-c;
+                              !! iscrizione dell'Identificatore
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPunto_di_confine_di;
+    END PosPunto_di_confine;
+
+    TABLE SimboloPunto_di_confine =
+      SimbPunto_di_confine_di: -> Punto_di_confine; !! relazione 1-c
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    IDENT SimbPunto_di_confine_di;
+    END SimboloPunto_di_confine;
+
+    TABLE FondoProg =
+      Origine: -> Tenuta_a_giornoBI
+        // Validita = in_progetto //; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12;
+     !! Identificatore del sistema elettronico d'informazione fondiaria
+     EGRIS_EGRID: OPTIONAL TEXT*14;
+     !! attributo derivato: contestato nel caso in cui il Bene_immobileProg,
+     !! il DPSSPProg o la MinieraProg sono contestati;
+      Validita: (
+        in_vigore, !! previsto in_vigore
+        contestato);
+        !! incompleto se per es. una parte del fondo si trova fuori dal perimetro.
+      Integralita: (
+        completo,
+        incompleto);
+      Genere: Genere_Fondo;
+      !! Superficie_totale viene utilizzato solamente nel caso dove esistono
+      !! piu parti di fondo,vale a dire dove piu oggetti Bene_immobileProg, DPSSPProg
+      !! o MinieraProg formano un oggetto FondoProg.
+      Superficie_totale: OPTIONAL DIM2 1 999999999;
+    IDENT Origine, IdentAN, Numero;
+    END FondoProg;
+
+    TABLE PosFondoProg =
+      PosFondoProg_di: -> FondoProg; !! relazione 1-m; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+      Linea_ausiliaria: OPTIONAL POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+      !! tratto di collegamento del fondo con il suo numero
+    NO IDENT
+    END PosFondoProg;
+
+
+    TABLE Bene_immobileProg =
+      Bene_immobileProg_di: -> FondoProg // Genere = bene_immobile //;
+                            !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di FondoProg
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito significa in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END Bene_immobileProg;
+
+    !! Se un DPSSPProg non ha una superficie,
+    !! non esiste un oggetto in questa tabella. Un iscrizione e localizzazione
+    !! nella PosFondoProg risulta tuttavia possibile.
+    TABLE DPSSPProg =
+      DPSSPProg_di: -> FondoProg // Genere = superficie, sorgente, concessione o
+                                    altro //;
+                    !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di FondoProg
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito significa in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END DPSSPProg;
+
+    !! Se una MinieraProg non ha una superficie, non esiste un oggetto in questa
+    !! tabella. Un'iscrizione e localizzazione nella PosFondoProg
+    !! risulta tuttavia possibile.
+    TABLE MinieraProg =
+      MinieraProg_di: -> FondoProg // Genere = miniera //; !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di FondoProg
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito vuol dire in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END MinieraProg;
+
+    TABLE Fondo =
+      Origine: -> Tenuta_a_giornoBI
+      // Validita = valevole //; !! relazione 1-mc
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12;
+      !! Identificatore del sistema elettronico d'informazione fondiaria
+      EGRIS_EGRID: OPTIONAL TEXT*14;
+      !! attributo derivato: contestato nel caso in cui il Bene_immobile,
+      !! il DPSSP o la Miniera sono contestati;
+      Validita: (
+        in_vigore,
+        contestato);
+      !! incompleto se
+      !! per es. una parte del fondo si trova fuori dal perimetro.
+      Integralita: (
+        completo,
+        incompleto);
+      Genere: Genere_Fondo;
+      !! Superficie_totale viene utilizzato solamente nel caso dove esistono
+      !! piu parti di fondo,vale a dire dove piu oggetti Bene_immobile, DPSSP
+      !! o Miniera formano un oggetto Fondo.
+      Superficie_totale: OPTIONAL DIM2 1 999999999;
+    IDENT IdentAN, Numero;
+    END Fondo;
+
+    TABLE PosFondo =
+      PosFondo_di: -> Fondo; !! relazione 1-m; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+      Linea_ausiliaria: OPTIONAL POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+      !! tratto di collegamento del fondo con il suo numero
+    NO IDENT
+    END PosFondo;
+
+    TABLE Bene_immobile =
+      Bene_immobile_di: -> Fondo // Genere = bene_immobile //; !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di Fondo
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito significa in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END Bene_immobile;
+
+
+    !! Se un DPSSP non ha una superficie,
+    !! non esiste un oggetto in questa tabella. Un iscrizione e localizzazione
+    !! nella PosFondo risulta tuttavia possibile.
+    TABLE DPSSP =
+      DPSSP_di: -> Fondo // Genere = superficie, sorgente, concessione o altro //;
+                           !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di Fondo
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito significa in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END DPSSP;
+
+
+    !! Se una miniera non ha una superficie, non esiste un oggetto in questa
+    !! tabella. Un'iscrizione e localizzazione nella PosFondo
+    !! risulta tuttavia possibile.
+    TABLE Miniera =
+      Miniera_di: -> Fondo // Genere = miniera //; !! relazione 1-mc
+      !! NumeroParteFondo e necessario per parte di Fondo
+      NumeroParteFondo: OPTIONAL TEXT*12;
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PFP1, PFP2, PFP3, Punto_di_confine o
+           PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            !! non_definito vuol dire in vigore e completo
+            contestato,
+            incompleto);
+        END;
+      Superficie: DIM2 1 999999999;
+    NO IDENT
+    END Miniera;
+
+
+  END Beni_immobili.
+
+
+
+
+  TOPIC Condotte =
+    !! secondo Legge federale sugli impianti di trasporto in condotta
+    !! di combustibili e carburanti liquidi o gassosi
+
+    DOMAIN
+      Sostanza = (
+        petrolio,
+        gas,
+        altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+    TABLE Tenuta_a_giornoCO =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. elaborazione tecnica
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giornoCO;
+
+    TABLE Oggetto_condotta =
+      Origine: -> Tenuta_a_giornoCO; !! relazione 1-mc
+      Gestore: TEXT*30;
+      Qualita: StandardQualita;
+      Genere: Sostanza;
+    NO IDENT
+    END Oggetto_condotta;
+
+    TABLE PosOggetto_condotta =
+      PosOggetto_condotta_di: -> Oggetto_condotta; !! relazione 1-mc;
+                          !! iscrizione del Gestore
+      Pos: CoordP;
+      Ori: Rotazione;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+    NO IDENT
+    END PosOggetto_condotta;
+
+    TABLE Elemento_con_superficie =
+      El_con_superficie_di: -> Oggetto_condotta; !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: OPTIONAL (
+            visibile);
+           !! L'attributo Genere_di_linea non deve essere definito
+           !! ad eccezione del valore visibile.
+        END;
+    NO IDENT
+    END Elemento_con_superficie;
+
+
+    TABLE Elemento_lineare =
+      Elemento_lineare_di: -> Oggetto_condotta; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Genere_di_linea: OPTIONAL (
+        visibile);
+           !! L'attributo Genere_di_linea non deve essere definito
+           !! ad eccezione del valore visibile.
+    NO IDENT
+    END Elemento_lineare;
+
+    TABLE Elemento_puntiforme =
+      Elemento_puntiforme_di: -> Oggetto_condotta; !! relazione 1-mc
+      Geometria: CoordP;
+      GeomAlt: OPTIONAL Quota;
+      Ori: Rotazione;
+    NO IDENT
+    END Elemento_puntiforme;
+
+    TABLE Segnale =
+      Origine: -> Tenuta_a_giornoCO; !! relazione 1-mc
+      Numero: TEXT*12;
+      Gestore: TEXT*30;
+      Geometria: CoordP;
+      Qualita: StandardQualita;
+      Genere: Sostanza;
+      Genere_del_punto: (
+        segnale,
+        tavola_cippo ,
+        altro);  !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+    NO IDENT
+    END Segnale;
+
+    TABLE PosSegnale =
+      PosSegnale_di: -> Segnale; !! relazione 1-c; iscrizione del Numero
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosSegnale_di;
+    END PosSegnale;
+
+    TABLE Punto_singolo =
+      Origine: OPTIONAL -> Tenuta_a_giornoCO; !! relazione c-mc
+      Identificatore: OPTIONAL TEXT*12;
+      Geometria: CoordP
+      // non PFP1, PFP2, PFP3, Punto_di_confine o PCGiurisdizionale //;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      Definito_esattamente: (  !! tenere conto delle tolleranze prescritte nell'OTEMU
+        si,
+        no);
+    IDENT Geometria;
+    END Punto_singolo;
+
+
+    TABLE PosPunto_singolo =
+      PosPunto_singolo_di: -> Punto_singolo; !! relazione 1-c;
+                        !! iscrizione dell'Identificatore
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPunto_singolo_di;
+    END PosPunto_singolo;
+
+  END Condotte.
+
+
+
+  TOPIC Aree_di_numerazione =
+
+    DOMAIN
+      Abbreviazione_cantonale = ( !! ordine dell'UFS, completato con FL e CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! La chiave-utilizzatore qui definita e le superfici associate possono
+    !! corrispondere a un comune, a une parte o a una aggregazione di piu comuni; e
+    !! in piu eventualmente il cantone e/o la Svizzera (risp. il FL) nel loro
+    !! insieme (vedi commento).
+    TABLE Area_di_numerazione =
+      Ct: Abbreviazione_cantonale; !! univoca per tutta la Svizzera (incluso il FL)
+      NumeroAN: TEXT*10;
+      IncartoTecnico: TEXT*12;
+      In_vigore: OPTIONAL DATE;
+    IDENT Ct, NumeroAN; !! fornisce la chiave-utilizzatore IdentAN
+    END Area_di_numerazione;
+
+    !! La geometria delle aree di numerazione che dividono il territorio
+    !! secondo la stessa unita logica (per es: perimetro dei comuni), devono
+    !! creare tra di loro una ripartizione del territorio senza buchi e senza
+    !! sovrapposizioni (deve essere del tipo AREA).
+    TABLE GeometriaAN =
+      GeometriaAN_di: -> Area_di_numerazione; !! relazione 1-m
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END GeometriaAN;
+
+    TABLE PosArea_di_numerazione =
+      PosAN_di: -> Area_di_numerazione; !! relazione 1-mc;
+                                 !! iscrizione del NumeroAN
+      Pos: CoordP // Pos interna alla GeometriaAN //;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosArea_di_numerazione;
+
+  END Aree_di_numerazione.
+
+
+
+  TOPIC Confini_comunali =
+
+    TABLE Tenuta_a_giorno_Comune =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+      Descrizione: TEXT*30;
+      Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validita: Stato;
+      !! Per gli aggiornamenti futuri, la data da inserire e In_vigore.
+      !! Data1 corrisponde ai vecchi aggiornamenti e non viene piu usato.
+      !! Nelle prossime revisioni del modello dei dati, Data1 sara soppresso
+      !! e In_vigore diventera obbligatorio.
+      In_vigore: OPTIONAL DATE;
+      Data1: OPTIONAL DATE; !! per es. elaborazione tecnica
+    IDENT IdentAN, Identificatore;
+    END Tenuta_a_giorno_Comune;
+
+    !! Contiene tutti i punti che definiscono un confine giurisdizionale
+    !! (nazionali, cantonali, distrettuali e comunali)
+    !! con le seguenti regole supplementari:
+    !! - PFP1, PFP2 e PFP3 che fanno parte di un confine giurisdizionale sono pure
+    !!   compresi in questa tabella; quando sono ripresi dal Topic Punti_fissi,
+    !!   gli attributi rimangono invariati;
+    !! - Quando i termini di confini giurisdizionali sono assicurati con cippi
+    !!   speciali (vedi Cap 3.8 del commento) si assegna l'attributo
+    !!   Cippo_giurisdizionale = si;
+    TABLE PCGiurisdizionale =
+      Origine: -> Tenuta_a_giorno_Comune; !! relazione 1-mc
+      Identificatore: OPTIONAL TEXT*12; !! Num_PCGiurisdizionale
+      Geometria: CoordP;
+      PrecPlan: Precisione;
+      AttendPlan: Attendibilita;
+      Segno: Materiale;
+      Cippo_giurisdizionale : ( !! indicazione sul tipo di materializzazione
+        si,
+        no);
+      Definito_esattamente: ( !! tenere conto delle tolleranze prescritte nell'OTEMU
+        si,
+        no);
+    IDENT Geometria;
+    END PCGiurisdizionale;
+
+    TABLE PosPCGiurisdizionale =
+      PosPCGiurisdizionale_di: -> PCGiurisdizionale; !! relazione 1-c; iscrizione
+                                                    !! dell'Identificatore
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Left //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Bottom //;
+    IDENT PosPCGiurisdizionale_di;
+    END PosPCGiurisdizionale;
+
+    TABLE SimboloPCGiurisdizionale =
+      SimbPCGiurisdizionale_di: -> PCGiurisdizionale; !! relazione 1-c
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+    IDENT SimbPCGiurisdizionale_di;
+    END SimboloPCGiurisdizionale;
+
+
+    TABLE Comune =
+      Nome: TEXT*30;
+      NoUFS: [1 .. 9999];
+    IDENT NoUFS;
+    END Comune;
+
+    TABLE Confine_comunaleProg =
+      Origine: -> Tenuta_a_giorno_Comune
+         // Validita = in_progetto //; !! relazione 1-mc
+      Confine_comunaleProg_di: -> Comune; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PCGiurisdizionale//
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END Confine_comunaleProg;
+
+    TABLE Confine_comunale = !! permette di definire delle exclavi
+      Origine: -> Tenuta_a_giorno_Comune
+            // Validita = valevole //; !! relazione 1-mc
+      Confine_comunale_di: -> Comune; !! relazione 1-m
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+           // Geometria solo PCGiurisdizionale
+            se il Genere_di_linea = in_vigore o contestato //
+        WITHOUT OVERLAPS > 0.050
+        LINEATTR =
+          Genere_di_linea: (
+            in_vigore,     !! confine esatto della misurazione ufficiale
+            contestato,    !! confine contestato
+            provvisorio,   !! confine definito ma di qualita insufficiente
+            non_precisato); !! per es. definizione sconosciuta in un lago
+        END;
+    NO IDENT
+    END Confine_comunale;
+
+  END Confini_comunali.
+
+
+
+
+  TOPIC Confini_distrettuali =
+
+    TABLE ParteConfineDistrettuale =
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PCGiurisdizionale //;
+      Validita: (
+            in_vigore,     !! confine esatto della misurazione ufficiale
+            contestato,    !! confine contestato
+            provvisorio,   !! confine definito ma di qualita insufficiente
+            non_precisato); !! per es. definizione sconosciuta in un lago
+    NO IDENT
+    END ParteConfineDistrettuale;
+
+  END Confini_distrettuali.
+
+
+
+  TOPIC Confini_cantonali =
+
+    TABLE Parte_confine_cantonale =
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PCGiurisdizionale //;
+      Validita: (
+            in_vigore,     !! confine esatto della misurazione ufficiale
+            contestato,    !! confine contestato
+            provvisorio,   !! confine definito ma di qualita insufficiente
+            non_precisato); !! per es. definizione sconosciuta in un lago
+    NO IDENT
+    END Parte_confine_cantonale;
+
+  END Confini_cantonali.
+
+
+
+  TOPIC Confini_nazionali =
+
+    TABLE Parte_confine_nazionale =
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP BASE
+        // Geometria solo PCGiurisdizionale //;
+      Validita: (
+            in_vigore,     !! confine esatto della misurazione ufficiale
+            contestato,    !! confine contestato
+            provvisorio,   !! confine definito ma di qualita insufficiente
+            non_precisato); !! per es. definizione sconosciuta in un lago
+    NO IDENT
+    END Parte_confine_nazionale;
+
+  END Confini_nazionali.
+
+
+
+  TOPIC Ripartizione_dei_piani =
+
+    TABLE Piano =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Numero: TEXT*12;
+      IncartoTecnico: TEXT*12;
+      In_vigore: OPTIONAL DATE;
+    IDENT IdentAN, Numero;
+    END Piano;
+
+    TABLE Geometria_Piano =
+      Geometria_Piano_di: -> Piano;  !! relazione 1-m
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END Geometria_Piano;
+
+    TABLE PosPiano =
+      PosPiano_di: -> Piano; !! relazione 1-mc; iscrizione del Numero
+      Pos: CoordP // Pos interna alla Geometria_Piano //;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosPiano;
+
+  END Ripartizione_dei_piani.
+
+
+
+
+  TOPIC RipartizioneGT =
+
+    TABLE Grado_di_tolleranza =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Geometria: AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      In_vigore: OPTIONAL DATE;
+      Genere: (
+        GT1,
+        GT2,
+        GT3,
+        GT4,
+        GT5);
+    IDENT IdentAN, Identificatore;
+    END Grado_di_tolleranza;
+
+    TABLE PosGrado_di_tolleranza =
+      PosGradoDiTolleranza_di: -> Grado_di_tolleranza; !! relazione 1-mc;
+                                 !! iscrizione del Genere
+      Pos: CoordP // Pos interna al Grado_di_tolleranza //;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+    NO IDENT
+    END PosGrado_di_tolleranza;
+
+  END RipartizioneGT.
+
+
+
+  TOPIC Zone_di_movimento =
+
+    TABLE Movimento =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*12; !! per es. numero dell'incarto tecnico
+      Nome: OPTIONAL TEXT*30; !! Nome proprio
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      In_vigore: OPTIONAL DATE;
+    IDENT IdentAN, Identificatore;
+    END Movimento;
+
+    TABLE PosMovimento =
+      PosMovimento_di: -> Movimento; !! relazione 1-mc; iscrizione del Nome
+      Pos: CoordP // Pos interna al Movimento //;
+      Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito = Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito = Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito = medio //;
+    NO IDENT
+    END PosMovimento;
+
+  END Zone_di_movimento.
+
+
+
+
+ TOPIC CAP_localita =  !! vedi norma SN 612040;
+                       !! Localita sotto la responsabilita dei cantoni
+                       !! CAP sotto la responsabilita della Posta
+
+   TABLE Tenuta_a_giornoLocalita = !! Norma SN = CosaAttualizzabile
+     IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+                       !! MD01: in aggiunta a SN
+     Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+                               !! MD01: in aggiunta a SN
+     Descrizione: TEXT*30;
+     Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+       WITHOUT OVERLAPS > 0.500; !! MD01: in aggiunta a SN
+     Validita: Stato;
+     In_vigore: DATE;
+   IDENT IdentAN, Identificatore;
+   END Tenuta_a_giornoLocalita;
+
+   TABLE Insieme_di_localita = !! Norma SN 612040: Insieme_di_localita
+     Vuoto: OPTIONAL TEXT*1; !! Questo attributo e necessario unicamente
+                             !! per rispettare le regole sintattiche di INTERLIS 1
+   NO IDENT
+   END Insieme_di_localita;
+
+   TABLE TestoInsieme_di_localita =
+     TestoInsieme_di_Loc_di: -> Insieme_di_localita; !! relazione 1-m
+     Testo: TEXT*200;
+     Lingua: TipoLingua;
+   IDENT TestoInsieme_di_Loc_di, Lingua;
+   END TestoInsieme_di_localita;
+
+   !! Le localita reali formano un'AREA
+   TABLE Localita =
+     Origine: -> Tenuta_a_giornoLocalita; !! relazione 1-mc
+     Localita_di: OPTIONAL -> Insieme_di_localita; !! relazione c-m
+     Validita: Stato_IE;
+     Modifiche_in_corso: (si,no);
+     Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+   NO IDENT
+   END Localita;
+
+   !! Esempio per Testo, Testo_Abbreviato e Testo_Indicizzato:
+   !! Testo (Nome completo): La Chaux-de-Fonds
+   !! Testo_abbreviato (utilizzato per indirizzo postale): La Chx-de-Fds
+   !! Testo_indicizzato (per Indice): Chaux-de-Fonds
+   TABLE Nome_localita =
+     Nome_localita_di: -> Localita; !! relazione 1-m
+     Testo: TEXT*40;
+     Testo_abbreviato: OPTIONAL TEXT*18;
+     Testo_indicizzato: OPTIONAL TEXT*16;
+     Lingua: TipoLingua;
+   IDENT Nome_localita_di, Lingua;
+   END Nome_localita;
+
+
+   TABLE PosNome_localita = !! MD01: in aggiunta a SN
+     PosNome_localita_di: -> Nome_localita; !! relazione 1-mc; Iscrizione del testo
+     Pos: CoordP;
+     Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+     HAli: OPTIONAL HALIGNMENT // non_definito = Center //;
+     VAli: OPTIONAL VALIGNMENT // non_definito = Half //;
+     Dimensione: OPTIONAL DimensioneCarattere // non_definito = medio //;
+   NO IDENT
+   END PosNome_localita;
+
+   TABLE Tenuta_a_giornoCAP6 = !! Norma SN = CosaAttualizzabile
+     IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+                       !! MD01: in aggiunta a SN
+     Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+                               !! MD01: in aggiunta a SN
+     Descrizione: TEXT*30;
+     Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+       WITHOUT OVERLAPS > 0.500; !! MD01: in aggiunta a SN
+     Validita: Stato;
+     In_vigore: DATE;
+   IDENT IdentAN, Identificatore;
+   END Tenuta_a_giornoCAP6;
+
+   !! Bisogna evitare di avere un CAP6 con Validita=reale su di una localita con
+   !! Validita<>reale.
+   TABLE CAP6 =
+     Origine: -> Tenuta_a_giornoCAP6; !! relazione 1-mc
+     CAP6_di: -> Localita; !! relazione 1-m
+     !! Se piu codici di avviamento postale a sei cifre sono assegnati alla medesima
+     !! localita, bisogna assegnare una superficie ad ognuno di essi. Queste superfici
+     !! devono essere incluse nella superficie della localita.
+     !! i CAP6 reali sono di tipo AREA
+     Geometria: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500 ;
+     Validita: Stato_IE;
+     Modifiche_in_corso: (si,no);
+     CAP: [1000..9999];
+     Cifre_supplementari: [0..99];
+   IDENT CAP, Cifre_supplementari ;
+   END CAP6;
+
+ END CAP_localita.
+
+
+
+  TOPIC Indirizzi_degli_edifici = !! Vedi SN 612040
+                                  !! Responsabilita dei comuni
+
+    !! Relazione geometrica tra Entrata_edificio e CAP6
+    !! Relazione geometrica tra Entrata_edificio e Localita
+    !! Relazione geometrica tra Localizzazione e Insieme_di_Localita
+
+
+     TABLE Tenuta_a_giornoEdifici =
+       IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+                         !! MD01: in aggiunta a SN
+       Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+                                 !! MD01: in aggiunta a SN
+       Descrizione: TEXT*30;
+       Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+         WITHOUT OVERLAPS > 0.500;   !! MD01: in aggiunta a SN
+       Validita: Stato;
+       In_vigore: DATE;
+     IDENT IdentAN, Identificatore;
+     END Tenuta_a_giornoEdifici;
+
+     TABLE Localizzazione =
+       Origine: -> Tenuta_a_giornoEdifici; !! relazione 1-mc
+       Principio_di_numerazione: (
+        nessuno,
+        qualunque,
+        ascendente,
+        dispari_a_sinistra,
+        pari_a_sinistra);
+       Numero_localizzazione: OPTIONAL TEXT*12;
+       Attributi_provvisori: (si,no);
+       Designazione_ufficiale: (si,no);
+       Validita: Stato_IE;
+       Modifiche_in_corso: (si,no);
+       Genere: (
+        zona_denominata,
+        via,
+        piazza);
+     NO IDENT
+     END Localizzazione;
+
+     !! Esempio per Testo, Testo_Abbreviato e Testo_Indicizzato:
+     !! Testo (Nome completo): Via Serafino Balestra
+     !! Testo_abbreviato (utilizzato per indirizzo postale): Via S. Balestra
+     !! Testo_indicizzato (per Indice): Balestra, Via Serafino
+     TABLE Nome_localizzazione =
+       Nome_localizzazione_di: -> Localizzazione; !! relazione 1-m
+       Testo: TEXT*60;
+       Testo_abbreviato: OPTIONAL TEXT*24;
+       Testo_indicizzato: OPTIONAL TEXT*16;
+       Lingua: TipoLingua;
+     IDENT Nome_localizzazione_di, Lingua;
+     END Nome_localizzazione;
+
+
+    TABLE PosNome_localizzazione =    !! MD01: in aggiunta a SN
+      PosNomeLocalizzazione_di: -> Nome_localizzazione; !! relazione 1-mc
+                             !! Iscrizione del testo
+      Indice_iniziale: OPTIONAL [1 .. 60] // non_definito = 1 //;
+      Indice_finale: OPTIONAL [1 .. 60] // non_definito = ultimo carattere //;
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito = Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito = Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito = medio //;
+      !! tratto di collegamento
+      Linea_ausiliaria: OPTIONAL POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+    NO IDENT
+    END PosNome_localizzazione;
+
+    TABLE Zona_denominata =
+      Zona_denominata_di: -> Localizzazione // Genere = zona_denominata //;
+                             !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+         WITHOUT OVERLAPS > 0.500;
+    NO IDENT
+    END Zona_denominata;
+
+    !! La geometria corrisponde all'asse stradale,
+    !! vedi commento cap. 3.18.2
+    !! Tronco di strada principale. Gli accessi privati non sono rilevati
+    !! nel modello federale
+    TABLE Tronco_di_strada =
+      Tronco_di_strada_di: -> Localizzazione // Genere = via o piazza //;
+                           !! relazione 1-mc;
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      !! Invece di DIRECTED POLYLINE, Punto di partenza fissa la direzione
+      Punto_partenza: OPTIONAL CoordP; !! MD01: in aggiunta a SN
+      !! Invece di ORDERED Tronco_strada
+      Ordine: [1..999]; !! Sequenza di tronco_strada
+      Asse: (si,no);
+    IDENT Tronco_di_strada_di, Ordine;
+    END Tronco_di_strada;
+
+
+
+    !! Anche per edificio in progetto
+    TABLE Entrata_edificio =
+      Origine: -> Tenuta_a_giornoEdifici;    !! relazione 1-mc
+      Entrata_edificio_di: OPTIONAL -> Localizzazione;
+                    !! relazione c-mc
+      Validita: Stato_IE;
+      Modifiche_in_corso: (si,no);
+      Attributi_provvisori: (si,no);
+      Designazione_ufficiale: (si,no);
+      Pos: CoordP
+        // Posizione interna di CS.Edificio, elementi OS (ed. sotterraneo, etc)//;
+        !! Quota e utile quando piu entrate si trovano su differenti livelli.
+        !! Quota approssimativa rispetto al suolo.
+      Quota: OPTIONAL [-99..99]; !! [m]
+        !! Il numero casa  e costituito da un numero, il quale puo essere
+        !! accompagnato da una lettera a, b, c.
+        !! Tra il numero e la lettera non esisteno spazi vuoti,sottolineature o
+        !! tratti.
+        !! Quando il numero casa e definito, allora per Localizzazione e
+        !! Entrata_edificio vale:
+        !! - la localizzazione ed il numero devono essere insieme univoci per
+        !!   validita = reale
+        !! - Il principio di numerazione non deve avere il valore nessuno
+      Numero_casa: OPTIONAL TEXT*12; !! per es. numero civico
+        !! In_edificio e utile per definire se un numero e collegato ad un oggetto
+        !! della CS o ad un OS
+      In_edificio: (CS, OS); !! MD01: in aggiunta a SN
+        !! Identificatore di Edificio del REA, quando disponibile,
+        !! vedi commento cap. 3.18.2
+      REA_EGID: OPTIONAL [1..999999999];
+        !! Identificatore dell'entrata di edificio del REA, quando disponibile,
+        !! vedi commento cap. 3.18.2
+      REA_EDID: OPTIONAL [0..99]; !! MD01: in aggiunta a SN
+    NO IDENT
+    END Entrata_edificio;
+
+    TABLE PosNumero_casa = !! MD01: in aggiunta a SN
+      PosNumero_casa_di: -> Entrata_edificio; !! relazione 1-mc;
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito= medio //;
+    NO IDENT
+    END PosNumero_casa;
+
+    TABLE Nome_edificio =
+       Nome_edificio_di: -> Entrata_edificio; !! relazione 1-mc
+       Testo: TEXT*40;
+       Testo_abbreviato: OPTIONAL TEXT*24;
+       Testo_indicizzato: OPTIONAL TEXT*16;
+       Lingua: TipoLingua;
+     IDENT Nome_edificio_di, Lingua;
+     END Nome_edificio;
+
+
+    TABLE PosNome_Edificio = !! MD01: in aggiunta a SN
+      PosNome_Edificio_di: -> Nome_edificio; !! relazione 1-m;
+                             !! Iscrizione del testo
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito = Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito = Half //;
+      Dimensione: OPTIONAL DimensioneCarattere // non_definito = medio //;
+      !! tratto di collegamento
+      Linea_ausiliaria: OPTIONAL POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+    NO IDENT
+    END PosNome_Edificio;
+
+    TABLE Descrizione_edificio =
+      Descrizione_edificio_di: -> Entrata_edificio; !! relazione 1-mc
+      Testo: TEXT*100;
+      Lingua: TipoLingua;
+    IDENT Descrizione_edificio_di, Lingua;
+    END Descrizione_edificio;
+
+  END Indirizzi_degli_edifici.
+
+  TOPIC Margine_del_piano =
+  !! Gli oggetti menzionati nell'ordinanza tecnica sulla misurazione
+  !! ufficiale devono essere gestiti.
+
+  DOMAIN
+    Tipo_scala = [1 .. 1000000];
+
+    Genere_testo = (
+      vicini,                   !! comune, distretto, cantone o nazione
+      piano_contiguo,           !! piani contigui nella situazione
+      vicini_piano_sinottico,   !! piani contigui, comune, distretto, cantone o
+                                !! nazione nel piano sinottico
+      direzione_strada,
+      no_CN,
+      noUFS,
+      altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+    Genere_linea = (
+      standard,
+      altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+    Genere_simbolo = (
+      freccia_nord,
+      altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+    Genere_crocetta = (
+      crocetta_coord,
+      crocetta_reticolo,
+      segno_reticolo,
+      altro); !! Nessun oggetto nella categoria altro, unicamente per le estensioni
+
+
+    TABLE Layout_del_piano =
+      IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+      Identificatore: TEXT*32;
+      Tipo_layout: TEXT*20;  !! definizione del layout del piano impiegato
+      Numero_del_piano: TEXT*12;
+      Nome_comune: TEXT*30;
+      Nome_geometra: OPTIONAL TEXT*30;
+      Data_allestimento: DATE;
+      Nome_geometra_revisore: OPTIONAL TEXT*30;
+      Data_aggiornamento: OPTIONAL DATE;
+      Scala: Tipo_scala;
+      Origine_piano: CoordP;
+      E_Azimut: Rotazione; !! Azimut 100 = E
+      Scala_piano_sinottico: OPTIONAL Tipo_scala;
+      Origine_piano_sinottico: OPTIONAL CoordP;
+      Con_reticolo_coord: (
+       si,    !! fornito
+       no);   !! da generare
+    IDENT IdentAN, Identificatore;
+    END Layout_del_piano ;
+
+    TABLE Testo_del_piano =
+      Testo_del_piano_di: -> Layout_del_piano; !! relazione 1-mc
+      Testo: TEXT*30;
+      Genere: Genere_testo;
+    NO IDENT
+    END Testo_del_piano;
+
+
+    TABLE PosTesto_del_piano =
+     PosTesto_del_piano_di: -> Testo_del_piano; !! relazione 1-m; iscrizione del testo
+     Pos: CoordP;
+     Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+     HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+     VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+     Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosTesto_del_piano;
+
+    TABLE Indicazione_coordinate =
+      Indicazione_coord_di: -> Layout_del_piano; !! relazione 1-mc
+      Descrizione: TEXT*12;
+    NO IDENT
+    END Indicazione_coordinate;
+
+    TABLE PosIndicazioneCoordinate =
+ PosIndicazione_coord_di: -> Indicazione_coordinate; !! relazione 1-m
+!! iscrizione della Descrizione
+     Pos: CoordP;
+     Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+     HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+     VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+     Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    IDENT PosIndicazione_coord_di, Pos;
+    END PosIndicazioneCoordinate;
+
+    TABLE Elemento_lineare =
+      Elemento_lineare_di: -> Layout_del_piano; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Genere: Genere_linea;
+    NO IDENT
+    END Elemento_lineare;
+
+    TABLE Linea_coordinate =
+      Linea_coordinate_di: -> Layout_del_piano; !! relazione 1-mc
+      Geometria: POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+    NO IDENT
+    END Linea_coordinate;
+
+    TABLE Superficie_disegno =
+      Superficie_disegno_di: -> Layout_del_piano; !! relazione 1-mc
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Scelta_rappresentazione: (
+        rappresentazione_completa,
+        rappresentazione_parziale);
+    NO IDENT
+    END Superficie_disegno;
+
+    TABLE SimboloLayout_del_piano =
+      SimbLayout_del_piano_di: -> Layout_del_piano; !! relazione 1-mc
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+      Genere: Genere_simbolo;
+    NO IDENT
+    END SimboloLayout_del_piano;
+
+
+    TABLE Crocetta_reticolo =
+      Crocetta_reticolo_di: -> Layout_del_piano; !! relazione 1-mc
+      Pos: CoordP;
+      Ori: OPTIONAL Rotazione // non_definito= 0.0 //;
+      Genere: Genere_crocetta;
+    IDENT Crocetta_reticolo_di, Pos;
+    END Crocetta_reticolo;
+
+  END Margine_del_piano.
+
+
+END MD01MUCH24I.
+
+
+FORMAT FREE;
+!! FORMAT FIX WITH LINESIZE = 107, TIDSIZE = 16;
+
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+

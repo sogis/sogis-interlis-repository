@@ -1,0 +1,112 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Version    | Who   | Modification
+!! -----------------------------------------------------------------------------
+!! 2022-01-04 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!! 2018-12-11 | BFE   | Change cardinality of attribute UpgradingTechnology to 0..1
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL BiogasPlants_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2022-01-04"  =
+  IMPORTS CatalogueObjects_V1,GeometryCHLV95_V1,WithOneState_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Numeric = 0.00 .. 1000000000.00;
+    Text = TEXT*255;
+    Year = 1900 .. 2999;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC BiogasPlantFacilityKindCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS BiogasPlantFacilityKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      FacilityKind : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BiogasPlantFacilityKind;
+
+    STRUCTURE BiogasPlantFacilityKindRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BiogasPlantFacilityKind;
+    END BiogasPlantFacilityKindRef;
+
+  END BiogasPlantFacilityKindCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC BiogasPlantUpgradingTechnologyCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS BiogasPlantUpgradingTechnology
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      UpgradingTechnology : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BiogasPlantUpgradingTechnology;
+
+    STRUCTURE BiogasPlantUpgradingTechnologyRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BiogasPlantUpgradingTechnology;
+    END BiogasPlantUpgradingTechnologyRef;
+
+  END BiogasPlantUpgradingTechnologyCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC BiogasPlantValorizationTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS BiogasPlantValorizationType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ValorizationType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BiogasPlantValorizationType;
+
+    STRUCTURE BiogasPlantValorizationTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BiogasPlantValorizationType;
+    END BiogasPlantValorizationTypeRef;
+
+  END BiogasPlantValorizationTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC BiogasPlant =
+    DEPENDS ON BiogasPlants_V1.BiogasPlantUpgradingTechnologyCatalogue,BiogasPlants_V1.BiogasPlantValorizationTypeCatalogue,BiogasPlants_V1.BiogasPlantFacilityKindCatalogue;
+
+    CLASS BiogasPlant =
+      Number : MANDATORY 0 .. 9999;
+      Position : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name : MANDATORY BiogasPlants_V1.Text;
+      Place : MANDATORY BiogasPlants_V1.Text;
+      Operator : MANDATORY BiogasPlants_V1.Text;
+      BeginningOfOperation : MANDATORY BiogasPlants_V1.Year;
+      Web : INTERLIS.URI;
+      CombinedHeatAndPower : BiogasPlants_V1.Numeric;
+      UpgradingCapacity : BiogasPlants_V1.Numeric;
+      FacilityKind : MANDATORY BiogasPlants_V1.BiogasPlantFacilityKindCatalogue.BiogasPlantFacilityKindRef;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      UpgradingTechnology : BiogasPlants_V1.BiogasPlantUpgradingTechnologyCatalogue.BiogasPlantUpgradingTechnologyRef;
+      ValorizationType : MANDATORY BiogasPlants_V1.BiogasPlantValorizationTypeCatalogue.BiogasPlantValorizationTypeRef;
+    END BiogasPlant;
+
+    CLASS Production =
+      Year : MANDATORY BiogasPlants_V1.Year;
+      Electricity : BiogasPlants_V1.Numeric;
+      Heat : BiogasPlants_V1.Numeric;
+      BiomethaneInjection : BiogasPlants_V1.Numeric;
+      BiomethaneDirect : BiogasPlants_V1.Numeric;
+    END Production;
+
+    ASSOCIATION BiogasPlantProduction =
+      ProductionR -- {0..*} Production;
+      BiogasPlantR -<#> {1} BiogasPlant;
+    END BiogasPlantProduction;
+
+  END BiogasPlant;
+
+END BiogasPlants_V1.

@@ -1,0 +1,85 @@
+INTERLIS 2.3;
+/** Data model GA25_PROFILES - Datenmodell GA25_PROFILE - Modèle de données AG25_COUPES
+* minimal geodata model, topic: GA25_ProfilesCatalogues, provider: swisstopo / SWISS GEOLOGICAL SURVEY
+*/
+
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ IDGeoIV = 46.12
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/wissen-fakten/geologie/geologische-daten/geologische-karten.html
+
+MODEL DM_GA25_Profiles_V1 (en)
+AT "https://models.geo.admin.ch/Swisstopo/"
+VERSION "2022-01-24" =
+  IMPORTS GeometryCHLV95_V1,GA25_ProfilesCatalogues_V1;
+
+/**The GA25-Profile dataset (GA25_CS) is a compilation of the profiles published together with the Geological Atlas 1:25,000. It represents the profile traces and contains metadata on the profiles.
+Modelling of Data Model GA25 Profiles (DM_GA25_Profiles_V1) is based on base modules of the Confederation for «minimal geodata models» CHBase.The possible values of the object catalogue are modelled in separate, multilingual catalogues (GA25_ProfilesCatalogues.xml) according CHBase.The linkage between the catalogues and the data model is given by reference structures in the separate model GA25_ProfilesCatalogues_V1. The values in the catalogues are not final in respect of technical modelling aspects. This means more values can be added without any problems. Therefore updates will be possible and necessary once in a while. Data Model GA25 Profiles is intended to continuously evolve into the future.*/
+/**Der Datensatz GA25-Profile (GA25_CS) ist eine Zusammenstellung der zusammen mit dem geologischen Atlas 1:25'000 publizierten Profile. Er stellt die Profilspuren dar und enthält Metadaten zu den Profilen.
+Die Modellierung des Datenmodells GA25 Profile (DM_GA25_Profiles_V1) basiert auf den Basismodulen des Bundes für «minimale Geodatenmodelle» CHBase. Die möglichen Werte des Objektkatalogs werden nach Vorlage von CHBase in separaten, mehrsprachigen XML-Katalogen (GA25_ProfilesCatalogues_V1.xml) modelliert. Die Verbindung zwischen den Katalogen und dem Datenmodell ist durch die Referenzstrukturen im separaten Modell GA25_ProfilesCatalogues_V1 gegeben. Die Werte in den Katalogen sind nach modellierungstechnischem Aspekt nicht abschliessend. Das heisst, das Hinzufügen weiterer Werte ist unproblematisch. Denn Aktualisierungen sind von Zeit zu Zeit nötig und auch möglich. Das Datenmodell GA25 Profile soll sich weiter entwickeln können.*/
+/**Le jeu de données GA25-Profile (GA25_CS) est une compilation des coupes géologiques publiées avec l'Atlas géologique 1:25'000. Il représente les traces de coupes et contient des métadonnées relatives aux coupes.
+La modélisation du Modèle de données Coupes AG25 (DM_GA25_Profiles_V1) se base sur le module de base de la Confédération pour les «modèles de géodonnées minimaux» CHBase. Les possibles valeurs du catalogue des objets sont modélisées selon les recommendations du Module de base de la Confédération «CHBase» en tant qu’objets du catalogue dans un catalogue (GA25_ProfilesCatalogues_V1.xml) multilingue séparé. Le lien entre le catalogue et le modèle de données est défini par la structure de référence du modèle particulier GA25_ProfilesCatalogues_V1. Les tables dans les catalogues ne sont pas fermeés du point de vue de leur technique de modélisation. Cela signifie que l’insertion de nouvelles valeurs ne pose aucun problème. Cependant, cela rend possible les mises à jour périodiques nécessaires. Le Modèle de données Coupes AG25 sera ainsi amené à se développer encore à l’avenir.*/
+
+  DOMAIN
+    /** Geometry definition */
+    Line = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+  STRUCTURE LineStructure =
+    Line : Line;
+  END LineStructure;
+
+  !!@ ili2db.mapping=MultiLine
+  STRUCTURE MultiLine =
+    Lines: BAG {1..*} OF LineStructure;
+  END MultiLine;
+
+  /** Topic of data model DM_GA25_Profiles_V1 */
+  TOPIC Profiles =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON GA25_ProfilesCatalogues_V1.Catalogues;
+
+    CLASS Profile =
+      /** Geometry: Geometry of the corresponding object type */
+      Geometry : MANDATORY MultiLine;
+      /** GA25_ID: Object ID merged out of plate and section numbers */
+      GA25_ID : MANDATORY TEXT;
+      /** GA25_No: Number of the geological map */
+      GA25_No : MANDATORY 0 .. 999;
+      /** GA25_Name: Name of the geological map */
+      GA25_Name : MANDATORY GA25_ProfilesCatalogues_V1.Catalogues.ProNameRef;
+      /** GA25_Edition: Year of the publication of the geological map */
+      GA25_Edition : MANDATORY 1900 .. 2200 [INTERLIS.Y];
+      /** Plate_No: Plate number of cross-section */
+      Plate_No : MANDATORY TEXT;
+      /** Section_No: Section number of cross-section */
+      Section_No : MANDATORY TEXT;
+      /** Section_Type: Type of the geological cross-section */
+      Section_Type : MANDATORY GA25_ProfilesCatalogues_V1.Catalogues.ProSectionTypeRef;
+      /** Scale: Scale of the cross-section */
+      Scale : MANDATORY GA25_ProfilesCatalogues_V1.Catalogues.ProScaleRef;
+      /** Vert_Exag: Vertical exageration of cross-section */
+      Vert_Exag : MANDATORY 0.0 .. 20.0;
+      /** Author: Author(s) of the geological map or cross-section */
+      Author : MANDATORY TEXT;
+      /** Link_Original: Original path of Document */
+      Link_Original : MANDATORY TEXT;
+      /** Link_Onlineshop_D: Link of the Onlineshop (DE) */
+      Link_Onlineshop_D : MANDATORY INTERLIS.URI;
+      /** Link_Onlineshop_F: Link of the Onlineshop (FR) */
+      Link_Onlineshop_F : MANDATORY INTERLIS.URI;
+      /** Link_Onlineshop_I: Link of the Onlineshop (IT) */
+      Link_Onlineshop_I : MANDATORY INTERLIS.URI;
+      /** Link_Onlineshop_E: Link of the Onlineshop (EN) */
+      Link_Onlineshop_E : MANDATORY INTERLIS.URI;
+      /** Link_swissgeol_D: Link of swissgeol webpage (DE) */
+      Link_swissgeol_D : MANDATORY INTERLIS.URI;
+      /** Link_swissgeol_F: Link of swissgeol webpage (FR) */
+      Link_swissgeol_F : MANDATORY INTERLIS.URI;
+      /** Link_Onlineshop_I: Link of swissgeol webpage (IT) */
+      Link_swissgeol_I : MANDATORY INTERLIS.URI;
+      /** Link_Onlineshop_E: Link of swissgeol webpage (EN) */
+      Link_swissgeol_E : MANDATORY INTERLIS.URI;
+    END Profile;
+
+  END Profiles;
+
+END DM_GA25_Profiles_V1.

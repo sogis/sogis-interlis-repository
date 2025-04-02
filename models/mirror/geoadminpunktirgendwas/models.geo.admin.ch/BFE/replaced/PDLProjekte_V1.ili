@@ -1,0 +1,107 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+
+
+MODEL PDLProjekte_V1 (de) AT "http://models.geo.admin.ch/BFE" VERSION "2015-04-10"  =
+  IMPORTS CatalogueObjects_V1,
+    LocalisationCH_V1,
+    GeometryCHLV95_V1,
+    CHAdminCodes_V1,
+    WithOneState_V1;
+
+  DOMAIN
+
+    JaNein = 0 .. 1;
+    PLZ = 0 .. 9999;
+    Text = TEXT*500;
+  STRUCTURE Text_ = value : MANDATORY Text; END Text_;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC OberthemaKatalog
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Oberthema
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Oberthema : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Oberthema;
+
+    STRUCTURE OberthemaRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Oberthema;
+    END OberthemaRef;
+
+  END OberthemaKatalog;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ProjektstatusKatalog
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Projektstatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Projektstatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Projektstatus;
+
+    STRUCTURE ProjektstatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Projektstatus;
+    END ProjektstatusRef;
+
+  END ProjektstatusKatalog;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC UnterthemaKatalog
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Unterthema
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Unterthema : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Unterthema;
+
+    STRUCTURE UnterthemaRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Unterthema;
+    END UnterthemaRef;
+
+  END UnterthemaKatalog;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC Projekte =
+    DEPENDS ON PDLProjekte_V1.ProjektstatusKatalog,PDLProjekte_V1.OberthemaKatalog,PDLProjekte_V1.UnterthemaKatalog;
+
+    CLASS Projekt =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Projektnummer : MANDATORY PDLProjekte_V1.Text;
+      Leuchtturm : MANDATORY PDLProjekte_V1.JaNein;
+      Projektstatus : MANDATORY PDLProjekte_V1.ProjektstatusKatalog.ProjektstatusRef;
+      Projektbeginn : MANDATORY INTERLIS.XMLDate;
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      Projektende : INTERLIS.XMLDate;
+      Projektpartner : MANDATORY PDLProjekte_V1.Text;
+      Oberthema : MANDATORY PDLProjekte_V1.OberthemaKatalog.OberthemaRef;
+      Unterthema : MANDATORY PDLProjekte_V1.UnterthemaKatalog.UnterthemaRef;
+      Bericht : LocalisationCH_V1.MultilingualText;
+      Fachartikel : MANDATORY LocalisationCH_V1.MultilingualText;
+      InfoClip : LocalisationCH_V1.MultilingualText;
+      Kontakt : MANDATORY PDLProjekte_V1.Text;
+      PLZ : MANDATORY PDLProjekte_V1.PLZ;
+      Ort : MANDATORY PDLProjekte_V1.Text;
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Bild : BAG {0..3} OF PDLProjekte_V1.Text_;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END Projekt;
+
+  END Projekte;
+
+END PDLProjekte_V1.

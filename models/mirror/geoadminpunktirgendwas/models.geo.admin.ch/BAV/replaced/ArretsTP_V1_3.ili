@@ -1,0 +1,264 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Arrêts TP
+!!------------------------------------------------------------------------------
+!!
+!! OGéo, Annexe 1
+!! ==============
+!! Identificateur OGéo                       : 98
+!! Désignation OGéo                          : Arrêts des transports publics
+!! Numero du recueil                         : 98.2
+!! Service compétent                         : Confédération (OFT)
+!! Niveau d’autorisation d'accès             : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!!
+!! 0.92    | 2012-11-16 | LS    | Draft
+!! 1.0     | 2014-06-23 | OFT   | Approbation OFT (Direction)
+!! 1.0     | 2014-10-30 | ems   | Adaption à la version allemande publié
+!! 1.1     | 2014-01-27 | ems   | Modification de domain MoyenTransport ('CheminFer_Tram', 'Bateau_CheminFerCrenaillere')
+!! 1.1     | 2015-06-25 | ems   | Correction de lien furtherInformation
+!! 1.2     | 2015-11-16 | ems   | Modification de domain MoyenTransport 'CheminFer_Tram', 'Bateau_CheminFerCremaillere', 'Bus_Telepherique',
+!!                                'Bus_Metro', 'Bus_Bateau', 'Bus_Funiculaire_Tram','Bus_Tram_CheminFer', 'Bus_CheminFer', 'Metro_CheminFer,
+!!                                'Tram_Bus_CheminFerCremaillere, 'Bateau_Tram'Aufzug', 'Bus_Luftseilbahn', 'Bus_Metro, 'Bus_Schiff',
+!!                                'Bus_Standseilbahn_Tram', 'Bus_Tram_Zug', 'Bus_Zug', 'Metro_Zug','Tram_Bus_Zahnradbahn' und 'Schiff_Tram'
+!! 1.3     | 2017-06-08 | ems   | Extension au modelle dans le cadre de référence MN95 et adaption des noms des modelles;
+!!                                Activation d' existence constraints qui étaient auparavant sous forme de commentaires dans le modèle de données ET;
+!!                                Modélisation des valeurs de moyens de transport en tant que liste de code externe
+!! 1.3     | 2017-07-21 | ems   | adaptions minimales après remarques de COSIG
+!! 1.3     | 2017-10-30 | ems   | Correction du domaine de valeur AbreviationET et RespDonneesAbreviation
+!! 1.3     | 2018-02-13 | KOGIS | Correction du domaine de valeur de l'attribut Longueur
+!! 1.3     | 2018-07-25 | ems   | adaption furtherInformation
+!! 1.3     | 2020-04-27 | KOGIS | Correction du constraint dans la classe PointExploitation (#Arret et #Arret_et_PointChargement)
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/arrets-des-transports-publics.html
+
+MODEL ArretsTP_Catalogue_V1_3 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2018-07-25" TRANSLATION OF HaltestellenOeV_Katalog_V1_3 ["2018-07-25"]=
+
+  IMPORTS CatalogueObjects_V1;
+
+  TOPIC Catalogue_MoyenTransport =
+
+    CLASS MoyenTransport
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY 1 .. 999;
+      Designation : MANDATORY TEXT*100;
+      UNIQUE Code, Designation;
+    END MoyenTransport;
+
+    STRUCTURE MoyenTransport_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MoyenTransport;
+    END MoyenTransport_CatRef;
+
+  END Catalogue_MoyenTransport;
+
+END ArretsTP_Catalogue_V1_3.
+
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/arrets-des-transports-publics.html
+
+MODEL ArretsTP_MN95_V1_3 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2020-04-27" TRANSLATION OF HaltestellenOeV_LV95_V1_3 ["2020-04-27"]=
+
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS EntreprisesTP_V1;
+  IMPORTS ArretsTP_Catalogue_V1_3;
+
+  TOPIC ArretsTP =
+    DEPENDS ON EntreprisesTP_V1.ET, ArretsTP_Catalogue_V1_3.Catalogue_MoyenTransport;
+
+    DOMAIN
+      Altitude = 0 .. 5000 [INTERLIS.m];
+
+      TypePointExploitation = (
+        Arret,
+        Arret_et_PointChargement,
+        PointChargement,
+        PointRaccordement,
+        PointExploitationSimple );
+
+    STRUCTURE ET =
+      NumeroET :      MANDATORY TEXT*6;
+      AbreviationET :           TEXT*15;   !!redondant à NumeroET
+
+      !!ET doit exister dans la liste ET de l'OFT.
+      EXISTENCE CONSTRAINT NumeroET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Numero;
+      EXISTENCE CONSTRAINT AbreviationET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Abreviation;
+
+    END ET;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      DateTraitement: MANDATORY INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+    STRUCTURE Commune =
+      NumeroCommune : MANDATORY 0 .. 9999;
+      NomCommune :              TEXT*24;
+    END Commune;
+
+
+    CLASS PointExploitation =
+      Numero :                MANDATORY 0 .. 9999999;
+      Nom :                   MANDATORY TEXT*50;
+      Abreviation :                     TEXT*6;
+      RespDonneesAbreviation :          TEXT*15;
+      ET :                    MANDATORY ET;
+      TypePointExploitation : MANDATORY TypePointExploitation;
+      MoyenTransport :                  ArretsTP_Catalogue_V1_3.Catalogue_MoyenTransport.MoyenTransport_CatRef;
+      Geometrie :             MANDATORY GeometryCHLV95_V1.Coord2;
+      Altitude :              MANDATORY Altitude;
+      Commune :               MANDATORY Commune;
+      Validite :              MANDATORY Validite;
+
+      UNIQUE Numero;
+      UNIQUE Nom;
+      UNIQUE Abreviation, RespDonneesAbreviation;
+
+      !! MoyenTransport est obligatoire pour les arrêts
+      MANDATORY CONSTRAINT
+        NOT ( TypePointExploitation == #Arret OR TypePointExploitation == #Arret_et_PointChargement)
+        OR
+        DEFINED (MoyenTransport);
+
+    END PointExploitation;
+
+    CLASS BordureArret =
+      Numero :    MANDATORY TEXT*10;
+      Nom :                 TEXT*50;
+      Longueur :            0 .. 999 [INTERLIS.m];
+      HauteurBordure :      0 .. 100 [Units.cm];
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END BordureArret;
+
+    ASSOCIATION PointExploitation_PointExploitationAssoc =
+      rArretSuperieur -- {0..1} PointExploitation;
+      rArretInferieur -- {0..*} PointExploitation;
+    END PointExploitation_PointExploitationAssoc;
+
+    ASSOCIATION PointExploitation_BordureArretAssoc =
+      rArret -- {1} PointExploitation;
+      rBordureArret -- {0..*} BordureArret;
+    END PointExploitation_BordureArretAssoc;
+
+    CONSTRAINTS OF BordureArret =
+      !!Numéro est unique dans un arrêt
+      UNIQUE rArret, Numero;
+    END;
+
+  END ArretsTP;
+
+END ArretsTP_MN95_V1_3.
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/arrets-des-transports-publics.html
+
+MODEL ArretsTP_MN03_V1_3 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2020-04-27" TRANSLATION OF HaltestellenOeV_LV03_V1_3 ["2020-04-27"]=
+
+  IMPORTS Units;
+  IMPORTS GeometryCHLV03_V1;
+  IMPORTS EntreprisesTP_V1;
+  IMPORTS ArretsTP_Catalogue_V1_3;
+
+  TOPIC ArretsTP =
+    DEPENDS ON EntreprisesTP_V1.ET, ArretsTP_Catalogue_V1_3.Catalogue_MoyenTransport;
+
+    DOMAIN
+      Altitude = 0 .. 5000 [INTERLIS.m];
+
+      TypePointExploitation = (
+        Arret,
+        Arret_et_PointChargement,
+        PointChargement,
+        PointRaccordement,
+        PointExploitationSimple );
+
+    STRUCTURE ET =
+      NumeroET :      MANDATORY TEXT*6;
+      AbreviationET :           TEXT*15;   !!redondant à NumeroET
+
+      !!ET doit exister dans la liste ET de l'OFT.
+      EXISTENCE CONSTRAINT NumeroET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Numero;
+      EXISTENCE CONSTRAINT AbreviationET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Abreviation;
+
+    END ET;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      DateTraitement: MANDATORY INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+    STRUCTURE Commune =
+      NumeroCommune : MANDATORY 0 .. 9999;
+      NomCommune :              TEXT*24;
+    END Commune;
+
+
+    CLASS PointExploitation =
+      Numero :                MANDATORY 0 .. 9999999;
+      Nom :                   MANDATORY TEXT*50;
+      Abreviation :                     TEXT*6;
+      RespDonneesAbreviation :          TEXT*15;
+      ET :                    MANDATORY ET;
+      TypePointExploitation : MANDATORY TypePointExploitation;
+      MoyenTransport :                  ArretsTP_Catalogue_V1_3.Catalogue_MoyenTransport.MoyenTransport_CatRef;
+      Geometrie :             MANDATORY GeometryCHLV03_V1.Coord2;
+      Altitude :              MANDATORY Altitude;
+      Commune :               MANDATORY Commune;
+      Validite :              MANDATORY Validite;
+
+      UNIQUE Numero;
+      UNIQUE Nom;
+      UNIQUE Abreviation, RespDonneesAbreviation;
+
+      !! MoyenTransport est obligatoire pour les arrêts
+      MANDATORY CONSTRAINT
+        NOT ( TypePointExploitation == #Arret OR TypePointExploitation == #Arret_et_PointChargement)
+        OR
+        DEFINED (MoyenTransport);
+
+    END PointExploitation;
+
+    CLASS BordureArret =
+      Numero :    MANDATORY TEXT*10;
+      Nom :                 TEXT*50;
+      Longueur :            0 .. 999 [INTERLIS.m];
+      HauteurBordure :      0 .. 100 [Units.cm];
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+    END BordureArret;
+
+    ASSOCIATION PointExploitation_PointExploitationAssoc =
+      rArretSuperieur -- {0..1} PointExploitation;
+      rArretInferieur -- {0..*} PointExploitation;
+    END PointExploitation_PointExploitationAssoc;
+
+    ASSOCIATION PointExploitation_BordureArretAssoc =
+      rArret -- {1} PointExploitation;
+      rBordureArret -- {0..*} BordureArret;
+    END PointExploitation_BordureArretAssoc;
+
+    CONSTRAINTS OF BordureArret =
+      !!Numéro est unique dans un arrêt
+      UNIQUE rArret, Numero;
+    END;
+
+  END ArretsTP;
+
+END ArretsTP_MN03_V1_3.

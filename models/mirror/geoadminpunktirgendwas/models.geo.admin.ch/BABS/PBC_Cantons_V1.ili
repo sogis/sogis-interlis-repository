@@ -1,0 +1,112 @@
+INTERLIS 2.3;
+
+/** Inventaire cantonal des biens culturels d'importance régionale et locale
+ */
+!!@ IDGeoIV=188.1
+!!@ furtherInformation=https://www.babs.admin.ch/de/aufgabenbabs/kgs/inventar.html
+!!@ technicalContact=mailto:Geographisches-Informationssystem@babs.admin.ch
+MODEL PBC_Cantons_V1 (fr)
+AT "https://models.geo.admin.ch/BABS/"
+VERSION "2021-07-21" 
+TRANSLATION OF KGS_Kantone_V1 ["2021-07-21"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Inventaire_PBC_Cantons =
+
+    DOMAIN
+
+      Types_objets = (
+        /** Collections dans les musées, archives et bibliothèques
+         */
+        Collection,
+        /** Bâtiments, ponts et autres constructions
+         */
+        Construction,
+        /** Sites archéologiques
+         */
+        Archeologie
+      );
+
+    STRUCTURE EGID_Structure =
+      /** Identificateur fédéral de bâtiment
+       */
+      EGID : MANDATORY 1 .. 900000000;
+    END EGID_Structure;
+
+    STRUCTURE Address_Structure =
+      /** Adresse postale avec nom de rue et numéro de maison (notation selon le répertoire officiel du bâtiment)
+       */
+      Adresse : MANDATORY TEXT*100;
+    END Address_Structure;
+
+    STRUCTURE EGRID_Structure =
+      /** Identification fédérale des immeubles EGRID ou numéro de la propriété
+       */
+      EGRID : MANDATORY TEXT*20;
+    END EGRID_Structure;
+
+    CLASS PBC_Cantons_Objet =
+      /** Coordonnées EN MN95
+       */
+      Coordonnee : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Aucune, une ou plusieurs surfaces individuelles peuvent être définies (avec des lignes droites et des arcs sans overlaps > 0.001 m)
+       */
+      Surfaces : GeometryCHLV95_V1.MultiSurface;
+      /** Identifiant cantonal de l'objet (par exemple UUID)
+       */
+      ID_cantonal : MANDATORY TEXT*80;
+      /** Importance de l'objet: B = Objet d'importance régionale / C = Objet d'importance locale
+       */
+      Categorie_PBC : MANDATORY (
+        /** régional
+         */
+        B,
+        /** local
+         */
+        C
+      );
+      /** Numéro OFPP de l'objet PBC «B». Code à cinq chiffres dans la base de donnée PBC-SAP de OFPP. Zéro (valeur 0) signifie que le numéro d'objet n'a pas encore été attribué
+       */
+      PBC_no_objet_B : 0 .. 89999;
+      /** Numéro cantonal de l'objet PBC «C» (alphanumérique)
+       */
+      PBC_no_objet_C : TEXT*100;
+      /** Précision fédéral pour les caractéristiques/types d'objets
+       */
+      Type_objet : MANDATORY Types_objets;
+      /** Description de l'objet PBC. Nom ou fonction de l'objet, par exemple Palais de justice (ancien hôpital) et précision du type de bien culturel sous «type_objet»
+       */
+      Description : MANDATORY MTEXT*256;
+      /** Aucun, un ou plusieurs EGID peuvent être définis
+       */
+      EGID : BAG {0..*} OF PBC_Cantons_V1.Inventaire_PBC_Cantons.EGID_Structure;
+      /** Aucune, une ou plusieurs adresses peuvent être définies
+       */
+      Adresses : BAG {0..*} OF PBC_Cantons_V1.Inventaire_PBC_Cantons.Address_Structure;
+      /** Aucun, un ou plusieurs EGRID ou numéro de la propriété peuvent être définis
+       */
+      EGRID : BAG {0..*} OF PBC_Cantons_V1.Inventaire_PBC_Cantons.EGRID_Structure;
+      /** Nom de la commune. Nom officiel de la commune, selon la liste actuelle de l'OFS
+       */
+      Commune : MANDATORY TEXT*100;
+      /** Canton (abréviation)
+       */
+      Canton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Il est utilisé pour afficher les symboles ponctuels, une distinction étant faite entre les caractéristiques ponctuelles et étendues
+       */
+      Type_signature (FINAL) : MANDATORY (
+        /** caractéristique ponctuelle
+         */
+        Objet_point,
+        /** caractéristique étendue
+         */
+        Objet_surface
+      );
+      /** Restriction concernant Categorie_PBC et PBC_no_objet_B
+       */
+      MANDATORY CONSTRAINT NOT (Categorie_PBC == #B) OR DEFINED (PBC_no_objet_B);
+    END PBC_Cantons_Objet;
+
+  END Inventaire_PBC_Cantons;
+
+END PBC_Cantons_V1.

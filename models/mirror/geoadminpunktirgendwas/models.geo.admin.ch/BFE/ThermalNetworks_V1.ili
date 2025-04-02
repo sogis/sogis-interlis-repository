@@ -1,0 +1,88 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Version    | Who   | Modification
+!! -----------------------------------------------------------------------------
+!! 2022-01-04 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!! 2019-11-27 | BFE   | Add domain "Integer"
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL ThermalNetworks_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2022-01-04"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,WithOneState_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Integer = 0 .. 100000000000000;
+    Numeric = 0.00 .. 1000000000.00;
+    Text = TEXT*255;
+    Year = 1900 .. 2999;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC EnergySourceCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS EnergySource
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      EnergySource : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EnergySource;
+
+    STRUCTURE EnergySourceRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) EnergySource;
+    END EnergySourceRef;
+
+  END EnergySourceCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC PositionAccuracyCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS PositionAccuracy
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      PositionAccuracy : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PositionAccuracy;
+
+    STRUCTURE PositionAccuracyRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) PositionAccuracy;
+    END PositionAccuracyRef;
+
+  END PositionAccuracyCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ThermalNetwork =
+    DEPENDS ON ThermalNetworks_V1.EnergySourceCatalogue,ThermalNetworks_V1.PositionAccuracyCatalogue;
+
+    CLASS ThermalNetwork =
+      Name : MANDATORY ThermalNetworks_V1.Text;
+      Zip : MANDATORY ThermalNetworks_V1.Integer;
+      Place : MANDATORY ThermalNetworks_V1.Text;
+      Operator : ThermalNetworks_V1.Text;
+      Contact : ThermalNetworks_V1.Text;
+      OperatorAddress : ThermalNetworks_V1.Text;
+      Phone : ThermalNetworks_V1.Integer;
+      Web : INTERLIS.URI;
+      Mail : ThermalNetworks_V1.Text;
+      BeginningOfOperation : ThermalNetworks_V1.Year;
+      Power : ThermalNetworks_V1.Numeric;
+      Energy : ThermalNetworks_V1.Numeric;
+      HouseConnections : ThermalNetworks_V1.Integer;
+      NetLength : ThermalNetworks_V1.Numeric;
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      EnergySource : BAG {1..2} OF ThermalNetworks_V1.EnergySourceCatalogue.EnergySourceRef;
+      PositionAccuracy : MANDATORY ThermalNetworks_V1.PositionAccuracyCatalogue.PositionAccuracyRef;
+    END ThermalNetwork;
+
+  END ThermalNetwork;
+
+END ThermalNetworks_V1.

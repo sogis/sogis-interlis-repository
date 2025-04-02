@@ -1,0 +1,62 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 53)
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "77.1"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+MODEL Klimaeignung_V1 (de)
+AT "mailto:info@blw.admin.ch"
+VERSION "2015-05-22"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV03_V1;
+
+  TOPIC Kategorien =
+
+    CLASS Eignung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      KlimeigID : MANDATORY 1 .. 99;
+      Zone : TEXT*20;
+      Futterbau_code : MANDATORY 1 .. 99;
+      Getreidebau_code : MANDATORY 1 .. 99;
+      Kartoffeln_code : MANDATORY 1 .. 99;
+      Koernermais_code : MANDATORY 1 .. 99;
+      Zwischenfruchtbau_code : MANDATORY 1 .. 99;
+      Spezialkulturen_code : MANDATORY 1 .. 99;
+      Kulturland_code : MANDATORY 1 .. 99;
+      Vegetationszeit_code : MANDATORY 1 .. 99;
+      Waermestufe_code : MANDATORY 1 .. 99;
+      Niederschlag_code : MANDATORY 1 .. 99;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      Bezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Futterbau : MANDATORY LocalisationCH_V1.MultilingualText;
+      Getreidebau : MANDATORY LocalisationCH_V1.MultilingualText;
+      Kartoffeln : MANDATORY LocalisationCH_V1.MultilingualText;
+      Koernermais : MANDATORY LocalisationCH_V1.MultilingualText;
+      Kulturland : MANDATORY LocalisationCH_V1.MultilingualText;
+      Niederschlag : MANDATORY LocalisationCH_V1.MultilingualText;
+      Spezialkulturen : MANDATORY LocalisationCH_V1.MultilingualText;
+      Vegetationszeit : MANDATORY LocalisationCH_V1.MultilingualText;
+      Waermestufe : MANDATORY LocalisationCH_V1.MultilingualText;
+      Zwischenfruchtbau : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Eignung;
+
+    STRUCTURE EignungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Eignung;
+    END EignungRef;
+
+  END Kategorien;
+
+  TOPIC Klimaeignung =
+    DEPENDS ON Klimaeignung_V1.Kategorien;
+
+    CLASS Klima_Area =
+      Geometrie : MANDATORY GeometryCHLV03_V1.Area;
+      Eignung : Klimaeignung_V1.Kategorien.EignungRef;
+    END Klima_Area;
+
+  END Klimaeignung;
+
+END Klimaeignung_V1.

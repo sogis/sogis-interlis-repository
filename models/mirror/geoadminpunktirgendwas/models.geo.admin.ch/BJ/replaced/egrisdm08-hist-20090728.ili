@@ -1,0 +1,1342 @@
+INTERLIS 2.3;
+
+/** @Author ceis
+ */
+!!@ ili2c.textMinimalCharset=windows-1252
+MODEL eGRISDM08 (de)
+AT "http://www.egris.ch"
+VERSION "DM08.2"  =
+
+  UNIT
+
+    Area (ABSTRACT) = (INTERLIS.LENGTH * INTERLIS.LENGTH);
+
+    CHF EXTENDS INTERLIS.MONEY;
+
+  DOMAIN
+
+    /** Liste ist gem. AV DM01.24 und auf Stufe Bund abschliessend.
+     */
+    BBArt = (
+      Gebaeude,
+      befestigt(
+        Strasse_Weg,
+        Trottoir,
+        Verkehrsinsel,
+        Bahn,
+        Flugplatz,
+        Wasserbecken,
+        uebrige_befestigte
+      ),
+      humusiert(
+        Acker_Wiese_Weide,
+        Intensivkultur(
+          Reben,
+          uebrige_Intensivkultur
+        ),
+        Gartenanlage,
+        Hoch_Flachmoor,
+        uebrige_humusierte
+      ),
+      Gewaesser(
+        stehendes,
+        fliessendes,
+        Schilfguertel
+      ),
+      bestockt(
+        geschlossener_Wald,
+        Wytweide(
+          Wytweide_dicht,
+          Wytweide_offen
+        ),
+        uebrige_bestockte
+      ),
+      vegetationslos(
+        Fels,
+        Gletscher_Firn,
+        Geroell_Sand,
+        Abbau_Deponie,
+        uebrige_vegetationslose
+      )
+    );
+
+    /** Die Tagebucheintraege werden i.d.R. pro Jahr durchnummeriert.
+     */
+    TagebuchNummer = TEXT*15;
+
+    /** Format gem. XML-Schema Typ xsd:date
+     */
+    Datum = FORMAT INTERLIS.XMLDate "1582-1-1" .. "2999-12-31";
+
+    /** Format gem. XML-Schema Typ xsd:dateTime
+     */
+    DatumInklZeit = FORMAT INTERLIS.XMLDateTime "1582-1-1T0:0:0.0" .. "2999-12-31T23:59:59.999";
+
+    DauerndesRechtArt = (
+      Baurecht,
+      Quellenrecht,
+      Konzession,
+      weitere
+    );
+
+    /** Wertebereich für Eidg. Personenidentifkatoren *innerhalb* des Grundbuches.
+     * z.B. "CH787701897777"
+     * ähnlicher Aufbau wie die EGRID (Prefix+Zähler+Algorithmus wie bei EGRID).
+     * - selber Prefix
+     * - aber *anderer* Zähler!
+     */
+    EGBPID = TEXT*14;
+
+    /** Wertebereich für die Eidg. Identifkation eines Tagebucheintrages.
+     * z.B. "CH12340123456789012345"
+     * Aufbau: "CH"+ Prefix (4 Stellen)+Hersteller spezifischer Zähler (16 Stellen)).
+     * - selber Prefix wie für EGRID
+     * - aber *anderer* Zähler als für EGRID!
+     */
+    EGBTBID = TEXT*22;
+
+    /** Wertebereich für die Eidg. Grundstücks-Identifikation.
+     * z.B. "CH787701897777"
+     * Prefix+Zähler+Algorithmus.
+     * Prefix bei Eidg. Vermessungsdirektion beziehen.
+     */
+    EGRID = TEXT*14;
+
+    /** Wertebereich für die Eidg. Identifkation eines im Grundbuch festgehaltenen Rechtes.
+     * z.B. "CH12340123456789012345"
+     * Aufbau: "CH"+ Prefix (4 Stellen)+Hersteller spezifischer Zähler (16 Stellen)).
+     * - selber Prefix wie für EGRID
+     * - aber *anderer* Zähler als für EGRID!
+     */
+    EREID = TEXT*22;
+
+    Geschaeftstyp = (
+      Normal,
+      Berichtigung,
+      Ersterfassung
+    );
+
+    /** Liste ergibt sich aus ZGB.
+     */
+    GrundpfandrechtArt = (
+      NamenSchuldbrief,
+      InhaberSchuldbrief,
+      NamenGuelt,
+      InhaberGuelt,
+      KapitalGrundpfandverschreibung,
+      MaximalGrundpfandverschreibung,
+      Altrechtlich,
+      vorbehaltenerVorgang,
+      leerePfandstelle,
+      GrundpfandverschreibungAlsInhaberobligation,
+      RegisterPfand
+    );
+
+    /** Wertebereich für Eidg. Gebaeude-Identifikator. www.housing-stat.ch
+     */
+    GWR_EGID = 1 .. 999999999;
+
+    NachrueckungsRechtArt = (
+      schiebend,
+      springend,
+      inDenNebenrang
+    );
+
+    NameOrt = TEXT*60;
+
+    NamePerson = TEXT*250;
+
+    /** Diese Nummern entsprechen dem Nummerierungsbereich aus dem DM01 der AV, d.h. Kantonskürzel + 10 stelliger durch den Kanton organisierter Code.
+     */
+    NBIdentAV = TEXT*12;
+
+    /** techn. Objektschlüssel gem UUID für id und TID.
+     */
+    ObjektIdentifikator = OID TEXT*40;
+
+    StichwortZusatz = TEXT*240;
+
+    TagebuchIdx = 0 .. 2147483647;
+  STRUCTURE GWR_EGID_ = value : MANDATORY GWR_EGID; END GWR_EGID_;
+  STRUCTURE ObjektIdentifikator_ = value : MANDATORY ObjektIdentifikator; END ObjektIdentifikator_;
+
+  STRUCTURE Uebersetzung =
+    Sprache : MANDATORY (
+      de,
+      fr,
+      it,
+      rm,
+      en
+    );
+    Begriff : MANDATORY TEXT*255;
+  END Uebersetzung;
+
+  UNIT
+
+    Square_Meter [m2] EXTENDS Area = (INTERLIS.m * INTERLIS.m);
+
+  DOMAIN
+
+    WertCHF = 0.00 .. 1000000000000.00 [CHF];
+
+  /** Die (alte) Nummerierung ist 4-stufig und nur innerhalb eines Kantons eindeutig. (SubKreis, Los, Nummer, NummerZusatz). SubKreis, Los und NummerZusatz sind optional.
+   */
+  STRUCTURE GrundstueckNummer =
+    /** Die(neue) schweizweit eindeutige Nummer eines Grundstückes. Das Nummerierungsschema muss noch durch das  Eidg. Grundbuchamt festgelegt werden.
+     */
+    EGRID : MANDATORY EGRID;
+    /** Die Nummer des Grundstücks, ohne Angabe des Subkreises oder Loses.
+     */
+    Nummer : MANDATORY TEXT*12;
+    NummerZusatz : TEXT*12;
+    /** Die Nummer des Sub-Kreises innerhalb eines Grundbuchamtes. Die Unterteilung in Sub-Kreise und deren Nummerierung erfolgt durch das entsprechende Grundbuchamt oder den Kanton.
+     */
+    SubKreis : TEXT*15;
+    /** Die Nummer des Loses innerhalb eines Subkreises. Die Unterteilung in Lose und deren Nummerierung erfolgt durch das entsprechende Grundbuchamt oder den Kanton.
+     */
+    Los : TEXT*15;
+  END GrundstueckNummer;
+  
+  /** Die (alte) Nummerierung ist 4-stufig und nur innerhalb eines Kantons eindeutig. (SubKreis, Los, Nummer, NummerZusatz). SubKreis, Los und NummerZusatz sind optional.
+   */
+  STRUCTURE KantonaleGrundstueckNummer =
+    /** Die Nummer des Grundstücks, ohne Angabe des Subkreises oder Loses.
+     */
+    Nummer : MANDATORY TEXT*12;
+    NummerZusatz : TEXT*12;
+    /** Die Nummer des Sub-Kreises innerhalb eines Grundbuchamtes. Die Unterteilung in Sub-Kreise und deren Nummerierung erfolgt durch das entsprechende Grundbuchamt oder den Kanton.
+     */
+    SubKreis : TEXT*15;
+    /** Die Nummer des Loses innerhalb eines Subkreises. Die Unterteilung in Lose und deren Nummerierung erfolgt durch das entsprechende Grundbuchamt oder den Kanton.
+     */
+    Los : TEXT*15;
+  END KantonaleGrundstueckNummer;
+
+  STRUCTURE MutationsNummer =
+    /** Die Nummer der Mutation. Diese wird durch den Geometer vergeben. Die Mutationsnummer ist pro Kreis eindeutig. (In der Regel das Jahr und eine Laufnummer.)
+     */
+    Nummer : MANDATORY TEXT*12;
+    /** Die Nummer des Kreises des Nachführungsgeometers. Die Nummer eines Kreises wird je nach Kanton unterschiedlich vergeben.
+     */
+    AmtlVermKreis : MANDATORY NBIdentAV;
+  END MutationsNummer;
+
+  DOMAIN
+
+    FlaecheMitNachkomma = 0.0 .. 1000000000.0 [m2];
+
+  /** @nohistory
+   */
+  TOPIC Codetabellen =
+    OID AS ObjektIdentifikator;
+
+    DOMAIN
+
+      Stichwort = TEXT*200;
+
+    CLASS Anmeldung_Geschaeftsfallbeschreibung =
+      Stichwort : MANDATORY Stichwort;
+    END Anmeldung_Geschaeftsfallbeschreibung;
+
+    CLASS Anmerkung_Art =
+      Stichwort : MANDATORY Stichwort;
+    END Anmerkung_Art;
+
+    CLASS AuslaendischeRechtsform_Rechtsform =
+      Stichwort : MANDATORY Stichwort;
+    END AuslaendischeRechtsform_Rechtsform;
+
+    CLASS Bergwerk_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END Bergwerk_KantonaleUnterart;
+
+    CLASS Dienstbarkeit_Art =
+      Stichwort : MANDATORY Stichwort;
+    END Dienstbarkeit_Art;
+
+    CLASS Erwerbsgrund_Erwerbsart =
+      Stichwort : MANDATORY Stichwort;
+    END Erwerbsgrund_Erwerbsart;
+
+    CLASS Gebaeude_Gebaeudeart =
+      Stichwort : MANDATORY Stichwort;
+    END Gebaeude_Gebaeudeart;
+
+    CLASS Geschaftsstand_Zustand =
+      Stichwort : MANDATORY Stichwort;
+    END Geschaftsstand_Zustand;
+
+    CLASS GewoehnlichesMitegentum_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END GewoehnlichesMitegentum_KantonaleUnterart;
+
+    CLASS GewoehnlichesSDR_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END GewoehnlichesSDR_KantonaleUnterart;
+
+    CLASS Grundlast_Art =
+      Stichwort : MANDATORY Stichwort;
+    END Grundlast_Art;
+
+    CLASS Grundpfandrecht_altRechtlichKantonaleArt =
+      Stichwort : MANDATORY Stichwort;
+    END Grundpfandrecht_altRechtlichKantonaleArt;
+
+    CLASS JuristischePersonGB_Rechtsform =
+      Stichwort : MANDATORY Stichwort;
+    END JuristischePersonGB_Rechtsform;
+
+    CLASS Konzession_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END Konzession_KantonaleUnterart;
+
+    CLASS Liegenschaft_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END Liegenschaft_KantonaleUnterart;
+
+    CLASS StockwerksEinheit_KantonaleUnterart =
+      Stichwort : MANDATORY Stichwort;
+    END StockwerksEinheit_KantonaleUnterart;
+
+    /** weitere Codetabellen nach diesem Muster. Verweis aus Objekten im Hauptbuch via OID (und nicht via Stichwort!).
+     */
+    CLASS Vormerkung_Art =
+      Stichwort : MANDATORY Stichwort;
+    END Vormerkung_Art;
+
+  END Codetabellen;
+
+  /** Verweise auf die Herkunft der Grundstücke. 
+   * @nohistory
+   */
+  TOPIC Herkunft =
+
+    CLASS GrundstueckHerkunft =
+      /** Verweis auf Grundstück.
+       */
+      EGRID : MANDATORY eGRISDM08.EGRID;
+      /** Verweis auf kantonales Portal. Verweist evtl. direkt auf den entsprechenden Grundbuchauszug. (Für Mensch-Maschine Kommunikation.)
+       */
+      Homepage : MANDATORY URI;
+      /** Kürzel des Kantons, der das Grundstück führt (z.B. BE)
+       */
+      Kanton : MANDATORY TEXT*2;
+      /** Name des Grundbuchamtes, das das Grundstück führt. (z.B. Fraubrunnen)
+       */
+      Amt : TEXT*50;
+    END GrundstueckHerkunft;
+
+    CLASS WebServiceZugang =
+      /** Art des Dienstes. Mögliche Werte werden durch den Bund definiert.
+       */
+      Art : MANDATORY TEXT*20;
+      /** URI für Maschine-Maschine-Kommunikation.
+       */
+      Zugang : MANDATORY URI;
+    END WebServiceZugang;
+
+    ASSOCIATION AssociationDef86 =
+      grundstueck -<> {0..*} GrundstueckHerkunft;
+      webService -- {0..*} WebServiceZugang;
+    END AssociationDef86;
+
+  END Herkunft;
+
+  /** @nohistory
+   */
+  TOPIC PersonenStamm =
+    OID AS ObjektIdentifikator;
+    DEPENDS ON eGRISDM08.Codetabellen;
+
+    CLASS Adresse =
+      ZusatzinformationEmpfaenger : TEXT*120;
+      Strasse : TEXT*60;
+      Hausnummer : TEXT*12;
+      GebaeudeBezeichnung : TEXT*60;
+      PostDienstleistung : TEXT*30;
+      BenanntesGebiet : eGRISDM08.NameOrt;
+      PLZ : TEXT*15;
+      Ort : eGRISDM08.NameOrt;
+      Land : TEXT*60;
+      /** Eidg. Gebaeude-Identifikator. www.housing-stat.ch
+       */
+      GWR_EGID : eGRISDM08.GWR_EGID;
+      /** Eidg. Gebaeudeeingang-Identifikator. www.housing-stat.ch
+       */
+      GWR_EDID : 0 .. 99;
+    END Adresse;
+
+    CLASS PersonStamm (ABSTRACT) =
+      EGBPID : MANDATORY eGRISDM08.EGBPID;
+      Name : MANDATORY TEXT*255;
+      /** Kantonaler Personen Identifikator
+       */
+      KantPersNr : TEXT*20;
+    END PersonStamm;
+
+    CLASS JuristischePerson
+    EXTENDS PersonStamm =
+      NameUebersetzung : BAG {0..*} OF eGRISDM08.Uebersetzung;
+    END JuristischePerson;
+
+    CLASS NatuerlichePerson
+    EXTENDS PersonStamm =
+      Vorname : MANDATORY TEXT*250;
+      Geburtsjahr : MANDATORY 1880 .. 2100;
+      Geburtsmonat : 1 .. 12;
+      Geburtstag : 1 .. 31;
+      Zivilstand : (
+        ledig,
+        verheiratet,
+        geschieden,
+        verwitwet
+      );
+      LedigerName : eGRISDM08.NamePerson;
+      Buergerort : eGRISDM08.NameOrt;
+      NameDerEltern : eGRISDM08.NamePerson;
+      Geschlecht : (
+        weiblich,
+        maennlich
+      );
+      EPID : TEXT*20;
+    END NatuerlichePerson;
+
+    ASSOCIATION PersonenAdresse =
+      PersonStamm -<#> {1} PersonStamm;
+      Adresse -- {0..*} Adresse;
+      Rolle : MANDATORY (
+        Rechtsdomizil,
+        Zustelladresse,
+        Weitere,
+        Verwalter,
+        Wohnadresse
+      );
+      RolleWeitereBeschreibung : TEXT*20;
+    END PersonenAdresse;
+
+    CLASS AuslaendischeRechtsform
+    EXTENDS JuristischePerson =
+      RechtsformStichwort : eGRISDM08.ObjektIdentifikator;
+      RechtsformZusatz : eGRISDM08.StichwortZusatz;
+      Sitz : MANDATORY TEXT*100;
+    END AuslaendischeRechtsform;
+
+    CLASS OeffentlicheKoerperschaft
+    EXTENDS JuristischePerson =
+      Sitz : MANDATORY eGRISDM08.NameOrt;
+    END OeffentlicheKoerperschaft;
+
+    CLASS SchweizerischeJuristischePerson
+    EXTENDS JuristischePerson =
+      Gesellschaftsform : MANDATORY (
+        Aktiengesellschaft,
+        Kommanditaktiengesellschaft,
+        GmbH,
+        Genossenschaft,
+        Verein,
+        Stiftung,
+        weitere,
+        KollektiveGesellschaft,
+        KommanditGesellschaft
+      );
+      /** Wo die Firma im Handelsregister eingetragen ist.
+       */
+      Sitz : MANDATORY eGRISDM08.NameOrt;
+      UID : TEXT*20;
+    END SchweizerischeJuristischePerson;
+
+  END PersonenStamm;
+
+    TOPIC Hauptbuch =
+      OID AS ObjektIdentifikator;
+      DEPENDS ON PersonenStamm, Codetabellen;
+
+
+      STRUCTURE Abschnitt =
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+        Datum : MANDATORY Datum;
+        TagebuchNummer : TagebuchNummer;
+        von : MANDATORY eGRISDM08.GrundstueckNummer;
+      END Abschnitt;
+
+      CLASS AVBemerkung =
+        Art : MANDATORY (
+          StreitigeGrenze,
+          Lagefixpunkt,
+          Naturdenkmal,
+          eingedoltesGewaesser,
+          andere);
+        /** falls Art==#andere
+         */
+        AndereArt : TEXT*20;
+        Bemerkung : MTEXT*200;
+      END AVBemerkung;
+
+      CLASS Berechtigte_Stamm (ABSTRACT) =
+      END Berechtigte_Stamm;
+      CLASS Berechtigte (ABSTRACT) =
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END Berechtigte;
+      ASSOCIATION Berechtigte2Stamm =
+        stamm -<#> {1} Berechtigte_Stamm;
+        zustand -- {1..*} Berechtigte;
+      END Berechtigte2Stamm;
+
+      STRUCTURE Bodenbedeckung =
+        Art : MANDATORY BBArt;
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+        ArtBezeichnung : TEXT*20;
+      END Bodenbedeckung;
+
+      CLASS Erwerbsgrund =
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+        /** Kauf, Erbgang, ...
+         */
+        ErwerbsartStichwort : MANDATORY ObjektIdentifikator;
+        ErwerbsartZusatz : StichwortZusatz;
+        Datum : MANDATORY Datum;
+        TagebuchNummer : TagebuchNummer;
+      END Erwerbsgrund;
+
+      CLASS Flaeche_Stamm =
+        letzteVollzogeneMutation : eGRISDM08.MutationsNummer;
+      END Flaeche_Stamm;
+      CLASS Flaeche =
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+      END Flaeche;
+      ASSOCIATION Flaeche2Stamm =
+        stamm -<#> {1} Flaeche_Stamm;
+        zustand -- {1..*} Flaeche;
+      END Flaeche2Stamm;
+
+      STRUCTURE Flurname =
+        /** Wertebereich gem. AV01 (DM01AVCH23D.Nomenklatur.Flurname.Name).
+         */
+        Name : MANDATORY TEXT*40;
+      END Flurname;
+
+      STRUCTURE GBPlan =
+        Nummer : MANDATORY TEXT*12;
+        /** Der Nummerierungsbereich, indem die Nummer eindeutig ist.
+         */
+        NBIdent : MANDATORY NBIdentAV;
+      END GBPlan;
+
+      CLASS Gebaeude =
+        /** Eidg. Gebaeude-Identifikator. www.housing-stat.ch
+         */
+        GWR_EGID : GWR_EGID;
+        istProjektiert : MANDATORY BOOLEAN;
+        istUnterirdisch : MANDATORY BOOLEAN;
+        Nummer : TEXT*12;
+        GebaeudeartStichwort : ObjektIdentifikator;
+        GebaeudeartZusatz : StichwortZusatz;
+        GebaeudeartCode : TEXT*4;
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+      END Gebaeude;
+
+      /** gem. SN 612040
+       * 
+       */
+      CLASS GebaeudeeingangAdresse =
+        /** Strasse, Platz oder BenanntesGebiet
+         */
+        Strasse : TEXT*60;
+        Hausnummer : TEXT*12;
+        GebaeudeBezeichnung : TEXT*40;
+        PLZ : MANDATORY 1000 .. 9999;
+        /** Die Postleitzahlzusatzziffern. (Zusammen mit PLZ eindeutiger Verweis auf Postleitzahlenverzeichnis der Post.)
+         */
+        PlzZusatzziffern : 0 .. 99;
+        Ortschaft : MANDATORY NameOrt;
+        GWR_EGID : GWR_EGID;
+        /** Eidg. Gebaeudeeingang-Identifikator. www.housing-stat.ch
+         */
+        GWR_EDID : 0 .. 99;
+      END GebaeudeeingangAdresse;
+
+      STRUCTURE Gemeinde =
+        Name : MANDATORY TEXT*30;
+        BFSNr : MANDATORY 1 .. 9999;
+      END Gemeinde;
+
+      CLASS LastRechtAnmerkung =
+      END LastRechtAnmerkung;
+
+      CLASS LastRechtDienstbarkeit =
+      END LastRechtDienstbarkeit;
+
+      CLASS LastRechtGrundlast =
+      END LastRechtGrundlast;
+
+      CLASS LastRechtVormerkung =
+      END LastRechtVormerkung;
+
+      CLASS Recht_Stamm (ABSTRACT) =
+        EREID : MANDATORY EREID;
+        /** True, falls dieses Recht in einem GBA nur als Kopie geführt wird. Die EGRID ist bei einer Kopie die selbe wie beim Original, die Id ist aber nicht die selbe!
+         */
+        istKopie : MANDATORY BOOLEAN;
+      END Recht_Stamm;
+      CLASS Recht (ABSTRACT) =
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+        alteNummer : TEXT*20;
+      END Recht;
+      ASSOCIATION Recht2Stamm =
+        stamm -<#> {1} Recht_Stamm;
+        zustand -- {1..*} Recht;
+      END Recht2Stamm;
+
+      CLASS Anmerkung_Stamm EXTENDS Recht_Stamm =
+      END Anmerkung_Stamm;
+      CLASS Anmerkung EXTENDS Recht =
+        /** Art der Anmerkung.
+         * Liste ergibt sich aus eidg. und kant. Erlassen.
+         */
+        ArtStichwort : ObjektIdentifikator;
+        ArtZusatz : StichwortZusatz;
+        Ablaufdatum : Datum;
+        Wert : WertCHF;
+      END Anmerkung;
+
+      CLASS Dienstbarkeit_Stamm EXTENDS Recht_Stamm =
+      END Dienstbarkeit_Stamm;
+      CLASS Dienstbarkeit EXTENDS Recht =
+        /** Jede Verpflichtung zu einem Dulden oder Unterlassen kann Inhalt einer Dienstbarkeit sein. z.B. Fussweg. In Bemerkungen wird die genauere Umschreibung erfasst.
+         */
+        ArtStichwort : ObjektIdentifikator;
+	/** Wenn eine 'Dienstbarkeit' keine 'LastRechtDienstbarkeit' hat (aber ein 'beteiligtesGrundstueck' hat), enthält 'ArtZusatz' ausser den Inhaltsangaben auch die Beziehungsangaben bezüglich Recht und Last.
+	 */
+        ArtZusatz : StichwortZusatz;
+        Ablaufdatum : Datum;
+      END Dienstbarkeit;
+
+      CLASS EigentumAnteil_Stamm EXTENDS Recht_Stamm =
+      END EigentumAnteil_Stamm;
+      CLASS EigentumAnteil EXTENDS Recht =
+        AnteilZaehler : 1 .. 1000000000;
+        AnteilNenner : 1 .. 1000000000;
+        SubjektivDinglich : MANDATORY BOOLEAN;
+        Eigentumsform : MANDATORY (
+          AlleinEigentum,
+          MitEigentum,
+          GesamtEigentum,
+          Herrenlos);
+        /** z.B. un demi d'un demi
+         */
+        AnteilInProsa : TEXT*300;
+      END EigentumAnteil;
+
+      CLASS Grundlast_Stamm EXTENDS Recht_Stamm =
+      END Grundlast_Stamm;
+      CLASS Grundlast EXTENDS Recht =
+        /** Art der Grundlast
+         */
+        ArtStichwort : ObjektIdentifikator;
+        ArtZusatz : StichwortZusatz;
+        Gesamtwert : MANDATORY WertCHF;
+        Ablaufdatum : Datum;
+      END Grundlast;
+
+      CLASS Grundpfandrecht_Stamm EXTENDS Recht_Stamm =
+      END Grundpfandrecht_Stamm;
+      CLASS Grundpfandrecht EXTENDS Recht =
+        /** Liste ergibt sich aus ZGB und kant. Erlassen
+         */
+        Art : MANDATORY GrundpfandrechtArt;
+        Pfandsumme : MANDATORY WertCHF;
+        maxZinsfuss : 5.0 .. 20.0;
+        altRechtlichKantonaleArtStichwort : ObjektIdentifikator;
+        altRechtlichKantonaleArtZusatz : StichwortZusatz;
+        Bemerkung : MTEXT*2000;
+      END Grundpfandrecht;
+
+      CLASS Grundstueck_Stamm (ABSTRACT) EXTENDS Berechtigte_Stamm =
+      EGRID : MANDATORY EGRID;
+      /** True, falls dieses Grundstück in einem GBA nur als Kopie geführt wird. Die GrundstueckNummer ist bei einer Kopie die selbe wie beim Original, die Id ist aber nicht die selbe!
+       */
+      istKopie : MANDATORY BOOLEAN;
+      Flurnamen : BAG {0..*} OF Flurname;
+      GBPlaene : BAG {0..*} OF GBPlan;
+      Gemeinde : MANDATORY Gemeinde;
+      END Grundstueck_Stamm;
+      /** Was als Grundstück aufgenommen werden kann, ist in Art. 943 ZGB abschliessend definiert. Allfällige kantonale Spezialitäten müssen sich unter eine der vier dort genannten Klassen subsummieren lassen.
+       */
+      CLASS Grundstueck (ABSTRACT) EXTENDS Berechtigte =
+        Fuehrungsart : MANDATORY (
+          eidgenoessisch,
+          kantonal);
+        Nummer : MANDATORY eGRISDM08.KantonaleGrundstueckNummer;
+      END Grundstueck;
+
+      CLASS PersonGB_Stamm EXTENDS Berechtigte_Stamm =
+      /** Eidg. Grundbuch-Personenidentifikator. Darf nur innerhalb des Grundbuchs verwendet werden
+       * 
+       */
+      EGBPID : MANDATORY EGBPID;
+      END PersonGB_Stamm;
+      /** Angaben zu einer Person gem. GBV Art. 31
+       */
+      CLASS PersonGB EXTENDS Berechtigte =
+      END PersonGB;
+
+      CLASS Vormerkung_Stamm EXTENDS Recht_Stamm =
+      END Vormerkung_Stamm;
+      CLASS Vormerkung EXTENDS Recht =
+        /** Art der Vormerkung.
+         * Stichwortliste kann nicht mit vertretbarem Aufwand erstellt werden.
+         */
+        ArtStichwort : ObjektIdentifikator;
+        /** Zusatzbemerkung/Detail betrf. Art/Stichwort der Vormerkung.
+         */
+        ArtZusatz : StichwortZusatz;
+        Ablaufdatum : Datum;
+        Preis : WertCHF;
+      END Vormerkung;
+
+      ASSOCIATION FortsetzungUrsprung =
+        Fortsetzung -- {0..1} Recht_Stamm;
+        Ursprung -- {0..1} Recht_Stamm;
+      END FortsetzungUrsprung;
+
+      ASSOCIATION GebaeudeAdresse =
+        Adresse -- {0..*} GebaeudeeingangAdresse;
+        Gebaeude -- {1} Gebaeude;
+      END GebaeudeAdresse;
+
+      CLASS LastRechtDienstbarkeitBerechtigte =
+        !! LastRechtDienstbarkeit -- {0..*} LastRechtDienstbarkeit;
+        !! Berechtigte -- {1..*} Berechtigte;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END LastRechtDienstbarkeitBerechtigte;
+      ASSOCIATION LastRechtDienstbarkeitBerechtigte_LastRechtDienstbarkeit =
+        LastRechtDienstbarkeit -- {1} LastRechtDienstbarkeit;
+        Berechtigte -- {1..*} LastRechtDienstbarkeitBerechtigte;
+      END LastRechtDienstbarkeitBerechtigte_LastRechtDienstbarkeit;
+      ASSOCIATION LastRechtDienstbarkeitBerechtigte_Berechtigte =
+        Berechtigte -- {1} Berechtigte_Stamm;
+        LastRechtDienstbarkeit -- {0..*} LastRechtDienstbarkeitBerechtigte;
+      END LastRechtDienstbarkeitBerechtigte_Berechtigte;
+
+      CLASS LastRechtGrundlastBerechtigte =
+        !! LastRechtGrundlast -- {0..*} LastRechtGrundlast;
+        !! Berechtigte -- {1..*} Berechtigte;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END LastRechtGrundlastBerechtigte;
+      ASSOCIATION LastRechtGrundlastBerechtigte_LastRechtGrundlast =
+        LastRechtGrundlast -- {1} LastRechtGrundlast;
+        Berechtigte -- {1..*} LastRechtGrundlastBerechtigte;
+      END LastRechtGrundlastBerechtigte_LastRechtGrundlast;
+      ASSOCIATION LastRechtGrundlastBerechtigte_Berechtigte =
+        Berechtigte -- {1} Berechtigte_Stamm;
+        LastRechtGrundlast -- {0..*} LastRechtGrundlastBerechtigte;
+      END LastRechtGrundlastBerechtigte_Berechtigte;
+
+      CLASS TeilAnmerkungBerechtigte =
+        !! TeilAnmerkung -- {0..*} LastRechtAnmerkung;
+        !! Berechtigte -- {0..*} Berechtigte;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END TeilAnmerkungBerechtigte;
+      ASSOCIATION TeilAnmerkungBerechtigte_TeilAnmerkung =
+        TeilAnmerkung -- {1} LastRechtAnmerkung;
+        Berechtigte -- {0..*} TeilAnmerkungBerechtigte;
+      END TeilAnmerkungBerechtigte_TeilAnmerkung;
+      ASSOCIATION TeilAnmerkungBerechtigte_Berechtigte =
+        Berechtigte -- {1} Berechtigte_Stamm;
+        TeilAnmerkung -- {0..*} TeilAnmerkungBerechtigte;
+      END TeilAnmerkungBerechtigte_Berechtigte;
+
+      CLASS TeilVormerkungBerechtigte =
+        !! TeilVormerkung -- {0..*} LastRechtVormerkung;
+        !! Berechtigte -- {0..*} Berechtigte;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END TeilVormerkungBerechtigte;
+      ASSOCIATION TeilVormerkungBerechtigte_TeilVormerkung =
+        TeilVormerkung -- {1} LastRechtVormerkung;
+        Berechtigte -- {0..*} TeilVormerkungBerechtigte;
+      END TeilVormerkungBerechtigte_TeilVormerkung;
+      ASSOCIATION TeilVormerkungBerechtigte_Berechtigte =
+        Berechtigte -- {1} Berechtigte_Stamm;
+        TeilVormerkung -- {0..*} TeilVormerkungBerechtigte;
+      END TeilVormerkungBerechtigte_Berechtigte;
+
+      CLASS Bergwerk_Stamm EXTENDS Grundstueck_Stamm =
+        KantonaleUnterartStichwort : ObjektIdentifikator;
+        KantonaleUnterartZusatz : StichwortZusatz;
+      END Bergwerk_Stamm;
+      CLASS Bergwerk EXTENDS Grundstueck =
+      END Bergwerk;
+
+      CLASS Gemeinschaft_Stamm EXTENDS PersonGB_Stamm =
+      END Gemeinschaft_Stamm;
+      CLASS Gemeinschaft EXTENDS PersonGB =
+        /** KollektiveGesellschaft, KommanditGesellschaft als JuristischePerson erfassen.
+         */
+        Art : MANDATORY (
+          EinfacheGesellschaft,
+          Guetergemeinschaft,
+          Erbengemeinschaft,
+          Gemeinderschaft);
+        Name : TEXT*250;
+      END Gemeinschaft;
+
+      CLASS JuristischePersonGB_Stamm EXTENDS PersonGB_Stamm =
+      END JuristischePersonGB_Stamm;
+      CLASS JuristischePersonGB EXTENDS PersonGB =
+        Name_Firma : MANDATORY TEXT*255;
+        Sitz : MANDATORY TEXT*100;
+        RechtsformStichwort : ObjektIdentifikator;
+        RechtsformZusatz : StichwortZusatz;
+        Firmennummer : TEXT*20;
+      END JuristischePersonGB;
+
+      CLASS Liegenschaft_Stamm EXTENDS Grundstueck_Stamm =
+      KantonaleUnterartStichwort : ObjektIdentifikator;
+      KantonaleUnterartZusatz : StichwortZusatz;
+      BodbdAnteil : BAG {0..*} OF Bodenbedeckung;
+      letzteVollzogeneMutation : eGRISDM08.MutationsNummer;
+      END Liegenschaft_Stamm;
+      CLASS Liegenschaft EXTENDS Grundstueck =
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+        Zugang : BAG {0..*} OF Abschnitt;
+      END Liegenschaft;
+
+      CLASS MiteigentumsAnteil_Stamm (ABSTRACT) EXTENDS Grundstueck_Stamm =
+      END MiteigentumsAnteil_Stamm;
+      CLASS MiteigentumsAnteil (ABSTRACT) EXTENDS Grundstueck =
+      END MiteigentumsAnteil;
+
+      CLASS NatuerlichePersonGB_Stamm EXTENDS PersonGB_Stamm =
+      END NatuerlichePersonGB_Stamm;
+      CLASS NatuerlichePersonGB EXTENDS PersonGB =
+        Name : MANDATORY TEXT*255;
+        Vorname : MANDATORY TEXT*250;
+        Geburtsjahr : MANDATORY 1880 .. 2100;
+        Geburtsmonat : 1 .. 12;
+        Geburtstag : 1 .. 31;
+      END NatuerlichePersonGB;
+
+      CLASS SelbstaendigesDauerndesRecht_Stamm (ABSTRACT) EXTENDS Grundstueck_Stamm =
+      END SelbstaendigesDauerndesRecht_Stamm;
+      CLASS SelbstaendigesDauerndesRecht (ABSTRACT) EXTENDS Grundstueck =
+      END SelbstaendigesDauerndesRecht;
+
+      ASSOCIATION AnmerkungTeilAnmerkung =
+        Anmerkung -- {1} Anmerkung_Stamm;
+        TeilAnmerkung -- {1..*} LastRechtAnmerkung;
+      END AnmerkungTeilAnmerkung;
+
+      ASSOCIATION Anteil =
+        flaeche -- {0..*} Flaeche_Stamm;
+        liegt_auf -- {1..*} Grundstueck_Stamm;
+      END Anteil;
+
+      CLASS BelastetesGrundstueckAnmerkung =
+        !! belastetesGrundstueck -- {1..*} Grundstueck;
+        !! TeilAnmerkung2 -- {0..*} LastRechtAnmerkung;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BelastetesGrundstueckAnmerkung;
+      ASSOCIATION BelastetesGrundstueckAnmerkung_belastetesGrundstueck =
+        belastetesGrundstueck -- {1} Grundstueck_Stamm;
+        TeilAnmerkung2 -- {0..*} BelastetesGrundstueckAnmerkung;
+      END BelastetesGrundstueckAnmerkung_belastetesGrundstueck;
+      ASSOCIATION BelastetesGrundstueckAnmerkung_TeilAnmerkung2 =
+        TeilAnmerkung2 -- {1} LastRechtAnmerkung;
+        belastetesGrundstueck -- {1..*} BelastetesGrundstueckAnmerkung;
+      END BelastetesGrundstueckAnmerkung_TeilAnmerkung2;
+
+      CLASS BelastetesGrundstueckDienstbarkeit =
+        !! belastetesGrundstueck -- {1..*} Grundstueck;
+        !! TeilDienstbarkeit -- {0..*} LastRechtDienstbarkeit;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BelastetesGrundstueckDienstbarkeit;
+      ASSOCIATION BelastetesGrundstueckDienstbarkeit_belastetesGrundstueck =
+        belastetesGrundstueck -- {1} Grundstueck_Stamm;
+        TeilDienstbarkeit -- {0..*} BelastetesGrundstueckDienstbarkeit;
+      END BelastetesGrundstueckDienstbarkeit_belastetesGrundstueck;
+      ASSOCIATION BelastetesGrundstueckDienstbarkeit_TeilDienstbarkeit =
+        TeilDienstbarkeit -- {1} LastRechtDienstbarkeit;
+        belastetesGrundstueck -- {1..*} BelastetesGrundstueckDienstbarkeit;
+      END BelastetesGrundstueckDienstbarkeit_TeilDienstbarkeit;
+
+      ASSOCIATION BelastetesGrundstueckEigentum =
+        belastetesGrundstueck -- {1} Grundstueck_Stamm;
+	/** Im Normalfall ist die Kardinalität 1..*; 0..* ist nur zulässig, falls Grundstueck.istKopie==True
+	 */
+        Eigentum -- {0..*} EigentumAnteil_Stamm;
+      END BelastetesGrundstueckEigentum;
+
+      CLASS BelastetesGrundstueckGrundlast =
+        !! belastetesGrundstueck -- {1..*} Grundstueck;
+        !! TeilGrundlast -- {0..*} LastRechtGrundlast;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BelastetesGrundstueckGrundlast;
+      ASSOCIATION BelastetesGrundstueckGrundlast_belastetesGrundstueck =
+        belastetesGrundstueck -- {1} Grundstueck_Stamm;
+        TeilGrundlast -- {0..*} BelastetesGrundstueckGrundlast;
+      END BelastetesGrundstueckGrundlast_belastetesGrundstueck;
+      ASSOCIATION BelastetesGrundstueckGrundlast_TeilGrundlast =
+        TeilGrundlast -- {1} LastRechtGrundlast;
+        belastetesGrundstueck -- {1..*} BelastetesGrundstueckGrundlast;
+      END BelastetesGrundstueckGrundlast_TeilGrundlast;
+
+      CLASS BelastetesGrundstueckVormerkung =
+        !! belastetesGrundstueck -- {1..*} Grundstueck;
+        !! TeilVormerkung2 -- {0..*} LastRechtVormerkung;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BelastetesGrundstueckVormerkung;
+      ASSOCIATION BelastetesGrundstueckVormerkung_belastetesGrundstueck =
+        belastetesGrundstueck -- {1} Grundstueck_Stamm;
+        TeilVormerkung2 -- {0..*} BelastetesGrundstueckVormerkung;
+      END BelastetesGrundstueckVormerkung_belastetesGrundstueck;
+      ASSOCIATION BelastetesGrundstueckVormerkung_TeilVormerkung2 =
+        TeilVormerkung2 -- {1} LastRechtVormerkung;
+        belastetesGrundstueck -- {1..*} BelastetesGrundstueckVormerkung;
+      END BelastetesGrundstueckVormerkung_TeilVormerkung2;
+
+      ASSOCIATION BerechtigteRecht =
+        /** Kardinalität==0 nur für Eigentum.form==herrenlos oder oeffentlich
+         */
+        Berechtigte -- {0..1} Berechtigte_Stamm;
+        Grundstueck -- {0..*} EigentumAnteil_Stamm;
+      END BerechtigteRecht;
+
+      CLASS BeteiligtesGrundstueckAnmerkung =
+        !! beteiligtesGrundstueck -- {0..*} Grundstueck;
+        !! Anmerkung -- {0..*} Anmerkung;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BeteiligtesGrundstueckAnmerkung;
+      ASSOCIATION BeteiligtesGrundstueckAnmerkung_beteiligtesGrundstueck =
+        beteiligtesGrundstueck -- {1} Grundstueck_Stamm;
+        Anmerkung -- {0..*} BeteiligtesGrundstueckAnmerkung;
+      END BeteiligtesGrundstueckAnmerkung_beteiligtesGrundstueck;
+      ASSOCIATION BeteiligtesGrundstueckAnmerkung_Anmerkung =
+        Anmerkung -- {1} Anmerkung_Stamm;
+        beteiligtesGrundstueck -- {0..*} BeteiligtesGrundstueckAnmerkung;
+      END BeteiligtesGrundstueckAnmerkung_Anmerkung;
+
+      CLASS BeteiligtesGrundstueckDienstbarkeit =
+        !! beteiligtesGrundstueck -- {0..*} Grundstueck;
+        !! Dienstbarkeit -- {0..*} Dienstbarkeit;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BeteiligtesGrundstueckDienstbarkeit;
+      ASSOCIATION BeteiligtesGrundstueckDienstbarkeit_beteiligtesGrundstueck =
+        beteiligtesGrundstueck -- {1} Grundstueck_Stamm;
+        Dienstbarkeit -- {0..*} BeteiligtesGrundstueckDienstbarkeit;
+      END BeteiligtesGrundstueckDienstbarkeit_beteiligtesGrundstueck;
+      ASSOCIATION BeteiligtesGrundstueckDienstbarkeit_Dienstbarkeit =
+        Dienstbarkeit -- {1} Dienstbarkeit_Stamm;
+        beteiligtesGrundstueck -- {0..*} BeteiligtesGrundstueckDienstbarkeit;
+      END BeteiligtesGrundstueckDienstbarkeit_Dienstbarkeit;
+
+      CLASS BeteiligtesGrundstueckGrundlast =
+        !! beteiligtesGrundstueck -- {0..*} Grundstueck;
+        !! Grundlast -- {0..*} Grundlast;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BeteiligtesGrundstueckGrundlast;
+      ASSOCIATION BeteiligtesGrundstueckGrundlast_beteiligtesGrundstueck =
+        beteiligtesGrundstueck -- {1} Grundstueck_Stamm;
+        Grundlast -- {0..*} BeteiligtesGrundstueckGrundlast;
+      END BeteiligtesGrundstueckGrundlast_beteiligtesGrundstueck;
+      ASSOCIATION BeteiligtesGrundstueckGrundlast_Grundlast =
+        Grundlast -- {1} Grundlast_Stamm;
+        beteiligtesGrundstueck -- {0..*} BeteiligtesGrundstueckGrundlast;
+      END BeteiligtesGrundstueckGrundlast_Grundlast;
+
+      CLASS BeteiligtesGrundstueckVormerkung =
+        !! beteiligtesGrundstueck -- {0..*} Grundstueck;
+        !! Vormerkung -- {0..*} Vormerkung;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END BeteiligtesGrundstueckVormerkung;
+      ASSOCIATION BeteiligtesGrundstueckVormerkung_beteiligtesGrundstueck =
+        beteiligtesGrundstueck -- {1} Grundstueck_Stamm;
+        Vormerkung -- {0..*} BeteiligtesGrundstueckVormerkung;
+      END BeteiligtesGrundstueckVormerkung_beteiligtesGrundstueck;
+      ASSOCIATION BeteiligtesGrundstueckVormerkung_Vormerkung =
+        Vormerkung -- {1} Vormerkung_Stamm;
+        beteiligtesGrundstueck -- {0..*} BeteiligtesGrundstueckVormerkung;
+      END BeteiligtesGrundstueckVormerkung_Vormerkung;
+
+      ASSOCIATION DienstbarkeitLastRechtDienstbarkeit =
+        Dienstbarkeit -- {1} Dienstbarkeit_Stamm;
+        /** Kardinalität ist 0..* und nicht 1..* wegen unbereinigten Dienstbarkeiten.
+         */
+        LastRechtDienstbarkeit -- {0..*} LastRechtDienstbarkeit;
+      END DienstbarkeitLastRechtDienstbarkeit;
+
+      ASSOCIATION EigentumAnteilErwerbsgrund =
+        EigentumAnteil -<#> {1} EigentumAnteil_Stamm;
+        Erwerbsgrund -- {0..*} Erwerbsgrund;
+      END EigentumAnteilErwerbsgrund;
+
+      CLASS ForderungGlaeubiger =
+        !! Forderung -- {0..*} Grundpfandrecht;
+        !! Glaeubiger -- {0..*} PersonGB;
+        Rolle : (
+          Grundpfand,
+          Faustpfand,
+          Nutzniesser);
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END ForderungGlaeubiger;
+      ASSOCIATION ForderungGlaeubiger_Forderung =
+        Forderung -- {1} Grundpfandrecht_Stamm;
+        Glaeubiger -- {0..*} ForderungGlaeubiger;
+      END ForderungGlaeubiger_Forderung;
+      ASSOCIATION ForderungGlaeubiger_Glaeubiger =
+        Glaeubiger -- {1} PersonGB_Stamm;
+        Forderung -- {0..*} ForderungGlaeubiger;
+      END ForderungGlaeubiger_Glaeubiger;
+
+      CLASS GebaeudenummerDienstbarkeit =
+        !! Gebaeudenummer -- {0..*} Gebaeude;
+        !! Dienstbarkeit -- {0..*} Dienstbarkeit;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END GebaeudenummerDienstbarkeit;
+      ASSOCIATION GebaeudenummerDienstbarkeit_Gebaeudenummer =
+        Gebaeudenummer -- {1} Gebaeude;
+        Dienstbarkeit -- {0..*} GebaeudenummerDienstbarkeit;
+      END GebaeudenummerDienstbarkeit_Gebaeudenummer;
+      ASSOCIATION GebaeudenummerDienstbarkeit_Dienstbarkeit =
+        Dienstbarkeit -- {1} Dienstbarkeit_Stamm;
+        Gebaeudenummer -- {0..*} GebaeudenummerDienstbarkeit;
+      END GebaeudenummerDienstbarkeit_Dienstbarkeit;
+
+      CLASS GrundstueckAltNeu =
+        !! alt -- {0..*} Grundstueck;
+        !! neu -- {0..*} Grundstueck;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END GrundstueckAltNeu;
+      ASSOCIATION GrundstueckAltNeu_alt =
+        alt -- {1} Grundstueck_Stamm;
+        neu -- {0..*} GrundstueckAltNeu;
+      END GrundstueckAltNeu_alt;
+      ASSOCIATION GrundstueckAltNeu_neu =
+        neu -- {1} Grundstueck_Stamm;
+        alt -- {0..*} GrundstueckAltNeu;
+      END GrundstueckAltNeu_neu;
+
+      ASSOCIATION GrundstueckAVBemerkung =
+        Grundstueck -- {0..*} Grundstueck_Stamm;
+        AVBemerkung -- {0..*} AVBemerkung;
+      END GrundstueckAVBemerkung;
+
+      ASSOCIATION GrundstueckGebaeude =
+        Gebaeude -- {0..*} Gebaeude;
+        Grundstueck -- {0..*} Grundstueck_Stamm;
+        Flaechenmass : MANDATORY FlaecheMitNachkomma;
+      END GrundstueckGebaeude;
+
+      ASSOCIATION LastRechtGrundlastGrundlast =
+        LastRechtGrundlast -- {0..*} LastRechtGrundlast;
+        Grundlast -- {1} Grundlast_Stamm;
+      END LastRechtGrundlastGrundlast;
+
+      ASSOCIATION PersonStammPersonGB =
+        PersonStamm (EXTERNAL) -- {0..1} eGRISDM08.PersonenStamm.PersonStamm;
+        PersonGB -- {0..*} PersonGB_Stamm;
+      END PersonStammPersonGB;
+
+      CLASS SchuldSchuldner =
+        !! Schuld -- {0..*} Grundpfandrecht;
+        !! Schuldner -- {0..*} PersonGB;
+        Rolle : (
+          Solidar,
+          Einfach,
+          Dritt);
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END SchuldSchuldner;
+      ASSOCIATION SchuldSchuldner_Schuld =
+        Schuld -- {1} Grundpfandrecht_Stamm;
+        Schuldner -- {0..*} SchuldSchuldner;
+      END SchuldSchuldner_Schuld;
+      ASSOCIATION SchuldSchuldner_Schuldner =
+        Schuldner -- {1} PersonGB_Stamm;
+        Schuld -- {0..*} SchuldSchuldner;
+      END SchuldSchuldner_Schuldner;
+
+      CLASS VerpfaendetesGrundstueckGrundpfandrecht_Stamm =
+        von : MANDATORY eGRISDM08.EGBTBID;
+        vonIdx : MANDATORY eGRISDM08.TagebuchIdx;
+        bis : eGRISDM08.EGBTBID;
+        bisIdx : eGRISDM08.TagebuchIdx;
+      END VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+      CLASS VerpfaendetesGrundstueckGrundpfandrecht =
+        !! VerpfaendetesGrundstueck -- {1..*} Grundstueck;
+        !! Grundpfandrecht -- {0..*} Grundpfandrecht;
+        Teilpfandsumme : WertCHF;
+        Pfandstelle : TEXT*20;
+        Nachrueckungsrecht : NachrueckungsRechtArt;
+        Bemerkung : MTEXT*2000;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END VerpfaendetesGrundstueckGrundpfandrecht;
+    ASSOCIATION VerpfaendetesGrundstueckGrundpfandrecht2Stamm =
+      zustand -- {1..*} VerpfaendetesGrundstueckGrundpfandrecht;
+      stamm -<#> {1} VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+    END VerpfaendetesGrundstueckGrundpfandrecht2Stamm;
+      ASSOCIATION VerpfaendetesGrundstueckGrundpfandrecht_VerpfaendetesGrundstueck =
+        VerpfaendetesGrundstueck -- {1} Grundstueck_Stamm;
+        Grundpfandrecht -- {0..*} VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+      END VerpfaendetesGrundstueckGrundpfandrecht_VerpfaendetesGrundstueck;
+      ASSOCIATION VerpfaendetesGrundstueckGrundpfandrecht_Grundpfandrecht =
+        Grundpfandrecht -- {1} Grundpfandrecht_Stamm;
+        VerpfaendetesGrundstueck -- {1..*} VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+      END VerpfaendetesGrundstueckGrundpfandrecht_Grundpfandrecht;
+
+      ASSOCIATION VormerkungTeilVormerkung =
+        Vormerkung -- {1} Vormerkung_Stamm;
+        TeilVormerkung -- {1..*} LastRechtVormerkung;
+      END VormerkungTeilVormerkung;
+
+      CLASS GewoehnlichesMiteigentum_Stamm EXTENDS MiteigentumsAnteil_Stamm =
+        KantonaleUnterartStichwort : ObjektIdentifikator;
+      END GewoehnlichesMiteigentum_Stamm;
+      CLASS GewoehnlichesMiteigentum EXTENDS MiteigentumsAnteil =
+        Beschreibung : MTEXT*240;
+      END GewoehnlichesMiteigentum;
+
+      CLASS GewoehnlichesSDR_Stamm EXTENDS SelbstaendigesDauerndesRecht_Stamm =
+        KantonaleUnterartStichwort : ObjektIdentifikator;
+      END GewoehnlichesSDR_Stamm;
+      CLASS GewoehnlichesSDR EXTENDS SelbstaendigesDauerndesRecht =
+        /** bei "weitere" siehe Art der zugrundeliegenden Dienstbarkeit
+         */
+        Art : MANDATORY DauerndesRechtArt;
+      END GewoehnlichesSDR;
+
+      CLASS Konzession_Stamm EXTENDS SelbstaendigesDauerndesRecht_Stamm =
+        KantonaleUnterartStichwort : ObjektIdentifikator;
+      END Konzession_Stamm;
+      /** zum Beispiel Wasserrecht nach Art. 56.
+       */
+      CLASS Konzession EXTENDS SelbstaendigesDauerndesRecht =
+        Beschreibung : MANDATORY MTEXT*240;
+        Ablaufdatum : Datum;
+      END Konzession;
+
+      CLASS StockwerksEinheit_Stamm EXTENDS MiteigentumsAnteil_Stamm =
+        KantonaleUnterartStichwort : ObjektIdentifikator;
+      END StockwerksEinheit_Stamm;
+      CLASS StockwerksEinheit EXTENDS MiteigentumsAnteil =
+        Beschreibung : MANDATORY MTEXT*240;
+        GWR_EGID : BAG {0..*} OF eGRISDM08.GWR_EGID_;
+      END StockwerksEinheit;
+
+      ASSOCIATION BergwerkFlaeche =
+        Bergwerk -- {0..1} Bergwerk_Stamm;
+        Flaeche -- {0..1} Flaeche_Stamm;
+      END BergwerkFlaeche;
+
+      ASSOCIATION DauerndesRechtFlaeche =
+        DauerndesRecht -- {0..1} SelbstaendigesDauerndesRecht_Stamm;
+        Flaeche -- {0..1} Flaeche_Stamm;
+      END DauerndesRechtFlaeche;
+
+      CLASS GemeinschaftTeilhaber =
+        !! Gemeinschaft -- {0..*} Gemeinschaft;
+        !! Mitglieder -- {0..*} PersonGB;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END GemeinschaftTeilhaber;
+      ASSOCIATION GemeinschaftTeilhaber_Gemeinschaft =
+        Gemeinschaft -- {1} Gemeinschaft_Stamm;
+        Mitglieder -- {0..*} GemeinschaftTeilhaber;
+      END GemeinschaftTeilhaber_Gemeinschaft;
+      ASSOCIATION GemeinschaftTeilhaber_Mitglieder =
+        Mitglieder -- {1} PersonGB_Stamm;
+        Gemeinschaft -- {0..*} GemeinschaftTeilhaber;
+      END GemeinschaftTeilhaber_Mitglieder;
+
+      CLASS GestuetztAufGehoertZu =
+        !! gestuetztAuf -- {0..*} ANYCLASS;
+        !! gehoertZu -- {0..*} ANYCLASS;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END GestuetztAufGehoertZu;
+      ASSOCIATION GestuetztAufGehoertZu_gestuetztAuf =
+        gestuetztAuf -- {1} BeteiligtesGrundstueckVormerkung OR BelastetesGrundstueckEigentum OR BeteiligtesGrundstueckDienstbarkeit OR BeteiligtesGrundstueckAnmerkung OR BeteiligtesGrundstueckGrundlast OR VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+        gehoertZu -- {0..*} GestuetztAufGehoertZu;
+      END GestuetztAufGehoertZu_gestuetztAuf;
+      ASSOCIATION GestuetztAufGehoertZu_gehoertZu =
+        gehoertZu -- {1} BeteiligtesGrundstueckVormerkung OR BelastetesGrundstueckEigentum OR BeteiligtesGrundstueckDienstbarkeit OR BeteiligtesGrundstueckAnmerkung OR BeteiligtesGrundstueckGrundlast OR VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+        gestuetztAuf -- {0..*} GestuetztAufGehoertZu;
+      END GestuetztAufGehoertZu_gehoertZu;
+
+      CLASS Rangverschiebung =
+        !! Vorrang -- {0..*} ANYCLASS;
+        !! RangNachfolge -- {0..*} ANYCLASS;
+        von : MANDATORY EGBTBID;
+        vonIdx : MANDATORY TagebuchIdx;
+        bis : EGBTBID;
+        bisIdx : TagebuchIdx;
+      END Rangverschiebung;
+      ASSOCIATION Rangverschiebung_Vorrang =
+        Vorrang -- {1} BeteiligtesGrundstueckVormerkung OR BeteiligtesGrundstueckDienstbarkeit OR BeteiligtesGrundstueckGrundlast OR VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+        RangNachfolge -- {0..*} Rangverschiebung;
+      END Rangverschiebung_Vorrang;
+      ASSOCIATION Rangverschiebung_RangNachfolge =
+        RangNachfolge -- {1} BeteiligtesGrundstueckVormerkung OR BeteiligtesGrundstueckDienstbarkeit OR BeteiligtesGrundstueckGrundlast OR VerpfaendetesGrundstueckGrundpfandrecht_Stamm;
+        Vorrang -- {0..*} Rangverschiebung;
+      END Rangverschiebung_RangNachfolge;
+
+    END Hauptbuch;
+  
+  /** Bemerkungen gemäss  GBV 111d Abs4 , die nicht Tagebuch relevant sind.
+   * @nohistory
+   */
+  TOPIC Notizen =
+    DEPENDS ON eGRISDM08.Hauptbuch;
+
+    /** gem. Art. 111d Abs. 4
+     */
+    CLASS Notiz =
+      /** Verweis via OID auf irgendein Objekt.
+       */
+      betrifftObjekte : BAG {1..*} OF eGRISDM08.ObjektIdentifikator_;
+      Bemerkung : MANDATORY MTEXT*240;
+      gueltigAb : MANDATORY eGRISDM08.Datum;
+      gueltigBis : eGRISDM08.Datum;
+    END Notiz;
+
+  END Notizen;
+
+  /** @nohistory
+   */
+  TOPIC Tagebuch =
+    OID AS ObjektIdentifikator;
+    DEPENDS ON eGRISDM08.Hauptbuch,eGRISDM08.PersonenStamm,eGRISDM08.Codetabellen;
+
+    CLASS Anmeldung =
+      EGBTBID : MANDATORY eGRISDM08.EGBTBID;
+      /** I.d.R. eindeutig pro Amt und Jahr. Ausnahme: Ersterfassung.
+       * Kann bei Ersterfassung auch ganz fehlen.
+       */
+      TagebuchNummer : eGRISDM08.TagebuchNummer;
+      /** Muss auch für Ersterfassung zwingend vorhanden sein (für korrekte Sortierung der Tagebucheinträge).
+        * Falls aber Geschaeftstyp==Ersterfassung, nicht zwingend das Datum des ursprünglichen Geschäfts, sondern ein künstlich Erzeugtes.
+	*/
+      TagebuchDatumZeit : MANDATORY eGRISDM08.DatumInklZeit;
+      /** Art der vorzunehmenden Eintragung in Stichworten
+       */
+      GeschaeftsfallbeschreibungStichwort : MANDATORY eGRISDM08.ObjektIdentifikator;
+      GeschaeftsfallbeschreibungZusatz : eGRISDM08.StichwortZusatz;
+      Bemerkungen : MTEXT*240;
+      DossierNummer : TEXT*20;
+      Geschaeftstyp : MANDATORY eGRISDM08.Geschaeftstyp;
+      /** Es gibt auch Geschäfte, die nicht durch den Geometer ausgelöst werden, dann gibt es keine Mutationsnummern.
+       */
+      MutationsNummer : BAG {0..*} OF eGRISDM08.MutationsNummer;
+      betroffenesGrundstueck : BAG {0..*} OF eGRISDM08.GrundstueckNummer;
+    END Anmeldung;
+
+    CLASS Dokument =
+      /** png-Format oder pdf-Format.
+       */
+      Bild : MANDATORY BLACKBOX BINARY;
+      /** Fremdschlüssel der Dokumenteverwaltung.
+       */
+      Nmmer : TEXT*20;
+    END Dokument;
+
+    CLASS Geschaeftsstand =
+      /** Bemerkung zum Stand des Geschäfts, z.B. "Ergänzungsverfügung mit Frist"
+       */
+      ZustandStichwort : eGRISDM08.ObjektIdentifikator;
+      ZustandZusatz : eGRISDM08.StichwortZusatz;
+      ArtDerErledigung : MANDATORY (
+        Eingetragen,
+        Rueckzug,
+        Abweisung
+      );
+      Datum : MANDATORY eGRISDM08.Datum;
+      AnfechtungsDatum : eGRISDM08.Datum;
+    END Geschaeftsstand;
+
+    ASSOCIATION AnmeldungAnmeldendePerson =
+      Anmeldung -- {0..*} Anmeldung;
+      /** Mehrere anmeldende Personen sind zum Beispiel bei einer Schuldbriefanmeldung durch Ehepartner der Fall.
+       * I.d.R. 1..*. Ausnahme: Ersterfassung
+       */
+      anmeldendePerson (EXTERNAL) -- {0..*} eGRISDM08.PersonenStamm.PersonStamm;
+    END AnmeldungAnmeldendePerson;
+
+    ASSOCIATION AnmeldunggescanntesDokument =
+      Anmeldung -<#> {1} Anmeldung;
+      gescanntesDokument -- {0..*} Dokument;
+    END AnmeldunggescanntesDokument;
+
+    ASSOCIATION GeschaeftsstandAnmeldung =
+      Geschaeftsstand -- {0..*} Geschaeftsstand;
+      Anmeldung -<#> {1} Anmeldung;
+    END GeschaeftsstandAnmeldung;
+
+  END Tagebuch;
+
+END eGRISDM08.

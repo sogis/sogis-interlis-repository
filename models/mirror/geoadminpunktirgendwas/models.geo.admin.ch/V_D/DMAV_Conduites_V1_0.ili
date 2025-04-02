@@ -1,0 +1,151 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.10
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_Conduites_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_Rohrleitungen_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_ModinfoFR_V1_0;
+  IMPORTS DMAVTYM_Qualite_V1_0;
+  IMPORTS DMAVTYM_Topologie_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC Conduites =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      Matiere = (
+        petrole,
+        gaz,
+        autre
+      );
+
+    CLASS MiseAJourCON =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH100101: IdentDN, Identification;
+    END MiseAJourCON;
+
+    STRUCTURE ElementSurfacique =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Visible : GeometryCHLV95_V2.MultiLine;
+      MANDATORY CONSTRAINT CH100201: NOT (DEFINED(Visible)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Visible);
+    END ElementSurfacique;
+
+    STRUCTURE ElementLineaire =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+      EstVisible : MANDATORY BOOLEAN;
+    END ElementLineaire;
+
+    STRUCTURE ElementPonctuel =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      OriSymbole : MANDATORY DMAVTYM_Grafique_V1_0.Rotation;
+    END ElementPonctuel;
+
+    CLASS ElementConduite =
+      Exploitant : MANDATORY TEXT*30;
+      StandardQualite : MANDATORY DMAVTYM_Qualite_V1_0.StandardQualite;
+      Matiere : MANDATORY Matiere;
+      StatutObjet : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      ElementSurfacique : BAG {0..*} OF ElementSurfacique;
+      ElementLineaire : BAG {0..*} OF ElementLineaire;
+      ElementPonctuel : BAG {0..*} OF ElementPonctuel;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+      MANDATORY CONSTRAINT CH100501: INTERLIS.elementCount(ElementSurfacique) > 0 OR INTERLIS.elementCount(ElementLineaire) > 0 OR INTERLIS.elementCount(ElementPonctuel) > 0;
+    END ElementConduite;
+
+    ASSOCIATION Origine_ElementConduite =
+      Origine -- {1} MiseAJourCON;
+      ElementConduite_bientotcree -- {0..*} ElementConduite;
+    END Origine_ElementConduite;
+
+    ASSOCIATION Caducite_ElementConduite =
+      Caducite  -- {0..1} MiseAJourCON;
+      ElementConduite_bientotcaduc -- {0..*} ElementConduite;
+    END Caducite_ElementConduite;
+
+    ASSOCIATION Predecesseur_Successeur_ElementConduite =
+      Predecesseur -- {0..1} ElementConduite;
+      Successeur -- {0..*} ElementConduite;
+    END Predecesseur_Successeur_ElementConduite;
+
+    VIEW ElementConduite_Valable
+      PROJECTION OF ElementConduite;
+      WHERE
+        DEFINED(ElementConduite->Origine) AND NOT (DEFINED(ElementConduite->Caducite ));
+      =
+      ALL OF ElementConduite;
+    END ElementConduite_Valable;
+
+    CLASS Signal =
+      Numero : MANDATORY TEXT*12;
+      Exploitant : MANDATORY TEXT*30;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      StandardQualite : MANDATORY DMAVTYM_Qualite_V1_0.StandardQualite;
+      Matiere : MANDATORY Matiere;
+      StatutObjet : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      GenreSignal : MANDATORY (
+        Signal,
+        plaquette_borne,
+        autre
+      );
+      OriSymbole : DMAVTYM_Grafique_V1_0.Rotation;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END Signal;
+
+    ASSOCIATION Origine_Signal =
+      Origine -- {1} MiseAJourCON;
+      Signal_bientotcree -- {0..*} Signal;
+    END Origine_Signal;
+
+    ASSOCIATION Caducite_Signal =
+      Caducite  -- {0..1} MiseAJourCON;
+      Signal_bientotcaduc -- {0..*} Signal;
+    END Caducite_Signal;
+
+    ASSOCIATION Predecesseur_Successeur_Signal =
+      Predecesseur -- {0..1} Signal;
+      Successeur -- {0..*} Signal;
+    END Predecesseur_Successeur_Signal;
+
+    VIEW Signal_Valable
+      PROJECTION OF Signal;
+      WHERE
+        DEFINED(Signal->Origine) AND NOT (DEFINED(Signal->Caducite ));
+      =
+      ALL OF Signal;
+    END Signal_Valable;
+
+    CLASS PointMesure =
+      Numero : TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : DMAVTYM_Qualite_V1_0.Fiabilite;
+      EstDefiniExactement : MANDATORY BOOLEAN;
+      MANDATORY CONSTRAINT CH101501: DEFINED(GeometrieAltitude) == DEFINED(PrecisionAltimetrie);
+      MANDATORY CONSTRAINT CH101502: DEFINED(GeometrieAltitude) == DEFINED(EstFiableAltimetrie);
+    END PointMesure;
+
+    ASSOCIATION Origine_PointMesure =
+      Origine -- {0..1} MiseAJourCON;
+      PointMesure_bientotcree -- {0..*} PointMesure;
+    END Origine_PointMesure;
+
+  END Conduites;
+
+END DMAV_Conduites_V1_0.

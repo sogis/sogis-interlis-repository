@@ -1,0 +1,123 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal Degré de sensibilité au bruit (dans les zones d'affectation)
+ *  Jeu de géodonnées No. 145
+ */
+ 
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2016-04-15 | KOGIS | Geometry definition adapted (line 29)
+
+!!@ technicalContact = mailto:info@are.admin.ch
+!!@ IDGeoIV = "145"
+!!@ furtherInformation = http://www.are.admin.ch/mmg
+MODEL DegreDeSensibiliteAuBruit_V1 (fr) AT "http://models.geo.admin.ch/ARE" VERSION "2016-04-15" TRANSLATION OF Laermempfindlichkeitsstufen_V1 ["2016-04-15"] =
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED INTERLIS;
+
+  DOMAIN
+
+    DS = MANDATORY (
+      Aucun_DS,
+      DS_I,
+      DS_II,
+      DS_III,
+      DS_IV
+    );
+
+    SurfacePartition = AREA WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.05;
+
+    StatutJuridique = MANDATORY (
+      En_vigueur,
+      En_cours_modification
+    );
+
+    ForceObligatoire = MANDATORY (
+      Contenu_contraignant,
+      Contenu_informatif,
+      Contenu_indicatif,
+      Contenu_dAideALaMiseEnOeuvre
+    );
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : MANDATORY TEXT*12;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY XMLDate;
+      StatutJuridique : MANDATORY DegreDeSensibiliteAuBruit_V1.StatutJuridique;
+      TexteEnLigne : URI;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON DegreDeSensibiliteAuBruit_V1.DispositionsJuridiques;
+
+    CLASS Zone_SensibiliteAuBruit =
+      Geometrie : MANDATORY DegreDeSensibiliteAuBruit_V1.SurfacePartition;
+      StatutJuridique : MANDATORY DegreDeSensibiliteAuBruit_V1.StatutJuridique;
+      publieeDepuis : MANDATORY XMLDate;
+      Remarques : MTEXT;
+    END Zone_SensibiliteAuBruit;
+
+    CLASS Type =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*10;
+      Degre : MANDATORY DegreDeSensibiliteAuBruit_V1.DS;
+      Declassement : BOOLEAN;
+      ForceObligatoire : MANDATORY DegreDeSensibiliteAuBruit_V1.ForceObligatoire;
+      Remarques : MTEXT;
+      SET CONSTRAINT WHERE Declassement == #true : Degre == #DS_II OR Degre == #DS_III;
+    END Type;
+
+    ASSOCIATION Type_Document =
+      Disposition (EXTERNAL) -- {0..*} DegreDeSensibiliteAuBruit_V1.DispositionsJuridiques.Document;
+      Type -- {0..*} Type;
+    END Type_Document;
+
+    ASSOCIATION Type_Geometrie =
+      Geometrie -- {0..*} Zone_SensibiliteAuBruit;
+      DS -<> {1} Type;
+    END Type_Geometrie;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON DegreDeSensibiliteAuBruit_V1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      GuichetEnLigne : URI;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      Version : MANDATORY XMLDate;
+      DateDeLivraison : XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_orgResp =
+      OrganismeResponsable -<> {1} Office;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END Donnees_orgResp;
+
+  END MetadonneesTransfer;
+
+END DegreDeSensibiliteAuBruit_V1.

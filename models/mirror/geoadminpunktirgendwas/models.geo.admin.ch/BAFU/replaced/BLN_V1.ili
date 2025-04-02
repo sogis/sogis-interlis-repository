@@ -1,0 +1,58 @@
+INTERLIS 2.3;
+
+!!@ IDGeoIV=18.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+MODEL BLN_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2012-11-06"  =
+  IMPORTS GeometryCHLV03_V1,Units,LocalisationCH_V1;
+
+  TOPIC BLN =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    CLASS BLN_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+    END BLN_Teilobjekt;
+
+    CLASS BLN =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : MANDATORY DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 1.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund_Text : LocalisationCH_V1.MultilingualMText;
+    END BLN;
+
+    ASSOCIATION BLN_TeilobjektBLN =
+      BLN_Teilobjekt -- {1..*} BLN_Teilobjekt;
+      BLN -<#> {1} BLN;
+    END BLN_TeilobjektBLN;
+
+  END BLN;
+
+END BLN_V1.

@@ -1,0 +1,125 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 71),
+!!                      Property EXTERNAL added (line 44 and 61)
+
+!!@ technicalContact = mailto:info@bfe.admin.ch;
+!!@ IDGeoIV = "193.1";
+!!@ furtherInformation = http://www.bfe.admin.ch/geoinformation; 
+ 
+MODEL DamsUnderSupervisionByFederalGovernment_V1 (en)
+AT "http://www.bfe.admin.ch" VERSION "2015-05-22" =
+
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS CatalogueObjects_V1;
+  IMPORTS LocalisationCH_V1;
+  IMPORTS WithOneState_V1;
+  
+  DOMAIN
+
+    GEWISSNR = 0 .. 999999;
+    Numeric = 0.000 .. 9999.999;
+    Text = TEXT*500;
+
+!! ****************************************************
+!! ****************************************************	
+  TOPIC DamTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS DamType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      DamType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END DamType;
+
+    STRUCTURE DamTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) DamType;
+    END DamTypeRef;
+
+  END DamTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************  
+  TOPIC FacilityAimCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS FacilityAim
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      FacilityAim : MANDATORY LocalisationCH_V1.MultilingualText;
+    END FacilityAim;
+
+    STRUCTURE FacilityAimRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) FacilityAim;
+    END FacilityAimRef;
+
+  END FacilityAimCatalogue;
+
+!! ****************************************************
+!! ****************************************************  
+  TOPIC DamsUnderSupervisionByFederalGovernment_WithOneState =
+    DEPENDS ON DamsUnderSupervisionByFederalGovernment_V1.FacilityAimCatalogue;
+    DEPENDS ON DamsUnderSupervisionByFederalGovernment_V1.DamTypeCatalogue;
+    DEPENDS ON CatalogueObjects_V1.Catalogues;
+
+    CLASS Dam =
+      DamName : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Text;
+      DamPosition : MANDATORY Coord2;
+      DamHeight : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      CrestLevel : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      CrestLength : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      DamType : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.DamTypeCatalogue.DamTypeRef;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END Dam;
+
+    CLASS Facility =
+      FacilityName : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Text;
+      BeginningOfOperation : MANDATORY XMLDate;
+      RiverID : DamsUnderSupervisionByFederalGovernment_V1.GEWISSNR;
+      RiverName : DamsUnderSupervisionByFederalGovernment_V1.Text;
+      FacilityAim : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.FacilityAimCatalogue.FacilityAimRef;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END Facility;
+
+    CLASS Reservoir =
+      ReservoirName : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Text;
+      ImpoundmentVolume : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      ImpoundmentLevel : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      StorageLevel : MANDATORY DamsUnderSupervisionByFederalGovernment_V1.Numeric;
+      LakeID : DamsUnderSupervisionByFederalGovernment_V1.GEWISSNR;
+      LakeName : DamsUnderSupervisionByFederalGovernment_V1.Text;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END Reservoir;
+
+    CLASS SupervisionPeriod =
+      StartSupervision : MANDATORY XMLDate;
+      EndSupervision : XMLDate;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END SupervisionPeriod;
+
+    ASSOCIATION FacilityDam =
+      facilityR2 -<#> {1} Facility;
+      damR -- {1..*} Dam;
+    END FacilityDam;
+
+    ASSOCIATION FacilityReservoir =
+      facilityR3 -<#> {1} Facility;
+      reservoirR -- {1} Reservoir;
+    END FacilityReservoir;
+
+    ASSOCIATION FacilitySupervisionPeriod =
+      supervisionPeriodR -- {0..*} SupervisionPeriod;
+      facilityR1 -<#> {1} Facility;
+    END FacilitySupervisionPeriod;
+
+  END DamsUnderSupervisionByFederalGovernment_WithOneState;
+
+END DamsUnderSupervisionByFederalGovernment_V1.

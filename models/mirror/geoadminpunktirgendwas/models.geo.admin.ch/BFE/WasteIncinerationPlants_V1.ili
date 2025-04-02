@@ -1,0 +1,46 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL WasteIncinerationPlants_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2019-03-05"  =
+
+  IMPORTS WithOneState_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Integer = 0 .. 99999;
+    Numeric = 0.00 .. 1000000000.00;
+    Text = TEXT*2000;
+    Year = 1900 .. 2999;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC WasteIncinerationPlant =
+
+    CLASS Production =
+      Year : MANDATORY WasteIncinerationPlants_V1.Year;
+      RecycledWaste : WasteIncinerationPlants_V1.Numeric;
+      Electricity : WasteIncinerationPlants_V1.Numeric;
+      Heat : WasteIncinerationPlants_V1.Numeric;
+    END Production;
+
+    CLASS WasteIncinerationPlant =
+      Number : MANDATORY WasteIncinerationPlants_V1.Integer;
+      Position : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name : MANDATORY WasteIncinerationPlants_V1.Text;
+      Place : MANDATORY WasteIncinerationPlants_V1.Text;
+      Web : INTERLIS.URI;
+      BeginningOfOperation : MANDATORY WasteIncinerationPlants_V1.Year;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END WasteIncinerationPlant;
+
+    ASSOCIATION WasteIncinerationPlantProduction =
+      WasteIncinerationPlantR -<#> {1} WasteIncinerationPlant;
+      ProductionR -- {0..*} Production;
+    END WasteIncinerationPlantProduction;
+
+  END WasteIncinerationPlant;
+
+END WasteIncinerationPlants_V1.

@@ -1,0 +1,333 @@
+
+!!==============================================================================
+!! Axis.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 86
+!! Bezeichnung GeoIV                         : Planung der Nationalstrassen
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (ASTRA)
+!! Zugangsberechtigungsstufe                 : A
+!! 
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 86.1
+!! Bezeichnung Geobasisdatensatz             : Nationalstrassenachsen
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2010-12-24 | CG    | Draft (release candidate)
+!! 2011-02-09 | CG    | Final to be approved
+!! 2011-02-23 | OBA   | Range of Mat_v, Plate_v changed
+!! 2011-04-11 | CG    | Constraints added, Sector- and Segment-ID removed, KmStandard, CamelBackWriting
+!! 2011-04-28 | BG    | Renamed KmStandard to Km
+!! 2011-05-03 | OBA   | NameShort, NameLong set to MANDATORY
+!! 2011-08-19 | CG    | Display geometry extracted (and moved to AxisDisplay.ili)
+!! 2011-09-22 | CG    | Use final version of CHBase (V1)
+!! 2014-06-23 | KOGIS | TOPIC-Dependency added (line 182)
+!!==============================================================================
+INTERLIS 2.3;
+!!@ili2c.ili23xml.supportSourceBasketId=true
+!!@ili2c.ili23xml.supportIncrementalTransfer=true
+!!@ili2c.ili23xml.supportInconsistentTransfer=true
+!!@ili2c.ili23xml.supportPolymorphicRead=true
+!!@ili2c.ili23xsd.addAliasTableDefault=true
+
+MODEL Axis (en) 
+  AT "http://www.mistra.ch/" VERSION "2014-06-23" =
+
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;                                          !! CHBase_Part1_GEOMETRY_20110830.ili; imports Units, Coordsys
+  IMPORTS UNQUALIFIED LocalisationCH_V1;                                          !! CHBase_Part2_LOCALISATION_20110830.ili
+  IMPORTS UNQUALIFIED CatalogueObjects_V1;                                        !! CHBase_Part3_CATALOGUEOBJECTS_20110830.ili
+  IMPORTS Units;                                                                  !! from <...>\ili2c-4.4.1\standard\
+
+  DOMAIN
+!!==============================================================================
+    !! Position code (+, -, =); compiler doesn't cope with these values
+    AxisPositionCode  = (plus, minus, equal);
+    
+    !! Accessibility of plate
+    PlateLocationAccessCode = (yes, no, unknown);
+
+  TOPIC AxisCatalogs EXTENDS CatalogueObjects_V1.Catalogues =
+!!==============================================================================
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS AxisCatalogItem EXTENDS Item =
+        ItemId     : MANDATORY INTERLIS.UUIDOID;                                  !! key in catalog (GUID)
+        NameShort  : MANDATORY MultilingualText;                                  !! short catalog item name
+        NameLong   : MANDATORY MultilingualText;                                  !! long version of catalog item name
+    END AxisCatalogItem;
+
+    !!=============================================
+    !! Lookup Tables without multilingual text
+    !!=============================================
+	
+    CLASS RoadOwner =
+    !!=============================================
+      OwnerCode    : MANDATORY TEXT*12;                                           !! unique names or numbers of owners managed by ASTRA (not machine IDs)
+      
+      UNIQUE OwnerCode;
+    END RoadOwner;
+
+    CLASS Database =
+    !!=============================================
+      DatabaseId   : MANDATORY INTERLIS.UUIDOID;                                  !! IDs of databases managed by ASTRA      
+      DatabaseName : MANDATORY TEXT*36;                                           !! descriptive name of database
+      
+      UNIQUE DatabaseId;
+      UNIQUE DatabaseName;
+    END Database;
+    
+    !!=============================================
+    !! Lookup Tables (Catalogs) with multilingual text
+    !!=============================================
+
+    CLASS AxisType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! (such as root axis, ramp, feeder)
+    END AxisType;
+
+    STRUCTURE AxisTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) AxisType;
+    END AxisTypeRef;
+
+    
+    CLASS AxisStatus EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! (under construction, realized, dismantled, ...)
+    END AxisStatus;
+
+    STRUCTURE AxisStatusRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) AxisStatus;
+    END AxisStatusRef;
+
+    
+    CLASS MarkerType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! types of sector markers
+    END MarkerType;
+
+    STRUCTURE MarkerTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) MarkerType;
+    END MarkerTypeRef;
+
+    
+    CLASS SectorMaterializationType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! types of sector materialization types (stone (ref point AV), nail, anchor, ...)
+    END SectorMaterializationType;
+    
+    STRUCTURE SectorMaterializationTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) SectorMaterializationType;
+    END SectorMaterializationTypeRef;
+
+    
+    CLASS PlateType EXTENDS AxisCatalogItem =
+   !!=============================================
+     !! types of plates (aluminum, film, flexible plastic, ...)
+    END PlateType;
+
+    STRUCTURE PlateTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) PlateType;
+    END PlateTypeRef;
+
+    
+    CLASS PlateLabelType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! labels types of plates (engraved, printed, ...)
+    END PlateLabelType;
+    
+    STRUCTURE PlateLabelTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) PlateLabelType;
+    END PlateLabelTypeRef;
+
+    
+    CLASS PlateFixationType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !!  types of plate fixation (bolted, cemented)
+    END PlateFixationType;
+
+    STRUCTURE PlateFixationTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) PlateFixationType;
+    END PlateFixationTypeRef;
+
+    
+    CLASS PlateLocationType EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! types of plate location (post, candelabra, ...)
+    END PlateLocationType;    
+
+    STRUCTURE PlateLocationTypeRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) PlateLocationType;
+    END PlateLocationTypeRef;		
+
+    
+    CLASS CaptureMethod EXTENDS AxisCatalogItem =
+    !!=============================================
+      !! types of location capturing (precision): GPS, survey, photogrammetry, estimate, unknown
+    END CaptureMethod;    
+
+    STRUCTURE CaptureMethodRef EXTENDS MandatoryCatalogueReference =
+      Reference (EXTENDED) :  MANDATORY REFERENCE TO (EXTERNAL) CaptureMethod;
+    END CaptureMethodRef;		
+    
+  END AxisCatalogs;                                                               !! topic
+  
+  TOPIC Axis =
+!!==============================================================================
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Axis.AxisCatalogs;
+      
+    !!=============================================
+    !! Structures
+    !!=============================================
+    STRUCTURE Measure =
+      Measure            : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];           !! LIST OF requires CLASS or STRUCTURE, max. sector length: 1'000km, Precision: 1mm
+    END Measure;
+
+    STRUCTURE AxisSegmentGeometry =
+      Geometry           : MANDATORY LineWithAltitude;                            !! 3D PolyLine with STRAIGHTS, no ARCS or Spirals supported (INTERLIS does not support spirals anyhow)
+      LinDist            :           LIST {2 .. *} OF Measure;                    !! for EACH vertex: calibrated distance along axis to 1st vertex, this constraint must be checked by the application
+      CaptureMethod      :           Axis.AxisCatalogs.CaptureMethodRef;          !! method of capturing the line geometry
+      CaptureDate        :           INTERLIS.XMLDate;                            !! date when geometry has been captured
+      AccuracyHorizontal :           0.000 .. 100.000 [INTERLIS.m];               !! horizontal accuracy
+      AccuracyVertical   :           0.000 .. 100.000 [INTERLIS.m];               !! vertical accuracy
+    END AxisSegmentGeometry;
+
+    STRUCTURE ObjectVersionInfo =
+      VersionValidFrom   :           INTERLIS.XMLDate;                            !! this axis version is valid from ... (defined on export, ignored on import)
+      VersionValidTo     :           INTERLIS.XMLDate;                            !! this axis version is valid to ... (defined on export, ignored on import)
+      ObjectValidFrom    :           INTERLIS.XMLDate;                            !! this axis with all its versions is valid from ... (defined on export, ignored on import)
+      ObjectValidTo      :           INTERLIS.XMLDate;                            !! this axis with all its versions is valid to ... (defined on export, ignored on import)
+
+      MANDATORY CONSTRAINT VersionValidFrom < VersionValidTo;
+      MANDATORY CONSTRAINT ObjectValidFrom < ObjectValidTo;
+      MANDATORY CONSTRAINT VersionValidFrom >= ObjectValidFrom;                   !! an axis (OBJECT_) may have several versions (VERSION_) over time, but only one version per day
+      MANDATORY CONSTRAINT VersionValidTo <= ObjectValidTo;
+    END ObjectVersionInfo;
+		
+    !!=============================================
+    !! Axis (the logical unit), container of Axis segments
+    !! The axis is uniquely identified in human readable form
+    !! by the triple Owner, AxisName and AxisPositionCode
+    !!=============================================
+    CLASS Axis =
+      Validity           : MANDATORY ObjectVersionInfo;                           !! describes a version of the axis; there is exact one version at a given time
+      Owner              : MANDATORY TEXT*12;                                     !! owner of axis, ASTRA manages the unique values (strings and numbers)
+      DatabaseId         : MANDATORY INTERLIS.UUIDOID;                            !! original database ID of axes, ASTRA manages the IDs
+      AxisName           : MANDATORY TEXT*64;                                     !! name of axis
+      AxisNameLong       :           TEXT*256;                                    !! road name, usually as indicated on street signs
+      AxisPositionCode   : MANDATORY AxisPositionCode;                            !! position code
+      AxisType           : MANDATORY Axis.AxisCatalogs.AxisTypeRef;               !! axis type
+      Status             : MANDATORY Axis.AxisCatalogs.AxisStatusRef;             !! life cycle status
+      
+	  UNIQUE Owner, AxisName, AxisPositionCode;
+      EXISTENCE CONSTRAINT Owner REQUIRED IN Axis.AxisCatalogs.RoadOwner:OwnerCode;
+      EXISTENCE CONSTRAINT DatabaseId REQUIRED IN Axis.AxisCatalogs.Database:DatabaseId;
+    END Axis;
+
+    !!=============================================
+    !! Axis Segment, the “Main Class”
+    !!=============================================
+    CLASS AxisSegment =
+      Sequence           : MANDATORY 1 .. 10000 [Units.CountedObjects];           !! may be used for sorting segments in a list (in a non-geographic context), unique per axis
+      SegmentName        : MANDATORY TEXT*64;                                     !! name of axis segment
+      Geometry           : MANDATORY AxisSegmentGeometry;                         !! 3D reference geometry for axis segment
+    END AxisSegment;
+
+    !!=============================================
+    !! Calibration Point for Reference Geometry
+    !!=============================================
+    CLASS CalPoint =
+      Distance_u         : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];           !! distance off reference point along axis
+      Geometry           : MANDATORY Coord3;                                      !! a 3D point, has precision of mm, must be snapped to axis
+    END CalPoint;
+
+    !!=============================================
+    !! Sector or Reference Point
+    !!=============================================
+    CLASS Sector =
+      Sequence           : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];           !! sorting of ref points on segment: Sequence(1st) = 0; Sequence(2nd) = SectorLength(1st)
+      SectorName         : MANDATORY TEXT*64;                                     !! name of sector
+      SectorLength       : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];           !! length of sector
+      Km                 : MANDATORY 0.000 .. 1000.000 [Units.km];                !! kilometer on axis at reference point (increasing/decreasing value over all segments)
+      MarkerGeometry     : MANDATORY Coord3;                                      !! planar version of reference point, is calibrating, is snapped to segment geometry
+      MarkerAccuracyHorizontal:      0.000 .. 100.000 [INTERLIS.m];               !! horizontal accuracy
+      MarkerAccuracyVertical  :      0.000 .. 100.000 [INTERLIS.m];               !! vertical accuracy
+      MarkerType         :           Axis.AxisCatalogs.MarkerTypeRef;             !! type of marker on the road
+      MarkerDescription  :           TEXT*256;                                    !! description of marker
+    END Sector;
+
+    !!=============================================
+    !! Reference Point Surveyed Materialized Point
+    !!=============================================
+    CLASS Materialization =
+      MatGeometry        : MANDATORY Coord3;                                           !! assured location of reference point
+      MatAccuracyHorzizontal:        0.000 .. 10.000 [INTERLIS.m];                     !! horizontal accuracy
+      MatAccuracyVertical:           0.000 .. 10.000 [INTERLIS.m];                     !! horizontal accuracy
+      Mat_v              :           -100.000 .. 100.000 [INTERLIS.m];                 !! distance materialized point - marker on the road, perpendicular to axis
+      MatType            :           Axis.AxisCatalogs.SectorMaterializationTypeRef;   !! type of materialized point
+      MatDescription     :           TEXT*256;                                         !! description of materialized point
+    END Materialization;
+
+    !!=============================================
+    !! Reference Point Annotation Plate
+    !!=============================================
+    CLASS Plate =
+      PlateType          :           Axis.AxisCatalogs.PlateTypeRef;              !! type of annotation plate
+      PlateLabel         :           Axis.AxisCatalogs.PlateLabelTypeRef;         !! type of label of annotation plate
+      PlateFixation      :           Axis.AxisCatalogs.PlateFixationTypeRef;      !! fixation type of plate
+      PlateLocation      :           Axis.AxisCatalogs.PlateLocationTypeRef;      !! location type of plate
+      PlateLocationAccess:           PlateLocationAccessCode;                     !! within public ground yes/no/unknown
+      PlateText          :           TEXT*256;                                    !! the text on the plate
+      Plate_u            :           -100.000 .. 100.000 [INTERLIS.m];            !! distance plate - marker along axis 
+      Plate_v            :           -100.000 .. 100.000 [INTERLIS.m];            !! distance plate offset perpendicular to axis
+    END Plate;
+
+    !!=============================================
+    !! Associations between Classes of Logical Unit “Axis”
+    !!=============================================
+    ASSOCIATION Axis_AxisSegment =
+      rAxisContainer -- {1}    Axis;                        !! axis refers to axis segments 
+      rAxisSegment   -- {1..*} AxisSegment;                
+    END Axis_AxisSegment;                                  
+                                                           
+    ASSOCIATION AxisSegment_Sector =                       
+      rAxisSegmentLR   -<#> {1}    AxisSegment ;            !! axis segment is composed out of sectors
+      rLinearReference --   {2..*} Sector;                 
+    END AxisSegment_Sector;                                
+	                                                       
+    ASSOCIATION RefPoint_Plate =                           
+      rAnnotee    -<#> {1}    Sector;                       !! reference point may have an annotation plate
+      rAnnotation --   {0..1} Plate;                       
+    END RefPoint_Plate;                                    
+                                                           
+    ASSOCIATION RefPoint_Materialization =                 
+      rAssuree   -<#> {1}    Sector;                        !! reference point may have an assured materialization
+      rAssurance --   {0..1} Materialization;              
+    END RefPoint_Materialization;                          
+                                                           
+    ASSOCIATION Sector_CalPoint =                          
+      rCalibree   -- {1}    Sector;                         !! sector may have calibration points
+      rCalibrator -- {0..*} CalPoint;                      
+    END Sector_CalPoint;                                   
+                                                           
+    !!=============================================
+    !! Constraints over classes
+    !!=============================================
+    CONSTRAINTS OF AxisSegment = 
+      UNIQUE SegmentName, rAxisContainer;                   !! AxisSegment.SegmentName must be unique within an axis
+      UNIQUE Sequence, rAxisContainer;                      !! AxisSegment.Sequence must be unique within an axis
+    END;
+
+    CONSTRAINTS OF Sector =
+      UNIQUE SectorName, rAxisSegmentLR -> rAxisContainer;  !! Sector.SectorName must be unique within an axis
+      UNIQUE Sequence, rAxisSegmentLR;                      !! Sector.Sequence as m-value is increasing from start to end of a segment
+    END;
+
+  END Axis;                                                 !! topic
+                                                         
+END Axis.                                                   !! model

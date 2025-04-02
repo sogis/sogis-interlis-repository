@@ -1,0 +1,63 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell "Wohnungsinventar und Zweitwohnungsanteil"
+ * Geobasisdatensatz Nr. 202
+ * Modèle de géodonnées minimal "Inventaire des logements et proportion de résidences secondaires"
+ * Jeu de géodonnées de base Nr. 202
+ */
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ IDGeoIV=202
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+MODEL HousingInventory_V1 (en)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-10-01"  =
+  IMPORTS GeometryCHLV95_V1,LocalisationCH_V1,CHAdminCodes_V1;
+
+  TOPIC GeobaseData =
+
+    CLASS Process (FINAL) =
+      Code : MANDATORY 1 .. 10;
+      Designation : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Process;
+
+    CLASS Status (FINAL) =
+      Code : MANDATORY 0 .. 1;
+      Designation : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Status;
+
+    CLASS HousingInventory =
+      Geometry : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Comm_No : CHAdminCodes_V1.CHMunicipalityCode;
+      Name : MANDATORY TEXT*50;
+      ZWG_3150 : MANDATORY 0 .. 500000;
+      ZWG_3010 : MANDATORY 0 .. 500000;
+      ZWG_3100 : MANDATORY 0 .. 500000;
+      ZWG_3110 : MANDATORY 0.00 .. 100.00;
+      ZWG_3120 : MANDATORY 0.00 .. 100.00;
+    END HousingInventory;
+
+    ASSOCIATION Comm_Process =
+      Process -- {1} Process;
+      HousingInventory -- {0..*} HousingInventory;
+    END Comm_Process;
+
+    ASSOCIATION Comm_Status =
+      Status -- {1} Status;
+      HousingInventory -- {0..*} HousingInventory;
+    END Comm_Status;
+
+  END GeobaseData;
+
+  TOPIC TransferMetadata =
+
+    CLASS DataStatus =
+      BasketID : MANDATORY TEXT*20;
+      DataStatus : MANDATORY INTERLIS.XMLDate;
+      DateOfDelivery : INTERLIS.XMLDate;
+      Remarks : MTEXT;
+    END DataStatus;
+
+  END TransferMetadata;
+
+END HousingInventory_V1.

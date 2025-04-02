@@ -1,0 +1,66 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ IDGeoIV = "42.1,42.2,42.3,42.4,42.5,42.6"
+
+MODEL Pixelkarten_V1 (de)
+  AT "http://models.geo.admin.ch/Swisstopo/"
+  VERSION "20110511" =
+
+  IMPORTS UNQUALIFIED NonVector_Base_V2;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1; !! from CHBase
+  IMPORTS Units;
+
+  TOPIC Pixelkarten EXTENDS NonVector =
+
+    CLASS Pixelkarte EXTENDS NonVector_Dataset =
+      PK: MANDATORY (PK25,PK50,PK100,PK200,PK500,PK1000);
+    END Pixelkarte;
+
+    STRUCTURE NachfuehrungInfo =
+      Gesamtnachfuehrung: MANDATORY 1800..2999;
+    END NachfuehrungInfo;
+
+    CLASS PixelkarteBlatt EXTENDS ImageGraphicRasterObject =
+      BlattName: TEXT*50; !! e.g. BEGGINGEN
+      BlattNummer: MANDATORY 0..9999; !! z.B. 1011
+      BlattNachfuehrungen: LIST {5} OF NachfuehrungInfo;
+      BlattSchnitt: MANDATORY Surface;
+      BlattAusdehnungH: MANDATORY 1..10000 [Units.mm];
+      BlattAusdehnungB: MANDATORY 1..10000 [Units.mm];
+      Kartenebenen: MANDATORY (
+        KOMB,  !! Standard-Farbkombination
+        RELI,  !! Reliefton
+        KGRS,  !! Kombination Graustufen
+        KREL,  !! Farbkombination mit Relief
+        AUTO,  !! Autobahnen
+        BAHN,  !! Bahnen
+        FLTO,  !! Flusston
+        GEWL,  !! Gewässerlinien
+        GLFP,  !! Golfplatz
+        GREB,  !! Grenzband
+        GREL,  !! Grenzlinie
+        KURV,  !! Höhenkurven
+        NPGB,  !! Nationalparkgrenzband
+        SEET,  !! Seeton
+        SITU,  !! Situation, Fels
+        STDT,  !! Städteton
+        STRG,  !! Verbindungsstrassen
+        STRR,  !! Durchgangsstrassen
+        TEXT_, !! Schrift (muss wegen INTERLIS-Schlüsselwort mit "_" ergänzt werden)
+        WKON,  !! Waldkonturen
+        WTON   !! Waldton
+      );
+      Aufloesung: MANDATORY TEXT*30; !! z.B. "20L/mm / 508dpi"
+      BitTiefe: MANDATORY TEXT*30; !! z.B. "8 Bit / 256 Farben"
+      Farbraum: MANDATORY (CMYK,RGB,Graustufen,indiziert,binaer);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+    END PixelkarteBlatt;
+
+    CLASS Ausschnitt EXTENDS Clipping =
+    END Ausschnitt;
+
+  END Pixelkarten;
+
+END Pixelkarten_V1.

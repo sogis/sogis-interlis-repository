@@ -1,0 +1,136 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ IDGeoIV="222.1, 223.1"
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+MODEL PipelinesystemUnderSupervisionByFederalGovernment_V1 (en)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2023-06-19"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1,Units;
+
+  DOMAIN
+
+    ProtectedAreaStatus = (
+      AenderungOhneVorwirkung,
+      inKraft
+    );
+
+    Text = TEXT*255;
+
+    Text30 = TEXT*30;
+
+  TOPIC AttendantPlantTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS AttendantPlantType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      AttendantPlantType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END AttendantPlantType;
+
+    STRUCTURE AttendantPlantTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) AttendantPlantType;
+    END AttendantPlantTypeRef;
+
+  END AttendantPlantTypeCatalogue;
+
+  TOPIC ContainerTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS ContainerType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ContainerType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ContainerType;
+
+    STRUCTURE ContainerTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ContainerType;
+    END ContainerTypeRef;
+
+  END ContainerTypeCatalogue;
+
+  TOPIC MediumTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS MediumType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      MediumType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MediumType;
+
+    STRUCTURE MediumTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MediumType;
+    END MediumTypeRef;
+
+  END MediumTypeCatalogue;
+
+  TOPIC PipelineStatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS PipelineStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      PipelineStatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PipelineStatus;
+
+    STRUCTURE PipelineStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) PipelineStatus;
+    END PipelineStatusRef;
+
+  END PipelineStatusCatalogue;
+
+  TOPIC PipelinesystemUnderSupervisionByFederalGovernment =
+    DEPENDS ON PipelinesystemUnderSupervisionByFederalGovernment_V1.AttendantPlantTypeCatalogue,PipelinesystemUnderSupervisionByFederalGovernment_V1.ContainerTypeCatalogue,PipelinesystemUnderSupervisionByFederalGovernment_V1.MediumTypeCatalogue,PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelineStatusCatalogue;
+
+    CLASS Pipelinesystem (ABSTRACT) =
+      Name : PipelinesystemUnderSupervisionByFederalGovernment_V1.Text;
+      Operator : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.Text30;
+      OperatorID : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.Text;
+      OperatorUID : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.Text30;
+      OperatorURI : MANDATORY INTERLIS.URI;
+      MediumType : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.MediumTypeCatalogue.MediumTypeRef;
+    END Pipelinesystem;
+
+    CLASS AttendantPlant
+    EXTENDS Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      AttendantPlantType : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.AttendantPlantTypeCatalogue.AttendantPlantTypeRef;
+    END AttendantPlant;
+
+    CLASS Container
+    EXTENDS Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      ContainerType : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.ContainerTypeCatalogue.ContainerTypeRef;
+    END Container;
+
+    CLASS Pipeline
+    EXTENDS Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Line;
+      YearOfConstruction : MANDATORY 1900 .. 2999;
+      MaximumOperatingPressure : MANDATORY 0.00 .. 999.99 [Units.bar];
+      OutsideDiameter : MANDATORY 0 .. 9999 [Units.mm];
+      PipelineStatus : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelineStatusCatalogue.PipelineStatusRef;
+    END Pipeline;
+
+    CLASS ProtectedArea
+    EXTENDS Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;
+      LegalProvision : MANDATORY INTERLIS.URI;
+      LegalProvisionTitle : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.Text;
+      ValidFrom : MANDATORY INTERLIS.XMLDate;
+      ValidUntil : INTERLIS.XMLDate;
+      Status : MANDATORY PipelinesystemUnderSupervisionByFederalGovernment_V1.ProtectedAreaStatus;
+    END ProtectedArea;
+
+    CLASS RouteMarking
+    EXTENDS Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+    END RouteMarking;
+
+  END PipelinesystemUnderSupervisionByFederalGovernment;
+
+END PipelinesystemUnderSupervisionByFederalGovernment_V1.

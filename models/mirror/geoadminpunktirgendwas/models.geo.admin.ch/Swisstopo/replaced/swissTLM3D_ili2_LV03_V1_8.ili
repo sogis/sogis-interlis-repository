@@ -1,0 +1,794 @@
+INTERLIS 2.3;
+
+!!======================================
+!!@ IDGeoIV=38.1
+!!@ furtherInformation=https://www.swisstopo.admin.ch
+!!@ technicalContact=mailto:geodata@swisstopo.ch
+
+MODEL swissTLM3D_ili2_LV03_V1_8 (de) AT "https://models.geo.admin.ch/Swisstopo" VERSION "2020-01-01" =
+
+
+  IMPORTS CoordSys;
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D: CHLV03
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+  DOMAIN
+    UUIDOID = OID TEXT*36;
+    HKoord = COORD 480000.000 .. 850000.000 [INTERLIS.m] {CHLV03[1]},
+                    50000.000 .. 310000.000 [INTERLIS.m] {CHLV03[2]},
+                     -200.000 ..   5000.000 [INTERLIS.m] {SwissOrthometricAlt[1]},
+                   ROTATION 2 -> 1;
+    D_POLYLINE = POLYLINE WITH (STRAIGHTS,ARCS) VERTEX HKoord;
+    D_SURFACE = SURFACE WITH (STRAIGHTS,ARCS) VERTEX HKoord WITHOUT OVERLAPS > 0.001;
+
+    TLM_Boolean_CD = (
+      Wahr,
+      Falsch,
+      ub,
+      k_W);
+    TLM_Enabled_CD = (
+      True,
+      False);
+    TLM_Grund_Aenderung_CD = (
+      uebertragen,
+      real,
+      restrukturiert,
+      verbessert);
+    TLM_Herkunft_CD = (
+      swisstopo,
+      NDB,
+      V25,
+      GG25,
+      AV,
+      ASTRA,
+      Transportunternehmen,
+      GIS_Landesgrenze,
+      Strassendaten_Kanton,
+      NMA_Ausland,
+      BAFU,
+      BAV,
+      SchweizMobil,
+      LV_Kanton,
+      EuroGeographics,
+      Gemeinde,
+      GebCH_T2013,
+      GebCH_T2014,
+      GebCH_T2015,
+      GebCH_T2016,
+      GebCH_T2017,
+      TLM_Ausnahme,
+      SGI);
+    TLM_Stufe_CD = (
+      Stufe_minus_6,
+      Stufe_minus_5,
+      Stufe_minus_4,
+      Stufe_minus_3,
+      Stufe_minus_2,
+      Stufe_minus_1,
+      Stufe_0,
+      Stufe_1,
+      Stufe_2,
+      Stufe_3,
+      Stufe_4,
+      Stufe_5,
+      Stufe_6,
+      ub,
+      k_W);
+
+  CLASS TLM_OBJEKT (ABSTRACT) =
+    UUID: MANDATORY UUIDOID;
+    Datum_Aenderung: INTERLIS.XMLDate;
+    Datum_Erstellung: INTERLIS.XMLDate;
+    Erstellung_Jahr: -999999 .. 2100;
+    Erstellung_Monat: TEXT*5;
+    Grund_Aenderung: TLM_Grund_Aenderung_CD;
+    Herkunft: TLM_Herkunft_CD;
+    Herkunft_Jahr: -999999 .. 2100;
+    Herkunft_Monat: TEXT*5;
+    Revision_Jahr: -999999 .. 2100;
+    Revision_Monat: TEXT*5;
+    Revision_Qualitaet: TEXT*20;
+  END TLM_OBJEKT;
+
+  TOPIC TLM_AREALE =
+
+    DOMAIN
+      TLM_ISCED_Typ_CD = (
+        ISCED_6,
+        ISCED_5,
+        ISCED_4,
+        ISCED_3,
+        ISCED_2,
+        ISCED_1,
+        ISCED_0,
+        ub,
+        k_W);
+
+    CLASS TLM_FREIZEITAREAL EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Campingplatzareal,
+        Freizeitanlagenareal,
+        Golfplatzareal,
+        Pferderennbahnareal,
+        Schwimmbadareal,
+        Sportplatzareal,
+        Standplatzareal,
+        Zooareal);
+      Name: TEXT*300;
+      TLM_Areale_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_FREIZEITAREAL;
+
+    CLASS TLM_NUTZUNGSAREAL EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Abwasserreinigungsareal,
+        Baumschule,
+        Deponieareal,
+        Friedhof,
+        Historisches_Areal,
+        Kiesabbauareal,
+        Kraftwerkareal,
+        Lehmabbauareal,
+        Messeareal,
+        Obstanlage,
+        Oeffentliches_Parkareal,
+        Reben,
+        Schrebergartenareal,
+        Schul_und_Hochschulareal,
+        Spitalareal,
+        Steinbruchareal,
+        Wald_nicht_bestockt,
+        Antennenareal,
+        Kehrrichtverbrennungsareal,
+        Klosterareal,
+        Massnahmenvollzugsanstaltsareal,
+        Unterwerkareal,
+        Truppenuebungsplatz);
+      Name: TEXT*300;
+      TLM_Areale_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_NUTZUNGSAREAL;
+
+    CLASS TLM_VERKEHRSAREAL EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Flugfeldareal,
+        Flughafenareal,
+        Flugplatzareal,
+        Heliport,
+        Oeffentliches_Parkplatzareal,
+        Privates_Fahrareal,
+        Privates_Parkplatzareal,
+        Rastplatzareal,
+        Verkehrsflaeche,
+        Gleisareal);
+      Name: TEXT*300;
+      TLM_Areale_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_VERKEHRSAREAL;
+
+    CLASS TLM_SCHUTZGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Nationalpark);
+      Name: TEXT*300;
+      TLM_Grenze_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_SCHUTZGEBIET;
+
+    CLASS TLM_SCHULE EXTENDS TLM_OBJEKT =
+      ISCED_STUFE : TLM_ISCED_Typ_CD;
+      NAME_SCHULE : TEXT*300;
+    END TLM_SCHULE;
+
+    ASSOCIATION TLM_NUTZUNGSAREAL_SCHULE =
+      Nutzungsareal_for_Schule -- {1..*} TLM_NUTZUNGSAREAL;
+      Schule_for_Nutzungsareal -- {0..*} TLM_SCHULE;
+    END TLM_NUTZUNGSAREAL_SCHULE;
+
+  END TLM_AREALE;
+
+  TOPIC TLM_BAUTEN =
+
+    CLASS TLM_GEBAEUDE_FOOTPRINT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Gebaeude,
+        Historische_Baute,
+        Kapelle,
+        Sakraler_Turm,
+        Sakrales_Gebaeude,
+        Hochhaus,
+        Hochkamin,
+        Turm,
+        Kuehlturm,
+        Lagertank,
+        Lueftungsschacht,
+        Offenes_Gebaeude,
+        Treibhaus,
+        Im_Bau,
+        Flugdach,
+        Unterirdisches_Gebaeude,
+        Verbindungsbruecke,
+        Mauer_gross,
+        Mauer_gross_gedeckt);
+      Nutzung: TEXT*50;
+      Name: TEXT*300;
+      TLM_Bauten_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_GEBAEUDE_FOOTPRINT;
+
+    CLASS TLM_MAUER EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Mauer);
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_MAUER;
+
+    CLASS TLM_SPORTBAUTE_LIN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Bobbahn,
+        Laufbahn,
+        Pferderennbahn,
+        Rodelbahn,
+        Scheibenstand,
+        Skisprungschanze);
+      Name: TEXT*300;
+      TLM_Bauten_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_SPORTBAUTE_LIN;
+
+    CLASS TLM_SPORTBAUTE_PLY EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Sportplatz);
+      Name: TEXT*300;
+      TLM_Bauten_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_SPORTBAUTE_PLY;
+
+    CLASS TLM_STAUBAUTE EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Staumauer,
+        Staudamm,
+        Wasserbecken,
+        Wehr);
+      Name: TEXT*300;
+      TLM_Bauten_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_STAUBAUTE;
+
+    CLASS TLM_VERBAUUNG EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Gewaesserverbauung,
+        Lawinenverbauung,
+        Trockenmauer);
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_VERBAUUNG;
+
+    CLASS TLM_VERKEHRSBAUTE_LIN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Hafensteg);
+      Stufe: TLM_Stufe_CD;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_VERKEHRSBAUTE_LIN;
+
+    CLASS TLM_VERKEHRSBAUTE_PLY EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Graspiste,
+        Hartbelagpiste,
+        Perron,
+        Rollfeld_Gras,
+        Rollfeld_Hartbelag,
+        Schleuse);
+      Shape: MANDATORY D_SURFACE;
+    END TLM_VERKEHRSBAUTE_PLY;
+
+    CLASS TLM_VERSORGUNGS_BAUTE_LIN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Hochspannungsleitung);
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_VERSORGUNGS_BAUTE_LIN;
+
+    CLASS TLM_VERSORGUNGS_BAUTE_PKT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Antenne_gross,
+        Windturbine,
+        Antenne_klein);
+      Shape: MANDATORY HKoord;
+    END TLM_VERSORGUNGS_BAUTE_PKT;
+
+  END TLM_BAUTEN;
+
+  TOPIC TLM_BB =
+
+    CLASS TLM_GLAMOS EXTENDS TLM_OBJEKT =
+      SGI : TEXT*100;
+      Riverlevel0 : TEXT*5;
+      Riverlevel1 : 0 .. 10;
+      Riverlevel2 : 0 .. 10;
+      Riverlevel3 : TEXT*5;
+      Inventorycode : 0 .. 100;
+    END TLM_GLAMOS;
+
+    CLASS TLM_BODENBEDECKUNG EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Fels,
+        Feuchtgebiet,
+        Fliessgewaesser,
+        Gebueschwald,
+        Gletscher,
+        Lockergestein,
+        Stehende_Gewaesser,
+        Wald,
+        Wald_offen,
+        Fels_locker,
+        Felsbloecke,
+        Felsbloecke_locker,
+        Lockergestein_locker,
+        Gehoelzflaeche);
+      Shape: MANDATORY D_SURFACE;
+    END TLM_BODENBEDECKUNG;
+
+    CLASS TLM_EINZELBAUM_GEBUESCH EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Einzelbaum);
+      Shape: MANDATORY HKoord;
+    END TLM_EINZELBAUM_GEBUESCH;
+
+    CLASS TLM_MORPH_KLEINFORM_LIN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Boeschung_Oberkante,
+        Boeschung_Unterkante,
+        Steinboeschung_Oberkante,
+        Steinboeschung_Unterkante);
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_MORPH_KLEINFORM_LIN;
+
+    ASSOCIATION TLM_GLAMOS_BODENBEDECKUNG =
+      TLM_Bodenbedeckung_von -<#> {1} TLM_BODENBEDECKUNG;
+      Gletschermessnetz -- {0..1} TLM_GLAMOS;
+    END TLM_GLAMOS_BODENBEDECKUNG;
+
+  END TLM_BB;
+
+  TOPIC TLM_EO =
+
+    CLASS TLM_EINZELOBJEKT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Bildstock,
+        Brunnen,
+        Denkmal,
+        Gipfelkreuz,
+        Grotte_Hoehle,
+        Quelle,
+        Triangulationspyramide,
+        Wasserfall,
+        Wasserversorgung,
+        Landesgrenzstein);
+      Name : TEXT*300;
+      TLM_EO_Name_UUID : UUIDOID;
+      Shape: MANDATORY HKoord;
+    END TLM_EINZELOBJEKT;
+
+  END TLM_EO;
+
+  TOPIC TLM_GEWAESSER =
+
+    DOMAIN
+      TLM_Gewaesser_LINST_CD = (
+        CH,
+        AG,
+        AI,
+        AR,
+        BE,
+        BL,
+        BS,
+        FR,
+        GE,
+        GL,
+        GR,
+        JU,
+        LU,
+        NE,
+        NW,
+        OW,
+        SG,
+        SH,
+        SO,
+        SZ,
+        TG,
+        TI,
+        UR,
+        VS,
+        VD,
+        ZG,
+        ZH,
+        ub,
+        k_W,
+        FL);
+      TLM_Gewaesser_Verlauf_CD = (
+        oberirdisch,
+        unterirdisch_bestimmt,
+        unterirdisch_unbestimmt,
+        Bruecke,
+        Wasserfall,
+        ub,
+        k_W);
+
+    CLASS TLM_FLIESSGEWAESSER EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Bisse_Suone,
+        Druckleitung_einfach,
+        Druckleitung_mehrfach,
+        Druckstollen,
+        Fliessgewaesser,
+        Seeachse,
+        Trockenrinne);
+      Stufe: TLM_Stufe_CD;
+      Verlauf: TLM_Gewaesser_Verlauf_CD;
+      Enabled: TLM_Enabled_CD;
+      KantGewNr: TEXT*30;
+      GEWISS_Nr: -999999 .. 999999;
+      LINST: TLM_Gewaesser_LINST_CD;
+      GWL_Nr: TEXT*20;
+      Lauf_Nr: -999999 .. 999;
+      TLM_Gewaesser_Lauf_UUID: UUIDOID;
+      Name: TEXT*300;
+      TLM_Gewaesser_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_FLIESSGEWAESSER;
+
+    CLASS TLM_STEHENDES_GEWAESSER EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        See,
+        Seeinsel);
+      Enabled: TLM_Enabled_CD;
+      KantGewNr: TEXT*30;
+      GEWISS_Nr: -999999 .. 999999;
+      LINST: TLM_Gewaesser_LINST_CD;
+      GWL_Nr: TEXT*20;
+      Lauf_Nr: -999999 .. 999;
+      TLM_Gewaesser_Lauf_UUID: UUIDOID;
+      Name: TEXT*300;
+      TLM_Gewaesser_Name_UUID: UUIDOID;
+      Wasserstand_wechselnd: TLM_Boolean_CD;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_STEHENDES_GEWAESSER;
+
+  END TLM_GEWAESSER;
+
+  TOPIC TLM_NAMEN =
+
+    DOMAIN
+      TLM_Einwohnerkategorie_CD = (
+        groesser_100000,
+        von_50000_bis_100000,
+        von_10000_bis_49999,
+        von_2000_bis_9999,
+        von_1000_bis_1999,
+        von_100_bis_999,
+        von_50_bis_99,
+        von_20_bis_49,
+        kleiner_20,
+        ub,
+        k_W);
+
+    CLASS TLM_FLURNAME EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Flurname_swisstopo,
+        Lokalname_swisstopo);
+      Name: TEXT*300;
+      TLM_Name_Name_UUID: UUIDOID;
+      Shape: MANDATORY HKoord;
+    END TLM_FLURNAME;
+
+    CLASS TLM_GEBIETSNAME EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Gebiet,
+        Grossregion,
+        Landschaftsname);
+      Name: TEXT*300;
+      TLM_Name_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_GEBIETSNAME;
+
+    CLASS TLM_GELAENDENAME EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Gletscher,
+        Graben,
+        Grat,
+        Haupttal,
+        Huegelzug,
+        Massiv,
+        Seeteil,
+        Tal);
+      Name: TEXT*300;
+      TLM_Name_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_GELAENDENAME;
+
+    CLASS TLM_NAME_PKT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Alpiner_Gipfel,
+        Felskopf,
+        Gipfel,
+        Hauptgipfel,
+        Haupthuegel,
+        Huegel,
+        Pass,
+        Strassenpass);
+      Hoehe: -999999 .. 5000;
+      Name: TEXT*300;
+      TLM_Name_Name_UUID: UUIDOID;
+      Shape: MANDATORY HKoord;
+    END TLM_NAME_PKT;
+
+    CLASS TLM_SIEDLUNGSNAME EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Ort,
+        Ortsteil,
+        Quartier,
+        Quartierteil);
+      Einwohnerkategorie: TLM_Einwohnerkategorie_CD;
+      Name: TEXT*300;
+      TLM_Name_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_SIEDLUNGSNAME;
+
+  END TLM_NAMEN;
+
+  TOPIC TLM_OEV =
+
+    DOMAIN
+      TLM_Bahn_Kunstbaute_CD = (
+        Keine,
+        Bruecke,
+        Bruecke_mit_Galerie,
+        Galerie,
+        Gedeckte_Bruecke,
+        Staudamm,
+        Staumauer_Wehr,
+        Tunnel,
+        Unterfuehrung,
+        ub,
+        k_W);
+      TLM_Bahn_Anzahl_Spuren_CD = (
+        einspurig,
+        zwei_und_mehrspurig,
+        ub,
+        k_W);
+      TLM_Bahn_Verkehrsmittel_CD = (
+        Bahn,
+        Tram,
+        Metro,
+        ub,
+        k_W);
+
+    CLASS TLM_EISENBAHN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Kleinbahn,
+        Normalspur,
+        Schmalspur,
+        Schmalspur_mit_Normalspur);
+      Enabled: TLM_Enabled_CD;
+      Kunstbaute: TLM_Bahn_Kunstbaute_CD;
+      Museumsbahn: TLM_Boolean_CD;
+      AufStrasse: TLM_Boolean_CD;
+      AchseDKM: TLM_Boolean_CD;
+      Anschlussgleis: TLM_Boolean_CD;
+      Eroeffnungsdatum: INTERLIS.XMLDate;
+      Stufe: TLM_Stufe_CD;
+      Ausser_Betrieb: TLM_Boolean_CD;
+      Zahnradbahn: TLM_Boolean_CD;
+      Standseilbahn: TLM_Boolean_CD;
+      Betriebsbahn: TLM_Boolean_CD;
+      Anzahl_Spuren: TLM_Bahn_Anzahl_Spuren_CD;
+      Verkehrsmittel: TLM_Bahn_Verkehrsmittel_CD;
+      Name: TEXT*300;
+      TLM_OEV_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_EISENBAHN;
+
+    CLASS TLM_HALTESTELLE EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Haltestelle_Bahn,
+        Haltestelle_Bus,
+        Haltestelle_Schiff,
+        Terminal,
+        Uebrige_Bahnen);
+      Dienststellen_Nummer: TEXT*10;
+      Name: TEXT*300;
+      TLM_OEV_Name_UUID: UUIDOID;
+      Shape: MANDATORY HKoord;
+    END TLM_HALTESTELLE;
+
+    CLASS TLM_SCHIFFFAHRT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Autofaehre,
+        Personenfaehre);
+      Name: TEXT*300;
+      TLM_OEV_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_SCHIFFFAHRT;
+
+    CLASS TLM_UEBRIGE_BAHN EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY(
+        Foerderband,
+        Gondelbahn,
+        Luftseilbahn,
+        Sesselbahn,
+        Skilift,
+        Transportseil,
+        Lift);
+      Betriebsbahn: TLM_Boolean_CD;
+      Stufe: TLM_Stufe_CD;
+      Ausser_Betrieb: TLM_Boolean_CD;
+      Eroeffnungsdatum: INTERLIS.XMLDate;
+      Name: TEXT*300;
+      TLM_OEV_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_UEBRIGE_BAHN;
+
+  END TLM_OEV;
+
+  TOPIC TLM_STRASSEN =
+
+    DOMAIN
+      TLM_Strasse_Kunstbaute_CD = (
+        Keine,
+        Bruecke,
+        Bruecke_mit_Galerie,
+        Bruecke_mit_Treppe,
+        Furt,
+        Galerie,
+        Gedeckte_Bruecke,
+        Staudamm,
+        Staumauer_Wehr,
+        Steg,
+        Treppe,
+        Tunnel,
+        Unterfuehrung,
+        Unterfuehrung_mit_Treppe,
+        ub,
+        k_W);
+      TLM_Wanderwege_CD = (
+        Alpinwanderweg,
+        Bergwanderweg,
+        Wanderweg,
+        Andere);
+      TLM_Verkehrsbeschraenkung_CD = (
+        Keine,
+        Allgemeine_Verkehrsbeschraenkung,
+        Allgemeines_Fahrverbot,
+        Fussgaengerzone,
+        Fussweg,
+        Gebuehrenpflichtig,
+        Gesicherte_Kletterpartie,
+        Lastwagenfahrverbot,
+        Militaerstrasse,
+        Panzerpiste,
+        Radweg,
+        Radweg_und_Fussweg,
+        Reitweg,
+        Reitweg_und_Fussweg,
+        Rennstrecke,
+        Teststrecke,
+        Wintersperre,
+        Wohnstrasse,
+        Zeitlich_geregelt,
+        ub,
+        k_W,
+        Gesperrt);
+      TLM_Strasse_Belagsart_CD = (
+        Hart,
+        Natur,
+        ub,
+        k_W);
+      TLM_Strasse_Eigentuemer_CD = (
+        Bund,
+        Kanton,
+        ub,
+        k_W);
+      TLM_Verkehrsbedeutung_CD = (
+        Hochleistungsstrasse,
+        Durchgangsstrasse,
+        Verbindungsstrasse,
+        ub,
+        k_W);
+
+    CLASS TLM_AUS_EINFAHRT EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Verzweigung,
+        Ausfahrt,
+        Einfahrt,
+        Ein_und_Ausfahrt);
+      Nummer: TEXT*100;
+      Name: TEXT*300;
+      TLM_Strassen_Name_UUID: UUIDOID;
+      Shape: MANDATORY HKoord;
+    END TLM_AUS_EINFAHRT;
+
+    CLASS TLM_STRASSE EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Ausfahrt,
+        Autobahn,
+        Autostrasse,
+        Autozug,
+        Dienstzufahrt,
+        Einfahrt,
+        Faehre,
+        Klettersteig,
+        Markierte_Spur,
+        Platz,
+        Raststaette,
+        Strasse_3m,
+        Strasse_4m,
+        Strasse_6m,
+        Strasse_8m,
+        Strasse_10m,
+        Verbindung,
+        Weg_1m,
+        Weg_2m,
+        Wegfragment_1m,
+        Wegfragment_2m,
+        Zufahrt);
+      Kunstbaute: TLM_Strasse_Kunstbaute_CD;
+      Wanderwege: TLM_Wanderwege_CD;
+      Verkehrsbeschraenkung: TLM_Verkehrsbeschraenkung_CD;
+      Befahrbarkeit: TLM_Boolean_CD;
+      Eroeffnungsdatum: INTERLIS.XMLDate;
+      Stufe: TLM_Stufe_CD;
+      Richtungsgetrennt: TLM_Boolean_CD;
+      Belagsart: TLM_Strasse_Belagsart_CD;
+      Kreisel: TLM_Boolean_CD;
+      Eigentuemer: TLM_Strasse_Eigentuemer_CD;
+      Verkehrsbedeutung: TLM_Verkehrsbedeutung_CD;
+      Name: TEXT*300;
+      TLM_Strassen_Name_UUID: UUIDOID;
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_STRASSE;
+
+    CLASS TLM_STRASSENINFO EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Durchfahrtssperre,
+        Erschliessung,
+        Loop_Junction,
+        MISTRA_Zusatzknoten,
+        Raststaette,
+        Standardknoten,
+        Treppe_kurz,
+        Verladestation,
+        Zahlstelle,
+        Zollamt_24h_24h,
+        Zollamt_24h_eingeschraenkt,
+        Zollamt_eingeschraenkt,
+        Namen);
+      Tankstelle: TLM_Boolean_CD;
+      Restaurant: TLM_Boolean_CD;
+      Shop: TLM_Boolean_CD;
+      Toiletten: TLM_Boolean_CD;
+      TLM_Strassen_Name_UUID: UUIDOID;
+      Name: TEXT*300;
+      Shape: MANDATORY HKoord;
+    END TLM_STRASSENINFO;
+
+    CLASS TLM_STRASSENROUTE EXTENDS TLM_OBJEKT =
+      Objektart: (
+        Europastrasse,
+        Hauptstrasse_A,
+        Hauptstrasse_B,
+        Hauptstrasse_C,
+        Hauptstrasse_swisstopo_gelb,
+        Hauptstrasse_swisstopo_rot,
+        HLS_Bund,
+        HLS_Kanton,
+        Kantonsstrasse,
+        Nationalstrasse,
+        Nebenstrasse);
+      Name: TEXT*300;
+      Routennummer: TEXT*10;
+    END TLM_STRASSENROUTE;
+
+    ASSOCIATION TLM_STRASSENROUTE_STRASSE =
+      Strassenroute_for_Strasse -- {0..*} TLM_STRASSENROUTE;
+      Strasse_for_Strassenroute -- {1..*} TLM_STRASSE;
+    END TLM_STRASSENROUTE_STRASSE;
+
+  END TLM_STRASSEN;
+
+END swissTLM3D_ili2_LV03_V1_8.

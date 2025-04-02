@@ -1,0 +1,189 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=https://www.babs.admin.ch/de/aufgabenbabs/kgs/inventar.html
+!!@ IDGeoIV=65.1
+!!@ technicalContact=mailto:Geographisches-Informationssystem@babs.admin.ch
+MODEL KGS_PBC_V2_1 (de)
+AT "https://models.geo.admin.ch/BABS/"
+VERSION "2023-03-02"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC KGS_Codelisten =
+
+    CLASS Objektarten_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** [DE] Numerischer Code der Objektart
+       * [FR] Code numérique du type d'objet
+       */
+      Objektcode : MANDATORY 0 .. 9999;
+      /** [DE] Mehrsprachige Objektbezeichnung
+       * [FR] Désignation multilingue de l'objet
+       */
+      Objektbezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Objektcode;
+    END Objektarten_Catalogue;
+
+    STRUCTURE Objektarten_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Objektarten_Catalogue;
+    END Objektarten_CatRef;
+
+  END KGS_Codelisten;
+
+  TOPIC KGS_Inventar =
+    DEPENDS ON KGS_PBC_V2_1.KGS_Codelisten;
+
+    STRUCTURE EGID_Structure =
+      /** [DE] Eidgenössischer Gebäudeidentifikator
+       * [FR] Identificateur fédéral de bâtiment
+       */
+      EGID : MANDATORY 1 .. 900000000;
+    END EGID_Structure;
+
+    STRUCTURE Adressen_Structure =
+      /** [DE] Postadresse mit Strassenname und Hausnummer (Bezeichnung gemäss dem amtlichen Gebäudeverzeichnis)
+       * [FR] Adresse postale avec nom de rue et numéro de maison (notation selon le répertoire officiel du bâtiment)
+       */
+      Adresse : MANDATORY TEXT*100;
+    END Adressen_Structure;
+
+    STRUCTURE EGRID_Structure =
+      /** [DE] Eidgenössischer Grundstücksidentifikator EGRID oder Parzellennummer
+       * [FR] Identification fédérale des immeubles EGRID ou numéro de la propriété
+       */
+      EGRID : MANDATORY TEXT*20;
+    END EGRID_Structure;
+
+    CLASS KGS_Objekt =
+      /** [DE] Koordinaten EN LV95
+       * [FR] Coordonnées EN MN95
+       */
+      Punktkoordinate : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** [DE] Es können keine, eine oder mehrere Einzelflächen definiert werden (mit Geraden und Kreisbögen)
+       * [FR] Aucune, une ou plusieurs surfaces individuelles peuvent être définies (avec des lignes droites et des arcs)
+       */
+      Flaechen : GeometryCHLV95_V1.MultiSurface;
+      /** [DE] Bedeutung des Objekts: A = Objekt von nationaler Bedeutung (evtl. später mit verstärktem Schutz) / B = Objekt von regionaler Bedeutung
+       * [FR] Importance de l'objet: A = Objet d'importance nationale (éventuellement dans le futur avec protection renforcée) / B = Objet d'importance régionale
+       */
+      KGS_Kategorie : MANDATORY (
+        /** [DE] National und verstärkter Schutz
+         * [FR] national et protection renforcée
+         */
+        A (A, verstaerkter_Schutz),
+        /** [DE] Regional
+         * [FR] régional
+         */
+        B
+      );
+      /** [DE] BABS KGS-Objekt-Nummer. Fünfstellige Nummer des Datensatzes in der KGS-SAP-Datenbank
+       * [FR] Numéro OFPP de l'objet PBC: code à 5 chiffres dans la base de donnée PBC-SAP
+       */
+      Objekt_Nr : MANDATORY 1 .. 89999;
+      /** [DE] Es können keine, eine oder mehrere Objektarten definiert werden
+       * [FR] Aucun, un ou plusieurs types d'objets peuvent être définis
+       */
+      Objektart : BAG {1..12} OF KGS_PBC_V2_1.KGS_Codelisten.Objektarten_CatRef;
+      /** [DE] Beschreibung des KGS-Objekts. Name bzw. (ehemalige) Funktion des Objekts, z.B. Palais de Justice (ancien hôpital) sowie Präzisierung der Art des Kulturguts unter «Objektart»
+       * [FR] Description de l'objet PBC. Nom ou fonction de l'objet, par exemple Palais de justice (ancien hôpital) et précision du type de bien culturel sous «Objektart»
+       */
+      Beschreibung : MANDATORY TEXT*256;
+      /** [DE] Es können kein, ein oder mehrere EGID definiert werden
+       * [FR] Aucun, un ou plusieurs EGID peuvent être définis
+       */
+      EGID : BAG {0..*} OF KGS_PBC_V2_1.KGS_Inventar.EGID_Structure;
+      /** [DE] Es können keine, eine oder mehrere Adressen definiert werden
+       * [FR] Aucune, une ou plusieurs adresses peuvent être définies
+       */
+      Adressen : BAG {0..*} OF KGS_PBC_V2_1.KGS_Inventar.Adressen_Structure;
+      /** [DE] Es können kein, ein oder mehrere EGRID oder Parzellennummern definiert werden
+       * [FR] Aucun, un ou plusieurs EGRID ou numéro de la propriété peuvent être définis
+       */
+      EGRID : BAG {0..*} OF KGS_PBC_V2_1.KGS_Inventar.EGRID_Structure;
+      /** [DE] Gemeindename. Offizieller Name der Gemeinde gemäss aktueller Liste des BFS
+       * [FR] Nom de la commune. Nom officiel de la commune, selon la liste actuelle de l'OFS
+       */
+      Gemeinde : MANDATORY TEXT*100;
+      /** [DE] Ehemalige Gemeinde (z.B. Münster-Geschinen)
+       * [FR] Ancienne municipalité (par exemple Münster-Geschinen)
+       */
+      EhemaligeGemeinde : TEXT*100;
+      /** [DE] Kanton (Abkürzung)
+       * [FR] Canton (abréviation)
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** [DE] Dient der Darstellung der Punktsymbole, wobei zwischen punktartigen und flächenartigen Ausprägungen unterschieden wird
+       * [FR] Il est utilisé pour afficher les symboles ponctuels, une distinction étant faite entre les caractéristiques ponctuelles et étendues
+       */
+      Signatur_Typ (FINAL) : MANDATORY (
+        /** [DE] punktartige Ausprägung
+         * [FR] caractéristique ponctuelle
+         */
+        Punktobjekt,
+        /** [DE] flächenhafte Ausprägung
+         * [FR] caractéristique étendue
+         */
+        Flaechenobjekt
+      );
+      /** [DE] Kurztext zum KGS-Objekt
+       * [FR] Désignation de l'objet PBC
+       */
+      Kurztext : MTEXT;
+    END KGS_Objekt;
+
+    CLASS KGS_Link =
+      /** [DE] URL zu weiteren Informationen (maximal drei Links)
+       * [FR] URL vers des informations supplémentaires (trois liens maximum)
+       */
+      Weblink : MANDATORY URI;
+      /** [DE] Umgangssprachliche Bezeichnung der URL
+       * [FR] Nom courant de l'URL
+       */
+      Bemerkung : MANDATORY TEXT*80;
+    END KGS_Link;
+
+    CLASS KGS_PDF =
+      /** [DE] Objektinformationen, die als PDF abgelegt sind (maximal fünf Links)
+       * [FR] Informations sur l'objet, classées en PDF (cinq liens maximum)
+       */
+      PDF_file : MANDATORY URI;
+    END KGS_PDF;
+
+    CLASS KGS_Image =
+      /** [DE] Foto-Nummer. Vierstellige Bildnummer, jeweils kombiniert mit der fünfstelligen Nummer des Datensatzes in der KGS-SAP-Datenbank (z.B. KGS_12457_0001.jpg)
+       * [FR] Numéro de la photo. Chiffre à quatre positions, combiné avec le No a cinq chiffres de l'objet dans la base de données PBC-SAB (par exemple: KGS_12457_0001.jpg)
+       */
+      Bild_Nr : 0 .. 9999;
+      /** [DE] Link auf das Foto
+       * [FR] Lien vers la photo
+       */
+      Bild_URL : MANDATORY URI;
+      /** [DE] Name des Fotografen. Falls bekannt, Name des Fotografen des betreffenden Bildes. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * [FR] Nom du photographe. Si connu, le nom du photographe. Si pas connu, il doit y avoir au moins une remarque sur le copyright
+       */
+      Fotograf : TEXT*100;
+      /** [DE] Copyright-Besitzer. Falls Fotograf und Copyright identisch sind, genügt ein einziger Name. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * [FR] Détenteur du copyright. Si le photographe et le copyright sont identiques, un seul nom suffit. Si le photographe n'est pas connu, ne laisser que le copyright
+       */
+      Copyright : TEXT*100;
+    MANDATORY CONSTRAINT DEFINED (Fotograf) OR DEFINED (Copyright);
+    END KGS_Image;
+
+    ASSOCIATION KGS_Objekt_KGS_Link =
+      R1_KGSobj -<#> {1} KGS_Objekt;
+      R2_KGSlink -- {0..3} KGS_Link;
+    END KGS_Objekt_KGS_Link;
+
+    ASSOCIATION KGS_Objekt_KGS_PDF =
+      R3_KGSobj -<#> {1} KGS_Objekt;
+      R4_KGSpdf -- {0..5} KGS_PDF;
+    END KGS_Objekt_KGS_PDF;
+
+    ASSOCIATION KGS_Objekt_KGS_Image =
+      R5_KGSobj -<#> {1} KGS_Objekt;
+      R6_KGSimage -- {0..*} KGS_Image;
+    END KGS_Objekt_KGS_Image;
+
+  END KGS_Inventar;
+
+END KGS_PBC_V2_1.

@@ -1,0 +1,156 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="112.1,113.1,205.2,207.1,208.1,209.1"
+
+!! Version    | Wer | Änderung
+!!------------------------------------------------------------------------------
+!! 2024-03-21 | BAFU  | Korrekturen: Wertebereich und entsprechender CONSTRAINT bei Attribut "BUR_NR", Kardinalität und entsprechender CONSTRAINT bei Attribut "EGID", Kardinalität bei Attribut "KONS_BEREICH_F"
+!!==============================================================================
+
+MODEL ERKAS_Betriebe_Kataster_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-03-21"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC ERKAS_Betriebe_Kataster =
+
+    CLASS ERK_KURZBERICHT =
+      KB_CODE : MANDATORY TEXT*256;
+      KB_NAME : TEXT*256;
+      ERKAS_VERSION : MANDATORY TEXT*1;
+      DATUM : MANDATORY INTERLIS.XMLDate;
+      STFV_UNT : MANDATORY INTERLIS.BOOLEAN;
+      KB_VER_AB : MANDATORY INTERLIS.XMLDate;
+      EN_PLAN : MANDATORY INTERLIS.BOOLEAN;
+      SS_BEV : INTERLIS.BOOLEAN;
+      SS_OIG : INTERLIS.BOOLEAN;
+      SS_UIG : INTERLIS.BOOLEAN;
+      SS_BOD : INTERLIS.BOOLEAN;
+      RE_PFLICHT : INTERLIS.BOOLEAN;
+      RE_LIEGTVOR : INTERLIS.BOOLEAN;
+      RE_VERF_AB : INTERLIS.XMLDate;
+      ERH_NAME : TEXT*50;
+      ERH_STELLE : TEXT*100;
+      ERH_TEL : TEXT*12;
+      ERH_DAT : INTERLIS.XMLDate;
+      ERF_NAME : TEXT*50;
+      ERF_DAT : INTERLIS.XMLDate;
+      ERF_ART : TEXT*1;
+      MANDATORY CONSTRAINT (KB_VER_AB == DATUM AND NOT (DEFINED (SS_BEV)) AND NOT (DEFINED (SS_OIG)) AND NOT (DEFINED (SS_UIG)) AND NOT (DEFINED (SS_BOD)) AND NOT (DEFINED (RE_PFLICHT)))
+                              OR (KB_VER_AB != DATUM AND DEFINED (SS_BEV) AND DEFINED (SS_OIG) AND DEFINED (SS_UIG) AND DEFINED (SS_BOD) AND DEFINED (RE_PFLICHT));
+      MANDATORY CONSTRAINT DEFINED (RE_VERF_AB) OR NOT (DEFINED (RE_VERF_AB));
+      MANDATORY CONSTRAINT RE_PFLICHT AND DEFINED (RE_LIEGTVOR) OR NOT (RE_PFLICHT) AND NOT (DEFINED (RE_LIEGTVOR));
+      MANDATORY CONSTRAINT NOT (RE_LIEGTVOR) AND NOT (DEFINED (RE_VERF_AB)) OR RE_LIEGTVOR;
+    END ERK_KURZBERICHT;
+
+    CLASS ERK_BETRIEBSEINHEIT =
+      NAME_BE : MANDATORY TEXT*50;
+    END ERK_BETRIEBSEINHEIT;
+
+    CLASS ERK_BETRIEB =
+      NAME_1_BETRIEB : TEXT*32;
+      NAME_2_BETRIEB : TEXT*32;
+      NAME_ZUSATZ : TEXT*50;
+      BUR_NR : MANDATORY 0 .. 999999999;
+      UID : TEXT*12;
+      GDD_DATUM : INTERLIS.XMLDate;
+      KONS_BEREICH : MANDATORY 0 .. 9999[INTERLIS.m];
+      NOGA_Code : 1 .. 999999;
+      MANDATORY CONSTRAINT (BUR_NR == 0) AND DEFINED (NOGA_Code);
+    END ERK_BETRIEB;
+
+    CLASS ERK_GEFAHRENPOTENTIAL_B =
+      MELDUNGSNR : MANDATORY TEXT*7;
+      KLASSE : MANDATORY 0 .. 9;
+      DIAGNOSTIK : TEXT*1;
+    END ERK_GEFAHRENPOTENTIAL_B;
+
+    CLASS ERK_GEFAHRENPOTENTIAL_C =
+      CAS : TEXT*11;
+      LVA : TEXT*10;
+      STOFF : MANDATORY TEXT*100;
+      MENGE : MANDATORY 1 .. 9999999999[INTERLIS.kg];
+      SCHWELLE : MANDATORY 1 .. 999999999[INTERLIS.kg];
+      MANDATORY CONSTRAINT DEFINED (CAS) OR DEFINED (LVA);
+    END ERK_GEFAHRENPOTENTIAL_C;
+
+    CLASS ERK_STOERFALL =
+      SF_DAT : MANDATORY INTERLIS.XMLDate;
+      SF_BER_DAT : MANDATORY INTERLIS.XMLDate;
+    END ERK_STOERFALL;
+
+    CLASS ERK_GEOI =
+      EGID : MANDATORY 0 .. 999999999;
+      ORT : GeometryCHLV95_V1.Coord2;
+      Gemeinde : TEXT*32;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      MANDATORY CONSTRAINT (EGID == 0) AND DEFINED (ORT);
+    END ERK_GEOI;
+
+    ASSOCIATION BetriebBetriebseinheit =
+      Betrieb -- {1} ERK_BETRIEB;
+      Betriebseinheit -- {1..*} ERK_BETRIEBSEINHEIT;
+    END BetriebBetriebseinheit;
+
+    ASSOCIATION Gefahrenpot_BBetriebseinheit =
+      Gefahrenpot_B -- {0..*} ERK_GEFAHRENPOTENTIAL_B;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END Gefahrenpot_BBetriebseinheit;
+
+    ASSOCIATION Gefahrenpot_CBetriebseinheit =
+      Gefahrenpot_C -- {0..*} ERK_GEFAHRENPOTENTIAL_C;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END Gefahrenpot_CBetriebseinheit;
+
+    ASSOCIATION GeoiBetriebseinheit =
+      Geoi -- {1..*} ERK_GEOI;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END GeoiBetriebseinheit;
+
+    ASSOCIATION KurzberichtBetriebseinheit =
+      Kurzbericht -- {1} ERK_KURZBERICHT;
+      Betriebseinheit -- {1..*} ERK_BETRIEBSEINHEIT;
+    END KurzberichtBetriebseinheit;
+
+    ASSOCIATION StoerfallBetriebseinheit =
+      Stoerfall -- {0..*} ERK_STOERFALL;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END StoerfallBetriebseinheit;
+
+    /** Falls die ERKAS_Version in der Klasse ERK_KURZBERICHT = B, muss die Klasse ERK_GEFAHRENPOTENTIAL_B erfasst werden.
+     * Falls die ERKAS_Version in der Klasse ERK_KURZBERICHT = C, muss die Klasse ERK_GEFAHRENPOTENTIAL_C erfasst werden.
+     */
+    CONSTRAINTS OF ERK_BETRIEBSEINHEIT =
+      MANDATORY CONSTRAINT  Kurzbericht->ERKAS_VERSION != "B" OR INTERLIS.objectCount(Gefahrenpot_B)>0;
+      MANDATORY CONSTRAINT  Kurzbericht->ERKAS_VERSION != "C" OR INTERLIS.objectCount(Gefahrenpot_C)>0;
+    END;
+
+  END ERKAS_Betriebe_Kataster;
+
+END ERKAS_Betriebe_Kataster_V2_0.
+
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="210.1,212.2,214.1,215.1,216.1"
+MODEL ERKAS_Betriebe_Karte_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-03-21"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC ERKAS_Betriebe_Karte =
+
+  DOMAIN
+
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS ERK_RAUMPLANUNG =
+      BETRIEBSAREAL : MANDATORY Polygon;
+      KONS_BEREICH_F : Polygon;
+    END ERK_RAUMPLANUNG;
+
+  END ERKAS_Betriebe_Karte;
+
+END ERKAS_Betriebe_Karte_V2_0.

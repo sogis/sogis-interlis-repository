@@ -1,0 +1,328 @@
+INTERLIS 2.3;
+  
+/** ============================================================================= 
+ *  Eidgenoessisches Departement für Umwelt,
+ *  Verkehr, Energie und Kommunikation UVEK
+ *  Bundesamt für Umwelt BAFU
+ *  Abteilung Wasser
+ *  3003 Bern
+ *  www.bafu.admin.ch
+ * 
+ *  Geobasisdatensatz Nr. 66   Inventar Trinkwasserversorgung in schweren Mangellagen
+ *  ============================================================================= 
+ *  Revision History
+ *  2017.02.21    Verabschiedete Version
+ *  2024.11.11    Ueberarbeitet aufgrund Revision VTM / VTN
+ *  =============================================================================
+ */
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=66.1
+
+MODEL TWVinMangellagen_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-11-11"  =
+  IMPORTS Units,GeometryCHLV95_V1;
+
+  UNIT
+
+    /** Definition Einheit Kilowatt 
+     */
+    Kilowatt [kW] = 1000 [Units.W];
+
+    /** Definition Einheit Liter pro Minute 
+     */
+    LiterProMinute [lmin] = (Units.L / INTERLIS.min);
+
+    /** Definition Einheit Höhe in Meter über Meer
+     */
+    hoehe [muM] = [INTERLIS.m];
+
+  DOMAIN
+
+    AlternativeStromversorgung = (
+     keine,
+     Generator,
+	 Notstromaggregat,
+     Notstromanschluss,
+     andere
+    );
+
+    JaNeinUnbestimmt = (
+      ja,
+      nein,
+      unbestimmt
+    );
+
+
+    Aufbereitungsart = (
+      einstufig_UV,
+      einstufig_chemisch,
+      einstufig_filtration,
+      einstufig_andere,
+      mehrstufig_filtration_UV,
+      mehrstufig_chemisch_UV,
+      mehrstufig_chemisch_filtration,
+      mehrstufig_andere,
+      unbestimmt
+    );
+
+
+	Aufbereitung_vorsorglich = (
+	   ja,
+	   nein,
+	   ja_zeitweise,
+	   ja_dauerhaft,
+	   unbestimmt
+	   );
+
+
+  TOPIC TWVinMangellagen =
+
+    /** Die abstrakte Klasse Basisattributklasse definiert die Attribute, welche über alle Klassen verwendet werden.
+     */
+    CLASS Basisattribute (ABSTRACT) =
+      Bemerkung : TEXT*1000;
+      /** Identifikator = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+       */ 
+      Identifikator : MANDATORY TEXT*255;
+      Name : TEXT*255;
+      /** Definition optional oder obligatorisch wird erst in der abgeleiteten Klasse definiert.
+       */
+      Netzteilident : MANDATORY TEXT*255;
+      Name_WV : TEXT*255; 
+	  Unverzichtbare_Anlage : MANDATORY TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+      UNIQUE Identifikator;
+    END Basisattribute;
+
+    /** Neu-Modellierung Klasse Quelle analog MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+     */
+    CLASS Quelle =
+      Bemerkung : TEXT*1000;
+      Fassungsart : MANDATORY (
+        ungefasst,
+        gefasst(
+          direkt,
+          Fassungsstrang,
+          Fassungsstollen,
+          unbestimmt
+        )
+      );
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Grundwasserleiter_Typ : MANDATORY (
+        Lockergestein,
+        Kluft,
+        Karst,
+        gemischt,
+        unbestimmt
+      );
+      Identifikator : MANDATORY TEXT*255;
+      Name : TEXT*255;
+
+      /** Ergänzung zu MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+       */
+      Netzteilident : TEXT*255;
+      Versorgung_Mangellage : TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt	
+      );
+      Oeffentliches_Interesse : TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+      Quelltyp : TEXT*255;
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Schuettung_minimal : MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Schuettung_mittel :  MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Schuettung_maximal : MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Pkonz :  -1.00 .. 1000000.00 [TWVinMangellagen_V2_0.lmin];
+      Trinkwasser : JaNeinUnbestimmt;
+      Weitere_Bezugsquelle : JaNeinUnbestimmt;
+      Unverzichtbare_Anlage : JaNeinUnbestimmt; 
+      Zweck : TEXT*255;
+      Name_WV : TEXT*255;
+      UNIQUE Identifikator;
+
+      MANDATORY CONSTRAINT
+	(Fassungsart == #ungefasst)
+		AND NOT (DEFINED (Nutzungszustand)) 
+		AND NOT (DEFINED (Trinkwasser)) 
+		AND NOT (DEFINED (Zweck)) 
+		AND NOT (DEFINED (Unverzichtbare_Anlage))
+		AND NOT (DEFINED (Weitere_Bezugsquelle))
+		AND NOT (DEFINED (Versorgung_Mangellage))
+		AND NOT (DEFINED (Pkonz))
+		AND NOT (DEFINED (Name_WV)) 
+	OR (Fassungsart <> #ungefasst) 
+		AND (DEFINED (Nutzungszustand))
+	OR (Fassungsart <> #ungefasst) AND (Nutzungszustand == #genutzt)
+		AND (DEFINED(Trinkwasser))
+		AND (DEFINED(Unverzichtbare_Anlage))
+		AND (DEFINED(Weitere_Bezugsquelle))
+		AND (DEFINED(Oeffentliches_Interesse))
+		AND (DEFINED(Netzteilident));
+    END Quelle;
+
+
+
+    /** Definiert die Attribute welche für alle Fassungs-Klassen verwendet werden.
+     */
+    CLASS Fassung (ABSTRACT)
+    EXTENDS Basisattribute =
+      Aufbereitungsart : TWVinMangellagen_V2_0.Aufbereitungsart;
+      Aufbereitung_vorsorglich: TWVinMangellagen_V2_0. Aufbereitung_vorsorglich;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Trinkwasser : MANDATORY TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+	  Weitere_Bezugsquelle : MANDATORY JaNeinUnbestimmt;
+	  
+	MANDATORY CONSTRAINT
+	(DEFINED(Aufbereitungsart) AND DEFINED(Aufbereitung_vorsorglich))
+	OR
+	NOT (DEFINED(Aufbereitungsart));
+	
+    END Fassung;
+
+    CLASS Foerderanlage
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinMangellagen_V2_0.AlternativeStromversorgung;
+      Art : MANDATORY (
+        Pumpwerk,
+        hydraulischer_Widder,
+	   Heberanlage,
+	   unbestimmt
+      );
+      Aufbereitungsart : TWVinMangellagen_V2_0.Aufbereitungsart;
+      Aufbereitung_vorsorglich: TWVinMangellagen_V2_0. Aufbereitung_vorsorglich;
+      Behaelter : JaNeinUnbestimmt;
+      Dauerleistung : TEXT*255;
+      Foerdermenge : MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Funktion : MANDATORY (
+        Stufenpumpwerk, 
+        Grundwasserpumpwerk,
+        Quellwasserpumpwerk,
+        FlussSeewasserpumpwerk,
+        unbestimmt
+      );
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Leistung_max : TEXT*255;
+      Pumpen_Anz : 0 .. 999;
+      Pumpen_Text : TEXT*255;
+	  
+	  MANDATORY CONSTRAINT
+	  (DEFINED(Aufbereitungsart) AND DEFINED(Aufbereitung_vorsorglich))
+	  OR
+	  NOT (DEFINED(Aufbereitungsart));
+	  
+    END Foerderanlage;
+
+    CLASS Leitung
+    EXTENDS Basisattribute =
+      Geometrie : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+      Nennweite : MANDATORY -1.00 .. 9999.00 [Units.mm];
+      Innendurchmesser : MANDATORY -1.00 .. 9999.00 [Units.mm];
+    END Leitung;
+
+    CLASS Reservoir
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinMangellagen_V2_0.AlternativeStromversorgung;
+      Aufbereitungsart : TWVinMangellagen_V2_0.Aufbereitungsart;
+	 Aufbereitung_vorsorglich : TWVinMangellagen_V2_0.Aufbereitung_vorsorglich; 
+      Brauchreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Loeschreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Stoerreserve: MANDATORY -1 .. 99999 [Units.m3];
+      Name (EXTENDED) : MANDATORY TEXT*255; 
+      Wasserspiegel_max : MANDATORY -1.00 .. 5000.00 [TWVinMangellagen_V2_0.muM];
+	  
+	  MANDATORY CONSTRAINT
+	 (DEFINED(Aufbereitungsart) AND DEFINED(Aufbereitung_vorsorglich))
+	   OR
+	  NOT (DEFINED(Aufbereitungsart)); 
+	  
+    END Reservoir;
+
+    CLASS WeitereAnlage
+    EXTENDS Basisattribute =
+      Art : MANDATORY (
+        Trinkwasserbrunnen_an_Leitungsnetz,
+        Trinkwasserbrunnen_unabhaengig,
+        Brunnen_unabh_o_TWQualitaet,
+        Brunnen_unabh_TWQualitaet_unbest,
+        Zonentrennung,
+        Druckbrecherschacht,
+        Druckregulierungsventil,
+        andere
+      );
+      Aufbereitungsart : TWVinMangellagen_V2_0.Aufbereitungsart;
+	  Aufbereitung_vorsorglich : TWVinMangellagen_V2_0.Aufbereitung_vorsorglich;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+	  
+	  MANDATORY CONSTRAINT
+	  (DEFINED(Aufbereitungsart) AND DEFINED(Aufbereitung_vorsorglich))
+	  OR
+	  NOT (DEFINED(Aufbereitungsart));
+	  
+	  
+    END WeitereAnlage;
+
+    CLASS Brunnenstube
+    EXTENDS Fassung =
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Ertrag_minimal : MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Ertrag_mittel : MANDATORY  -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Ertrag_maximal : MANDATORY -1 .. 99999 [TWVinMangellagen_V2_0.lmin];
+      Fassungsart : MANDATORY (
+        Brunnenstube,
+        Quellschacht,
+        Sammelbrunnenstube,
+        unbestimmt
+      );
+      Pkonz :  -1.00 .. 1000000.00 [TWVinMangellagen_V2_0.lmin];
+	  Zweck : TEXT*255;
+	  Versorgung_Mangellage : TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+    END Brunnenstube;
+
+
+    CLASS Grundwasserbrunnen
+    EXTENDS Fassung =
+      Durchmesser : 0.00 .. 9999.00 [Units.mm];
+      Brunnenart : MANDATORY (
+        Vertikalfilterbrunnen,
+        Horizontalfilterbrunnen,
+        Sod_Schachtbrunnen,
+        andere
+            );
+      Nutzungszustand : MANDATORY (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+            );
+      Zweck : TEXT*255;
+      Oeffentliches_Interesse : MANDATORY TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+      Pkonz : MANDATORY -1.00 .. 1000000.00 [TWVinMangellagen_V2_0.lmin];
+      Pkonz_Gruppe: -1.00 .. 1000000.00 [TWVinMangellagen_V2_0.lmin];
+	  Versorgung_Mangellage : MANDATORY TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+    END Grundwasserbrunnen;
+
+
+    CLASS Oberflaechengewaesserfassung
+    EXTENDS Fassung =
+      Fassungsart : MANDATORY (
+        Fliessgewaesserfassung,
+        Seewasserfassung
+      );
+      Nutzungszustand : MANDATORY (
+        genutzt,
+        ungenutzt,
+		unbestimmt
+      );      
+	  Pkonz : MANDATORY -1.00 .. 1000000.00 [TWVinMangellagen_V2_0.lmin];
+	  Versorgung_Mangellage : MANDATORY TWVinMangellagen_V2_0.JaNeinUnbestimmt;
+    END Oberflaechengewaesserfassung;
+
+  END TWVinMangellagen;
+
+END TWVinMangellagen_V2_0.

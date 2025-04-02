@@ -1,0 +1,188 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2014-06-23 | KOGIS | TOPIC-Dependencies added (line 28 and 119)
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "153.3,153.4"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+MODEL Flaechen_nach_OeQV_V1_1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2014-06-23"  =
+  IMPORTS Nutzungsflaechen_V1_1,Bearbeitungsstatus_V1,GeometryCHLV03_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC OeQV =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1.Status;
+    DEPENDS ON Nutzungsflaechen_V1_1.Nutzung;
+
+    /** Perimeter der Qualitätsflächen, Standorte der für die biologische Qualität
+     * berücksichtigten Bäume.
+     */
+    CLASS OeQV_Qualitaet =
+      Flaeche : GeometryCHLV03_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      Anzahl_Baeume : 0 .. 10000;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100; !! Default 100;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt);
+    END OeQV_Qualitaet;
+
+    /** Zurechnungsflächen für OeQV_Qualität
+     */
+    ASSOCIATION QualitaetNutzung =
+      Nutzung (EXTERNAL) -- {0..*} Nutzungsflaechen_V1_1.Nutzung.LNF_Nutzung;
+      Qualitaetsflaeche -- {0..*} OeQV_Qualitaet;
+    END QualitaetNutzung;
+
+    /** Perimeter der Vernetzungsflächen, Standorte der für die Vernetzung
+     * berücksichtigten Bäume.
+     */
+    CLASS OeQV_Vernetzung =
+      Flaeche : GeometryCHLV03_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 10000;
+      Ist_definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt);
+    END OeQV_Vernetzung;
+
+  END OeQV;
+
+END Flaechen_nach_OeQV_V1_1.
+
+
+
+MODEL Flaechen_nach_OeQV_LV95_V1_1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2014-06-23"  =
+  IMPORTS Nutzungsflaechen_LV95_V1_1,Bearbeitungsstatus_V1,GeometryCHLV95_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC OeQV =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1.Status;
+    DEPENDS ON Nutzungsflaechen_LV95_V1_1.Nutzung;
+
+    /** Perimeter der Qualitätsflächen, Standorte der für die biologische Qualität
+     * berücksichtigten Bäume.
+     */
+    CLASS OeQV_Qualitaet =
+      Flaeche : GeometryCHLV95_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      Anzahl_Baeume : 0 .. 10000;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100; !! Default 100;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt);
+    END OeQV_Qualitaet;
+
+    /** Zurechnungsflächen für OeQV_Qualität
+     */
+    ASSOCIATION QualitaetNutzung =
+      Nutzung (EXTERNAL) -- {0..*} Nutzungsflaechen_LV95_V1_1.Nutzung.LNF_Nutzung;
+      Qualitaetsflaeche -- {0..*} OeQV_Qualitaet;
+    END QualitaetNutzung;
+
+    /** Perimeter der Vernetzungsflächen, Standorte der für die Vernetzung
+     * berücksichtigten Bäume.
+     */
+    CLASS OeQV_Vernetzung =
+      Flaeche : GeometryCHLV95_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 10000;
+      Ist_definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt);
+    END OeQV_Vernetzung;
+
+  END OeQV;
+
+END Flaechen_nach_OeQV_LV95_V1_1.

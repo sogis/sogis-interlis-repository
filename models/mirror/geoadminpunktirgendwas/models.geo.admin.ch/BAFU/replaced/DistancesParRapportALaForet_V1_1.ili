@@ -1,0 +1,262 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal
+ * Distances par rapport à la forêt
+ * Jeu de géodonnées de base No. 159
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-09 | KOGIS | Association Type_Document adapted (both roles defined as EXTERNAL)
+!!------------------------------------------------------------------------------
+!! 2018-09-26 | KOGIS | Rolename and order of roles corrected
+!!------------------------------------------------------------------------------
+!! 2018-02-16 | KOGIS | MultilingualUri: BAG {1..*} OF added
+!!------------------------------------------------------------------------------
+!! 2017-07-04 | KOGIS | Modification de l'ordre des classes et des attributs selon le
+!!                    | modèle minimal en allemand (conséquence de TRANSLATION OF)
+!!------------------------------------------------------------------------------
+!! 2017-02-16 | ARE   | Version 1.1
+!!                    | (Suite des changements du modèle-cadre pour le cadastre RDPPF V1.1 du 20.08.2016)
+!!                    | - MODEL DistancesParRapportALaForet_MN03_V1_1: Cadre de référence MN03
+!!                    | - MODEL DistancesParRapportALaForet_MN95_V1_1: Cadre de référence MN95
+!!                    | - STRUCTURE LocalisedUri: nouvelle structure pour des URI plurilingues
+!!                    | - STRUCTURE MultilingualUri: nouvelle structure pour des URI plurilingues
+!!                    | - CLASS Document: attribut TexteEnLigne du type MultilingualUri
+!!                    | - CLASS Type: nouvel attribut Symbole
+!!                    | - CLASS Office: nouvel attribut UID
+!!                    | - CLASS Office: attribut TexteEnLigne du type MultilingualUri
+!!                    | - CLASS JeuDeDonnees: nouvel attribut BasketID
+!!------------------------------------------------------------------------------
+!! 2011-12-12 | ARE   | Version 1.0
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mmg
+!!@ IDGeoIV=159
+MODEL DistancesParRapportALaForet_MN03_V1_1 (fr)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"
+TRANSLATION OF Waldabstandslinien_LV03_V1_1 ["2019-08-09"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    StatutJuridique = (
+      En_vigueur,
+      En_cours_modification
+    );
+
+    ForceObligatoire = (
+      Contenu_contraignant,
+      Contenu_informatif,
+      Contenu_indicatif,
+      Contenu_dAideALaMiseEnOeuvre
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF DistancesParRapportALaForet_MN03_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : TEXT*20;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      StatutJuridique : MANDATORY DistancesParRapportALaForet_MN03_V1_1.StatutJuridique;
+      TexteEnLigne : DistancesParRapportALaForet_MN03_V1_1.MultilingualUri;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON DistancesParRapportALaForet_MN03_V1_1.DispositionsJuridiques;
+
+    CLASS Type =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*10;
+      ForceObligatoire : MANDATORY DistancesParRapportALaForet_MN03_V1_1.ForceObligatoire;
+      Remarques : MTEXT;
+      Symbole : BLACKBOX BINARY;
+    END Type;
+
+    CLASS DistanceParRapportALaForet_Ligne =
+      Geometrie : MANDATORY GeometryCHLV03_V1.Line;
+      StatutJuridique : MANDATORY DistancesParRapportALaForet_MN03_V1_1.StatutJuridique;
+      publieeDepuis : MANDATORY INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END DistanceParRapportALaForet_Ligne;
+
+    ASSOCIATION Type_Document =
+      Type (EXTERNAL) -- {0..*} Type;
+      Disposition (EXTERNAL) -- {0..*} DistancesParRapportALaForet_MN03_V1_1.DispositionsJuridiques.Document;
+    END Type_Document;
+
+    ASSOCIATION Type_Geometrie =
+      Geometrie -- {0..*} DistanceParRapportALaForet_Ligne;
+      DF -<> {1} Type;
+    END Type_Geometrie;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON DistancesParRapportALaForet_MN03_V1_1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      OfficeEnLigne : DistancesParRapportALaForet_MN03_V1_1.MultilingualUri;
+      IDE : TEXT*12;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      BasketID : MANDATORY TEXT*20;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_OrgResp =
+      OrganismeResponsable -<> {1} Office;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END Donnees_OrgResp;
+
+  END MetadonneesTransfer;
+
+END DistancesParRapportALaForet_MN03_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mmg
+!!@ IDGeoIV=159
+MODEL DistancesParRapportALaForet_MN95_V1_1 (fr)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"
+TRANSLATION OF Waldabstandslinien_LV95_V1_1 ["2019-08-09"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    StatutJuridique = (
+      En_vigueur,
+      En_cours_modification
+    );
+
+    ForceObligatoire = (
+      Contenu_contraignant,
+      Contenu_informatif,
+      Contenu_indicatif,
+      Contenu_dAideALaMiseEnOeuvre
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF DistancesParRapportALaForet_MN95_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : TEXT*20;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      StatutJuridique : MANDATORY DistancesParRapportALaForet_MN95_V1_1.StatutJuridique;
+      TexteEnLigne : DistancesParRapportALaForet_MN95_V1_1.MultilingualUri;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON DistancesParRapportALaForet_MN95_V1_1.DispositionsJuridiques;
+
+    CLASS Type =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*10;
+      ForceObligatoire : MANDATORY DistancesParRapportALaForet_MN95_V1_1.ForceObligatoire;
+      Remarques : MTEXT;
+      Symbole : BLACKBOX BINARY;
+    END Type;
+
+    CLASS DistanceParRapportALaForet_Ligne =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      StatutJuridique : MANDATORY DistancesParRapportALaForet_MN95_V1_1.StatutJuridique;
+      publieeDepuis : MANDATORY INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END DistanceParRapportALaForet_Ligne;
+
+    ASSOCIATION Type_Document =
+      Type (EXTERNAL) -- {0..*} Type;
+      Disposition (EXTERNAL) -- {0..*} DistancesParRapportALaForet_MN95_V1_1.DispositionsJuridiques.Document;
+    END Type_Document;
+
+    ASSOCIATION Type_Geometrie =
+      Geometrie -- {0..*} DistanceParRapportALaForet_Ligne;
+      DF -<> {1} Type;
+    END Type_Geometrie;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON DistancesParRapportALaForet_MN95_V1_1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      OfficeEnLigne : DistancesParRapportALaForet_MN95_V1_1.MultilingualUri;
+      IDE : TEXT*12;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      BasketID : MANDATORY TEXT*20;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_OrgResp =
+      OrganismeResponsable -<> {1} Office;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END Donnees_OrgResp;
+
+  END MetadonneesTransfer;
+
+END DistancesParRapportALaForet_MN95_V1_1.

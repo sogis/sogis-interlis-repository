@@ -1,0 +1,362 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2013-05-27 | BAFU  | Erste Fassung
+!! 2015-11-24 | BAFU  | Techn. Anpassungen: LV03/LV95, OVERLAPS, Textlängen
+!! 2020-04-29 | KOGIS | Constraint in ASSOCIATION StandortMessgruppierung corrected
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+MODEL Messorte_Codelisten_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-11-24" =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /* Modell für externe Codelisten, die anschliessend importiert werden in die Modelle *_LV03* und *_LV95" */
+  TOPIC Codelisten =
+
+    CLASS Art_Gruppierung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*4;
+    Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Art_Gruppierung_Catalogue;
+
+    CLASS Tel_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*4;
+    Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tel_Typ_Catalogue;
+
+    STRUCTURE Art_Gruppierung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Art_Gruppierung_Catalogue;
+    END Art_Gruppierung_CatRef;
+
+    STRUCTURE Tel_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Tel_Typ_Catalogue;
+    END Tel_Typ_CatRef;
+
+  END Codelisten;
+
+END Messorte_Codelisten_V1.
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+MODEL Messorte_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29" =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,CodeISO,LocalisationCH_V1,Messorte_Codelisten_V1;
+
+  TOPIC Messort =
+    DEPENDS ON Messorte_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Linie3 = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3;
+
+      Polygon3 = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT*50;
+      Hausnummer : TEXT*10;
+      Adresszusatz : TEXT*50;
+      Postfach : TEXT*10;
+      PLZ : MANDATORY TEXT*4;
+      Ort : MANDATORY TEXT*50;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Konkrete_Werte =
+    END Konkrete_Werte;
+
+    CLASS Kontakt =
+      Oeffnungszeiten : LocalisationCH_V1.MultilingualMText;
+      Kontaktanweisung : LocalisationCH_V1.MultilingualMText;
+    END Kontakt;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Verantwortlichkeit =
+      Organisation : LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Nachname : TEXT*50;
+      Vorname : TEXT*50;
+      Position : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung) OR DEFINED(Nachname);
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Einheit : MANDATORY TEXT*50;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Instrument : LocalisationCH_V1.MultilingualText;
+      Parameter : MANDATORY LocalisationCH_V1.MultilingualText;
+      Verfahren : LocalisationCH_V1.MultilingualText;
+    END Werterhebung;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV95_V1.Coord3;
+      Linie : Linie3;
+      Polygon : Polygon3;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Linie) OR DEFINED(Polygon);
+    END Standort;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION Konkrete_WerteWerterhebung =
+      Konkrete_Werte -- {0..*} Konkrete_Werte;
+      Werterhebung -- {1} Werterhebung;
+    END Konkrete_WerteWerterhebung;
+
+    ASSOCIATION KontaktVerantwortlichkeit =
+      Kontakt -- {0..1} Kontakt;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END KontaktVerantwortlichkeit;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {0..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    CLASS Messgruppierung =
+      Name : LocalisationCH_V1.MultilingualText;
+      Code : TEXT*50;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : Messorte_Codelisten_V1.Codelisten.Art_Gruppierung_CatRef;
+      MANDATORY CONSTRAINT DEFINED(Code) OR DEFINED(Name);
+    END Messgruppierung;
+
+    CLASS Telefon =
+      Nummer : MANDATORY TEXT*20;
+      Tel_Typ : Messorte_Codelisten_V1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    ASSOCIATION StandortWerterhebung =
+      Standort -- {1} Standort;
+      Werterhebung -<#> {0..1} Werterhebung;
+    END StandortWerterhebung;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {0..1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1..*} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+      MANDATORY CONSTRAINT (DEFINED (Standort -> Werterhebung) AND NOT (DEFINED (Standort -> Messgruppierung))) OR (NOT (DEFINED (Standort -> Werterhebung)) AND DEFINED (Standort -> Messgruppierung));
+    END StandortMessgruppierung;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+  END Messort;
+
+END Messorte_LV95_V1.
+
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+MODEL Messorte_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29" =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,CodeISO,LocalisationCH_V1,Messorte_Codelisten_V1;
+
+  TOPIC Messort =
+    DEPENDS ON Messorte_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Linie3 = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3;
+
+      Polygon3 = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT*50;
+      Hausnummer : TEXT*10;
+      Adresszusatz : TEXT*50;
+      Postfach : TEXT*10;
+      PLZ : MANDATORY TEXT*4;
+      Ort : MANDATORY TEXT*50;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Konkrete_Werte =
+    END Konkrete_Werte;
+
+    CLASS Kontakt =
+      Oeffnungszeiten : LocalisationCH_V1.MultilingualMText;
+      Kontaktanweisung : LocalisationCH_V1.MultilingualMText;
+    END Kontakt;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Verantwortlichkeit =
+      Organisation : LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Nachname : TEXT*50;
+      Vorname : TEXT*50;
+      Position : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung) OR DEFINED(Nachname);
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Einheit : MANDATORY TEXT*50;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Instrument : LocalisationCH_V1.MultilingualText;
+      Parameter : MANDATORY LocalisationCH_V1.MultilingualText;
+      Verfahren : LocalisationCH_V1.MultilingualText;
+    END Werterhebung;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV03_V1.Coord3;
+      Linie : Linie3;
+      Polygon : Polygon3;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Linie) OR DEFINED(Polygon);
+    END Standort;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION Konkrete_WerteWerterhebung =
+      Konkrete_Werte -- {0..*} Konkrete_Werte;
+      Werterhebung -- {1} Werterhebung;
+    END Konkrete_WerteWerterhebung;
+
+    ASSOCIATION KontaktVerantwortlichkeit =
+      Kontakt -- {0..1} Kontakt;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END KontaktVerantwortlichkeit;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {0..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    CLASS Messgruppierung =
+      Name : LocalisationCH_V1.MultilingualText;
+      Code : TEXT*50;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : Messorte_Codelisten_V1.Codelisten.Art_Gruppierung_CatRef;
+      MANDATORY CONSTRAINT DEFINED(Code) OR DEFINED(Name);
+    END Messgruppierung;
+
+    CLASS Telefon =
+      Nummer : MANDATORY TEXT*20;
+      Tel_Typ : Messorte_Codelisten_V1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    ASSOCIATION StandortWerterhebung =
+      Standort -- {1} Standort;
+      Werterhebung -<#> {0..1} Werterhebung;
+    END StandortWerterhebung;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {0..1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1..*} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+      MANDATORY CONSTRAINT (DEFINED (Standort -> Werterhebung) AND NOT (DEFINED (Standort -> Messgruppierung))) OR (NOT (DEFINED (Standort -> Werterhebung)) AND DEFINED (Standort -> Messgruppierung));
+    END StandortMessgruppierung;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT*50;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+  END Messort;
+
+END Messorte_LV03_V1.

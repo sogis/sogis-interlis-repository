@@ -1,0 +1,135 @@
+INTERLIS 2.3;
+
+!! Version    | Who       | Modification
+!!------------------------------------------------------------------------------
+!! 2023-01-16 | Digikarto | Finale Version
+
+/** MODEL NON-VECTOR GEODATABASIS - CARTOGRAPHY HYDROGEOLOGICAL MAPS 1:100000
+* NonVectorData_HyGeo100_V1 belongs to the minimal non-vector geodata model - hydrogeological cartography, topic: HYGEO100, LookUp, provider: FEDERAL OFFICE FOR THE ENVIRONMENT FOEN
+*/
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="135.5"
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL NonVectorData_HyGeo100_V1 (en)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-01-16"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  TOPIC NonVector_HyGeo100_Catalogues
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Geobasisdata_HyGeo100_Descript
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      HyGeo100Code : MANDATORY TEXT*10;
+      Descript : MANDATORY LocalisationCH_V1.MultilingualText;
+    UNIQUE HyGeo100Code;
+    END Geobasisdata_HyGeo100_Descript;
+
+    STRUCTURE Geobasisdata_HyGeo100_Descript_Ref
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference(EXTENDED): MANDATORY REFERENCE TO (EXTERNAL) Geobasisdata_HyGeo100_Descript;
+    END Geobasisdata_HyGeo100_Descript_Ref;
+
+    CLASS Geobasisdata_HyGeo100_ImageType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      HyGeo100Code : MANDATORY TEXT*10;
+      ImageType : MANDATORY LocalisationCH_V1.MultilingualText;
+    UNIQUE HyGeo100Code;
+    END Geobasisdata_HyGeo100_ImageType;
+
+    STRUCTURE Geobasisdata_HyGeo100_ImageType_Ref
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference(EXTENDED): MANDATORY REFERENCE TO (EXTERNAL) Geobasisdata_HyGeo100_ImageType;
+    END Geobasisdata_HyGeo100_ImageType_Ref;
+
+    CLASS ImageGraphicRasterObject_HyGeo100_ColourSpac
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      HyGeo100Code : MANDATORY TEXT*10;
+      ColourSpac : MANDATORY LocalisationCH_V1.MultilingualText;
+    UNIQUE HyGeo100Code;
+    END ImageGraphicRasterObject_HyGeo100_ColourSpac;
+
+    STRUCTURE ImageGraphicRasterObject_HyGeo100_ColourSpac_Ref
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference(EXTENDED): MANDATORY REFERENCE TO (EXTERNAL) ImageGraphicRasterObject_HyGeo100_ColourSpac;
+    END ImageGraphicRasterObject_HyGeo100_ColourSpac_Ref;
+
+    CLASS ImageGraphicRasterObject_HyGeo100_Compressio
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      HyGeo100Code : MANDATORY TEXT*10;
+      Compressio : MANDATORY LocalisationCH_V1.MultilingualText;
+    UNIQUE HyGeo100Code;
+    END ImageGraphicRasterObject_HyGeo100_Compressio;
+
+    STRUCTURE ImageGraphicRasterObject_HyGeo100_Compressio_Ref
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference(EXTENDED): MANDATORY REFERENCE TO (EXTERNAL) ImageGraphicRasterObject_HyGeo100_Compressio;
+    END ImageGraphicRasterObject_HyGeo100_Compressio_Ref;
+
+  END NonVector_HyGeo100_Catalogues;
+
+  TOPIC NonVectorData_HyGeo100 =
+    DEPENDS ON NonVectorData_HyGeo100_V1.NonVector_HyGeo100_Catalogues;
+
+    DOMAIN
+
+    /** Flächen ohne Kreisbogen */
+    PolygonSurface = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+    PolygonArea = AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Geobasisdata_HyGeo100 =
+      Descript : MANDATORY NonVectorData_HyGeo100_V1.NonVector_HyGeo100_Catalogues.Geobasisdata_HyGeo100_Descript_Ref;
+      Owner : MANDATORY URI;
+      TechCont : URI;
+      PortServ : URI;
+      DownloServ : URI;
+      ImageType : MANDATORY NonVectorData_HyGeo100_V1.NonVector_HyGeo100_Catalogues.Geobasisdata_HyGeo100_ImageType_Ref;
+      PerimeGBDS : MANDATORY PolygonArea;
+    END Geobasisdata_HyGeo100;
+
+    CLASS Clipping_HyGeo100 =
+      Descript : TEXT*1024;
+      ClipPerime : MANDATORY PolygonSurface;
+    END Clipping_HyGeo100;
+
+    CLASS ImageGraphicRasterObject_HyGeo100 =
+      Descript : MANDATORY TEXT*1024;
+      MapNoLK : 0 .. 10000;
+      MapNoHyGeo100 : 0 .. 10000;
+      SpecIdenti : MANDATORY URI;
+      YearPublic : MANDATORY 1900 .. 2500;
+      Author : MANDATORY TEXT*1024;
+      SpatialRef_Tile : MANDATORY GeometryCHLV95_V1.Coord2;
+      ImTileSiH : MANDATORY 1 .. 1000000000;
+      ImTileSiW : MANDATORY 1 .. 1000000000;
+      GroundReso : MANDATORY 0.00 .. 10000.00 [INTERLIS.m];
+      Scale : 50 .. 1000000;
+      ColourSpac : MANDATORY NonVectorData_HyGeo100_V1.NonVector_HyGeo100_Catalogues.ImageGraphicRasterObject_HyGeo100_ColourSpac_Ref;
+      ColourValu : 0 .. 255;
+      Compressio : MANDATORY NonVectorData_HyGeo100_V1.NonVector_HyGeo100_Catalogues.ImageGraphicRasterObject_HyGeo100_Compressio_Ref;
+      Antialias : MANDATORY BOOLEAN;
+      Status : TEXT*254;
+      UpdateInfo : TEXT*254;
+      Annotation : BOOLEAN;
+    END ImageGraphicRasterObject_HyGeo100;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject_HyGeo100;
+      perimeter -<> {1} Geobasisdata_HyGeo100;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject_HyGeo100;
+      belongsTo -- {0..*} Clipping_HyGeo100;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} Geobasisdata_HyGeo100;
+      covers -- {0..*} Clipping_HyGeo100;
+    END inCovers;
+
+  END NonVectorData_HyGeo100;
+
+END NonVectorData_HyGeo100_V1.

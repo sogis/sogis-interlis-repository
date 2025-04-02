@@ -1,0 +1,138 @@
+INTERLIS 2.3;
+
+/** Schnittstelle zwischen zuständiger Stelle für die Geobasisdaten und Katasterorganisation des Kantons.
+ */
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 66)
+
+MODEL OeREBKRM09trsfr (de)
+AT "mailto:ce@eisenhutinformatik.ch"
+VERSION "2018-02-21"  // Entwurf nach der Anhörung // =
+  IMPORTS chGeoId10,MultilingualText09,OeREBKRM09,OeREBKRM09vs;
+
+  /** Dieses Teilmodell definiert die Struktur der Daten, wie sie von der zuständigen Stelle für die Geobasisdaten an die Abgabestelle des ÖREB-Kataster-Auszugs geliefert werden müssen. Dieses Datenmodell definiert somit, welche Daten ein minimales Datenmodell enthalten muss, um als ÖREB-Kataster fähiges Datenmodell zu gelten.
+   */
+  TOPIC Transferstruktur
+  EXTENDS OeREBKRM09vs.Vorschriften =
+    DEPENDS ON OeREBKRM09vs.HinweiseGesetzlicheGrundlagen;
+
+    /** Angaben zum Darstellungsdienst.
+     */
+    CLASS DarstellungsDienst =
+      /** WMS GetMap-Request (für Maschine-Maschine-Kommunikation) inkl. alle benötigten Parameter, z.B. "http://ecogis.admin.ch/de/wms?version=1.1.1&service=WMS&request=GetMap&LAYERS=invent_leit&srs=EPSG:21781&WIDTH=500&HEIGHT=500&bbox=500000,100000,700000,300000&FORMAT=image/png&TRANSPARENT=TRUE"
+       */
+      VerweisWMS : MANDATORY URI;
+      /** Verweis auf ein Dokument das die Karte beschreibt; z.B. "http://www.apps.be.ch/geoportal/output/gdp_adm_x3012app0081524772611.png"
+       */
+      LegendeImWeb : MANDATORY OeREBKRM09.WebReferenz;
+    END DarstellungsDienst;
+
+    /** Wurzelelement für Informationen über eine Beschränkung des Grundeigentums, die rechtskräftig, z.B. auf Grund einer Genehmigung oder eines richterlichen Entscheids, zustande gekommen ist.
+     */
+    CLASS Eigentumsbeschraenkung =
+      /** Textliche Beschreibung der Beschränkung; z.B. "Wohnen W3"
+       */
+      Aussage : MANDATORY MultilingualText09.MultilingualMText;
+      /** Einordnung der Eigentumsbeschränkung in ein ÖREBK-Thema
+       */
+      Thema : MANDATORY OeREBKRM09.Thema;
+      /** Themenspezifische, maschinen-lesbare Art gem. Originalmodell der Eigentumsbeschränkung
+       */
+      ArtCode : OeREBKRM09.ArtEigentumsbeschraenkung;
+      /** Identifikation der Codeliste bzw. des Wertebereichs für ArtCode
+       */
+      ArtCodeliste : URI;
+      /** Status, ob diese Eigentumsbeschränkung in Kraft ist
+       */
+      Rechtsstatus : MANDATORY OeREBKRM09.RechtsStatus;
+      /** Datum, ab dem diese Eigentumsbeschränkung in Auszügen erscheint
+       */
+      publiziertAb : MANDATORY OeREBKRM09.Datum;
+    END Eigentumsbeschraenkung;
+
+    /** Punkt-, linien-, oder flächenförmige Geometrie. Neu zu definierende Eigentumsbeschränkungen sollten i.d.R. flächenförmig sein.
+     */
+    CLASS Geometrie =
+      /** Punktgeometrie
+       */
+      Punkt : OeREBKRM09.LKoord;
+      /** Linienförmige Geometrie
+       */
+      Linie : POLYLINE WITH (ARCS,STRAIGHTS) VERTEX OeREBKRM09.LKoord;
+      /** Flächenförmige Geometrie
+       */
+      Flaeche : SURFACE WITH (ARCS,STRAIGHTS) VERTEX OeREBKRM09.LKoord WITHOUT OVERLAPS>0.001;
+      /** Status, ob diese Geometrie in Kraft ist
+       */
+      Rechtsstatus : MANDATORY OeREBKRM09.RechtsStatus;
+      /** Datum, ab dem diese Geometrie in Auszügen erscheint
+       */
+      publiziertAb : MANDATORY OeREBKRM09.Datum;
+      /** Verweis auf maschinenlesbare Metadaten (XML) der zugrundeliegenden Geobasisdaten. z.B. http://www.geocat.ch/geonetwork/srv/deu/gm03.xml?id=705
+       */
+      MetadatenGeobasisdaten : URI;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Linie) OR DEFINED(Flaeche);
+    END Geometrie;
+
+    CLASS HinweisDefinition =
+      Thema : OeREBKRM09.Thema;
+      Kanton : chGeoId10.Kanton;
+      Gemeinde : chGeoId10.BFSNr;
+    END HinweisDefinition;
+
+    ASSOCIATION DarstellungsDienstEigentumsbeschraenkung =
+      /** Darstellungsdienst, auf dem diese Eigentumsbeschränkung sichtbar, aber nicht hervorgehoben, ist.
+       */
+      DarstellungsDienst -- {0..1} DarstellungsDienst;
+      Eigentumsbeschraenkung -<> {1..*} Eigentumsbeschraenkung;
+    END DarstellungsDienstEigentumsbeschraenkung;
+
+    ASSOCIATION GeometrieEigentumsbeschraenkung =
+      /** Geometrie der Eigentumsbeschränkung, die Rechtswirkung hat (als Basis für den Verschnitt mit den Liegenschaften)
+       */
+      Geometrie -- {0..*} Geometrie;
+      Eigentumsbeschraenkung -<#> {1} Eigentumsbeschraenkung;
+    END GeometrieEigentumsbeschraenkung;
+
+    ASSOCIATION GrundlageVerfeinerung =
+      Grundlage (EXTERNAL) -- {0..*} Eigentumsbeschraenkung;
+      Verfeinerung -- {0..*} Eigentumsbeschraenkung;
+    END GrundlageVerfeinerung;
+
+    ASSOCIATION HinweisDefinitionDokument =
+      HinweisDefinition -- {0..*} HinweisDefinition;
+      Dokument -- {1..*} OeREBKRM09vs.Vorschriften.Dokument;
+    END HinweisDefinitionDokument;
+
+    ASSOCIATION HinweisDefinitionZustaendigeStelle =
+      HinweisDefinition -<> {0..*} HinweisDefinition;
+      ZustaendigeStelle -- {1} OeREBKRM09vs.Vorschriften.Amt;
+    END HinweisDefinitionZustaendigeStelle;
+
+    ASSOCIATION HinweisVorschrift =
+      Eigentumsbeschraenkung -- {0..*} Eigentumsbeschraenkung;
+      /** Rechtsvorschrift der Eigentumsbeschränkung
+       */
+      Vorschrift -- {1..*} OeREBKRM09vs.Vorschriften.DokumentElement;
+      /** Hinweis auf spezifische Artikel.
+       */
+      ArtikelNr : BAG {0..*} OF OeREBKRM09.ArtikelNummer_;
+    END HinweisVorschrift;
+
+    ASSOCIATION ZustaendigeStelleEigentumsbeschraenkung =
+      /** Zuständige Stelle für die Geobasisdaten (Originaldaten) gem. GeoIG Art. 8 Abs. 1
+       */
+      ZustaendigeStelle -- {1} OeREBKRM09vs.Vorschriften.Amt;
+      Eigentumsbeschraenkung -<> {0..*} Eigentumsbeschraenkung;
+    END ZustaendigeStelleEigentumsbeschraenkung;
+
+    ASSOCIATION ZustaendigeStelleGeometrie =
+      ZustaendigeStelle -- {1} OeREBKRM09vs.Vorschriften.Amt;
+      Geometrie -<> {0..*} Geometrie;
+    END ZustaendigeStelleGeometrie;
+
+  END Transferstruktur;
+
+END OeREBKRM09trsfr.

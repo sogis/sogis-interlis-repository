@@ -1,0 +1,247 @@
+INTERLIS 2.3;
+
+/** ######################################################################################
+ * # DE: Minimales Geodatenmodell "Projektierungszonen Flughafenanlagen"                 #
+ * # FR: Modèle de géodonnées minimal "Zones réservées des installations aéroportuaires" #
+ * #######################################################################################
+ */
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV=103.1
+MODEL ReservedZonesForAirportInstallations_V2_4 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2021-11-25"  =
+  IMPORTS InternationalCodes_V1,WithLatestModification_V1,GeometryCHLV95_V1,LocalisationCH_V1,CHAdminCodes_V1,CatalogueObjects_V1;
+
+  DOMAIN
+
+    /** DE: Aufzählung für den Typ des Dokuments
+     * FR: Énumération pour le type de document
+     */
+    DocumentType = (
+      /** DE: Rechtsvorschrift
+       * FR: Disposition juridique
+       */
+      LegalProvision,
+      /** DE: Zusatzinformation / Hinweis
+       * FR: Information supplémentaire / Remarque
+       */
+      AdditionalInfo
+    );
+
+    /** DE: Einzelflächen aus Geraden (ohne Kreisbögen)
+     * FR: Surfaces indépendantes formées de segments de droite (sans arcs de cercle)
+     */
+    SurfaceWithoutArcs = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+
+  /** DE: Thema mit Definition des Katalogs für Rechtsstatus
+   * FR: Thème avec définition du catalogue des statuts juridiques
+   */
+  TOPIC Catalogue_LegalStatus
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Rechtsstatus
+     * FR: Catalogue des statuts juridiques
+     */
+    CLASS LegalStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator des Rechtsstatus (Format: IDGeoIV + "-S-" + zweistellige Laufnummer)
+       * FR: Identificateur du statut juridique (Format: IDOGéo + "-S-" + numéro d'ordre à deux chiffres)
+       */
+      StatusId : MANDATORY TEXT*8;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "StatusId"
+       * FR: Condition d'unicité pour "StatusId"
+       */
+      UNIQUE StatusId;
+    END LegalStatus;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Rechtsstatus
+     * FR: Structure de référencement du catalogue des statuts juridiques
+     */
+    STRUCTURE LegalStatus_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      /** DE: Referenz zum Katalog der Rechtsstatus
+       * FR: Référence au catalogue des statuts juridiques
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LegalStatus;
+    END LegalStatus_CatalogueReference;
+
+  END Catalogue_LegalStatus;
+
+  /** DE: Thema mit Definition des Katalogs für Zonenarten
+   * FR: Thème avec définition du catalogue des genres de zones
+   */
+  TOPIC Catalogue_ZoneKind
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Zonenarten
+     * FR: Catalogue des genres de zones
+     */
+    CLASS ZoneKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator der Zonenart (Format: IDGeoIV + "-K-" + zweistellige Laufnummer)
+       * FR: Identificateur du genre de zone (Format: IDOGéo + "-K-" + numéro d'ordre à deux chiffres)
+       */
+      KindId : MANDATORY TEXT*8;
+      /** DE: Legendensymbol
+       * FR: Symbole de légende
+       */
+      Symbol : MANDATORY BLACKBOX BINARY;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "KindId"
+       * FR: Condition d'unicité pour "KindId"
+       */
+      UNIQUE KindId;
+    END ZoneKind;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Zonenarten
+     * FR: Structure de référencement du catalogue des genres de zones
+     */
+    STRUCTURE ZoneKind_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      /** DE: Referenz zum Katalog der Zonenarten
+       * FR: Référence au catalogue des genres de zones
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ZoneKind;
+    END ZoneKind_CatalogueReference;
+
+  END Catalogue_ZoneKind;
+
+  /** DE: Thema mit Definition von Projektierungszonen
+   * FR: Thème avec définition des zones réservées
+   */
+  TOPIC ReservedZones_WithLatestModification =
+    DEPENDS ON ReservedZonesForAirportInstallations_V2_4.Catalogue_LegalStatus,ReservedZonesForAirportInstallations_V2_4.Catalogue_ZoneKind;
+
+    /** DE: Dokument
+     * FR: Document
+     */
+    CLASS Document =
+      /** DE: Typ des Dokuments
+       * FR: Type de document
+       */
+      Type : MANDATORY ReservedZonesForAirportInstallations_V2_4.DocumentType;
+      /** DE: Titel des Dokuments
+       * FR: Titre du document
+       */
+      Title : MANDATORY TEXT;
+      /** DE: Link zum Dokument im Internet
+       * FR: Lien Internet vers le document
+       */
+      Weblink : MANDATORY URI;
+      /** DE: ISO-Sprachcode (z.B. "de")
+       * FR: Code ISO pour la langue (p. ex. "fr")
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** DE: Betreffende Gemeinde
+       * FR: Commune concernée
+       */
+      RelatedMunicipality : CHAdminCodes_V1.CHMunicipalityCode;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : FORMAT INTERLIS.XMLDate "1900-01-01" .. "2099-12-31";
+      /** DE: Mehrsprachige Beschreibung (de, fr, it)
+       * FR: Description dans plusieurs langues (de, fr, it)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+    END Document;
+
+    /** DE: Teilzonen der übergeordneten Projektierungszone
+     * FR: Zones partielles de la zone reservée supérieure
+     */
+    CLASS Geometry =
+      /** DE: Fläche
+       * FR: Surface
+       */
+      Area : MANDATORY ReservedZonesForAirportInstallations_V2_4.SurfaceWithoutArcs;
+      /** DE: Zonenart
+       * FR: Genre de zone
+       */
+      Kind : MANDATORY ReservedZonesForAirportInstallations_V2_4.Catalogue_ZoneKind.ZoneKind_CatalogueReference;
+    END Geometry;
+
+    /** DE: Projektierungszonen zur vorsorglichen Freihaltung des Raumes für künftige Anlagen
+     * FR: Zones réservées en vue d'assurer la libre disposition des terrains nécessaires à l'aménagement futur d'installations
+     */
+    CLASS ReservedZone =
+      /** DE: Identifikator
+       * FR: Identificateur
+       */
+      Identifier : MANDATORY TEXT*30;
+      /** DE: Mehrsprachige Bezeichnung (de, fr, it)
+       * FR: Désignation dans plusieurs langues (de, fr, it)
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Rechtsstatus
+       * FR: Statut juridique
+       */
+      Status : MANDATORY ReservedZonesForAirportInstallations_V2_4.Catalogue_LegalStatus.LegalStatus_CatalogueReference;
+      /** DE: Name des Gesuchstellers (z.B. Anlagebetreiber, Behörde)
+       * FR: Nom du requérant (p. ex. exploitant de l'installation, autorité)
+       */
+      Applicant : MANDATORY TEXT;
+      /** DE: Kantonskürzel
+       * FR: Abréviation du canton
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** DE: Betroffene Gemeinde(n)
+       * FR: Commune(s) concernée(s)
+       */
+      Municipality : TEXT;
+      /** DE: Festgelegte Wirkungsdauer
+       * FR: La durée des effets fixée
+       */
+      DurationOfEffect : MANDATORY 1 .. 8;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Validity : MANDATORY WithLatestModification_V1.ModInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it)
+       * FR: Description dans plusieurs langues (de, fr, it)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für "Identifier"
+       * FR: Condition d'unicité pour "Identifier"
+       */
+      UNIQUE Identifier;
+    END ReservedZone;
+
+    /** DE: Angehängte Dokumente
+     * FR: Documents annexes
+     */
+    ASSOCIATION ReservedZonePrescription =
+      /** DE: Vorschrift
+       * FR: Prescription
+       */
+      Prescription (EXTERNAL) -- {1..*} Document;
+      /** DE: Beschränkung
+       * FR: Restriction
+       */
+      Restriction -- {0..*} ReservedZone;
+    END ReservedZonePrescription;
+
+    /** DE: Projektierungszone bestehend aus einer oder mehreren Teilflächen
+     * FR: Zone reservée composée de une ou plusieurs surfaces individuelles
+     */
+    ASSOCIATION ReservedZoneSubzone =
+      /** DE: Teilzonengeometrie
+       * FR: Géométrie de la zone partielle
+       */
+      Subzone -- {1..*} Geometry;
+      /** DE: Bezug zur Klasse "ReservedZone"
+       * FR: Référence à la classe "ReservedZone"
+       */
+      Zone -<#> {1} ReservedZone;
+    END ReservedZoneSubzone;
+
+  END ReservedZones_WithLatestModification;
+
+END ReservedZonesForAirportInstallations_V2_4.

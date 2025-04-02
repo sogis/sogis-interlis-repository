@@ -1,0 +1,476 @@
+INTERLIS 2.3;
+
+/** ##############################################
+ * # DE: Kataloge "Sicherheitszonenplan"         #
+ * # FR: Catalogues "Plan de la zone de sécurité"#
+ * ###############################################
+ */
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ IDGeoIV=108.1
+MODEL SafetyZonePlan_Catalogues_V1_2 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-05-24"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /** DE: Thema mit Definition des Katalogs für Rechtsstatus
+   * FR: Thème avec définition du catalogue des statuts juridiques
+   */
+  TOPIC Catalogue_LegalStatus
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Rechtsstatus
+     * FR: Catalogue des statuts juridiques
+     */
+    CLASS LegalStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator des Rechtsstatus (Format: IDGeoIV + "-S-" + zweistellige Laufnummer)
+       * FR: Identificateur du statut juridique (Format: IDOGéo + "-S-" + numéro d'ordre à deux chiffres)
+       */
+      StatusId : MANDATORY TEXT*8;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it, rm, en)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "StatusId"
+       * FR: Condition d'unicité pour "StatusId"
+       */
+      UNIQUE StatusId;
+    END LegalStatus;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Rechtsstatus
+     * FR: Structure de référencement du catalogue des statuts juridiques
+     */
+    STRUCTURE LegalStatus_CataloqueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** DE: Referenz zum Katalog der Rechtsstatus
+       * FR: Référence au catalogue des statuts juridiques
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LegalStatus;
+    END LegalStatus_CataloqueReference;
+
+  END Catalogue_LegalStatus;
+
+  /** DE: Thema mit Definition des Katalogs für Zonentypen
+   * FR: Thème avec définition du catalogue des types de zone
+   */
+  TOPIC Catalogue_ZoneType
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Zonentypen
+     * FR: Catalogue des types de zone
+     */
+    CLASS ZoneType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator des Zonentyps (Format: IDGeoIV + "-T-" + zweistellige Laufnummer)
+       * FR: Identificateur du type de zone (Format: IDOGéo + "-T-" + numéro d'ordre à deux chiffres)
+       */
+      TypeId : MANDATORY TEXT*8;
+      /** DE: Legendensymbol
+       * FR: Symbole de légende
+       */
+      Symbol : MANDATORY BLACKBOX BINARY;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it, rm, en)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "TypeId"
+       * FR: Condition d'unicité pour "TypeId"
+       */
+      UNIQUE TypeId;
+    END ZoneType;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Zonentypen
+     * FR: Structure de référencement du catalogue des types de zone
+     */
+    STRUCTURE ZoneType_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** DE: Referenz zum Katalog der Zonentypen
+       * FR: Référence au catalogue des types de zone
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ZoneType;
+    END ZoneType_CatalogueReference;
+
+  END Catalogue_ZoneType;
+
+END SafetyZonePlan_Catalogues_V1_2.
+
+/** #######################################################################
+ * # DE: Minimales Geodatenmodell "Sicherheitszonenplan" (LV03)           #
+ * # FR: Modèle de géodonnées minimal "Plan de la zone de sécurité" (MN03)#
+ * ########################################################################
+ */
+!!@ IDGeoIV=108.1
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+MODEL SafetyZonePlan_LV03_V1_2 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-05-24"  =
+  IMPORTS InternationalCodes_V1,LocalisationCH_V1,CHAdminCodes_V1,WithLatestModification_V1,GeometryCHLV03_V1,SafetyZonePlan_Catalogues_V1_2;
+
+  DOMAIN
+
+    /** DE: Einzelflächen aus Geraden und Kreisbögen mit zulässiger Selbstschnitt-Pfeilhöhe von 0.05m
+     * FR: Surfaces indépendantes formées de segments de droite ou d'arcs de cercle et dont le recoupement admissible est de 0,05m
+     */
+    SurfaceWithOverlaps5cm = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.050;
+
+  /** DE: Thema mit Definition für zugehörige Dokumente und Vorschriften
+   * FR: Thème avec définition des documents et règlementations qui s'y rapportent
+   */
+  TOPIC RelatedDocuments_WithLatestModification =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Dokument
+     * FR: Document
+     */
+    CLASS Document =
+      /** DE: Dokumententitel
+       * FR: Titre du document
+       */
+      Title : MANDATORY TEXT;
+      /** DE: Link zum Dokument im Internet
+       * FR: Lien Internet vers le document
+       */
+      Weblink : MANDATORY URI;
+      /** DE: ISO-Sprachcode (z.B. "de")
+       * FR: Code ISO pour la langue (p. ex. "fr")
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+    END Document;
+
+    /** DE: Rechtsvorschrift
+     * FR: Disposition juridique
+     */
+    CLASS RegulationDocument
+    EXTENDS Document =
+    END RegulationDocument;
+
+    /** DE: Verweise auf weitere Dokumente
+     * FR: Renvois à d'autres documents
+     */
+    ASSOCIATION OriginReference =
+      /** DE: Ursprung
+       * FR: Origine
+       */
+      Origin -- {0..*} Document;
+      /** DE: Verweis
+       * FR: Renvoi
+       */
+      Reference -- {0..*} Document;
+    END OriginReference;
+
+  END RelatedDocuments_WithLatestModification;
+
+  /** DE: Thema mit Definition der Sicherheitszonen
+   * FR: Thème avec définition des zones de sécurité
+   */
+  TOPIC SafetyZones_WithLatestModification =
+    DEPENDS ON SafetyZonePlan_LV03_V1_2.RelatedDocuments_WithLatestModification,SafetyZonePlan_Catalogues_V1_2.Catalogue_LegalStatus,SafetyZonePlan_Catalogues_V1_2.Catalogue_ZoneType;
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Teilzonen der übergeordneten Sicherheitzone
+     * FR: Zones partielles de la zone de sécurité supérieure
+     */
+    CLASS Geometry =
+      /** DE: Fläche
+       * FR: Surface
+       */
+      Area : MANDATORY SafetyZonePlan_LV03_V1_2.SurfaceWithOverlaps5cm;
+      /** DE: Zonentyp
+       * FR: Type de zone
+       */
+      Type : MANDATORY SafetyZonePlan_Catalogues_V1_2.Catalogue_ZoneType.ZoneType_CatalogueReference;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+    END Geometry;
+
+    /** DE: Sicherheitszonen von Flughäfen, Flugsicherungsanlagen und Flugwegen stellen eine Eigentumsbeschränkung nach Fläche und Höhe dar.
+     * FR: Les zones de sécurité relatives aux aéroports, aux installations de navigation aérienne et aux trajectoires de vol constituent des restrictions de la propriété en surface et en hauteur.
+     */
+    CLASS SafetyZone =
+      /** DE: Identifikator
+       * FR: Identificateur
+       */
+      Identifier : MANDATORY TEXT*30;
+      /** DE: Mehrsprachige Bezeichnung (de, fr, it, rm, en)
+       * FR: Désignation dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Rechtsstatus
+       * FR: Statut juridique
+       */
+      Status : MANDATORY SafetyZonePlan_Catalogues_V1_2.Catalogue_LegalStatus.LegalStatus_CataloqueReference;
+      /** DE: Name des Auflegers
+       * FR: Nom du déposant
+       */
+      Originator : MANDATORY TEXT;
+      /** DE: Kantonskürzel
+       * FR: Abréviation du canton
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** DE: Betroffene Gemeinde(n)
+       * FR: Commune(s) concernée(s)
+       */
+      Municipality : TEXT;
+      /** DE: Genehmigungsdatum
+       * FR: Date de l'autorisation
+       */
+      ApprovalDate : INTERLIS.XMLDateTime;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Validity : MANDATORY ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für "Identifier"
+       * FR: Condition d'unicité pour "Identifier"
+       */
+      UNIQUE Identifier;
+    END SafetyZone;
+
+    /** DE: Angehängte Dokumente
+     * FR: Documents annexes
+     */
+    ASSOCIATION SafetyZonePrescription =
+      /** DE: Vorschrift
+       * FR: Prescription
+       */
+      Prescription (EXTERNAL) -- {1..*} SafetyZonePlan_LV03_V1_2.RelatedDocuments_WithLatestModification.Document;
+      /** DE: Beschränkung
+       * FR: Restriction
+       */
+      Restriction -- {0..*} SafetyZone;
+    END SafetyZonePrescription;
+
+    /** DE: Sicherheitszone bestehend aus einer oder mehreren Teilflächen
+     * FR: Zone de sécurité composée de une ou plusieurs surfaces individuelles
+     */
+    ASSOCIATION SafetyZoneSubzone =
+      /** DE: Teilzonengeometrie
+       * FR: Géométrie de la zone partielle
+       */
+      Subzone -- {1..*} Geometry;
+      /** DE: Bezug zur Klasse "SafetyZone"
+       * FR: Référence à la classe "SafetyZone"
+       */
+      Zone -<#> {1} SafetyZone;
+    END SafetyZoneSubzone;
+
+  END SafetyZones_WithLatestModification;
+
+END SafetyZonePlan_LV03_V1_2.
+
+/** #######################################################################
+ * # DE: Minimales Geodatenmodell "Sicherheitszonenplan" (LV95)           #
+ * # FR: Modèle de géodonnées minimal "Plan de la zone de sécurité" (MN95)#
+ * ########################################################################
+ */
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ IDGeoIV=108.1
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+MODEL SafetyZonePlan_LV95_V1_2 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-05-24"  =
+  IMPORTS InternationalCodes_V1,LocalisationCH_V1,CHAdminCodes_V1,WithLatestModification_V1,GeometryCHLV95_V1,SafetyZonePlan_Catalogues_V1_2;
+
+  DOMAIN
+
+    /** DE: Einzelflächen aus Geraden und Kreisbögen mit zulässiger Selbstschnitt-Pfeilhöhe von 0.05m
+     * FR: Surfaces indépendantes formées de segments de droite ou d'arcs de cercle et dont le recoupement admissible est de 0,05m
+     */
+    SurfaceWithOverlaps5cm = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.050;
+
+  /** DE: Thema mit Definition für zugehörige Dokumente und Vorschriften
+   * FR: Thème avec définition des documents et règlementations qui s'y rapportent
+   */
+  TOPIC RelatedDocuments_WithLatestModification =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Dokument
+     * FR: Document
+     */
+    CLASS Document =
+      /** DE: Dokumententitel
+       * FR: Titre du document
+       */
+      Title : MANDATORY TEXT;
+      /** DE: Link zum Dokument im Internet
+       * FR: Lien Internet vers le document
+       */
+      Weblink : MANDATORY URI;
+      /** DE: ISO-Sprachcode (z.B. "de")
+       * FR: Code ISO pour la langue (p. ex. "fr")
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+    END Document;
+
+    /** DE: Rechtsvorschrift
+     * FR: Disposition juridique
+     */
+    CLASS RegulationDocument
+    EXTENDS Document =
+    END RegulationDocument;
+
+    /** DE: Verweise auf weitere Dokumente
+     * FR: Renvois à d'autres documents
+     */
+    ASSOCIATION OriginReference =
+      /** DE: Ursprung
+       * FR: Origine
+       */
+      Origin -- {0..*} Document;
+      /** DE: Verweis
+       * FR: Renvoi
+       */
+      Reference -- {0..*} Document;
+    END OriginReference;
+
+  END RelatedDocuments_WithLatestModification;
+
+  /** DE: Thema mit Definition der Sicherheitszonen
+   * FR: Thème avec définition des zones de sécurité
+   */
+  TOPIC SafetyZones_WithLatestModification =
+    DEPENDS ON SafetyZonePlan_LV95_V1_2.RelatedDocuments_WithLatestModification,SafetyZonePlan_Catalogues_V1_2.Catalogue_LegalStatus,SafetyZonePlan_Catalogues_V1_2.Catalogue_ZoneType;
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Teilzonen der übergeordneten Sicherheitzone
+     * FR: Zones partielles de la zone de sécurité supérieure
+     */
+    CLASS Geometry =
+      /** DE: Fläche
+       * FR: Surface
+       */
+      Area : MANDATORY SafetyZonePlan_LV95_V1_2.SurfaceWithOverlaps5cm;
+      /** DE: Zonentyp
+       * FR: Type de zone
+       */
+      Type : MANDATORY SafetyZonePlan_Catalogues_V1_2.Catalogue_ZoneType.ZoneType_CatalogueReference;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+    END Geometry;
+
+    /** DE: Sicherheitszonen von Flughäfen, Flugsicherungsanlagen und Flugwegen stellen eine Eigentumsbeschränkung nach Fläche und Höhe dar.
+     * FR: Les zones de sécurité relatives aux aéroports, aux installations de navigation aérienne et aux trajectoires de vol constituent des restrictions de la propriété en surface et en hauteur.
+     */
+    CLASS SafetyZone =
+      /** DE: Identifikator
+       * FR: Identificateur
+       */
+      Identifier : MANDATORY TEXT*30;
+      /** DE: Mehrsprachige Bezeichnung (de, fr, it, rm, en)
+       * FR: Désignation dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Rechtsstatus
+       * FR: Statut juridique
+       */
+      Status : MANDATORY SafetyZonePlan_Catalogues_V1_2.Catalogue_LegalStatus.LegalStatus_CataloqueReference;
+      /** DE: Name des Auflegers
+       * FR: Nom du déposant
+       */
+      Originator : MANDATORY TEXT;
+      /** DE: Kantonskürzel
+       * FR: Abréviation du canton
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** DE: Betroffene Gemeinde(n)
+       * FR: Commune(s) concernée(s)
+       */
+      Municipality : TEXT;
+      /** DE: Genehmigungsdatum
+       * FR: Date de l'autorisation
+       */
+      ApprovalDate : INTERLIS.XMLDateTime;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Validity : MANDATORY ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für "Identifier"
+       * FR: Condition d'unicité pour "Identifier"
+       */
+      UNIQUE Identifier;
+    END SafetyZone;
+
+    /** DE: Angehängte Dokumente
+     * FR: Documents annexes
+     */
+    ASSOCIATION SafetyZonePrescription =
+      /** DE: Vorschrift
+       * FR: Prescription
+       */
+      Prescription (EXTERNAL) -- {1..*} SafetyZonePlan_LV95_V1_2.RelatedDocuments_WithLatestModification.Document;
+      /** DE: Beschränkung
+       * FR: Restriction
+       */
+      Restriction -- {0..*} SafetyZone;
+    END SafetyZonePrescription;
+
+    /** DE: Sicherheitszone bestehend aus einer oder mehreren Teilflächen
+     * FR: Zone de sécurité composée de une ou plusieurs surfaces individuelles
+     */
+    ASSOCIATION SafetyZoneSubzone =
+      /** DE: Teilzonengeometrie
+       * FR: Géométrie de la zone partielle
+       */
+      Subzone -- {1..*} Geometry;
+      /** DE: Bezug zur Klasse "SafetyZone"
+       * FR: Référence à la classe "SafetyZone"
+       */
+      Zone -<#> {1} SafetyZone;
+    END SafetyZoneSubzone;
+
+  END SafetyZones_WithLatestModification;
+
+END SafetyZonePlan_LV95_V1_2.

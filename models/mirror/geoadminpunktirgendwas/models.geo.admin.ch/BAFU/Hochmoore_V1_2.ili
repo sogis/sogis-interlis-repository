@@ -1,0 +1,119 @@
+INTERLIS 2.3;
+
+!! Version    | Who  | Modification
+!!----------------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU | Multipolygone ohne Kreisbogen eingefügt, VIEW durch CONSTRAINTS OF ersetzt, Assoziationen umbenannt, LV03 gelöscht
+!! 2023-01-19 | BAFU | Korrektur CONSTRAINT
+
+!!@ IDGeoIV=20.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Hochmoore_V1_2 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-01-19"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS HM_KE_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*7;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_KE_Catalogue;
+
+    CLASS Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Typ_Catalogue;
+
+    STRUCTURE HM_KE_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HM_KE_Catalogue;
+    END HM_KE_CatRef;
+
+    STRUCTURE Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Typ_Catalogue;
+    END Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC Hochmoore =
+    DEPENDS ON Hochmoore_V1_2.Codelisten;
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /** Klasse für Hochmoor-Geometrieobjekt */
+    CLASS Hochmoor_Geometrie =
+      HM_KE : MANDATORY Hochmoore_V1_2.Codelisten.HM_KE_CatRef;
+      Typ : MANDATORY Hochmoore_V1_2.Codelisten.Typ_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+      Einheit : MANDATORY 0..99;
+    END Hochmoor_Geometrie;
+
+    /** Klasse für Hochmoor-Teilobjekt */
+    CLASS Hochmoor_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+    END Hochmoor_Teilobjekt;
+
+    /** Klasse für gesamtes Hochmoor-Objekt */
+    CLASS Hochmoor =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END Hochmoor;
+
+    ASSOCIATION Hochmoor_GeometrieHochmoor_Teilobjekt =
+      Hochmoor_Geometrie -- {1..*} Hochmoor_Geometrie;
+      Hochmoor_Teilobjekt -<#> {1} Hochmoor_Teilobjekt;
+    END Hochmoor_GeometrieHochmoor_Teilobjekt;
+
+    ASSOCIATION Hochmoor_TeilobjektHochmoor =
+      Hochmoor_Teilobjekt -- {1..*} Hochmoor_Teilobjekt;
+      Hochmoor -<#> {1} Hochmoor;
+    END Hochmoor_TeilobjektHochmoor;
+
+    /** Klassenübergreifender Constraint für Eindeutigkeit */
+    CONSTRAINTS OF Hochmoor_Geometrie =
+      UNIQUE Einheit, Hochmoor_Teilobjekt->TeilObjNummer, Hochmoor_Teilobjekt->Hochmoor->ObjNummer;
+    END;
+
+  END Hochmoore;
+
+END Hochmoore_V1_2.

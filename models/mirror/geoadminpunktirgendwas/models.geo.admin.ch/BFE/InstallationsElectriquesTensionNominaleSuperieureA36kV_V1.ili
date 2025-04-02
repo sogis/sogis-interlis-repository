@@ -1,0 +1,120 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal "Installations électriques d’une tension nominale supérieure à 36 kV"
+ *  Jeu de géodonnées de base No. 219
+ */
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=219.1
+
+MODEL InstallationsElectriquesTensionNominaleSuperieureA36kV_V1 (fr)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2021-03-31"
+TRANSLATION OF ElektrischeAnlagenNennspannungUeber36kV_V1 ["2021-03-31"] =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    EtatExploitation = (
+      horsService,
+      enService
+    );
+
+    Frequence = (
+      F16_7Hz,
+      F50Hz,
+      courantContinu
+    );
+
+    ID = TEXT*100;
+
+    DeterminationPlanimetrique = (
+      precise,
+      imprecise
+    );
+
+    TypeDeLigneElectrique = (
+      ligneAerienne,
+      ligneEnCables
+    );
+
+    TypeDePylone = (
+      pylonePorteur,
+      pyloneTenseur,
+      pyloneTerminal
+    );
+
+    Numerique = 0 .. 9999;
+
+    Tension = (
+      T380kV,
+      T220kV,
+      T150kV,
+      T132kV,
+      T130kV,
+      T125kV,
+      T110kV,
+      T66kV,
+      T65kV,
+      T60kV,
+      T50kV,
+      T36kV,
+      autre
+    );
+
+    TypeDeStation = (
+      convertisseurDeFrequence,
+      centraleElectrique,
+      stationDeCouplage,
+      stationTransformatrice,
+      stationAeroSouterraine,
+      sousStation
+    );
+
+    TypeDeReseauElectrique = (
+      electriciteDomestique,
+	  electriciteDeTractionPourLesCheminsDeFer
+    );
+
+    Texte = TEXT*500;
+
+  TOPIC InstallationsElectriques =
+
+    CLASS InstallationElectrique (ABSTRACT) =
+      ID : MANDATORY ID;
+      Designation : Texte;
+      Proprietaire : MANDATORY Texte;
+      SeulProprietaire : MANDATORY BOOLEAN;
+      DeterminationPlanimetrique : MANDATORY DeterminationPlanimetrique;
+      TypeDeReseauElectrique : MANDATORY TypeDeReseauElectrique;
+    END InstallationElectrique;
+
+    CLASS LigneElectrique
+    EXTENDS InstallationElectrique =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      TypeDeLigneElectrique : MANDATORY TypeDeLigneElectrique;
+      Tension : MANDATORY Tension;
+      AutreTension : Numerique;
+      EtatExploitation : MANDATORY EtatExploitation;
+      Frequence : MANDATORY Frequence;
+      MANDATORY CONSTRAINT NOT (Tension == #autre) OR DEFINED (AutreTension);
+    END LigneElectrique;
+
+    CLASS Pylone
+    EXTENDS InstallationElectrique =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      TypeDePylone : MANDATORY TypeDePylone;
+      Hauteur : Numerique;
+    END Pylone;
+
+    CLASS Station
+    EXTENDS InstallationElectrique =
+      PointGeometrique : MANDATORY GeometryCHLV95_V1.Coord2;
+      SurfaceGeometrique : GeometryCHLV95_V1.Surface;
+      TypeDeStation : MANDATORY TypeDeStation;
+    END Station;
+
+  END InstallationsElectriques;
+
+END InstallationsElectriquesTensionNominaleSuperieureA36kV_V1.

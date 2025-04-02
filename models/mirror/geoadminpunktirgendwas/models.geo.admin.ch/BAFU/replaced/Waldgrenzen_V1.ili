@@ -1,0 +1,107 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell Waldgrenzen (in Bauzonen)
+ *  Geobasisdatensatz Nr. 157
+ */
+ 
+!!@ technicalContact = mailto:info@are.admin.ch;
+!!@ IDGeoIV = "157";
+!!@ furtherInformation = http://www.are.admin.ch/mgm; 
+
+MODEL Waldgrenzen_V1 (de) AT "http://models.geo.admin.ch/ARE" VERSION "2011-12-12"  =
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED INTERLIS;
+
+  DOMAIN
+
+    Rechtsstatus = MANDATORY (
+      inKraft,
+      laufendeAenderungen
+    );
+
+    Verbindlichkeit = MANDATORY (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : MANDATORY TEXT*12;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY XMLDate;
+      Rechtsstatus : MANDATORY Waldgrenzen_V1.Rechtsstatus;
+      TextImWeb : URI;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweiseWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweiseWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Waldgrenzen_V1.Rechtsvorschriften;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*10;
+      Verbindlichkeit : MANDATORY Waldgrenzen_V1.Verbindlichkeit;
+      Bemerkungen : MTEXT;
+    END Typ;
+
+    CLASS Waldgrenze_Linie =
+      Geometrie : MANDATORY Line;
+      Rechtsstatus : MANDATORY Waldgrenzen_V1.Rechtsstatus;
+      publiziertAb : MANDATORY XMLDate;
+      Bemerkungen : MTEXT;
+    END Waldgrenze_Linie;
+
+    ASSOCIATION Typ_Dokument =
+      Vorschrift (EXTERNAL) -- {0..*} Waldgrenzen_V1.Rechtsvorschriften.Dokument;
+      Typ -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Waldgrenze_Linie;
+      WG -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Waldgrenzen_V1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : URI;
+    END Amt;
+
+    CLASS Datenbestand =
+      Stand : MANDATORY XMLDate;
+      Lieferdatum : XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION Datenbestand_zustStelle =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END Datenbestand_zustStelle;
+
+  END TransferMetadaten;
+
+END Waldgrenzen_V1.

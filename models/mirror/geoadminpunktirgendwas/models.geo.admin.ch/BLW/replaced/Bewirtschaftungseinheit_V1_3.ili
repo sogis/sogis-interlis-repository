@@ -1,0 +1,187 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV=153.6
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL Bewirtschaftungseinheit_LV95_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2017-03-21"  =
+  IMPORTS GeometryCHLV95_V1,Bearbeitungsstatus_V1_2,CHAdminCodes_V1,Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2;
+
+  DOMAIN
+
+    /** Einzelflächen, die sich maximal 5m überschneiden
+     */
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Landw_Betrieb =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2.LZ_Kataloge,Bearbeitungsstatus_V1_2.Status;
+
+    CLASS BE_Betrieb =
+      /** Kantonale Betriebsnummer
+       */
+      Betriebsnummer : MANDATORY TEXT*25;
+      /** Position (XY-Koordinaten) der Hauptproduktionsstätte
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      Betriebsname : TEXT*100;
+    END BE_Betrieb;
+
+    CLASS BE_Bewirtschaftungseinheit =
+      /** Die Bewirtschaftungseinheiten sind einfache Polygone (nicht multipart) ohne Überlappungen. Zwischen den einzelnen Bewirtschaftungseinheiten sind Lücken erlaubt (d.h. die Schweiz ist nicht lückenlos abgedeckt).
+       */
+      Flaeche : MANDATORY Bewirtschaftungseinheit_LV95_V1_3.SurfaceWithOverlaps5m;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht.
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      /** BFS-Gemeindenummer
+       */
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Parzellennummer Amtliche Vermessung
+       */
+      AV_Parzelle : TEXT*50;
+      Zone_Ausland : Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2.LZ_Kataloge.LZ_Katalog_TypRef;
+      Identifikator : TEXT*50;
+    END BE_Bewirtschaftungseinheit;
+
+    /** Als Produktionsstätte gilt eine Einheit von Land, Gebäuden und Einrichtungen, die räumlich als solche erkennbar und getrennt von anderen Produktionsstätten ist.
+     */
+    CLASS BE_Produktionsstaette =
+      /** Offizielle Nummer der Produktionsstätte analog zur Betriebsnummer.
+       */
+      PS_Nummer : MANDATORY TEXT*25;
+      /** Position (XY-Koordinaten) der Produktionsstätte
+       */
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Bezeichnung der Produktionsstätte
+       */
+      PS_Name : TEXT*100;
+    END BE_Produktionsstaette;
+
+    /** Eine Bewirtschaftungseinheit ist immer genau einem Betrieb oder einer Produktionsstätte zugordnet
+     */
+    ASSOCIATION EinheitBetrieb =
+      Betrieb -<#> {1} BE_Betrieb;
+      Bewirtschaftungseinheit -- {0..*} BE_Bewirtschaftungseinheit;
+    END EinheitBetrieb;
+
+    ASSOCIATION ProdstBetrieb =
+      /** Eine Produktionsstätte ist immer einem Betrieb zugeordnet.
+       */
+      Betrieb -<#> {1} BE_Betrieb;
+      Produktionsstaette -- {0..*} BE_Produktionsstaette;
+    END ProdstBetrieb;
+
+    /** Eine Bewirtschaftungseinheit kann nebst dem Betrieb auch einer Produktionsstätte zugeordnet werden.
+     */
+    ASSOCIATION EinheitProdst =
+      Produktionsstaette -- {0..1} BE_Produktionsstaette;
+      Bewirtschaftungseinheit -- {0..*} BE_Bewirtschaftungseinheit;
+    END EinheitProdst;
+
+  END Landw_Betrieb;
+
+END Bewirtschaftungseinheit_LV95_V1_3.
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV=153.6
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL Bewirtschaftungseinheit_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2017-03-21"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2,Bearbeitungsstatus_V1_2;
+
+  DOMAIN
+
+    /** Einzelflächen, die sich maximal 5m überschneiden
+     */
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Landw_Betrieb =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2.LZ_Kataloge,Bearbeitungsstatus_V1_2.Status;
+
+    CLASS BE_Betrieb =
+      /** Kantonale Betriebsnummer
+       */
+      Betriebsnummer : MANDATORY TEXT*25;
+      /** Position (XY-Koordinaten) der Hauptproduktionsstätte
+       */
+      Punkt : MANDATORY GeometryCHLV03_V1.Coord2;
+      Betriebsname : TEXT*100;
+    END BE_Betrieb;
+
+    CLASS BE_Bewirtschaftungseinheit =
+      /** Die Bewirtschaftungseinheiten sind einfache Polygone (nicht multipart) ohne Überlappungen. Zwischen den einzelnen Bewirtschaftungseinheiten sind Lücken erlaubt (d.h. die Schweiz ist nicht lückenlos abgedeckt).
+       */
+      Flaeche : MANDATORY Bewirtschaftungseinheit_V1_3.SurfaceWithOverlaps5m;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht.
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      /** BFS-Gemeindenummer
+       */
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Parzellennummer Amtliche Vermessung
+       */
+      AV_Parzelle : TEXT*50;
+      Zone_Ausland : Landwirtschaftliche_Zonengrenzen_Kataloge_V1_2.LZ_Kataloge.LZ_Katalog_TypRef;
+      Identifikator : TEXT*50;
+    END BE_Bewirtschaftungseinheit;
+
+    /** Als Produktionsstätte gilt eine Einheit von Land, Gebäuden und Einrichtungen, die räumlich als solche erkennbar und getrennt von anderen Produktionsstätten ist.
+     */
+    CLASS BE_Produktionsstaette =
+      /** Offizielle Nummer der Produktionsstätte analog zur Betriebsnummer.
+       */
+      PS_Nummer : MANDATORY TEXT*25;
+      /** Position (XY-Koordinaten) der Produktionsstätte
+       */
+      Punkt : MANDATORY GeometryCHLV03_V1.Coord2;
+      /** Bezeichnung der Produktionsstätte
+       */
+      PS_Name : TEXT*100;
+    END BE_Produktionsstaette;
+
+    /** Eine Bewirtschaftungseinheit ist immer genau einem Betrieb oder einer Produktionsstätte zugordnet
+     */
+    ASSOCIATION EinheitBetrieb =
+      Betrieb -<#> {1} BE_Betrieb;
+      Bewirtschaftungseinheit -- {0..*} BE_Bewirtschaftungseinheit;
+    END EinheitBetrieb;
+
+    ASSOCIATION ProdstBetrieb =
+      /** Eine Produktionsstätte ist immer einem Betrieb zugeordnet.
+       */
+      Betrieb -<#> {1} BE_Betrieb;
+      Produktionsstaette -- {0..*} BE_Produktionsstaette;
+    END ProdstBetrieb;
+
+    /** Eine Bewirtschaftungseinheit kann nebst dem Betrieb auch einer Produktionsstätte zugeordnet werden.
+     */
+    ASSOCIATION EinheitProdst =
+      Produktionsstaette -- {0..1} BE_Produktionsstaette;
+      Bewirtschaftungseinheit -- {0..*} BE_Bewirtschaftungseinheit;
+    END EinheitProdst;
+
+  END Landw_Betrieb;
+
+END Bewirtschaftungseinheit_V1_3.

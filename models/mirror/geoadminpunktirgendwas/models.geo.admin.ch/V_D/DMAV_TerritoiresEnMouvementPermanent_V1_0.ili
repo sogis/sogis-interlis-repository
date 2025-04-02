@@ -1,0 +1,64 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.6
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_TerritoiresEnMouvementPermanent_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_DauerndeBodenverschiebungen_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2; 
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC TerritoireMouvementPermanent =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS MiseAJourTMP =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      ApprouveeLe : DATETIME;
+      UNIQUE CH060101: IdentDN, Identification;
+    END MiseAJourTMP;
+
+    CLASS TerritoireMouvementPermanent =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : TEXT*60;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END TerritoireMouvementPermanent;
+
+    ASSOCIATION Origine_TerritoireMouvementPermanent =
+      Origine -- {1} MiseAJourTMP;
+      TerritoireMouvementPermanent_bientotcree -- {0..*} TerritoireMouvementPermanent;
+    END Origine_TerritoireMouvementPermanent;
+
+    ASSOCIATION Caducite_TerritoireMouvementPermanent =
+      Caducite  -- {0..1} MiseAJourTMP;
+      TerritoireMouvementPermanent_bientotcaduc -- {0..*} TerritoireMouvementPermanent;
+    END Caducite_TerritoireMouvementPermanent;
+
+    ASSOCIATION Predecesseur_Successeur_TerritoireMouvementPermanent =
+      Predecesseur -- {0..1} TerritoireMouvementPermanent;
+      Successeur -- {0..*} TerritoireMouvementPermanent;
+    END Predecesseur_Successeur_TerritoireMouvementPermanent;
+
+    VIEW TerritoireMouvementPermanent_Valable
+      PROJECTION OF TerritoireMouvementPermanent;
+      WHERE
+        DEFINED(TerritoireMouvementPermanent->Origine) AND DEFINED(TerritoireMouvementPermanent->Origine->ApprouveeLe) AND (NOT (DEFINED(TerritoireMouvementPermanent->Caducite )) OR NOT (DEFINED(TerritoireMouvementPermanent->Caducite ->ApprouveeLe)));
+      =
+      ALL OF TerritoireMouvementPermanent;
+      UNIQUE CH060601: IdentDN, Identification;
+    END TerritoireMouvementPermanent_Valable;
+
+  END TerritoireMouvementPermanent;
+
+END DMAV_TerritoiresEnMouvementPermanent_V1_0.

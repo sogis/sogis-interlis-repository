@@ -1,0 +1,223 @@
+!!==============================================================================
+!! ERKAS_Rorhleitungsanlagen_V1.ili
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Nr  | Änderung
+!!------------------------------------------------------------------------------
+!! 2018-08-14 | 1.0 | Verabschiedete Version
+!!==============================================================================
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "206.1,213.1"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Rohrleitungsanlagen_LV03_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-08-14" =
+
+IMPORTS GeometryCHLV03_V1;
+
+  TOPIC ERKAS_Rohrleitungsanlagen =
+!!==============================================================================
+    CLASS Datenpunkt =
+      Name                : TEXT*256;                           !! Name des repräsenentativen Punktes (nur bei Erdölleitungen)
+      ID                  : MANDATORY TEXT*50;                  !! Identifikator des Datenpunkts
+      IDLeitung           : MANDATORY TEXT*50;                  !! Name gemäss ID xxx.xx "Leitungsnetz" des BFE
+      Inhaber             : MANDATORY TEXT*256;                 !! Inhaber  der Leitung gem. StFV
+      Ort                 : MANDATORY GeometryCHLV03_V1.Coord2; !! Lokalität des Datenpunkts mit Schweizer Landeskoordinate
+      RepPunkt            : MANDATORY BOOLEAN;                  !! Handelt es sich um einen repräsentetativen Punkt? Ja/Nein
+      Segmentpunkt1       : GeometryCHLV03_V1.Coord2;           !! Lokalität des Segment-Anfangs, falls RepPunkt = True
+      Segmentpunkt2       : GeometryCHLV03_V1.Coord2;           !! Lokalität des Segment-Endes, falls RepPunkt = True
+    UNIQUE ID, Inhaber;
+      MANDATORY CONSTRAINT NOT (RepPunkt == #true) OR (DEFINED (Segmentpunkt1) AND DEFINED (Segmentpunkt2));
+    END Datenpunkt;
+
+    CLASS Leitungsparameter  =
+      Stoff                   : MANDATORY TEXT*256;        !! Welcher Stoff wird in der Rohrleitungsanlage transportiert?
+      MaxBetriebsdruck        : MANDATORY TEXT*80;         !! Maximaler Betriebsdruck der Leitung (MOP)
+      Aussendurchmesser       : MANDATORY 0 .. 9999;       !! Aussendurchmesser der Leitung
+    END Leitungsparameter;
+
+    CLASS Vollzug =
+      Datum          : MANDATORY INTERLIS.XMLDate;        !! Datum der aktuellen Vollzugsdaten (Kurzbericht, Screening oder andere)
+      DatumStFVUnt   :           INTERLIS.XMLDate;        !! Datum der Verfügung, falls Anlage gemäss Art. 1 Abs. 3 der StFV dieser unterstellt wurde
+      REPflichtPers  :           BOOLEAN;                 !! Schadenindikator "Todesopfer" (Personenrisiken) RE verfügt?
+      REPflichtOFG   :           BOOLEAN;                 !! Schadenindikator "verschmutzte oberirdische Gewässer" RE verfügt?
+      REPflichtGW    :           BOOLEAN;                 !! Schadenindikator "verschmutzte unterirdische Gewässer" RE verfügt?
+      DatumREPers    :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "Todesopfer"
+      DatumREOFG     :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      DatumREGW      :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte unterirdische Gewässer"?
+      KonsBereich    :           1 .. 9999;               !! Angabe des für den Datenpunkt gültigen Konsultationsbereich für die raumplanerische Abwägung der Störfallvorsorge
+
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtPers);  !! bedingt obligatorische Felder
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtOFG);
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtGW);
+      MANDATORY CONSTRAINT NOT (REPflichtPers == #true) OR DEFINED (DatumREPers);
+      MANDATORY CONSTRAINT NOT (REPflichtOFG == #true) OR DEFINED (DatumREOFG);
+      MANDATORY CONSTRAINT NOT (REPflichtGW == #true) OR DEFINED (DatumREGW);
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (KonsBereich);
+
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : MANDATORY 0.0000 .. 9999.0000;
+      AmpelWertOFG  : MANDATORY 0.0000 .. 9999.0000;
+      AmpelWertGW   : MANDATORY 0.0000 .. 9999.0000;
+    END Ergebnis;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Leitungsparameter =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rLeitungsparameter -- {1} Leitungsparameter;
+    END Datenpunkt_Leitungsparameter;
+
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+
+  END ERKAS_Rohrleitungsanlagen;
+
+  TOPIC Lage_KonsBereiche =
+    DEPENDS ON ERKAS_Rohrleitungsanlagen;
+
+  DOMAIN
+
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Lage =
+      Lage : MANDATORY Linie;
+    END Lage;
+
+    CLASS KonsBereich =
+      KonsBereich_F : MANDATORY Polygon;
+    END KonsBereich;
+
+    !! Beziehungen
+    !!=============================================
+     ASSOCIATION Lage_Datenpunkt =
+      rLage -- {1..*} Lage;
+      rDatenpunkt (EXTERNAL) -- {2..*} ERKAS_Rohrleitungsanlagen_LV03_V1.ERKAS_Rohrleitungsanlagen.Datenpunkt;
+    END Lage_Datenpunkt;
+
+    ASSOCIATION KonsBereich_Lage =
+      rKonsBereich -- {1} KonsBereich;
+      rLage -- {1} Lage;
+    END KonsBereich_Lage;
+
+  END Lage_KonsBereiche;
+
+END ERKAS_Rohrleitungsanlagen_LV03_V1.
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "206.1,213.1"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Rohrleitungsanlagen_LV95_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-08-14" =
+
+IMPORTS GeometryCHLV95_V1;
+
+  TOPIC ERKAS_Rohrleitungsanlagen =
+!!==============================================================================
+    CLASS Datenpunkt =
+      Name                : TEXT*256;                           !! Name des repräsenentativen Punktes (nur bei Erdölleitungen)
+      ID                  : MANDATORY TEXT*50;                  !! Identifikator des Datenpunkts
+      IDLeitung           : MANDATORY TEXT*50;                  !! Name gemäss ID xxx.xx "Leitungsnetz" des BFE
+      Inhaber             : MANDATORY TEXT*256;                 !! Inhaber  der Leitung gem. StFV
+      Ort                 : MANDATORY GeometryCHLV95_V1.Coord2; !! Lokalität des Datenpunkts mit Schweizer Landeskoordinate
+      RepPunkt            : MANDATORY BOOLEAN;                  !! Handelt es sich um einen repräsentetativen Punkt? Ja/Nein
+      Segmentpunkt1       : GeometryCHLV95_V1.Coord2;           !! Lokalität des Segment-Anfangs, falls RepPunkt = True
+      Segmentpunkt2       : GeometryCHLV95_V1.Coord2;           !! Lokalität des Segment-Endes, falls RepPunkt = True
+    UNIQUE ID, Inhaber;
+      MANDATORY CONSTRAINT NOT (RepPunkt == #true) OR (DEFINED (Segmentpunkt1) AND DEFINED (Segmentpunkt2));
+    END Datenpunkt;
+
+    CLASS Leitungsparameter  =
+      Stoff                   : MANDATORY TEXT*256;        !! Welcher Stoff wird in der Rohrleitungsanlage transportiert?
+      MaxBetriebsdruck        : MANDATORY TEXT*80;         !! Maximaler Betriebsdruck der Leitung (MOP)
+      Aussendurchmesser       : MANDATORY 0 .. 9999;       !! Aussendurchmesser der Leitung
+    END Leitungsparameter;
+
+    CLASS Vollzug =
+      Datum          : MANDATORY INTERLIS.XMLDate;        !! Datum der aktuellen Vollzugsdaten (Kurzbericht, Screening oder andere)
+      DatumStFVUnt   :           INTERLIS.XMLDate;        !! Datum der Verfügung, falls Anlage gemäss Art. 1 Abs. 3 der StFV dieser unterstellt wurde
+      REPflichtPers  :           BOOLEAN;                 !! Schadenindikator "Todesopfer" (Personenrisiken) RE verfügt?
+      REPflichtOFG   :           BOOLEAN;                 !! Schadenindikator "verschmutzte oberirdische Gewässer" RE verfügt?
+      REPflichtGW    :           BOOLEAN;                 !! Schadenindikator "verschmutzte unterirdische Gewässer" RE verfügt?
+      DatumREPers    :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "Todesopfer"
+      DatumREOFG     :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      DatumREGW      :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte unterirdische Gewässer"?
+      KonsBereich    :           1 .. 9999;               !! Angabe des für den Datenpunkt gültigen Konsultationsbereich für die raumplanerische Abwägung der Störfallvorsorge
+
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtPers);  !! bedingt obligatorische Felder
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtOFG);
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (REPflichtGW);
+      MANDATORY CONSTRAINT NOT (REPflichtPers == #true) OR DEFINED (DatumREPers);
+      MANDATORY CONSTRAINT NOT (REPflichtOFG == #true) OR DEFINED (DatumREOFG);
+      MANDATORY CONSTRAINT NOT (REPflichtGW == #true) OR DEFINED (DatumREGW);
+      MANDATORY CONSTRAINT Datum == "1991-02-27" OR DEFINED (KonsBereich);
+
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : MANDATORY 0.0000 .. 9999.0000;
+      AmpelWertOFG  : MANDATORY 0.0000 .. 9999.0000;
+      AmpelWertGW   : MANDATORY 0.0000 .. 9999.0000;
+    END Ergebnis;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Leitungsparameter =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rLeitungsparameter -- {1} Leitungsparameter;
+    END Datenpunkt_Leitungsparameter;
+
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+
+  END ERKAS_Rohrleitungsanlagen;
+
+  TOPIC Lage_KonsBereiche =
+    DEPENDS ON ERKAS_Rohrleitungsanlagen;
+
+  DOMAIN
+
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Lage =
+      Lage : MANDATORY Linie;
+    END Lage;
+
+    CLASS KonsBereich =
+      KonsBereich_F : MANDATORY Polygon;
+    END KonsBereich;
+
+    !! Beziehungen
+    !!=============================================
+     ASSOCIATION Lage_Datenpunkt =
+      rLage -- {1..*} Lage;
+      rDatenpunkt (EXTERNAL) -- {2..*} ERKAS_Rohrleitungsanlagen_LV95_V1.ERKAS_Rohrleitungsanlagen.Datenpunkt;
+    END Lage_Datenpunkt;
+
+    ASSOCIATION KonsBereich_Lage =
+      rKonsBereich -- {1} KonsBereich;
+      rLage -- {1} Lage;
+    END KonsBereich_Lage;
+
+  END Lage_KonsBereiche;
+
+END ERKAS_Rohrleitungsanlagen_LV95_V1.

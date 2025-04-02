@@ -1,0 +1,295 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected
+!! 2020-04-29 | KOGIS | Constraint in  CLASS Isolationszone corrected (#true)
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=147.1
+MODEL Bew_Freisetzungsversuche_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29"  =
+  IMPORTS GeometryCHLV03_V1,LocalisationCH_V1;
+
+  TOPIC Bew_Freisetzungsversuch =
+
+   DOMAIN
+    
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    Weblink = URI;
+    STRUCTURE Weblink_ = value : MANDATORY Weblink; END Weblink_;
+
+    /** Adresse Betrieb und Ansprechstelle (nicht vertraulich)
+     */
+    CLASS Betrieb =
+      Name_Betrieb : MANDATORY TEXT*50;
+      Ansprechstelle : TEXT*50;
+      Strasse : MANDATORY TEXT*50;
+      Hausnummer : TEXT*10;
+      PLZ : MANDATORY 1111 .. 9999;
+      Ort : MANDATORY TEXT*50;
+    END Betrieb;
+
+    CLASS Isolationszone =
+      /** Fläche um die Versuchsparzelle herum mit definierten Isolationsabstand
+       */
+      Geometrie : MANDATORY Polygon;
+      /** Biologischer Artname und (allgemein verständlicher) Trivialname, Organismus darf innerhalb Isolationszone nicht vorkommen
+       */
+      Organismus : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Abstand zwischen Grenze der Versuchsparzelle und der Aussengrenze der Isolationszone (Meter)
+       */
+      Isolationsabstand : MANDATORY 0 .. 9999 [INTERLIS.m];
+      /** Start Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      IZ_Start_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Zeitperiode (Regelmässigkeit) der Kontrolle
+       */
+      IZ_Kontrolle_Periodizitaet : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Sind sicherheitsrelevante Ereignisse / Effekte ersichtlich? Ja/nein
+       */
+      IZ_Effekte : MANDATORY BOOLEAN;
+      /** Falls „Isolationszone_Effekte„ mit „ja“ beantwortet wurde, sind hier die Effekte anzugeben, z.B. Vorkommen von Versuchsorganismen ausserhalb der Versuchsparzelle. Ansonsten bleibt das Feld leer.
+       */
+      IZ_Effekte_Text : LocalisationCH_V1.MultilingualMText;
+      /** Beendigung der Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      IZ_Ende_Kontrolle : INTERLIS.XMLDate;
+      /** Eintrag bei Resultat des Monitorings z.B. jeweils Ende Jahr
+       */
+      Letzte_Aktualisierung : INTERLIS.XMLDate;
+      MANDATORY CONSTRAINT ((IZ_Effekte == #true) AND (DEFINED (IZ_Effekte_Text)));
+    END Isolationszone;
+
+    CLASS Status_VP_FS =
+      /** Start Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      VP_Start_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Bei „ja“ Textfeld: Zeitperiode (Regelmässigkeit) der Kontrolle
+       */
+      VP_Kontrolle_Periodizitaet : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Sind sicherheitsrelevante Ereignisse / Effekte ersichtlich? Ja/nein
+       */
+      VP_Effekte : MANDATORY BOOLEAN;
+      /** Falls „VP_Effekte„ mit „ja“ beantwortet wurde, sind hier die Effekte anzugeben, z.B. (Zer-) Störungen des Versuchs durch Wetterereignisse oder Sabotage
+       */
+      VP_Effekte_Text : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Beendigung der Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      VP_Ende_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Zeitpunkt der Freisetzung in die Umwelt
+       */
+      FS_Beginn : MANDATORY INTERLIS.XMLDate;
+      /** Versuchsparzelle ist belegt / ist nicht belegt mit freigesetzten Organismen (Variation Farbcode)
+       */
+      Freigesetzte_Organismen : MANDATORY BOOLEAN;
+      /** Freigesetze Organismen werden aus Versuchsparzelle entfernt
+       */
+      FS_Ende : MANDATORY INTERLIS.XMLDate;
+      /** Geplantes Ende des Versuches; insbesondere der Kontrollen der Isolationszone(n)
+       */
+      Versuchsende_Geplant : MANDATORY INTERLIS.XMLDate;
+      /** Versuch abgeschlossen; Schlussbericht (ev. Link) abgegeben; Begleitgruppe aufgelöst
+       */
+      Versuchsende_Definitiv : MANDATORY INTERLIS.XMLDate;
+      Kommentar : LocalisationCH_V1.MultilingualMText;
+      /** Eintrag bei Resultat des Monitorings z.B. jeweils Ende Jahr
+       */
+      Letzte_Aktualisierung : INTERLIS.XMLDate;
+    END Status_VP_FS;
+
+    CLASS Bewilligter_Freisetzungsversuch =
+      /** Referenznummer für Bewilligungsgesuch bzw. für Bewilligung durch den Bund
+       * Bsp: B/CH/13/01 (B13001)
+       */
+      Bewilligungs_Nr : MANDATORY TEXT*20;
+      /** Link zum BAFU-Homepage: Bewilligung für Freisetzungsversuch
+       * http://www.bafu.admin.ch/biotechnolo-gie/01756/08902/12579/index.html?lang=de)
+       */
+      Link : MANDATORY Weblink;
+      /** Biologischer Artname des Wildtyps (Empfängerorganismus für GVO) und allgemein verständlicher Name (Trivialname)
+       */
+      Versuchsorganismus : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Untersuchte (ev. gentechnisch zugefügte) Eigenschaft
+       */
+      Untersuchte_Eigenschaft : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Eigenschaft für Nachweis in der Umwelt (spezifischer Marker)
+       */
+      Spezifischer_Erkennungsmarker : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Dauer der Versuchsbewilligung
+       */
+      Versuchsdauer : MANDATORY INTERLIS.XMLDate;
+      /** Möglichkeit, betriebseigene Links oder PDFs (z.B. Karten, Pläne) einzufügen
+       */
+      Zusaetzlich : BAG {1..*} OF Weblink_;
+      /** Versuchsparzelle
+       */
+      Versuchsparzelle : MANDATORY Polygon;
+    END Bewilligter_Freisetzungsversuch;
+
+    ASSOCIATION Betreiber =
+      Betrieb -- {1} Betrieb;
+      BewFreisetzungsversuch -<> {1..*} Bewilligter_Freisetzungsversuch;
+    END Betreiber;
+
+    ASSOCIATION Isolationszonen =
+      Isolationszone -- {0..*} Isolationszone;
+      BewFreisetzungsversuch -<#> {0..1} Bewilligter_Freisetzungsversuch;
+    END Isolationszonen;
+
+    ASSOCIATION Status_Freisetzung =
+      Status_Versuchsparzelle -- {1..*} Status_VP_FS;
+      BewFreisetzungsversuch -<#> {1} Bewilligter_Freisetzungsversuch;
+    END Status_Freisetzung;
+
+  END Bew_Freisetzungsversuch;
+
+END Bew_Freisetzungsversuche_LV03_V1.
+
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=147.1
+MODEL Bew_Freisetzungsversuche_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29"  =
+  IMPORTS GeometryCHLV95_V1,LocalisationCH_V1;
+
+  TOPIC Bew_Freisetzungsversuch =
+
+   DOMAIN
+    
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    Weblink = URI;
+    STRUCTURE Weblink_ = value : MANDATORY Weblink; END Weblink_;
+
+    /** Adresse Betrieb und Ansprechstelle (nicht vertraulich)
+     */
+    CLASS Betrieb =
+      Name_Betrieb : MANDATORY TEXT*50;
+      Ansprechstelle : TEXT*50;
+      Strasse : MANDATORY TEXT*50;
+      Hausnummer : TEXT*10;
+      PLZ : MANDATORY 1111 .. 9999;
+      Ort : MANDATORY TEXT*50;
+    END Betrieb;
+
+    CLASS Isolationszone =
+      /** Fläche um die Versuchsparzelle herum mit definierten Isolationsabstand
+       */
+      Geometrie : MANDATORY Polygon;
+      /** Biologischer Artname und (allgemein verständlicher) Trivialname, Organismus darf innerhalb Isolationszone nicht vorkommen
+       */
+      Organismus : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Abstand zwischen Grenze der Versuchsparzelle und der Aussengrenze der Isolationszone (Meter)
+       */
+      Isolationsabstand : MANDATORY 0 .. 9999 [INTERLIS.m];
+      /** Start Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      IZ_Start_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Zeitperiode (Regelmässigkeit) der Kontrolle
+       */
+      IZ_Kontrolle_Periodizitaet : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Sind sicherheitsrelevante Ereignisse / Effekte ersichtlich? Ja/nein
+       */
+      IZ_Effekte : MANDATORY BOOLEAN;
+      /** Falls „Isolationszone_Effekte„ mit „ja“ beantwortet wurde, sind hier die Effekte anzugeben, z.B. Vorkommen von Versuchsorganismen ausserhalb der Versuchsparzelle. Ansonsten bleibt das Feld leer.
+       */
+      IZ_Effekte_Text : LocalisationCH_V1.MultilingualMText;
+      /** Beendigung der Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      IZ_Ende_Kontrolle : INTERLIS.XMLDate;
+      /** Eintrag bei Resultat des Monitorings z.B. jeweils Ende Jahr
+       */
+      Letzte_Aktualisierung : INTERLIS.XMLDate;
+      MANDATORY CONSTRAINT ((IZ_Effekte == #true) AND (DEFINED (IZ_Effekte_Text)));
+    END Isolationszone;
+
+    CLASS Status_VP_FS =
+      /** Start Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      VP_Start_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Bei „ja“ Textfeld: Zeitperiode (Regelmässigkeit) der Kontrolle
+       */
+      VP_Kontrolle_Periodizitaet : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Sind sicherheitsrelevante Ereignisse / Effekte ersichtlich? Ja/nein
+       */
+      VP_Effekte : MANDATORY BOOLEAN;
+      /** Falls „VP_Effekte„ mit „ja“ beantwortet wurde, sind hier die Effekte anzugeben, z.B. (Zer-) Störungen des Versuchs durch Wetterereignisse oder Sabotage
+       */
+      VP_Effekte_Text : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Beendigung der Kontrolle auf Abwesenheit von bestimmten Organismen
+       */
+      VP_Ende_Kontrolle : MANDATORY INTERLIS.XMLDate;
+      /** Zeitpunkt der Freisetzung in die Umwelt
+       */
+      FS_Beginn : MANDATORY INTERLIS.XMLDate;
+      /** Versuchsparzelle ist belegt / ist nicht belegt mit freigesetzten Organismen (Variation Farbcode)
+       */
+      Freigesetzte_Organismen : MANDATORY BOOLEAN;
+      /** Freigesetze Organismen werden aus Versuchsparzelle entfernt
+       */
+      FS_Ende : MANDATORY INTERLIS.XMLDate;
+      /** Geplantes Ende des Versuches; insbesondere der Kontrollen der Isolationszone(n)
+       */
+      Versuchsende_Geplant : MANDATORY INTERLIS.XMLDate;
+      /** Versuch abgeschlossen; Schlussbericht (ev. Link) abgegeben; Begleitgruppe aufgelöst
+       */
+      Versuchsende_Definitiv : MANDATORY INTERLIS.XMLDate;
+      Kommentar : LocalisationCH_V1.MultilingualMText;
+      /** Eintrag bei Resultat des Monitorings z.B. jeweils Ende Jahr
+       */
+      Letzte_Aktualisierung : INTERLIS.XMLDate;
+    END Status_VP_FS;
+
+    CLASS Bewilligter_Freisetzungsversuch =
+      /** Referenznummer für Bewilligungsgesuch bzw. für Bewilligung durch den Bund
+       * Bsp: B/CH/13/01 (B13001)
+       */
+      Bewilligungs_Nr : MANDATORY TEXT*20;
+      /** Link zum BAFU-Homepage: Bewilligung für Freisetzungsversuch
+       * http://www.bafu.admin.ch/biotechnolo-gie/01756/08902/12579/index.html?lang=de)
+       */
+      Link : MANDATORY Weblink;
+      /** Biologischer Artname des Wildtyps (Empfängerorganismus für GVO) und allgemein verständlicher Name (Trivialname)
+       */
+      Versuchsorganismus : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Untersuchte (ev. gentechnisch zugefügte) Eigenschaft
+       */
+      Untersuchte_Eigenschaft : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Eigenschaft für Nachweis in der Umwelt (spezifischer Marker)
+       */
+      Spezifischer_Erkennungsmarker : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Dauer der Versuchsbewilligung
+       */
+      Versuchsdauer : MANDATORY INTERLIS.XMLDate;
+      /** Möglichkeit, betriebseigene Links oder PDFs (z.B. Karten, Pläne) einzufügen
+       */
+      Zusaetzlich : BAG {1..*} OF Weblink_;
+      /** Versuchsparzelle
+       */
+      Versuchsparzelle : MANDATORY Polygon;
+    END Bewilligter_Freisetzungsversuch;
+
+    ASSOCIATION Betreiber =
+      Betrieb -- {1} Betrieb;
+      BewFreisetzungsversuch -<> {1..*} Bewilligter_Freisetzungsversuch;
+    END Betreiber;
+
+    ASSOCIATION Isolationszonen =
+      Isolationszone -- {0..*} Isolationszone;
+      BewFreisetzungsversuch -<#> {0..1} Bewilligter_Freisetzungsversuch;
+    END Isolationszonen;
+
+    ASSOCIATION Status_Freisetzung =
+      Status_Versuchsparzelle -- {1..*} Status_VP_FS;
+      BewFreisetzungsversuch -<#> {1} Bewilligter_Freisetzungsversuch;
+    END Status_Freisetzung;
+
+  END Bew_Freisetzungsversuch;
+
+END Bew_Freisetzungsversuche_LV95_V1.

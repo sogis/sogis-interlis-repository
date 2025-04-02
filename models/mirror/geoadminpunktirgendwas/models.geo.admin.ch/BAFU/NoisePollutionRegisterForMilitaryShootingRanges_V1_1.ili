@@ -1,0 +1,268 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell Lärmbelastungskataster militärische Schiessplätze
+ */
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=177.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL NoisePollutionRegisterForMilitaryShootingRanges_V1_1 (en)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-06-06"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  TOPIC codelists
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS shooting_range_type_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END shooting_range_type_Catalogue;
+ 
+    STRUCTURE shooting_range_type_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) shooting_range_type_Catalogue;
+    END shooting_range_type_CatRef;
+
+    CLASS shooting_system_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END shooting_system_Catalogue;
+
+    STRUCTURE shooting_system_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) shooting_system_Catalogue;
+    END shooting_system_CatRef;
+
+    CLASS surface_type_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END surface_type_Catalogue;
+
+    STRUCTURE surface_type_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) surface_type_Catalogue;
+    END surface_type_CatRef;
+
+    CLASS operation_status_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END operation_status_Catalogue;
+   
+    STRUCTURE operation_status_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) operation_status_Catalogue;
+    END operation_status_CatRef;
+
+    CLASS point_of_determination_t_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END point_of_determination_t_Catalogue;
+
+    STRUCTURE point_of_determination_t_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) point_of_determination_t_Catalogue;
+    END point_of_determination_t_CatRef;
+
+    CLASS exposure_limit_value_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END exposure_limit_value_Catalogue;
+
+    STRUCTURE exposure_limit_value_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) exposure_limit_value_Catalogue;
+    END exposure_limit_value_CatRef;
+
+    CLASS shooting_system_civil_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END shooting_system_civil_Catalogue;
+
+    STRUCTURE shooting_system_civil_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) shooting_system_civil_Catalogue;
+    END shooting_system_civil_CatRef;
+
+  END codelists;
+
+  TOPIC emission_shooting =
+    DEPENDS ON NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists;
+    
+  CLASS perimeter =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      FacilityNumber_SPM : MANDATORY 01.101 .. 26.999;
+    END perimeter;  
+    
+    CLASS shooting_range =
+      sr_geom : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      sr_type : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.shooting_range_type_CatRef;
+      sr_remark : TEXT*256;
+    END shooting_range;
+    
+    CLASS shooting_data_military =
+      sm_system : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.shooting_system_CatRef;
+      sm_nummil1 : MANDATORY 0 .. 999999999;
+      sm_nummil2 : MANDATORY 0 .. 999999999;
+      sm_data_remark : TEXT*256;
+      sm_data_estimated : MANDATORY BOOLEAN;
+      sm_data_year : MANDATORY 1900 .. 2100;
+    END shooting_data_military;
+    
+    CLASS fireline =
+      fl_linegeom : GeometryCHLV95_V1.LineWithAltitude;
+      fl_pointgeom : GeometryCHLV95_V1.Coord3;
+      fl_remark : TEXT*256;
+      
+      MANDATORY CONSTRAINT DEFINED(fl_linegeom) OR DEFINED(fl_pointgeom);
+    END fireline;
+    
+    CLASS firing_point =
+      fp_geom : MANDATORY GeometryCHLV95_V1.LineWithAltitude;
+      house_height : MANDATORY 0.00 .. 9999.99;
+      house_depth : MANDATORY 0.00 .. 999.99;
+      ridge_distance : MANDATORY 0.00 .. 999.99;
+      ridge_height : MANDATORY 0.00 .. 9999.99;
+      bl_l_length : MANDATORY 0.00 .. 999.99;
+      bl_l_height : MANDATORY 0.00 .. 9999.99;
+      bl_r_length : MANDATORY 0.00 .. 999.99;
+      bl_r_height : MANDATORY 0.00 .. 9999.99;
+      house_sftyp : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.surface_type_CatRef;
+      bl_l_sftyp : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.surface_type_CatRef;
+      bl_r_sftyp : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.surface_type_CatRef;
+      fp_remark : TEXT*256;
+    END firing_point;
+    
+    CLASS barrier =
+      bar_geom : MANDATORY GeometryCHLV95_V1.LineWithAltitude;
+      bar_sftyp : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.surface_type_CatRef;
+      bar_remark : TEXT*256;
+      bar_type : MANDATORY BOOLEAN;
+    END barrier; 
+            
+     CLASS security_barrier =
+      sec_bar_geom : MANDATORY GeometryCHLV95_V1.LineWithAltitude;
+      sec_bar_height2 : MANDATORY 0.00 .. 9999.99;
+      sec_bar_sftyp : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.surface_type_CatRef;
+      sec_bar_remark : TEXT*256;
+    END security_barrier;
+    
+    CLASS shooting_data_civil =
+      sz_system_civil : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.shooting_system_civil_CatRef;
+      sz_halfd_week : MANDATORY 0.0 .. 999.9;
+      sz_halfd_sunday : MANDATORY 0.0 .. 999.9;
+      sz_numb_week : MANDATORY 0.0 .. 999999999.9;
+      sz_numb_sunday : MANDATORY 0.0 .. 999999999.9;
+      sz_data_remark : TEXT*256;
+      sz_data_estimated : BOOLEAN;
+      sz_data_year : MANDATORY 1900 .. 2100;
+    END shooting_data_civil;
+    
+    ASSOCIATION perimeter2shooting_range =
+      perimeter -- {1} perimeter;
+      shooting_range  -- {1..*} shooting_range;
+    END perimeter2shooting_range;
+
+    ASSOCIATION shooting_range2fireline =
+      shooting_range -- {1} shooting_range;
+      fireline  -- {1..*}fireline;
+    END shooting_range2fireline;
+    
+    ASSOCIATION shooting_data_military2fireline =
+      shooting_data_military -- {1} shooting_data_military;
+      fireline -- {1..*}fireline;
+    END shooting_data_military2fireline;
+    
+    ASSOCIATION shooting_data_civil2fireline =
+      shooting_data_civil -- {0..1} shooting_data_civil;
+      fireline -- {0..*}fireline;
+    END shooting_data_civil2fireline;
+
+    ASSOCIATION shooting_range2firing_point =
+      shooting_range -- {1} shooting_range;
+      firing_point-- {0..*} firing_point;
+    END shooting_range2firing_point;
+    
+    ASSOCIATION shooting_range2barrier =
+      shooting_range -- {1} shooting_range;
+      barrier -- {0..*} barrier;
+    END shooting_range2barrier;
+        
+    ASSOCIATION shooting_range2security_barrier =
+      shooting_range -- {1} shooting_range;
+      security_barrier -- {0..*} security_barrier;
+    END shooting_range2security_barrier;
+    
+  END emission_shooting;
+  
+  TOPIC immission_shooting  =
+    DEPENDS ON NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists;
+    
+    CLASS dispersion_calculation =
+      dispcal_remark : TEXT*256;
+      model_dispersion : MANDATORY TEXT*30;
+      version_dispersion : MANDATORY TEXT*30;
+      elevation_model : TEXT*40;
+      building_database : TEXT*40;
+      meteo_included: MANDATORY BOOLEAN;
+      meteo_number_scenario : 0 .. 36;
+      meteo_data : TEXT*40;
+      reflexion : MANDATORY BOOLEAN;
+      forest : MANDATORY BOOLEAN;
+      refyear_register : MANDATORY 1900 .. 2100;
+      NPR_name : MANDATORY TEXT*100;
+      primary_surface : MANDATORY TEXT*40;
+    END dispersion_calculation;
+    
+    CLASS isophones =
+      isopho_geom : MANDATORY GeometryCHLV95_V1.MultiLine;
+      level_dB : MANDATORY 0 .. 90;
+      isopho_remark : TEXT*256;
+      isopho_height : MANDATORY 0.0 .. 99.0;
+    END isophones;
+
+    CLASS point_of_determination =
+      Lr : MANDATORY 0 .. 90;
+      pt_det_geom : MANDATORY GeometryCHLV95_V1.Coord3;
+      operation_status : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.operation_status_CatRef;
+      EGID : 0 .. 999999999;
+      EGRID : MANDATORY TEXT*14;
+      pt_det_type : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.point_of_determination_t_CatRef;
+      address : TEXT*100;
+      exp_limit_value : MANDATORY NoisePollutionRegisterForMilitaryShootingRanges_V1_1.codelists.exposure_limit_value_CatRef;
+      det_remark : TEXT*256;
+      
+      MANDATORY CONSTRAINT (pt_det_type->Reference->Code != "facade") OR (DEFINED(EGID) OR DEFINED(address));  
+    END point_of_determination;
+
+    CLASS affected_analysis =
+      PW_IGW : MANDATORY 0 .. 99999999;
+      IGW_AV : MANDATORY 0 .. 99999999;
+      AV : MANDATORY 0 .. 99999999;
+      analysis_year : MANDATORY 1900 .. 2100;
+      affected_analysis_remark : TEXT*256;
+      FacilityNumber_SPM : MANDATORY 01.101 .. 26.999 ;
+      sum_people_55db : MANDATORY 0 .. 99999999;
+	  sum_people_60db : MANDATORY 0 .. 99999999;
+    END affected_analysis;
+    
+    ASSOCIATION dispersion_calculation2isophones =
+      dispersion_calculation -- {1} dispersion_calculation;
+      isophones -- {1..*} isophones;
+    END dispersion_calculation2isophones;
+
+    ASSOCIATION dispersion_calculation2point_of_determination =
+      dispersion_calculation -- {1} dispersion_calculation;
+      point_of_determination -- {0..*} point_of_determination;
+    END dispersion_calculation2point_of_determination;
+
+  END immission_shooting;
+  
+END NoisePollutionRegisterForMilitaryShootingRanges_V1_1.

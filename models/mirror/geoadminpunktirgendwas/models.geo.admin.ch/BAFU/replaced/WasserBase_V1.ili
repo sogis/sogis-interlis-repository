@@ -1,0 +1,134 @@
+!!==============================================================================
+!! WasserBase_V1.ili
+!!------------------------------------------------------------------------------
+!!
+!! WasserBase enthält Objekte, welche von den folgenden minimalen Geodatenmodellen
+!! genutzt werden:
+!!  - Sanierung Wasserkraft (Schwall-Sunk, Geschiebe und Fischwanderung)
+!!  - Revitalisierung (inklusive Ökomorphologie Stufe F)
+!!  - Restwasser
+!!
+!! In WasserBase sind abgelegt:
+!!  - lineare und planare Ortsbeschreibung
+!!  - Klassen für Gewässerläufe und -adressierung
+!!  - Basisklasse für multilinguale Katalogeinträge
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Nr  | Änderung
+!!------------------------------------------------------------------------------
+!! 2013-11-26 | 1.0 | Bereinigte Schlussfassung nach Anhörung
+!! 2015-05-26 | 1.0 | KOGIS: Property EXTERNAL added (line 81)
+!!==============================================================================
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL WasserBase_V1 (de) AT "http://models.geo.admin.ch/BAFU" VERSION "2015-05-26" =
+
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED CatalogueObjects_V1;
+  IMPORTS UNQUALIFIED LocalisationCH_V1;
+  
+  TOPIC Gewaesser =
+!!==============================================================================
+
+    !! Basisklasse für multilinguale Katalogeinträge
+    !!=============================================
+    CLASS CatalogItem EXTENDS CatalogueObjects_V1.Catalogues.Item =
+        ItemId : MANDATORY INTERLIS.UUIDOID;               !! Schlüssel (GUID)
+        Code   :           TEXT;                           !! lesbarer "Schlüssel"
+        Name   : MANDATORY MultilingualText;               !! Name des Katalogeintrags (mehrsprachig)
+    END CatalogItem;
+
+    !! Produktinformation und ID eines Gewässerlaufs
+    !!=============================================
+    CLASS Gewaesserlauf =
+      ID                    : MANDATORY TEXT*25;           !! Identifikator des strukturierten Fliessgewässers, z.B. GWL Nummer
+      ProduktBezeichnung    : MANDATORY TEXT*25;           !! Produktbezeichnung, z.B. TLM
+      ProduktVersion        : MANDATORY TEXT*25;           !! Nachführungsjahr oder Versionsnummer des Datenprodukts
+    END Gewaesserlauf;
+
+    !! Geometrie eines Gewässerlaufabschnitts
+    !!=============================================
+    CLASS GewaessernetzAbschnittGeometrie =
+      Shape                 : MANDATORY DirectedLine;      !! die Geometrie des Gewässers
+      Name                  :           TEXT*64;           !! Gewässername
+    END GewaessernetzAbschnittGeometrie;
+
+    !! Kalibrierungspunkt (gemäss gnw25-07)
+    !!=============================================
+    CLASS KalPunkt =
+      Shape          : MANDATORY             Coord2;               !! (Planare) Koordinate des Kalibrierungspunkts
+      Measure        : MANDATORY 0.00 .. 500000.00 [INTERLIS.m];   !! Gewässerkilometer (Adresse)
+      Kommentar      :           TEXT;                             !!
+    END KalPunkt;
+
+    !! Strukturen zur Ortsbeschreibung an einem Gewässer(lauf)
+    !!=============================================
+    !! Die Verortung von Wasserbauobjekten (z.B. Wehr, Kanal) kann linear oder planar beschrieben werden.
+    !! a) linear: Angabe von Adressierung (Flusskilometer) und Schlüssel auf das Geometrieobjekt des Fliessgewässers.
+    !!            Für den Querabstand zur Gewässerachse gilt:
+    !!              - positive Zahl = in aufsteigender Kilometrierung rechts von der Gewässerachse
+    !!              - negative Zahl = in aufsteigender Kilometrierung links von der Gewässerachse
+    !!            In stehenden Gewässern ist eine fiktive Fliessgewässerachse definiert.
+    !! b) planar: Angabe einer punkt-, linien- oder flächenförmigen Geometrie (ohne expliziten Bezug auf ein Fliessgewässer).
+    !!=============================================
+
+    !! Lineare Beschreibung eines Punkts oder einer Linie (Flächen können linear nicht beschrieben werden.)
+    !!=============================================
+    STRUCTURE StrOrtLinear =
+      Gewaesser : MANDATORY REFERENCE TO (EXTERNAL) Gewaesserlauf; !! Identifikator des Fliessgewässers (Fremdschlüssel)
+      AdrVon    : MANDATORY    0   .. 500000   [INTERLIS.m];       !! Ort unten am Gewäesserlauf (Mündung 0m)
+      mVonQuer  :           -100.0 ..    100.0 [INTERLIS.m];       !! Querabstand zur Gewässerachse
+      AdrBis    :              0   .. 500000   [INTERLIS.m];       !! Ort oben am Gewäesserlauf (nur für Strecken)
+      mBisQuer  :           -100.0 ..    100.0 [INTERLIS.m];       !! Querabstand zur Gewässerachse
+
+      MANDATORY CONSTRAINT
+        DEFINED (AdrBis) == (AdrBis > AdrVon);                     !! falls KmBis definiert ist
+    END StrOrtLinear;
+
+    !! Planare Beschreibung eines Punkts, einer Linie oder einer Fläche
+    !!=============================================
+    STRUCTURE StrOrtPlanar =
+      Punkt          : Coord3;                                     !! z = 0 falls Höhe nicht bekannt
+      Abschnitt      : DirectedLine;
+      Flaeche        : Surface;
+
+      MANDATORY CONSTRAINT                                         !! genau ein Geometrietyp muss vorhanden sein
+            DEFINED(Punkt)
+         OR DEFINED(Abschnitt)
+         OR DEFINED(Flaeche);
+    END StrOrtPlanar;
+
+    !! Universelle Beschreibung für Orte des Gewässernetzes, linear oder planar
+    !!=============================================
+    STRUCTURE StrOrt =
+      OrtLinear      : StrOrtLinear;
+      OrtPlanar      : StrOrtPlanar;
+
+      MANDATORY CONSTRAINT                                         !! der Ort muss linear oder planar definiert sein
+           DEFINED(OrtLinear)
+        OR DEFINED(OrtPlanar);
+    END StrOrt;
+
+    !! Beziehungen zwischen den Klassen
+    !!=============================================
+    !! Ein linearer Ort muss sich auf ein Gewässer beziehen. Dies ist in der Struktur StrOrtLinear modelliert mit
+    !! Gewaesser: MANDATORY REFERENCE TO Gewaesserlauf;
+
+    !! Geometrie zum Gewässerlaufidentifikator
+    ASSOCIATION FliessgewaesserID_Geometrie =
+      rIdentifikator -<> {1}    Gewaesserlauf;
+      rGeometrie     --  {1..*} GewaessernetzAbschnittGeometrie;
+    END FliessgewaesserID_Geometrie;
+
+    !! Kalibrierungspunkte auf dem Gewässerlauf
+    ASSOCIATION Fliessgewaesser_KalPunkt =
+      rShape   -<> {1}    GewaessernetzAbschnittGeometrie;
+      rAdresse --  {2..*} KalPunkt;
+    END Fliessgewaesser_KalPunkt;
+
+  END Gewaesser;                                                   !! topic
+
+END WasserBase_V1.                                                 !! model

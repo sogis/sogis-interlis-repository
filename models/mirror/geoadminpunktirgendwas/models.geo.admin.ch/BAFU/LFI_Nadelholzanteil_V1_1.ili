@@ -1,0 +1,53 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=164.10
+MODEL LFI_Nadelholzanteil_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2020-11-19"  =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Id = 0 .. 999999999999999;
+
+    /* Flächen ohne Kreisbogen */
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /* Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+  TOPIC Nadelholzanteil =
+
+    CLASS Nahoant =
+      /** Identifikationsnummer der Geometrie
+       */
+      GeometrieId : MANDATORY LFI_Nadelholzanteil_V1_1.Id;
+      /** Geometrie
+       */
+      Geometrie : MANDATORY LFI_Nadelholzanteil_V1_1.MultiPolygon;
+      /** Identifikationsnummer der Nadelholzanteil
+       */
+      NahoantId : MANDATORY LFI_Nadelholzanteil_V1_1.Id;
+      /** Textbeschreibung Nadelholzanteil deutsch.
+       */
+      NahoantName_de : MANDATORY TEXT*128;
+      /** Textbeschreibung Nadelholzanteil franzoesisch.
+       */
+      NahoantName_fr : MANDATORY TEXT*128;
+      /** Textbeschreibung Nadelholzanteil italienisch.
+       */
+      NahoantName_it : MANDATORY TEXT*128;
+    END Nahoant;
+
+  END Nadelholzanteil;
+
+END LFI_Nadelholzanteil_V1_1.

@@ -1,0 +1,69 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-04-01 | KOGIS | WITHOUT OVERLAPS of attribute Surface added
+!! 2018-02-09 | KOGIS | WITHOUT OVERLAPS of attribute Surface corrected
+!! 2019-12-10 | KOGIS | TOPIC NonVector declared as ABSTRACT
+
+MODEL NonVector_Base_V2 (en) AT "http://www.geo.admin.ch" VERSION "2019-12-10"  =
+
+/*##########################
+  from CHBase GeometryCHLV03
+*/
+  IMPORTS Units;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D: CHLV03
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+
+  DOMAIN
+    Coord2 = COORD
+      480000.000 .. 850000.000 [INTERLIS.m] {CHLV03[1]},
+       70000.000 .. 310000.000 [INTERLIS.m] {CHLV03[2]},
+      ROTATION 2 -> 1;
+
+    Surface = SURFACE WITH (STRAIGHTS, ARCS) VERTEX Coord2 WITHOUT OVERLAPS > 0.001;
+/*##########################
+*/
+
+  TOPIC NonVector (ABSTRACT) =
+
+    CLASS NonVector_Dataset (ABSTRACT) =
+      Description : TEXT*1024;
+    END NonVector_Dataset;
+
+    CLASS Clipping (ABSTRACT) =
+      ClippingPerimeter : MANDATORY Surface;
+      Description : TEXT*1024;
+    END Clipping;
+
+    CLASS ImageGraphicRasterObject (ABSTRACT) =
+      SpecialIdentifier : MANDATORY URI;
+      SpatialReference : MANDATORY Coord2;
+      ImageTileSizeH : MANDATORY 1 .. 1000000000;
+      ImageTileSizeW : MANDATORY 1 .. 1000000000;
+      GroundResolution : MANDATORY 0.00 .. 1000000.00 [INTERLIS.m];
+      ImageTileOrientation_DEG : 0.00 .. 359.99 CIRCULAR [Units.Angle_Degree];
+      ImageTileOrientation_GON : 0.00 .. 399.99 CIRCULAR [Units.Gon];
+    END ImageGraphicRasterObject;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject;
+      perimeter -<> {1} NonVector_Dataset;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject;
+      belongsTo -- {0..*} Clipping;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} NonVector_Dataset;
+      covers -- {0..*} Clipping;
+    END inCovers;
+
+  END NonVector;
+
+END NonVector_Base_V2.

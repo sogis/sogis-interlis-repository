@@ -1,0 +1,95 @@
+TRANSFER TransferName;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! AMO-Grafik data model description in INTERLIS version 1 (SN 612030).
+!!
+!! Federal Office of Topography swisstopo
+!! Federal Directorate for Cadastral Surveying
+!! CH-3084 Wabern
+!!
+!! Version: 1.5
+!! File name: AMO_Grafik_LV03_e.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+MODEL AMO_Grafik_LV03_e
+
+  DOMAIN
+  
+    CoordP = COORD2
+      480000.000 70000.000
+      850000.000 310000.000;
+      
+    Cantons = (
+      ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+        
+    Identifier = [0 .. 99999];
+    
+    Standards = (
+      digital,  !!AV93 und PN - MO93 et NP
+      full_numeric,  !!VN-CN 
+      analog,  !!analoge Daten und nicht VAV-konform - donnees analogiques et non conformes a OMO
+      not_yet_surveyed); !!Noch nicht vermessen und Seen - pas encore mensure et lacs
+      
+    Systems = (
+      LV03,
+      LV95);
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!                                               !!
+!!                TOPIC                          !!
+!!                                               !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  TOPIC Status_Cadastral_Surveying = !!Stand der Amtlichen Vermessung / Stand anerkannt - Etat de la MO / Etat reconnu - Stato della MU / Stato riconosciuto
+  
+    TABLE Actual_Status =
+      Canton : Cantons;
+      Id : Identifier; !!kantonaler Identifikator (5 Zahlen)- identifiant cantonal de 5 chiffres
+      Quality : Standards;
+      Reference_frame: Systems;
+      Reference_date: DATE;
+    IDENT Canton, Id;
+    END Actual_Status;
+    
+    TABLE Actual_Status_Geometry =
+      From: ->Actual_Status; !! Relation 1-m
+      Perimeter : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.20;
+    NO IDENT
+    END Actual_Status_Geometry;
+    
+  END Status_Cadastral_Surveying.
+  
+  
+  TOPIC Lots_in_progress = !! Los in Arbeit - lots en travaux - lotti in lavoro
+  
+    TABLE Lot =
+      Neu_id: TEXT*6; !! Format: "ctxxxx" where "ct" is the abbreviation of the canton and "x" a 4 digits number like 1234,from AMO
+      Quality: Standards;
+      Reference_frame: Systems;
+    IDENT Neu_id;
+    END Lot;
+    
+    TABLE Lot_Geometry =
+      From: ->Lot; !! Relation 1-m
+      Perimeter : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.20;
+    NO IDENT
+    END Lot_Geometry;
+    
+  END Lots_in_progress.
+  
+END AMO_Grafik_LV03_e.
+
+FORMAT
+  FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

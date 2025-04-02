@@ -1,0 +1,412 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2014-06-23 | KOGIS | TOPIC-Dependencies added (line 96 and 299)
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "153.1"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+MODEL Nutzungsflaechen_V1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2014-06-23"  =
+  IMPORTS Bearbeitungsstatus_V1,Units,CatalogueObjects_V1,Bewirtschaftungseinheit_V1,LocalisationCH_V1,GeometryCHLV03_V1,Landwirtschaftliche_Zonengrenzen_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  /** Kataloge, deren Elemente aus andern Klassen referenziert werden können
+   */
+  TOPIC LNF_Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Liste aller Nutzungen gemäss Konsens Nutzungskatalog
+     */
+    CLASS LNF_Katalog_Nutzungsart
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      LNF_Code : MANDATORY TEXT*10;
+      MText_Nutzung : LocalisationCH_V1.MultilingualText;
+      /** Ja: Nutzung muss geometrisch erfasst werden, Nein: Nutzung kann geometrisch oder numerisch erfasst werden.
+       */
+      Ist_Geometrisch : MANDATORY BOOLEAN;
+      /** Ja: Aggregats-Nutzung, Nein: 'Einzel'-Nutzung
+       */
+      Ist_Aggregiert : MANDATORY BOOLEAN;
+      /** Ja: überlagernde Nutzung, Nein: normale Nutzung
+       */
+      Ist_Ueberlagernd : MANDATORY BOOLEAN;
+      UNIQUE LNF_Code;
+    END LNF_Katalog_Nutzungsart;
+
+    /** Liste von Bundesprogrammen, die zu speziellen Beiträgen berechtigt.
+     */
+    CLASS LNF_Katalog_Programm
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*20;
+      /** Mehrsprachiger Text für die Programmbeschreibung
+       */
+      MText_Programm : BAG {0..*} OF LocalisationCH_V1.MultilingualText;
+    END LNF_Katalog_Programm;
+
+    /** dynamische Liste aller numerischen Nutzungen gemäss Konsens Nutzungskatalog,
+     * die an einer aggregierten Geometrischen Nutzungs_Art hängen
+     */
+    CLASS LNF_Katalog_Num_Nutzung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      LNF_Code : MANDATORY TEXT*10;
+      MText_Nutzung : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE LNF_Code;
+    END LNF_Katalog_Num_Nutzung;
+
+    STRUCTURE LNF_Katalog_NutzungsartRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Nutzungsart;
+    END LNF_Katalog_NutzungsartRef;
+
+    STRUCTURE LNF_Katalog_ProgrammRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Programm;
+    END LNF_Katalog_ProgrammRef;
+
+    STRUCTURE LNF_Num_NutzungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Num_Nutzung;
+    END LNF_Num_NutzungRef;
+
+    /** Eine Nutzungs_Art kann keine bis beliebig vielen {0..*} num. Nutzungen
+     * zugewiesen sein.
+     * Eine Nutzung aus der num. Liste gehört aber immer genau einer {1} Nutzungs_Art an.
+     */
+    ASSOCIATION KatalogNutzungartNumNutzung =
+      Nutzungsart -- {1} LNF_Katalog_Nutzungsart;
+      NumNutzung -<> {0..*} LNF_Katalog_Num_Nutzung;
+    END KatalogNutzungartNumNutzung;
+
+  END LNF_Kataloge;
+
+  TOPIC Nutzung =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Nutzungsflaechen_V1.LNF_Kataloge,Bearbeitungsstatus_V1.Status,Landwirtschaftliche_Zonengrenzen_V1.LZ_Kataloge;
+    DEPENDS ON Bewirtschaftungseinheit_V1.Landw_Betrieb;
+
+    /** Numerische Landwirtschaftliche Nutzung, die an einer aggregierten
+     * geometrischen Nutzung hängt.
+     */
+    CLASS LNF_Num_Nutzung =
+      /** Sprechender Identifikator, mit Hilfe welchem verschiedene involvierte Personen über diese Fläche sprechen können. Dieser Wert kann zum Beispiel von einem kantonalen System vergeben werden durch die Betriebsnummer plus einer Laufnummer der Nutzungsfläche.
+       */
+      Nutzungsidentifikator : TEXT*50;
+      Groesse : 0 .. 100000000 [Units.a];
+      /** Anzahl der Bäume (z. B. bei gepflegten Selven)
+       */
+      Anzahl_Baeume : 0 .. 10000 [Units.CountedObjects];
+      /** Gibt an, ob die Fläche im Bezugsjahr bewirtschaftet wird oder nicht, bzw. wieviel Prozent der Fläche als bewirtschaftet angerechnet werden kann.
+       * Default: 100
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100 [Units.Percent]; !! Default 100;
+      Beitragsberechtigt : MANDATORY (
+        /** 1
+         */
+        EnumElement91,
+        /** 2/3
+         */
+        EnumElement90,
+        /** 0
+         */
+        EnumElement89
+      ); !! Default 1;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Nutzungsart : MANDATORY Nutzungsflaechen_V1.LNF_Kataloge.LNF_Num_NutzungRef;
+      Programm : Nutzungsflaechen_V1.LNF_Kataloge.LNF_Katalog_ProgrammRef;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+    END LNF_Num_Nutzung;
+
+    /** Landwirtschaftliche Nutzung (geometrisch oder numerisch). Die Geometrie ist optional.
+     * 
+     * Falls weder Fläche noch Punkt erfasst sind, muss eine Referenz zur
+     * Bewirtschaftungseinheit und die Grösse erfasst sein. Dies gilt auch
+     * für Flächen im Ausland.
+     */
+    CLASS LNF_Nutzung =
+      /** Sprechender Identifikator, mit Hilfe welchem verschiedene involvierte Personen über diese Fläche sprechen können. Dieser Wert kann zum Beispiel von einem kantonalen System vergeben werden durch die Betriebsnummer plus einer Laufnummer der Nutzungsfläche.
+       */
+      Nutzungsidentifikator : TEXT*50;
+      /** Fläche der Nutzung (multipart erlaubt)
+       */
+      Flaeche : GeometryCHLV03_V1.MultiSurface;
+      /** Position (XY-Koordinate) der Nutzung (Bäume!)
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      Groesse : 0 .. 100000000 [Units.a];
+      /** Anzahl der Bäume, falls diese als Fläche erfasst sind
+       */
+      Anzahl_Baeume : 0 .. 10000 [Units.CountedObjects];
+      /** Gibt an, ob die Fläche im Bezugsjahr bewirtschaftet wird oder nicht, bzw. wieviel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100 [Units.Percent]; !! Default 100;
+      /** Gibt an, ob für diese Fläche Beiträge beantragt werden können. Dies ist z. B. auf Waffenplätzen oder Bauland nicht gegeben.
+       */
+      Beitragsberechtigt : MANDATORY (
+        /** 1
+         */
+        EnumElement87,
+        /** 2/3
+         */
+        EnumElement86,
+        /** 0
+         */
+        EnumElement85
+      ); !! Default 1;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Status der Daten gemäss Liste Bearbeitungsstatus.
+       */
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Nutzungsart : MANDATORY Nutzungsflaechen_V1.LNF_Kataloge.LNF_Katalog_NutzungsartRef;
+      Programm : Nutzungsflaechen_V1.LNF_Kataloge.LNF_Katalog_ProgrammRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt)
+       OR DEFINED (Groesse)
+       OR DEFINED (Anzahl_Baeume);
+    END LNF_Nutzung;
+
+    /** Eine effektive landw. Nutzung kann keine bis beliebig viele {0..*} num. Nutzungen
+     * haben. Eine num. Nutzung gehört immer genau zu einer {1} landw. Nutzung.
+     */
+    ASSOCIATION LNF_Num_NutzungLNF_Nutzung =
+      LNF_Nutzung -- {1} LNF_Nutzung;
+      NumNutzung -<#> {1} LNF_Num_Nutzung;
+    END LNF_Num_NutzungLNF_Nutzung;
+
+    /** Eine landwirtschaftliche Nutzung hängt an der Bewirtschaftungeinheit.
+     */
+    ASSOCIATION LNF_NutzungBE_Bewirtschaftungseinheit =
+      Bewirtschaftungseinheit (EXTERNAL) -- {1} Bewirtschaftungseinheit_V1.Landw_Betrieb.BE_Bewirtschaftungseinheit;
+      Nutzung -- {0..*} LNF_Nutzung;
+    END LNF_NutzungBE_Bewirtschaftungseinheit;
+
+  END Nutzung;
+
+END Nutzungsflaechen_V1.
+
+
+
+MODEL Nutzungsflaechen_LV95_V1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2014-06-23"  =
+  IMPORTS Bearbeitungsstatus_V1,Units,CatalogueObjects_V1,Bewirtschaftungseinheit_LV95_V1,LocalisationCH_V1,GeometryCHLV95_V1,Landwirtschaftliche_Zonengrenzen_LV95_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  /** Kataloge, deren Elemente aus andern Klassen referenziert werden können
+   */
+  TOPIC LNF_Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Liste aller Nutzungen gemäss Konsens Nutzungskatalog
+     */
+    CLASS LNF_Katalog_Nutzungsart
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      LNF_Code : MANDATORY TEXT*10;
+      MText_Nutzung : LocalisationCH_V1.MultilingualText;
+      /** Ja: Nutzung muss geometrisch erfasst werden, Nein: Nutzung kann geometrisch oder numerisch erfasst werden.
+       */
+      Ist_Geometrisch : MANDATORY BOOLEAN;
+      /** Ja: Aggregats-Nutzung, Nein: 'Einzel'-Nutzung
+       */
+      Ist_Aggregiert : MANDATORY BOOLEAN;
+      /** Ja: überlagernde Nutzung, Nein: normale Nutzung
+       */
+      Ist_Ueberlagernd : MANDATORY BOOLEAN;
+      UNIQUE LNF_Code;
+    END LNF_Katalog_Nutzungsart;
+
+    /** Liste von Bundesprogrammen, die zu speziellen Beiträgen berechtigt.
+     */
+    CLASS LNF_Katalog_Programm
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*20;
+      /** Mehrsprachiger Text für die Programmbeschreibung
+       */
+      MText_Programm : BAG {0..*} OF LocalisationCH_V1.MultilingualText;
+    END LNF_Katalog_Programm;
+
+    /** dynamische Liste aller numerischen Nutzungen gemäss Konsens Nutzungskatalog,
+     * die an einer aggregierten Geometrischen Nutzungs_Art hängen
+     */
+    CLASS LNF_Katalog_Num_Nutzung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      LNF_Code : MANDATORY TEXT*10;
+      MText_Nutzung : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE LNF_Code;
+    END LNF_Katalog_Num_Nutzung;
+
+    STRUCTURE LNF_Katalog_NutzungsartRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Nutzungsart;
+    END LNF_Katalog_NutzungsartRef;
+
+    STRUCTURE LNF_Katalog_ProgrammRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Programm;
+    END LNF_Katalog_ProgrammRef;
+
+    STRUCTURE LNF_Num_NutzungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LNF_Katalog_Num_Nutzung;
+    END LNF_Num_NutzungRef;
+
+    /** Eine Nutzungs_Art kann keine bis beliebig vielen {0..*} num. Nutzungen
+     * zugewiesen sein.
+     * Eine Nutzung aus der num. Liste gehört aber immer genau einer {1} Nutzungs_Art an.
+     */
+    ASSOCIATION KatalogNutzungartNumNutzung =
+      Nutzungsart -- {1} LNF_Katalog_Nutzungsart;
+      NumNutzung -<> {0..*} LNF_Katalog_Num_Nutzung;
+    END KatalogNutzungartNumNutzung;
+
+  END LNF_Kataloge;
+
+  TOPIC Nutzung =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Nutzungsflaechen_LV95_V1.LNF_Kataloge,Bearbeitungsstatus_V1.Status,Landwirtschaftliche_Zonengrenzen_LV95_V1.LZ_Kataloge;
+    DEPENDS ON Bewirtschaftungseinheit_LV95_V1.Landw_Betrieb;
+
+    /** Numerische Landwirtschaftliche Nutzung, die an einer aggregierten
+     * geometrischen Nutzung hängt.
+     */
+    CLASS LNF_Num_Nutzung =
+      /** Sprechender Identifikator, mit Hilfe welchem verschiedene involvierte Personen über diese Fläche sprechen können. Dieser Wert kann zum Beispiel von einem kantonalen System vergeben werden durch die Betriebsnummer plus einer Laufnummer der Nutzungsfläche.
+       */
+      Nutzungsidentifikator : TEXT*50;
+      Groesse : 0 .. 100000000 [Units.a];
+      /** Anzahl der Bäume (z. B. bei gepflegten Selven)
+       */
+      Anzahl_Baeume : 0 .. 10000 [Units.CountedObjects];
+      /** Gibt an, ob die Fläche im Bezugsjahr bewirtschaftet wird oder nicht, bzw. wieviel Prozent der Fläche als bewirtschaftet angerechnet werden kann.
+       * Default: 100
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100 [Units.Percent]; !! Default 100;
+      Beitragsberechtigt : MANDATORY (
+        /** 1
+         */
+        EnumElement91,
+        /** 2/3
+         */
+        EnumElement90,
+        /** 0
+         */
+        EnumElement89
+      ); !! Default 1;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Nutzungsart : MANDATORY Nutzungsflaechen_LV95_V1.LNF_Kataloge.LNF_Num_NutzungRef;
+      Programm : Nutzungsflaechen_LV95_V1.LNF_Kataloge.LNF_Katalog_ProgrammRef;
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+    END LNF_Num_Nutzung;
+
+    /** Landwirtschaftliche Nutzung (geometrisch oder numerisch). Die Geometrie ist optional.
+     * 
+     * Falls weder Fläche noch Punkt erfasst sind, muss eine Referenz zur
+     * Bewirtschaftungseinheit und die Grösse erfasst sein. Dies gilt auch
+     * für Flächen im Ausland.
+     */
+    CLASS LNF_Nutzung =
+      /** Sprechender Identifikator, mit Hilfe welchem verschiedene involvierte Personen über diese Fläche sprechen können. Dieser Wert kann zum Beispiel von einem kantonalen System vergeben werden durch die Betriebsnummer plus einer Laufnummer der Nutzungsfläche.
+       */
+      Nutzungsidentifikator : TEXT*50;
+      /** Fläche der Nutzung (multipart erlaubt)
+       */
+      Flaeche : GeometryCHLV95_V1.MultiSurface;
+      /** Position (XY-Koordinate) der Nutzung (Bäume!)
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      Groesse : 0 .. 100000000 [Units.a];
+      /** Anzahl der Bäume, falls diese als Fläche erfasst sind
+       */
+      Anzahl_Baeume : 0 .. 10000 [Units.CountedObjects];
+      /** Gibt an, ob die Fläche im Bezugsjahr bewirtschaftet wird oder nicht, bzw. wieviel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100 [Units.Percent]; !! Default 100;
+      /** Gibt an, ob für diese Fläche Beiträge beantragt werden können. Dies ist z. B. auf Waffenplätzen oder Bauland nicht gegeben.
+       */
+      Beitragsberechtigt : MANDATORY (
+        /** 1
+         */
+        EnumElement87,
+        /** 2/3
+         */
+        EnumElement86,
+        /** 0
+         */
+        EnumElement85
+      ); !! Default 1;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Status der Daten gemäss Liste Bearbeitungsstatus.
+       */
+      Status : Bearbeitungsstatus_V1.Status.BS_Katalog_Prozess_StatusRef;
+      /** Für Vertragsflächen
+       */
+      Vertrag_Von : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Für Vertragsflächen
+       */
+      Vertrag_Bis : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Nutzungsart : MANDATORY Nutzungsflaechen_LV95_V1.LNF_Kataloge.LNF_Katalog_NutzungsartRef;
+      Programm : Nutzungsflaechen_LV95_V1.LNF_Kataloge.LNF_Katalog_ProgrammRef;
+      MANDATORY CONSTRAINT
+       DEFINED (Flaeche) 
+       OR DEFINED (Punkt)
+       OR DEFINED (Groesse)
+       OR DEFINED (Anzahl_Baeume);
+    END LNF_Nutzung;
+
+    /** Eine effektive landw. Nutzung kann keine bis beliebig viele {0..*} num. Nutzungen
+     * haben. Eine num. Nutzung gehört immer genau zu einer {1} landw. Nutzung.
+     */
+    ASSOCIATION LNF_Num_NutzungLNF_Nutzung =
+      LNF_Nutzung -- {1} LNF_Nutzung;
+      NumNutzung -<#> {1} LNF_Num_Nutzung;
+    END LNF_Num_NutzungLNF_Nutzung;
+
+    /** Eine landwirtschaftliche Nutzung hängt an der Bewirtschaftungeinheit.
+     */
+    ASSOCIATION LNF_NutzungBE_Bewirtschaftungseinheit =
+      Bewirtschaftungseinheit (EXTERNAL) -- {1} Bewirtschaftungseinheit_LV95_V1.Landw_Betrieb.BE_Bewirtschaftungseinheit;
+      Nutzung -- {0..*} LNF_Nutzung;
+    END LNF_NutzungBE_Bewirtschaftungseinheit;
+
+  END Nutzung;
+
+END Nutzungsflaechen_LV95_V1.

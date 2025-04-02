@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id "ch.so.agi.interlis-repository-creator" version "1.4.39"
+    id "ch.so.agi.interlis-repository-creator" version "2.0.55"
 }
 
 /*
@@ -50,10 +50,11 @@ Application-name: sogis-interlis-repository
 tasks.register('createIliModelsXml', ModelRepositoryCreator) {
     group = GROUP
     description = "Create ilimodels.xml file."
-    modelsDir = file("models/")
-    dataFile = "ilimodels.xml"
+    modelsDirectory = file("models/")
+    dataFile = file("ilimodels.xml")
     ilismeta = true
-    modelRepos = "models-ext/;https://models.geo.admin.ch;https://models.kgk-cgc.ch/;https://vsa.ch/models;https://405.sia.ch/models" // https://models.interlis.ch/;
+    modelRepos = "models-ext/;https://models.geo.admin.ch;https://models.kgk-cgc.ch/;https://vsa.ch/models;https://405.sia.ch/models"
+    ignoredDirectories = "mirror"
 }
 createIliModelsXml.configure { finalizedBy versionTxt }
 
@@ -92,8 +93,8 @@ tasks.register('createIliModelsHtml', JavaExec) {
 tasks.register('createConfigDataXml', ConfigDataRepositoryCreator) {
     group = GROUP
     description = "Create ilivalidator config ilidata.xml file."
-    configDir = file("models/")
-    dataFile = "ilidata.xml"
+    configDirectory = file("models/")
+    dataFile = file("ilidata.xml")
     owner = 'mailto:agi@bd.so.ch'
 }
 
@@ -190,3 +191,118 @@ task checkInterlisRepository() {
     }
 }
 */
+
+def repos = [
+        "interlis.ch":"https://models.interlis.ch", 
+        "kgk":"https://models.kgk-cgc.ch",
+        "geoadminpunktirgendwas":"https://models.geo.admin.ch",
+        "vsa":"https://vsa.ch/models/",
+        "sia405": "https://405.sia.ch/models/"
+        ]
+repos.each { k, v ->
+    tasks.register("cloneRepo_${k}", JavaExec) {
+        classpath = buildscript.configurations.classpath
+        main = 'ch.interlis.ili2c.Main'
+        args  "--out", "models/mirror/${k}", "--clone-repos", "${v}"
+    }
+
+    tasks.register("createIlisiteXml_${k}") {
+        dependsOn "cloneRepo_${k}"
+        doLast {
+            def templateContent = '''<?xml version="1.0"?>
+    <TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+    <HEADERSECTION SENDER="SOGIS-20160127" VERSION="2.3">
+        <MODELS>
+        <MODEL NAME="IliSite09" VERSION="2009-11-12" URI="mailto:ce@eisenhutinformatik.ch"/>
+        </MODELS>
+    </HEADERSECTION>
+    <DATASECTION>
+        <IliSite09.SiteMetadata BID="SOb0">
+        <IliSite09.SiteMetadata.Site TID="1">
+            <Name>Mirror-Repository ${key}</Name>
+            <Title>Mirror-Repository Kanton Solothurn: ${key}</Title>
+            <shortDescription>Mirror-Modell-Repository für Kanton Solothurn: ${value}</shortDescription>
+            <Owner>https://geo.so.ch</Owner>
+            <technicalContact>mailto:agi@bd.so.ch</technicalContact>
+            <furtherInformation>https://geo.so.ch</furtherInformation>
+            <parentSite>
+            <IliSite09.RepositoryLocation_>
+                <value>https://geo.so.ch/models/mirror</value>
+            </IliSite09.RepositoryLocation_>
+            </parentSite>
+        </IliSite09.SiteMetadata.Site>
+        </IliSite09.SiteMetadata>
+    </DATASECTION>
+    </TRANSFER>'''
+
+            def dataModel = [
+                key: k,
+                value: v
+            ]
+
+            def engine = new SimpleTemplateEngine()
+            def template = engine.createTemplate(templateContent).make(dataModel)
+
+            def outputFile = file("models/mirror/${k}/ilisite.xml")
+            outputFile.parentFile.mkdirs()
+            outputFile.text = template.toString()
+
+            println "XML file generated at: ${outputFile}"
+        }
+    }
+}
+
+tasks.register('cloneRepos') {
+    dependsOn {
+        tasks.findAll { task -> task.name.startsWith('createIlisiteXml_') }
+    }
+}
+
+import groovy.text.SimpleTemplateEngine
+
+tasks.register('createMirrorRootIlisiteXml') {
+    doLast {
+        def templateContent = '''<?xml version="1.0"?>
+<TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+  <HEADERSECTION SENDER="SOGIS-20160127" VERSION="2.3">
+    <MODELS>
+      <MODEL NAME="IliSite09" VERSION="2009-11-12" URI="mailto:ce@eisenhutinformatik.ch"/>
+    </MODELS>
+  </HEADERSECTION>
+  <DATASECTION>
+    <IliSite09.SiteMetadata BID="SOb0">
+      <IliSite09.SiteMetadata.Site TID="1">
+        <Name>Mirror-Repository Kanton Solothurn</Name>
+        <Title>Mirror-Repository Kanton Solothurn</Title>
+        <shortDescription>Mirror-Modell-Repository für Kanton Solothurn</shortDescription>
+        <Owner>https://geo.so.ch</Owner>
+        <technicalContact>mailto:agi@bd.so.ch</technicalContact>
+        <furtherInformation>https://geo.so.ch</furtherInformation>
+        <parentSite>
+          <IliSite09.RepositoryLocation_>
+            <value>https://geo.so.ch/models</value>
+          </IliSite09.RepositoryLocation_>
+        </parentSite>
+        <subsidiarySite>
+        <% repos.each { key, value -> %>
+                <IliSite09.RepositoryLocation_>
+                    <value>https://geo.so.ch/models/mirror/${key}</value>
+                </IliSite09.RepositoryLocation_>
+        <% } %>
+        </subsidiarySite>
+      </IliSite09.SiteMetadata.Site>
+    </IliSite09.SiteMetadata>
+  </DATASECTION>
+</TRANSFER>'''
+
+        def engine = new SimpleTemplateEngine()
+        def template = engine.createTemplate(templateContent).make([repos: repos])
+
+        def outputFile = file("models/mirror/ilisite.xml")
+        outputFile.parentFile.mkdirs()
+        outputFile.text = template.toString()
+
+        println "XML file generated at: ${outputFile}"
+    }
+}
+

@@ -1,0 +1,61 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-02-08 | BAFU  | Korrektur Schreibfehler in Attribut "Mutationsgrund"
+!! 2022-11-18 | BAFU  | LV03 gelöscht
+
+!!@ IDGeoIV=29.2
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL kt_Amphibien_Wanderobjekte_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-11-18"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bedeutung_Catalogue;
+
+    CLASS Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kartierungsgrundlage_Catalogue;
+
+    STRUCTURE Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Bedeutung_Catalogue;
+    END Bedeutung_CatRef;
+
+    STRUCTURE Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Kartierungsgrundlage_Catalogue;
+    END Kartierungsgrundlage_CatRef;
+
+  END Codelisten;
+
+  TOPIC kt_Wanderobjekt =
+    DEPENDS ON kt_Amphibien_Wanderobjekte_V1_1.Codelisten;
+
+    /* Klasse für Amphibien-Wanderobjekte */
+    CLASS kt_Wanderobjekt =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY kt_Amphibien_Wanderobjekte_V1_1.Codelisten.Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY kt_Amphibien_Wanderobjekte_V1_1.Codelisten.Bedeutung_CatRef;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.Coord3;
+    END kt_Wanderobjekt;
+
+  END kt_Wanderobjekt;
+
+END kt_Amphibien_Wanderobjekte_V1_1.

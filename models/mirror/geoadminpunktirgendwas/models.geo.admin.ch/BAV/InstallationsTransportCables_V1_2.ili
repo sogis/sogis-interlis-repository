@@ -1,0 +1,298 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Installations de transport à câbles à concession fédérale
+!!------------------------------------------------------------------------------
+!!
+!! OGéo, Annexe 1
+!! ==============
+!! Identificateur OGéo                       : 99
+!! Désignation OGéo                          : Installations de transport à câbles à concession fédérale
+!! Numero du recueil                         : 99.1
+!! Service compétent                         : Confédération (OFT)
+!! Niveau d’autorisation d'accès             : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who | Modification
+!!------------------------------------------------------------------------------
+!! 0.92    | 2012-11-15 | LS  | Draft (allemand)
+!! 0.93    | 2013-02-08 | LS  | traduction de la version allemande
+!! 1.0     | 2014-06-23 |(OFT)| Approbation OFT (Direction)
+!! 1.0     | 2014-10-30 | ems | adaption à la version allemande publié
+!! 1.1     | 2015-06-25 | ems | effacement de attribute validité des ouvrage art
+!! 1.11    | 2015-08-14 | ems | correction de unique constraint vers structure (Station -> PointExploitation)
+!! 1.2     | 2017-06-08 | ems | Extension au modelle dans le cadre de référence MN95 et adaption des noms des modelles;
+!!                               Référence à version 1.3 de MGDM Arrêts TP
+!!                               Activation d' existence constraints qui étaient auparavant sous forme de commentaires dans le modèle de données ET;
+!! 1.2     | 2017-07-21 | ems | adaptions minimales après remarques de COSIG
+!! 1.2     | 2017-10-30 | ems | Correction du domaine de valeur AbreviationET et RespDonneesAbreviation
+!! 1.2     | 2018-07-25 | ems | adaption furtherInformation
+
+!!@ IDGeoIV = "99.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/installations-a-cables-a-concession-federale.html
+
+MODEL InstallationsTransportCables_MN95_V1_2 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2018-07-25" TRANSLATION OF Seilbahnen_LV95_V1_2 ["2018-07-25"]=
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS ArretsTP_MN95_V1_3;
+  IMPORTS EntreprisesTP_V1;
+
+
+  TOPIC InstallationsTransportCables =
+    DEPENDS ON ArretsTP_MN95_V1_3.ArretsTP, EntreprisesTP_V1.ET;
+
+    DOMAIN
+      Distance  = 0 .. 9999 [INTERLIS.m];
+
+      TypeInstallation   = (
+        Telepherique,
+        Funiculaire );
+
+      TypeVehicule = (
+        Sieges,
+        Cabines,
+        Sieges_Cabines );
+
+      TypeStation =(
+        Station_amont,
+        Station_aval,
+        Station_intermediaire );
+
+      TypeOuvrageArt = (
+        Tunnel,
+        Pont,
+        Galerie);
+
+      Polyline = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+    STRUCTURE PointExploitation =
+      Numero :       MANDATORY 0 .. 9999999;
+      Nom :                    TEXT*50;       !! redondant à Numero
+      Abreviation :            TEXT*6;        !! redondant à Numero
+      RespDonneesAbreviation : TEXT*15;
+
+      !!PointExploitation doit exister dans ArresTP (doit être définit dans la liste DIDOK)
+      EXISTENCE CONSTRAINT Numero REQUIRED IN ArretsTP_MN95_V1_3.ArretsTP.PointExploitation:Numero;
+      EXISTENCE CONSTRAINT Nom  REQUIRED IN ArretsTP_MN95_V1_3.ArretsTP.PointExploitation:Nom;
+      EXISTENCE CONSTRAINT Abreviation REQUIRED IN ArretsTP_MN95_V1_3.ArretsTP.PointExploitation:Abreviation;
+      EXISTENCE CONSTRAINT RespDonneesAbreviation REQUIRED IN ArretsTP_MN95_V1_3.ArretsTP.PointExploitation:RespDonneesAbreviation;
+
+    END PointExploitation;
+
+    STRUCTURE ET =
+      NumeroET :      MANDATORY TEXT*6;
+      AbreviationET :           TEXT*15;    !!redondant à NumeroET
+
+      !!ET doit exister dans la liste ET de l'OFT.
+      EXISTENCE CONSTRAINT NumeroET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Numero;
+      EXISTENCE CONSTRAINT AbreviationET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Abreviation;
+
+    END ET;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      DateTraitement: MANDATORY INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+
+    CLASS Installation =
+        NumeroInstallation : MANDATORY TEXT*7;
+        NomInstallation :    MANDATORY TEXT*60;
+        TypeInstallation :   MANDATORY TypeInstallation;
+        TypeVehicule :       MANDATORY TypeVehicule;
+        Exploitant :         MANDATORY ET;
+        Validite :           MANDATORY Validite;
+
+        UNIQUE NumeroInstallation;
+        UNIQUE NomInstallation;
+
+    END Installation;
+
+    CLASS Station =
+       PointExploitation : MANDATORY PointExploitation;
+       TypeStation :       MANDATORY TypeStation;
+       Geometrie :         MANDATORY GeometryCHLV95_V1.Coord2;
+
+       UNIQUE PointExploitation->Numero;
+
+    END Station;
+
+    CLASS Ligne =
+        LongueurOblique :             Distance;
+        DifferenceAltitude:           Distance;
+        Geometrie :         MANDATORY Polyline;
+    END Ligne;
+
+    CLASS Pylone =
+        Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Pylone;
+
+    CLASS OuvrageArt =
+        TypeOuvrageArt : MANDATORY TypeOuvrageArt;
+        Geometrie :      MANDATORY Polyline;
+    END OuvrageArt;
+
+
+    ASSOCIATION Installation_StationAssoc =
+      rInstallation -<#> {1} Installation;
+      rStation -- {2..*} Station;
+    END Installation_StationAssoc;
+
+    ASSOCIATION Installation_LigneAssoc =
+      rInstallation -<#> {1} Installation;
+      rLigne -- {1} Ligne;
+    END Installation_LigneAssoc;
+
+    ASSOCIATION LigneTelepherique_PyloneAssoc =
+      rLigneTelepherique -<#> {1} Ligne;
+      rPylone -- {0..*} Pylone;
+    END LigneTelepherique_PyloneAssoc;
+
+    ASSOCIATION LigneFuniculaire_OuvrageArtAssoc =
+      rLigneFuniculaire -- {1} Ligne;
+      rOuvrageArt -- {0..*} OuvrageArt;
+    END LigneFuniculaire_OuvrageArtAssoc;
+
+
+  END InstallationsTransportCables ;
+
+END InstallationsTransportCables_MN95_V1_2 .
+
+!!@ IDGeoIV = "99.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/installations-a-cables-a-concession-federale.html
+
+MODEL InstallationsTransportCables_MN03_V1_2 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2018-07-25" TRANSLATION OF Seilbahnen_LV03_V1_2 ["2018-07-25"]=
+
+  IMPORTS GeometryCHLV03_V1;
+  IMPORTS ArretsTP_MN03_V1_3;
+  IMPORTS EntreprisesTP_V1;
+
+
+  TOPIC InstallationsTransportCables =
+    DEPENDS ON ArretsTP_MN03_V1_3.ArretsTP, EntreprisesTP_V1.ET;
+
+    DOMAIN
+      Distance  = 0 .. 9999 [INTERLIS.m];
+
+      TypeInstallation   = (
+        Telepherique,
+        Funiculaire );
+
+      TypeVehicule = (
+        Sieges,
+        Cabines,
+        Sieges_Cabines );
+
+      TypeStation =(
+        Station_amont,
+        Station_aval,
+        Station_intermediaire );
+
+      TypeOuvrageArt = (
+        Tunnel,
+        Pont,
+        Galerie);
+
+      Polyline = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+    STRUCTURE PointExploitation =
+      Numero :       MANDATORY 0 .. 9999999;
+      Nom :                    TEXT*50;       !! redondant à Numero
+      Abreviation :            TEXT*6;        !! redondant à Numero
+      RespDonneesAbreviation : TEXT*15;
+
+      !!PointExploitation doit exister dans ArresTP (doit être définit dans la liste DIDOK)
+      EXISTENCE CONSTRAINT Numero REQUIRED IN ArretsTP_MN03_V1_3.ArretsTP.PointExploitation:Numero;
+      EXISTENCE CONSTRAINT Nom  REQUIRED IN ArretsTP_MN03_V1_3.ArretsTP.PointExploitation:Nom;
+      EXISTENCE CONSTRAINT Abreviation REQUIRED IN ArretsTP_MN03_V1_3.ArretsTP.PointExploitation:Abreviation;
+      EXISTENCE CONSTRAINT RespDonneesAbreviation REQUIRED IN ArretsTP_MN03_V1_3.ArretsTP.PointExploitation:RespDonneesAbreviation;
+
+    END PointExploitation;
+
+    STRUCTURE ET =
+      NumeroET :      MANDATORY TEXT*6;
+      AbreviationET :           TEXT*15;    !!redondant à NumeroET
+
+      !!ET doit exister dans la liste ET de l'OFT.
+      EXISTENCE CONSTRAINT NumeroET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Numero;
+      EXISTENCE CONSTRAINT AbreviationET REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Abreviation;
+
+    END ET;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      DateTraitement: MANDATORY INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+
+    CLASS Installation =
+        NumeroInstallation : MANDATORY TEXT*7;
+        NomInstallation :    MANDATORY TEXT*60;
+        TypeInstallation :   MANDATORY TypeInstallation;
+        TypeVehicule :       MANDATORY TypeVehicule;
+        Exploitant :         MANDATORY ET;
+        Validite :           MANDATORY Validite;
+
+        UNIQUE NumeroInstallation;
+        UNIQUE NomInstallation;
+
+    END Installation;
+
+    CLASS Station =
+       PointExploitation : MANDATORY PointExploitation;
+       TypeStation :       MANDATORY TypeStation;
+       Geometrie :         MANDATORY GeometryCHLV03_V1.Coord2;
+
+       UNIQUE PointExploitation->Numero;
+
+    END Station;
+
+    CLASS Ligne =
+        LongueurOblique :             Distance;
+        DifferenceAltitude:           Distance;
+        Geometrie :         MANDATORY Polyline;
+    END Ligne;
+
+    CLASS Pylone =
+        Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+    END Pylone;
+
+    CLASS OuvrageArt =
+        TypeOuvrageArt : MANDATORY TypeOuvrageArt;
+        Geometrie :      MANDATORY Polyline;
+    END OuvrageArt;
+
+
+    ASSOCIATION Installation_StationAssoc =
+      rInstallation -<#> {1} Installation;
+      rStation -- {2..*} Station;
+    END Installation_StationAssoc;
+
+    ASSOCIATION Installation_LigneAssoc =
+      rInstallation -<#> {1} Installation;
+      rLigne -- {1} Ligne;
+    END Installation_LigneAssoc;
+
+    ASSOCIATION LigneTelepherique_PyloneAssoc =
+      rLigneTelepherique -<#> {1} Ligne;
+      rPylone -- {0..*} Pylone;
+    END LigneTelepherique_PyloneAssoc;
+
+    ASSOCIATION LigneFuniculaire_OuvrageArtAssoc =
+      rLigneFuniculaire -- {1} Ligne;
+      rOuvrageArt -- {0..*} OuvrageArt;
+    END LigneFuniculaire_OuvrageArtAssoc;
+
+
+  END InstallationsTransportCables ;
+
+END InstallationsTransportCables_MN03_V1_2 .

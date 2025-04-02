@@ -1,0 +1,92 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.5
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_AssiettesDeServitudes_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-09-20"
+  TRANSLATION OF DMAV_Dienstbarkeitsgrenzen_V1_0 ["2024-09-20"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC AssiettesDeServitudes =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      Provenance = (
+        numerique,
+        graphique,
+        indeterminee
+      );
+
+    CLASS MiseAJourSV =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      InscriptionRegistreFoncier : DATETIME;
+      UNIQUE CH050101: IdentDN, Identification;
+    END MiseAJourSV;
+
+    STRUCTURE ElementSurfacique =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+    END ElementSurfacique;
+
+    STRUCTURE ElementLineaire =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+    END ElementLineaire;
+
+    STRUCTURE ElementPonctuel =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      OriSymbole : DMAVTYM_Grafique_V1_0.Rotation;
+    END ElementPonctuel;
+
+    CLASS AssietteDeServitudes =
+      EREID : TEXT*22;
+      IdentDN : MANDATORY TEXT*12;
+      NumeroServitude : TEXT*12;
+      GenreServitude : TEXT*60;
+      Altitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      EstComplete : MANDATORY BOOLEAN;
+      Provenance : Provenance;
+      ElementSurfacique : BAG {0..*} OF ElementSurfacique;
+      ElementLineaire : BAG {0..*} OF ElementLineaire;
+      ElementPonctuel : BAG {0..*} OF ElementPonctuel;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+      MANDATORY CONSTRAINT CH050301: INTERLIS.elementCount(ElementSurfacique) > 0 OR INTERLIS.elementCount(ElementLineaire) > 0 OR INTERLIS.elementCount(ElementPonctuel) > 0;
+    END AssietteDeServitudes;
+
+    ASSOCIATION Origine_AssietteDeServitude =
+      Origine -- {1} MiseAJourSV;
+      AssietteDeServitude_bientotcreee -- {0..*} AssietteDeServitudes;
+    END Origine_AssietteDeServitude;
+
+    ASSOCIATION Caducite_AssietteDeServitude =
+      Caducite  -- {0..1} MiseAJourSV;
+      AssietteDeServitude_bientotcaduque -- {0..*} AssietteDeServitudes;
+    END Caducite_AssietteDeServitude;
+
+    ASSOCIATION Predecesseur_Successeur_AssietteDeServitude =
+      Predecesseur -- {0..1} AssietteDeServitudes;
+      Successeur -- {0..*} AssietteDeServitudes;
+    END Predecesseur_Successeur_AssietteDeServitude;
+
+    VIEW AssietteDeServitude_Valable 
+      PROJECTION OF AssietteDeServitude~AssietteDeServitudes;
+      WHERE
+        DEFINED(AssietteDeServitude->Origine) AND DEFINED(AssietteDeServitude->Origine->InscriptionRegistreFoncier) AND (NOT (DEFINED(AssietteDeServitude->Caducite )) OR NOT (DEFINED(AssietteDeServitude->Caducite ->InscriptionRegistreFoncier)));
+      =
+      ALL OF AssietteDeServitude;
+      UNIQUE CH050701: EREID;
+    END AssietteDeServitude_Valable ;
+
+  END AssiettesDeServitudes;
+
+END DMAV_AssiettesDeServitudes_V1_0.

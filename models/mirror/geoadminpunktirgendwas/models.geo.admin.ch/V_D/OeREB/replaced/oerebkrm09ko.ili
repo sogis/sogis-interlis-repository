@@ -1,0 +1,43 @@
+INTERLIS 2.3;
+
+/** Zusatzstrukturen zur Verwendung innerhalb der Katasterorganisation des Kantons
+ */
+MODEL OeREBKRM09ko (de)
+AT "mailto:ce@eisenhutinformatik.ch"
+VERSION "2010-10-26"  // Entwurf nach der Anhörung // =
+  IMPORTS MultilingualText09,OeREBKRM09;
+
+  /** Zum Zweck der Nachvollziehbarkeit müssen innerhalb der ÖREB-Katasterorganisation des Kantons Metadaten gem. diesem Teilmodell geführt werden.
+   */
+  TOPIC MetadatenKO =
+
+    /** Eine organisatorische Einheit innerhalb der öffentlichen Verwaltung, z.B. eine für Geobasisdaten zuständige Stelle.
+     */
+    CLASS Amt =
+      /** Name des Amtes z.B. "Amt für Gemeinden und Raumordnung des Kantons Bern".
+       */
+      Name : MANDATORY MultilingualText09.MultilingualText;
+      /** Verweis auf die Website des Amtes z.B. "http://www.jgk.be.ch/site/agr/".
+       */
+      AmtImWeb : OeREBKRM09.WebReferenz;
+    END Amt;
+
+    /** Angaben zur Datenlieferung an die Katasterorganisation des Kantons.
+     */
+    CLASS DatenAufnahme =
+      /** Zeitpunkt der Aufnahme oder der letzten Änderung der Daten
+       */
+      Datum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2050-12-31";
+      /** BasketId oder Dateiname oder vollständiger WFS-Request.
+       */
+      DatensatzIdentifikation : MANDATORY URI;
+    END DatenAufnahme;
+
+    ASSOCIATION ZustaendigeStelleDatenAufnahme =
+      ZustaendigeStelle -- {1} Amt;
+      DatenAufnahme -<> {0..*} DatenAufnahme;
+    END ZustaendigeStelleDatenAufnahme;
+
+  END MetadatenKO;
+
+END OeREBKRM09ko.

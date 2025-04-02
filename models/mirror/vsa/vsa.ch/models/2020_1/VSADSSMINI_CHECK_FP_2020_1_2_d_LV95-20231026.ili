@@ -1,0 +1,2396 @@
+INTERLIS 2.3;
+
+CONTRACTED MODEL VSADSSMINI_2020_1_LV95_CHECK_FP (de) AT "http://www.vsa.ch/models" VERSION "2023-10-26" =
+   
+   IMPORTS UNQUALIFIED INTERLIS;
+   IMPORTS UNQUALIFIED Text;
+   IMPORTS UNQUALIFIED IGSFunction;
+   IMPORTS UNQUALIFIED MINIFunction;
+   IMPORTS VSADSSMINI_2020_1_LV95;
+
+!! 22.1.2021 Ergänzungen: cmsg_fr für 1020, 1021
+!! 22.1.2021 Korrekturen Wertebereich 2010 aufgrund Release 2020
+!! neu 22.1.2021 IGS_getDistance auch drucken in cattr bei 3120
+!! 23.3.2021 Reihenfolge IMPORTS angepasst
+
+!! 19.7.2021 2010 Abflusslose_Toilette ergänzt
+!! 19.7.2021 9104 neu 0.5 statt 1.0 m 
+!! 19.7.2021 neu eigene cid für jedes Attribut - neu 9108 statt 9102 für Sohlenkote
+!! 19.7.2021 neu eigene cid für jedes Attribut - neu 9109 statt 9102 für Kote_von
+!! 19.7.2021 neu eigene cid für jedes Attribut - neu 9109 statt 9110 für Kote_nach
+!! 19.7.2021 neu eigen cid für jedes Attribut - 9930, 9931, 9932, 9933
+!! 19.7.2021 neu eigen cid für jedes Attribut - 9201, 9202, 9203, 9204
+
+!! Neue Regel 3380 19.7.2021 
+!! Neue Regel 3381 19.7.2021
+
+!! 24.8.2021 neue Regel 3290, siehe Details Kommentar unten mit Regeln
+!! 24.8.2021 neue Regel 3295, siehe Details Kommentar unten mit Regeln
+
+!! 24.8.2021 Regel 2020 ergänzt, dass auch wenn Knoten_Ueberlauf_Foerderaggregat vorhanden ist, keine Fehlermeldung - analog 2010 OR elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+
+!! 24.8.2021 Regel 2020 für PAA als Warnung (warning), für SAA nur als Hinweis (info)
+
+!! 24.8.2021 Regel  Anpassen Regel 4021: Bei Status des Knoten weitere.geplant und weitere.Projekt erkennen und zulassen (VSAID 871)
+
+!! 28.9.2021 3120 / 3130 Toleranz abhängig von Funktion, Bei Sonderbauwerken (Abwasserfaulraum, ARABauwerk, Behandlungsanlage, Havariebecken, Klaergrube, KLARA, Pumpwerk, Regenbecken_Durchlaufbecken, Regenbecken_Fangbecken, Regenbecken_Fangkanal, Regenbecken_Regenklaerbecken, Regenbecken_Regenrueckhaltebecken, Regenbecken_Regenrueckhaltekanal, Regenbecken_Stauraumkanal, Regenbecken_Verbundbecken, Regenueberlauf, Trennbauwerk, Vorbehandlungsanlage) die Toleranz auf 20 m erhöht (VSAID 870)
+
+!! 28.9.2021 IMPORTS VSADSSMINI_2020_LV95; als erstes statt am Schluss
+!! 1.10.2021 wieder geändert, da Fehler bei Compilieren auf dem Repository
+
+
+!! 22.6.2023 Anpassung Regel 2010 Wert Guellegrube doppelt (VSAID 942)
+
+!! 22.6.2023 Anpassung Regel 2030 Wert Pumpwerk ist doppelt (VSAID 941)
+
+!! 22.6.2023 Anpassung Regel 3381 Regel Fehler - Nutzungsart_Ist statt Nutzungsart_geplant (nur kopiert von 3380, aber nicht angepasst auf Planungszustand) (VSAID 941)
+
+!! 22.6.2023 Bei Regel 4145 ist es die deutsche Fehlermeldung die falsch war: Fehlermeldung korrigiert: Überflüssiger Anschlussknoten (RW_geplant) statt Üeberflüssiger Anschlussknoten (SW_geplant) (VSAID 941)
+
+!! 22.6.2023 Die Prüfung Dükerleitung ohne Düker kam zweimal vor (3232 und 3295), wobei 3232 einfach eine Kopie der Prüfung 3230 (mit anderer Meldung, aber gleichen Regeln) darstellt. In Anlehnung an die Katalogübersicht (https://vsa.ch/wp-content/uploads/2022/02/20220209_Fachliche_Pruefregeln_Regles_de_verification_2020_01_d_f_.pdf) wurde die Prüfung mit der jetzigen Nummer 3232 gelöscht, die jetzige Nummer 3295 dafür mit der Nummer 3232 versehen. (VSAID 937)
+
+!! 28.6.2023 Regel 2110 und 2120 IGS_saveAttribute ergänzt, damit Kote_Zulauf_Minimum und Kote_Auslauf_Minimum ausgeben werden können für einfacheres Fehlerdebugging. (VSAID 975)
+
+!! 5.7.2023 Regel 3030: Fehlerkorrektur und Verbesserung der Regel (VSAID 949)
+
+!! 5.7.2023: Neue Regeln 3090, 3100 und 3101: Als Ersatz für aufgehobene Regel Topologie Check !!@ cid=T_SAA_6000_03 in CHECK_T und verbesserte Prüfung Topologie SAA https://vsa.ch/wiki/erfassungsgrundsaetze/#Netztopologie-fuer-SAA (VSAID 980 / 981)
+
+!! 5.7.2032 Neue Fachprüfung Regel 1024 Kontrolle Ueberlauf Zirkelbezug (VSAID 922)
+
+!! 5.7.2023 neu IMPORTS UNQUALIFIED Text;
+!! 10.7.2023 cmsg_fr für 1020 - 1024 ergänzt
+
+!! 10.10.2023 Anpassung 4135 und 4165 «Fehlender Anschlussknoten» : Check gegenüber zusätzlichem Wert Entwaesserungssystem_Ist =  vorbereitetes_Trennsystem (VSAID 872)
+
+!! 10.10.2023 Neue Fachprüfungen 1000, 1001 Untergegangene Organisation bei Knoten, Leitung, für EigentuemerRef, BetreiberRef
+
+!! 10.10.2023 Neue Fachprüfungen 1004 - 1008 Untergegangene Organisation bei Massnahme.TraegerschaftRef, Massnahme.Verantwortlich_AusloesungRef, SK.StandortgemeindeRef, SK.BueroRef, SK_Einleitstelle.Ausfuehrende_FirmaRef (Hinweis)
+
+!! 10.10.2023 1021 TID Check auf für Klasse SK, Rohrprofil, Rohrprofil_Geometrie, Kennlinie_Stuetzpunkt, Bauwerkskomponente, Massnahme, ALR
+
+!! 11.10.2023 Neue Regel 5002 Prüfung Stammkarten, siehe auch cid 2200 Knoten
+!! 11.10.2023 Neue Regel 2200 Prüfung Stammkarten, siehe auch cid 5002 SK
+
+!! 14.10.2023 cmsg_fr für Untergegangene Organisation übersetzt
+
+!! 17.10.2023 Neue Fachprüfungen 1002, 1003 Untergegangene Organisation bei Knoten, Leitung, Ueberlauf_Foerderaggregat, SK, Teileinzugsgebiet für DatenherrRef, DatenlieferantRef (Hinweis)
+
+!! 17.10.2023 Modellname angepasst Minor Release 2020.1 VSADSSMINI_2020_1_LV95_CHECK_FP
+
+!! 18.10.2023 Geprüft mit Compiler Version 5.3.3 (03.08.2023)"
+
+!! 25.10.2023 cid=2200 !!@ cmsg_fr="Aucune FICHE_TECHNIQUE saisie pour le nœud"; ergänzt
+!! 25.10.2023 Regel 5002 !!@ cmsg_fr="PAA_KnotenRef dans FICHE_TECHNIQUE mère ne pointe pas vers un nœud PAA";
+!! 25.10.2023 Regel 1020 !!@ cattr = "TID"; überall ergänzt
+
+!! 26.10.2023 Regel 5002 angepasst neu: !!@ cattr = " PAA_KnotenRef.TID,PAA_KnotenRef.FunktionHierarchisch";
+
+
+
+   TOPIC Verbands_GEP_ (ABSTRACT) EXTENDS VSADSSMINI_2020_1_LV95.VSADSSMini =
+
+      !!#############################################
+      !!Rohrprofil
+      !!#############################################
+      
+      CONSTRAINTS OF Rohrprofil =
+            
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+      END;  !! of Rohrprofil
+
+      !!#############################################
+      !!Rohrprofil_Geometrie
+      !!#############################################
+      
+      CONSTRAINTS OF Rohrprofil_Geometrie =
+            
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID). ";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID). ";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+      END;  !! of Rohrprofil_Geometrie
+      
+      !!#############################################
+      !!Knoten
+      !!#############################################
+
+      CONSTRAINTS OF Knoten =
+         !!@ cid="1000";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Eigentümer ist untergegangene Organisation";
+         !!@ cmsg_fr="Le PROPRIÉTAIRE est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(EigentuemerRef)
+            )
+            OR EigentuemerRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1001";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Betreiber ist untergegangene Organisation";
+         !!@ cmsg_fr="L'EXPLOITANT est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(BetreiberRef)
+            )
+            OR BetreiberRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1002";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Datenherr ist untergegangene Organisation";
+         !!@ cmsg_fr="Le MAITRE_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenherrRef)
+            )
+            OR DatenherrRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1003";
+         !!@ ccat=info;
+         !!@ cmsg_de="Datenlieferant ist untergegangene Organisation";
+         !!@ cmsg_fr="Le FOURNISSEUR_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenlieferantRef)
+            )
+            OR DatenlieferantRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1020";
+         !!@ ccat="warning";
+         !!@ cmsg_de="Die Bezeichnung enthält nicht empfohlene Zeichen (alle ausser [0-9], [A-Z], [.] und [-]).";
+         !!@ cmsg_fr="La désignation contient des caractères non recommandés (tous sauf [0-9], [A-Z], [.] et [-]).";
+         !!@ cattr = "Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_match(Bezeichnung,"^[A-Za-z0-9\\-.\\s]*$");
+
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+         
+         !!@ cid=2010;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Knoten ohne Auslauf";
+         !!@ cmsg_fr="Noeud sans sortie";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Funktion";
+         MANDATORY CONSTRAINT 
+            NOT (
+               Funktion != #Be_Entlueftung
+               AND Funktion != #Einleitstelle_gewaesserrelevant
+               AND Funktion != #Einleitstelle_nicht_gewaesserrelevant
+               !! 22.6.2023 Guellegrube doppelt rausgenommen
+               !!AND Funktion != #Guellegrube
+               !!   AND Funktion != #Jauchegrube  !! neu 22.1.2021 Korrekturen Version 2020
+               AND Funktion != #seitlicherZugang
+               AND Funktion != #Versickerungsanlage
+               AND Funktion != #abflussloseGrube  !! neu 18.4.2019 sb
+               AND Funktion != #Gelaendemulde  !! neu 18.4.2019 sb
+               AND Funktion != #Guellegrube  !! neu 18.4.2019 sb
+               AND Funktion != #Havariebecken !! neu 22.1.2021 Korrekturen Version 2020
+               AND Funktion != #Abflusslose_Toilette !! neu 19.7.2021
+               !! AND Funktion != #Klaergrube  !! neu 18.4.2019 sb / 22.1.2021 Korrekturen Version 2020, Klaergruben haben wie KLARA, Faulgruben einen Ablauf
+            )
+            OR (
+               elementCount(MINI_Knoten_Leitungen_wegfuehrend(THIS)) > 0
+               OR elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+            );
+         
+         
+         !! 24.8.2021 ergänzt, dass auch wenn Knoten_Ueberlauf_Foerderaggregat vorhanden ist, keine Fehlermeldung - analog 2010 OR elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+         
+         
+         !! 24.8.2021 2020 neu - für PAA als warnung, neu für SAA nur als Hinweis
+         
+         !!@ cid=2020;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Mit keiner Leitung verbundener Knoten";
+         !!@ cmsg_fr="Noeud sans connexion avec conduite";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            FunktionHierarchisch != #PAA
+            OR (
+               elementCount(MINI_Knoten_Leitungen(THIS)) > 0
+               OR elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+            );
+            
+
+         !!@ cid=2020;
+         !!@ ccat=info;
+         !!@ cmsg_de="Mit keiner Leitung verbundener Knoten";
+         !!@ cmsg_fr="Noeud sans connexion avec conduite";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            FunktionHierarchisch != #SAA
+            OR (
+               elementCount(MINI_Knoten_Leitungen(THIS)) > 0
+               OR elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+            );
+
+         !!@ cid=2030;
+         !!@ ccat=error;
+         !!@ cmsg_de="Nicht als solches attributiertes Sonderbauwerk";
+         !!@ cmsg_fr="Ouvrage spécial mal attribué";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Funktion";
+         MANDATORY CONSTRAINT
+            NOT (
+               elementCount(MINI_Knoten_Leitungen_wegfuehrend(THIS)) > 1
+            )
+            OR (
+               !! Sonderbauwerk
+               Funktion == #Pumpwerk
+               OR Funktion == #Duekeroberhaupt
+               OR Funktion == #Duekerkammer !! neu 12.8.2017 sb
+               OR Funktion == #Einleitstelle_gewaesserrelevant
+               OR Funktion == #Messstelle
+               !! 22.6.2023 Wert ist doppelt
+               !! OR Funktion == #Pumpwerk
+               OR Funktion == #Regenbecken_Durchlaufbecken
+               OR Funktion == #Regenbecken_Fangbecken
+               OR Funktion == #Regenbecken_Fangkanal
+               OR Funktion == #Regenbecken_Regenklaerbecken
+               OR Funktion == #Regenbecken_Regenrueckhaltebecken
+               OR Funktion == #Regenbecken_Regenrueckhaltekanal
+               OR Funktion == #Regenbecken_Stauraumkanal
+               OR Funktion == #Regenbecken_Verbundbecken
+               OR Funktion == #Regenueberlauf
+               OR Funktion == #Trennbauwerk
+            );
+                           
+         !!@ cid=2040;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Kein Ueberlauf_Foerderaggregat erfasst";
+         !!@ cmsg_fr="Aucun DEVERSOIR_REFOULEMENT saisi";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Funktion";
+         MANDATORY CONSTRAINT
+            NOT (
+               Funktion == #Pumpwerk
+               OR Funktion == #Regenbecken_Durchlaufbecken
+               OR Funktion == #Regenbecken_Regenklaerbecken
+               OR Funktion == #Regenbecken_Verbundbecken
+               OR Funktion == #Regenueberlauf
+            )
+            OR (
+               elementCount(MINI_Knoten_Ueberlauf_Foerderaggregate(THIS)) > 0
+            );
+                           
+         !!@ cid=2050;
+         !!@ ccat=error;
+         !!@ cmsg_de="Nicht-gewaesserrelevante Einleitstelle mit PAA-Einlauf";
+         !!@ cmsg_fr="EXUTOIRE_INSIGNIFIANT_POUR_MILIEUR_RECEPTEUR avec arrivée OAP";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Funktion == #Einleitstelle_nicht_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(THIS),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+            );
+
+         !!@ cid=2110;
+         !!@ ccat=error;
+         !!@ cmsg_de="Knotensohle höher als Leitungssohlen";
+         !!@ cmsg_fr="Cote de radier supérieure aux cotes de conduite";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Sohlenkote,Kote_Zulauf_Minimum,Kote_Auslauf_Minimum";
+         MANDATORY CONSTRAINT
+            !! 28.6.2023 IGS_saveAttribute ergänzt, damit Kote_Zulauf_Minimum und Kote_Auslauf_Minimum ausgeben werden können.
+            !!(Sohlenkote <= IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach"))
+            !!AND (Sohlenkote <= IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von"));
+            IGS_saveAttribute(
+               "Kote_Zulauf_Minimum",
+                  IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach")
+            )
+            AND
+            IGS_saveAttribute(
+               "Kote_Auslauf_Minimum",
+                  IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von")
+            )
+            AND
+            (Sohlenkote <= IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach"))
+            AND (Sohlenkote <= IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von"));
+
+
+         !!@ cid=2120;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Auslauf höher als Zulauf";
+         !!@ cmsg_fr="Sortie supérieure à entrée";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Kote_Zulauf_Minimum,Kote_Auslauf_Minimum";
+         MANDATORY CONSTRAINT
+            NOT (
+               Funktion != #Pumpwerk
+               AND Funktion != #Schlammsammler
+               AND Funktion != #Duekerkammer  !! neu 18.4.2019 sb
+            )
+            !! 28.6.2023 IGS_saveAttribute ergänzt, damit Kote_Zulauf_Minimum und Kote_Auslauf_Minimum ausgeben werden können.
+            !!OR (
+               !! IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach") >=
+               !! IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von")
+            !!);
+            OR (
+               IGS_saveAttribute(
+                  "Kote_Zulauf_Minimum",
+                     IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach")
+               )
+               AND
+               IGS_saveAttribute(
+                  "Kote_Auslauf_Minimum",
+                     IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von")
+               )
+               AND
+               IGS_min(MINI_Knoten_Leitungen_zufuehrend(THIS),"Kote_nach") >=
+               IGS_min(MINI_Knoten_Leitungen_wegfuehrend(THIS),"Kote_von")
+            );
+                           
+         !!@ cid=2130;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Verschmutztes Abwasser in Einleitstelle (Nutzungsart_Ist)";
+         !!@ cmsg_fr="Eaux usées dans exutoire (GENRE_UTILISATION_ACTUELLE)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Funktion == #Einleitstelle_gewaesserrelevant
+               OR Funktion == #Einleitstelle_nicht_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(THIS),
+                     "Nutzungsart_Ist=Mischabwasser,Schmutzabwasser,Industrieabwasser"
+                  )
+               ) == 0
+            );
+
+         !! neu 18.4.2019 sb neu auch für Nutzungsart_geplant / 19.7.2021 eigene cid
+         !!@ cid=2131;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Verschmutztes Abwasser in Einleitstelle (Nutzungsart_geplant)";
+         !!@ cmsg_fr="Eaux usées dans exutoire (GENRE_UTILISATION_PREVUE)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Funktion == #Einleitstelle_gewaesserrelevant
+               OR Funktion == #Einleitstelle_nicht_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(THIS),
+                     "Nutzungsart_geplant=Mischabwasser,Schmutzabwasser,Industrieabwasser"
+                  )
+               ) == 0
+            );
+
+         !!@ cid=2140;
+         !!@ ccat=error;
+         !!@ cmsg_de="Baujahr bestehend > heute";
+         !!@ cmsg_fr="Année construction > aujourd'hui";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Baujahr";
+         MANDATORY CONSTRAINT
+            NOT (
+               Status != #weitere.geplant
+               OR Status == #weitere.Projekt  !! neu 13.12.2019
+            )
+            OR (
+               Baujahr <= IGS_getYear(UNDEFINED)
+            );
+                                                                  
+         !!@ cid=2150;
+         !!@ ccat=error;
+         !!@ cmsg_de="Baujahr geplant < heute - 1 Jahr";
+         !!@ cmsg_fr="Année construction prévue < aujourd'hui - 1 an";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Baujahr";
+         MANDATORY CONSTRAINT
+            NOT (
+               Status == #weitere.geplant
+               OR Status == #weitere.Projekt
+            )
+            OR (
+               Baujahr >= IGS_add(IGS_getYear(UNDEFINED),1)
+            );
+                                                                  
+         !!@ cid=2160;
+         !!@ ccat=error;
+         !!@ cmsg_de="SAA Knoten an PAA Leitung";
+         !!@ cmsg_fr="noeud OAP connectée à conduite OAS";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHierarchisch == #SAA
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(THIS),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+               AND elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(THIS),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+            );
+                                                                  
+         !!@ cid=9101;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Baujahr ist nicht plausibel";
+         !!@ cmsg_fr="Année construction est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Baujahr";
+         MANDATORY CONSTRAINT 
+            (Baujahr >= 1800)
+            AND (Baujahr <= IGS_add(IGS_getYear(UNDEFINED),20));
+                                                
+         !!@ cid=9102;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Deckelkote ist nicht plausibel";
+         !!@ cmsg_fr="Cote couvercle est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Deckelkote";
+         MANDATORY CONSTRAINT 
+            (Deckelkote >= 190.0)
+            AND (Deckelkote <= 2500.0);
+
+        !! 19.7.2021 neu eigene cid für jedes Attribut - neu 9108 statt 9102 für Sohlenkote
+         !!@ cid=9108;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Sohlenkote ist nicht plausibel";
+         !!@ cmsg_fr="Cote radier est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Sohlenkote";
+         MANDATORY CONSTRAINT 
+            (Sohlenkote >= 190.0)
+            AND (Sohlenkote <= 2500.0);
+
+         !! 11.10.2023 Neue Regel Prüfung Stammkarten, siehe auch cid 5002 SK
+         !!@ cid=2200;
+         !!@ ccat=error;
+         !!@ cmsg_de="Keine Stammkarte zum Knoten erfasst";
+         !!@ cmsg_fr="Aucune FICHE_TECHNIQUE saisie pour le nœud";
+         !!@ cattr = "Bezeichnung,Funktion";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Funktion)
+            )
+            OR Funktion == #Abflusslose_Toilette
+            OR Funktion == #abflussloseGrube
+            OR Funktion == #Abwasserfaulraum
+            OR Funktion == #andere
+            OR Funktion == #ARABauwerk
+            OR Funktion == #Be_Entlueftung !! Stammkarte Uebrige?
+            OR Funktion == #Behandlungsanlage
+            OR Funktion == #Bodenablauf
+            OR Funktion == #Dachwasserschacht
+            OR Funktion == #Duekerkammer !! Stammkarte Uebrige?
+            OR Funktion == #Einlaufschacht
+            OR Funktion == #Entwaesserungsrinne
+            OR Funktion == #Entwaesserungsrinne_mit_Schlammsack
+            OR Funktion == #Faulgrube
+            OR Funktion == #Fettabscheider
+            OR Funktion == #Gelaendemulde
+            OR Funktion == #Geleiseschacht
+            OR Funktion == #Geschiebefang
+            OR Funktion == #Guellegrube
+            OR Funktion == #Havariebecken !! Stammkarte Uebrige?
+            OR Funktion == #Klaergrube
+            OR Funktion == #KLARA
+            OR Funktion == #Kombischacht !! Stammkarte Uebrige?
+            OR Funktion == #Kontroll_Einsteigschacht
+            OR Funktion == #Leitungsknoten
+            OR Funktion == #Oelabscheider
+            OR Funktion == #Regenbecken_Regenklaerbecken !! Für das Regenklärbecken wird bei Bedarf eine entsprechende Stammkarte entworfen. Momentan fehlen die Erfahrungen über solche Bauwerke, um eine entsprechende Stammkarte zu erstellen.
+            OR Funktion == #Schlammsammler
+            OR Funktion == #Schwimmstoffabscheider
+            OR Funktion == #seitlicherZugang !! Stammkarte Uebrige?
+            OR Funktion == #Spuelschacht
+            OR Funktion == #unbekannt
+            OR Funktion == #Versickerungsanlage
+            OR Funktion == #Vorbehandlungsanlage
+            OR Funktion == #Wirbelfallschacht !! Stammkarte Uebrige?
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Autonome_Messstelle")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Duekeroberhaupt")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Einleitstelle")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Pumpwerk")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Regenueberlauf")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Regenueberlaufbecken") !! Regenbecken_Durchlaufbecken, _Fangbecken, _Fangkanal, _Stauraumkanal, _Verbundbecken)
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Regenrueckhaltebecken_kanal") !! Regenbecken_Regenrueckhaltebecken / Regenbecken_Regenrueckhaltekanal
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Trennbauwerk")
+            ) 
+            > 0
+            OR elementCount(
+               IGS_getRefsByClass(THIS,"SK_Uebrige")
+            ) 
+            > 0;
+
+
+      END;  !! of Knoten
+         
+      !!#############################################
+      !!Leitung
+      !!#############################################
+
+      CONSTRAINTS OF Leitung =
+         !!@ cid="1000";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Eigentümer ist untergegangene Organisation";
+         !!@ cmsg_fr="Le PROPRIÉTAIRE est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(EigentuemerRef)
+            )
+            OR EigentuemerRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1001";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Betreiber ist untergegangene Organisation";
+         !!@ cmsg_fr="L'EXPLOITANT est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(BetreiberRef)
+            )
+            OR BetreiberRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1002";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Datenherr ist untergegangene Organisation";
+         !!@ cmsg_fr="Le MAITRE_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenherrRef)
+            )
+            OR DatenherrRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1003";
+         !!@ ccat=info;
+         !!@ cmsg_de="Datenlieferant ist untergegangene Organisation";
+         !!@ cmsg_fr="Le FOURNISSEUR_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenlieferantRef)
+            )
+            OR DatenlieferantRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1020";
+         !!@ ccat="warning";
+         !!@ cmsg_de="Die Bezeichnung enthält nicht empfohlene Zeichen (alle ausser [0-9], [A-Z], [.] und [-]).";
+         !!@ cmsg_fr="La désignation contient des caractères non recommandés (tous sauf [0-9], [A-Z], [.] et [-]).";
+         !!@ cattr = "Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_match(Bezeichnung,"^[A-Za-z0-9\\-.\\s]*$");
+
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+         !!@ cid=3010;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Knoten_von (PAA)";
+         !!@ cmsg_fr="NOEUD_DE manquant (OAP)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#PAA)
+            )
+            OR (
+               DEFINED(Knoten_vonRef)
+            );
+
+         !!@ cid=3020;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Knoten_nach (PAA)";
+         !!@ cmsg_fr="NOEUD_VERS manquant (OAP)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#PAA)
+            )
+            OR (
+               DEFINED(Knoten_nachRef)
+            );
+
+         !!@ cid=3030;
+         !!@ ccat=error;
+         !!@ cmsg_de="Leitung_nach erfasst bei PAA";
+         !!@ cmsg_fr="CONDUITE_VERS saisie pour un OAP";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#PAA)
+            )
+            OR (
+               NOT(DEFINED(Leitung_nachRef))
+            );
+
+         !!@ cid=3040;
+         !!@ ccat=error;
+         !!@ cmsg_de="PAA-Leitung oberhalb von SAA-Leitung";
+         !!@ cmsg_fr="conduite OAP en amont d'une conduite OAS";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#SAA)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(Knoten_vonRef),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+            );
+
+         !!@ cid=3050;
+         !!@ ccat=error;
+         !!@ cmsg_de="Knoten_nach und Leitung_nach erfasst";
+         !!@ cmsg_fr="NOEUD_VERS et CONDUITE_VERS saisis";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Knoten_nachRef)
+            )
+            OR (
+               NOT(DEFINED(Leitung_nachRef))
+            );
+
+         !!@ cid=3050;
+         !!@ ccat=error;
+         !!@ cmsg_de="Knoten_nach und Leitung_nach erfasst";
+         !!@ cmsg_fr="NOEUD_VERS et CONDUITE_VERS saisis";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Leitung_nachRef)
+            )
+            OR (
+               NOT(DEFINED(Knoten_nachRef))
+            );
+
+         !!@ cid=3070;
+         !!@ ccat=error;
+         !!@ cmsg_de="Start- und Endknoten identisch";
+         !!@ cmsg_fr="noeud de départ identique au noeud d'arrivée";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (IGS_getObjectValue(Knoten_vonRef,"TID") == IGS_getObjectValue(Knoten_nachRef,"TID"));
+
+         !!@ cid=3080;
+         !!@ ccat=info;
+         !!@ cmsg_de="Parallelleitung vorhanden";
+         !!@ cmsg_fr="présence de conduites parrallèles";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         UNIQUE 
+            Knoten_vonRef,Knoten_nachRef;
+         
+         !! 5.7.2023: Neue Regeln 3090, 3100 und 3101: Als Ersatz für aufgehobene Regel Topologie Check !!@ cid=T_SAA_6000_03 in CHECK_T und verbesserte Prüfung Topologie SAA https://vsa.ch/wiki/erfassungsgrundsaetze/#Netztopologie-fuer-SAA
+
+         !!@ cid=3090;
+         !!@ ccat=info;
+         !!@ cmsg_de="SAA Leitung ohne Topologie / Leitungsbeginn ohne Knoten";
+         !!@ cmsg_fr="Conduite OAS sans sans topologie / Début de conduite sans noeud";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            isEnumSubVal(FunktionHierarchisch,#PAA)
+            OR DEFINED(Knoten_vonRef)
+            OR (
+               DEFINED(Knoten_vonRef) AND (
+                  DEFINED(Knoten_nachRef) OR
+                  DEFINED(Leitung_nachRef)
+               )
+            );
+
+         !!@ cid=3100;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss SAA Leitung - PAA-Leitung mit Knoten unterbrochen";
+         !!@ cmsg_fr="Raccordement conduite SAA - Conduite PAA avec nœud interrompu";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            isEnumSubVal(FunktionHierarchisch,#PAA)
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+               OR
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(Knoten_nachRef),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) == 0
+               OR
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_zufuehrend(Knoten_nachRef),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               ) > elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "FunktionHierarchisch=PAA.*"
+                  )
+               )
+            );
+
+         !!@ cid=3101;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss SAA Leitung - Leitung statt Knoten referenziert";
+         !!@ cmsg_fr="Raccordement conduite SAA - Conduite référencée au lieu de nœud";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            isEnumSubVal(FunktionHierarchisch,#PAA)
+            OR NOT(DEFINED(Leitung_nachRef))
+            OR isEnumSubVal(Leitung_nachRef->FunktionHierarchisch,#PAA)
+            OR NOT(DEFINED(Leitung_nachRef->Knoten_vonRef))
+            OR NOT(MINI_Is_Line_Connected(Verlauf,Leitung_nachRef->Verlauf));
+
+         !!@ cid=3110;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Erfasste Länge <> berechnete Länge";
+         !!@ cmsg_fr="longueur saisie <> longueur calculee";
+         !! neu 24.1.2019 IGS_abs auch drucken in cattr bei 3110
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch, IGS_abs";
+         MANDATORY CONSTRAINT
+            IGS_saveAttribute(
+               "IGS_abs",
+                  IGS_abs(
+                  IGS_sub(
+                     LaengeEffektiv,
+                     IGS_sqrt(
+                        IGS_add(
+                           IGS_power(IGS_getLength(Verlauf),2),
+                           IGS_abs(IGS_power(IGS_sub(Kote_nach,Kote_von),2))
+                        )
+                     )
+                  )
+               )
+            )
+            AND IGS_abs(
+               IGS_sub(
+                  LaengeEffektiv,
+                  IGS_sqrt(
+                     IGS_add(
+                        IGS_power(IGS_getLength(Verlauf),2),
+                        IGS_abs(IGS_power(IGS_sub(Kote_nach,Kote_von),2))
+                     )
+                  )
+               )
+            ) <= 0.1;
+         
+         !!@ cid=3120;
+         !!@ ccat=info;
+         !!@ cmsg_de="Distanz Knoten zu Auslauf > Toleranzwert";
+         !!@ cmsg_fr="distance du noeud à la sortie > valeur tolérée";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch, IGS_getDistance,Funktion";
+         MANDATORY CONSTRAINT
+            IGS_saveAttribute("IGS_getDistance",
+               IGS_getDistance(
+               Knoten_vonRef->Lage,
+               IGS_getFirstPoint(Verlauf)
+            )) AND
+            IGS_getDistance(
+               Knoten_vonRef->Lage,
+               IGS_getFirstPoint(Verlauf)
+            ) <= 5.0
+            OR (
+                Knoten_vonRef->Funktion == #Abwasserfaulraum OR
+                Knoten_vonRef->Funktion == #ARABauwerk OR
+                Knoten_vonRef->Funktion == #Behandlungsanlage OR
+                Knoten_vonRef->Funktion == #Havariebecken OR
+                Knoten_vonRef->Funktion == #Klaergrube OR
+                Knoten_vonRef->Funktion == #KLARA OR
+                Knoten_vonRef->Funktion == #Pumpwerk OR
+                Knoten_vonRef->Funktion == #Regenbecken_Durchlaufbecken OR
+                Knoten_vonRef->Funktion == #Regenbecken_Fangbecken OR
+                Knoten_vonRef->Funktion == #Regenbecken_Fangkanal OR
+                Knoten_vonRef->Funktion == #Regenbecken_Regenklaerbecken OR
+                Knoten_vonRef->Funktion == #Regenbecken_Regenrueckhaltebecken OR
+                Knoten_vonRef->Funktion == #Regenbecken_Regenrueckhaltekanal OR
+                Knoten_vonRef->Funktion == #Regenbecken_Stauraumkanal OR
+                Knoten_vonRef->Funktion == #Regenbecken_Verbundbecken OR
+                Knoten_vonRef->Funktion == #Regenueberlauf OR
+                Knoten_vonRef->Funktion == #Trennbauwerk OR
+                Knoten_vonRef->Funktion == #Vorbehandlungsanlage
+            ) AND 
+            IGS_getDistance(
+               Knoten_vonRef->Lage,
+               IGS_getFirstPoint(Verlauf)
+            ) <= 20.0;
+
+         !!@ cid=3130;
+         !!@ ccat=info;
+         !!@ cmsg_de="Distanz Knoten zu Einlauf > Toleranzwert";
+         !!@ cmsg_fr="distance du noeud à l'entrée > valeur tolérée";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,IGS_getDistance";
+         MANDATORY CONSTRAINT
+            IGS_saveAttribute("IGS_getDistance",
+               IGS_getDistance(
+               Knoten_nachRef->Lage,
+               IGS_getLastPoint(Verlauf)
+            ))
+            AND IGS_getDistance(
+               Knoten_nachRef->Lage,
+               IGS_getLastPoint(Verlauf)
+            ) <= 5.0
+            OR (
+                Knoten_nachRef->Funktion == #Abwasserfaulraum OR
+                Knoten_nachRef->Funktion == #ARABauwerk OR
+                Knoten_nachRef->Funktion == #Behandlungsanlage OR
+                Knoten_nachRef->Funktion == #Havariebecken OR
+                Knoten_nachRef->Funktion == #Klaergrube OR
+                Knoten_nachRef->Funktion == #KLARA OR
+                Knoten_nachRef->Funktion == #Pumpwerk OR
+                Knoten_nachRef->Funktion == #Regenbecken_Durchlaufbecken OR
+                Knoten_nachRef->Funktion == #Regenbecken_Fangbecken OR
+                Knoten_nachRef->Funktion == #Regenbecken_Fangkanal OR
+                Knoten_nachRef->Funktion == #Regenbecken_Regenklaerbecken OR
+                Knoten_nachRef->Funktion == #Regenbecken_Regenrueckhaltebecken OR
+                Knoten_nachRef->Funktion == #Regenbecken_Regenrueckhaltekanal OR
+                Knoten_nachRef->Funktion == #Regenbecken_Stauraumkanal OR
+                Knoten_nachRef->Funktion == #Regenbecken_Verbundbecken OR
+                Knoten_nachRef->Funktion == #Regenueberlauf OR
+                Knoten_nachRef->Funktion == #Trennbauwerk OR
+                Knoten_nachRef->Funktion == #Vorbehandlungsanlage
+            ) AND 
+            IGS_getDistance(
+               Knoten_nachRef->Lage,
+               IGS_getLastPoint(Verlauf)
+            ) <= 20.0;
+         
+         !!@ cid=3140;
+         !!@ ccat=info;
+         !!@ cmsg_de="Die berechnete Leitungslänge ist wesentlich kürzer als die Distanz zwischen den Knoten";
+         !!@ cmsg_fr="La longueur de conduite calculée est nettement plus courte que la distance entre les noeuds";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            IGS_sub(
+               IGS_getLength(Verlauf),
+               IGS_getDistance(
+                  Knoten_nachRef->Lage,
+                  Knoten_vonRef->Lage
+               )
+            )
+            >= -5.0;
+
+         !!@ cid=3150;
+         !!@ ccat=info;
+         !!@ cmsg_de="Die berechnete Leitungslänge ist wesentlich grösser als die Distanz zwischen den Knoten";
+         !!@ cmsg_fr="La longeur de conduite calculée est nettement supérieure à la distance entre les noeuds. Le quotient entre la longueur issue des points d’appui du tracé et la";
+         !! neu 24.1.2019 IGS_div auch drucken in cattr bei 3150
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch, IGS_div";
+         MANDATORY CONSTRAINT
+            IGS_saveAttribute("IGS_div",
+               IGS_div(
+                  IGS_sqrt(
+                     IGS_add(
+                        IGS_power(IGS_getLength(Verlauf),2),
+                        IGS_abs(IGS_power(IGS_sub(Kote_nach,Kote_von),2))
+                     )
+                  ),
+                  IGS_getDistance(
+                     Knoten_nachRef->Lage,
+                     Knoten_vonRef->Lage
+                  )
+               )
+            ) 
+            AND IGS_div(
+               IGS_sqrt(
+                  IGS_add(
+                     IGS_power(IGS_getLength(Verlauf),2),
+                     IGS_abs(IGS_power(IGS_sub(Kote_nach,Kote_von),2))
+                  )
+               ),
+               IGS_getDistance(
+                  Knoten_nachRef->Lage,
+                  Knoten_vonRef->Lage
+               )
+            ) <= 1.2;
+         
+         !!@ cid=3210;
+         !!@ ccat=info;
+         !!@ cmsg_de="PAA mit kleiner Nennweite";
+         !!@ cmsg_fr="OAP avec petite valeur nominale";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#PAA)
+            )
+            OR (
+               Lichte_Hoehe >= 150.0
+            );
+                  
+         !!@ cid=3220;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Gegengefälle in Freispiegelleitung";
+         !!@ cmsg_fr="Contre-pente dans conduite gravitaire";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            NOT (
+               Kote_von < Kote_nach
+            )
+            OR (
+               FunktionHydraulisch == #Pumpendruckleitung
+               OR FunktionHydraulisch == #Vakuumleitung
+               OR FunktionHydraulisch == #Duekerleitung  !! neu 22.1.2021 Version 2020
+            );
+         
+         !!@ cid=3230;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Gefälle in Pumpenleitung";
+         !!@ cmsg_fr="Pente dans conduite de refoulement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Pumpendruckleitung
+               OR FunktionHydraulisch == #Vakuumleitung
+            )
+            OR (
+               Kote_von <= Kote_nach
+            );
+
+         !! 22.6.2023 gelöscht - da analog 3230, nur andere Meldung, aber Regel nicht korrekt
+         !!@ cid=3232;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Dükerleitung ohne Düker";
+         !!@ cmsg_fr="Conduite siphon sans siphon";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         !! MANDATORY CONSTRAINT
+         !!   NOT (
+         !!      FunktionHydraulisch == #Pumpendruckleitung
+         !!      OR FunktionHydraulisch == #Vakuumleitung
+         !!   )
+         !!   OR (
+         !!      Kote_von <= Kote_nach
+         !!   );
+
+
+         !! 24.8.2021 Neue Regel 3295(Von Knoten.Funktion ist <> Duekeroberhaupt oder VonKnoten.LeitungNach <> Duekerleitung) und Funktion_hydraulisch ist gleich Duekerleitung
+         !! 22.6.2023 Umnummeriert von 3295 auf 3232 (Ersatz)
+         
+         !!@ cid=3232;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Dükerleitung ohne Düker";
+         !!@ cmsg_fr="Conduite siphon sans siphon";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Duekerleitung
+            )
+            OR Knoten_vonRef->Funktion == #Duekeroberhaupt
+            OR Leitung_nachRef->FunktionHydraulisch == #Duekerleitung
+            ;
+
+
+         !!@ cid=3240;
+         !!@ ccat=info;
+         !!@ cmsg_de="Grosskalibrige SAA";
+         !!@ cmsg_fr="OAS avec grande valeur nominale";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               isEnumSubVal(FunktionHierarchisch,#SAA)
+            )
+            OR (
+               Lichte_Hoehe <= 300.0
+            );
+                                                            
+         !!@ cid=3250;
+         !!@ ccat=error;
+         !!@ cmsg_de="Kreisprofil ist nicht gleich breit wie hoch";
+         !!@ cmsg_fr="profil circulaire avec largeur != hauteur";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Profiltyp == #Kreisprofil
+            )
+            OR (
+               Lichte_Hoehe == Lichte_Breite
+            );
+   
+         !!@ cid=3260;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Eiprofil ist breiter als hoch";
+         !!@ cmsg_fr="Ovoïde avec largeur > hauteur";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Profiltyp == #Eiprofil
+            )
+            OR (
+               Lichte_Hoehe > Lichte_Breite
+            );
+                              
+         !!@ cid=3270;
+         !!@ ccat=info;
+         !!@ cmsg_de="Höhe zu Breite entspricht nicht Normeiprofil";
+         !!@ cmsg_fr="Rapport hauteur / largeur ne correspond pas à un ovoïde normé";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               Profiltyp == #Eiprofil
+            )
+            OR (
+               IGS_abs(
+                  IGS_sub(
+                     IGS_div(Lichte_Hoehe,Lichte_Breite),
+                     1.5
+                  )
+               ) < 0.001
+            );
+                  
+         !!@ cid=3280;
+         !!@ ccat=info;
+         !!@ cmsg_de="Leitungsquerschnitt kleiner als oberhalb";
+         !!@ cmsg_fr="Section de conduite inférieure à celle en amont";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch,Funktion";
+         MANDATORY CONSTRAINT
+            NOT (
+               Knoten_vonRef->Funktion != #Duekeroberhaupt
+               AND Knoten_vonRef->Funktion != #Regenbecken_Durchlaufbecken
+               AND Knoten_vonRef->Funktion != #Regenbecken_Fangkanal
+               AND Knoten_vonRef->Funktion != #Regenbecken_Fangbecken
+               AND Knoten_vonRef->Funktion != #Regenbecken_Regenklaerbecken
+               AND Knoten_vonRef->Funktion != #Regenbecken_Regenrueckhaltebecken
+               AND Knoten_vonRef->Funktion != #Regenbecken_Regenrueckhaltekanal
+               AND Knoten_vonRef->Funktion != #Regenbecken_Stauraumkanal
+               AND Knoten_vonRef->Funktion != #Regenbecken_Verbundbecken
+               AND Knoten_vonRef->Funktion != #Regenueberlauf
+               AND Knoten_vonRef->Funktion != #Trennbauwerk
+            )
+            OR (
+               IGS_mul(Lichte_Breite,Lichte_Hoehe)
+               >= IGS_max(
+                  MINI_Knoten_Leitungen_zufuehrend(
+                     Knoten_vonRef
+                  ),
+                  "IGS_mul(Lichte_Breite,Lichte_Hoehe)"
+               )
+            );
+
+         !! Neue Regel 3290 (VonKnoten.Funktion ist <> Pumpwerk oder VonKnoten.LeitungNach <> Pumpendruckleitung) und Funktion_hydraulisch ist gleich Pumpendruckleitung
+         
+           !!@ cid=3290;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Pumpendruckleitung ohne Förderaggregat";
+         !!@ cmsg_fr="Conduite de refoulement sans installation de refoulement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Pumpendruckleitung
+            )
+            OR Knoten_vonRef->Funktion == #Pumpwerk
+            OR Leitung_nachRef->FunktionHydraulisch == #Pumpendruckleitung
+            ;
+
+         !!@ cid=3310;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Drainageleitung führt nicht nur Reinabwasser";
+         !!@ cmsg_fr="Conduite de drainage contenant d'autres eaux que des eaux claires";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Drainagetransportleitung
+               OR FunktionHydraulisch == #Sickerleitung
+            )
+            OR (
+               Nutzungsart_Ist == #Reinabwasser
+            );
+         
+         !!@ cid=3320;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Strassenentwässerung führt nicht Regen- oder Mischabwasser";
+         !!@ cmsg_fr="Evacuaction des eaux de routes contenant d'autres eaux que des eaux pluviales ou mixtes";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               FunktionHierarchisch == #PAA.Strassenentwaesserung
+               OR FunktionHierarchisch == #SAA.Strassenentwaesserung
+            )
+            OR (
+               Nutzungsart_Ist != #Bachwasser
+               AND Nutzungsart_Ist != #entlastetes_Mischabwasser
+               AND Nutzungsart_Ist != #Industrieabwasser
+               AND Nutzungsart_Ist != #Reinabwasser
+               AND Nutzungsart_Ist != #Schmutzabwasser
+               AND Nutzungsart_Ist != #andere !! neu 18.4.2019 sb
+               AND Nutzungsart_Ist != #unbekannt !! neu 18.4.2019 sb
+            );
+                                                                  
+         !!@ cid=3330;
+         !!@ ccat=warning;
+         !!@ cmsg_de="In Betrieb stehende Leitung mündet in nicht in Betrieb stehende Leitung";
+         !!@ cmsg_fr="Conduite en service est connectée à conduite hors service";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         !! 5.7.2023 Regel 3030: Fehlerkorrektur und Verbesserung der Regel (VSAID 949)
+/*          MANDATORY CONSTRAINT   
+            NOT (
+               isEnumSubVal(Status,#in_Betrieb)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Status=in_Betrieb*"
+                  )
+               ) >= 1
+               OR elementCount(
+                  MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef)
+               ) == 0
+            ); */
+
+         MANDATORY CONSTRAINT   
+            NOT (
+               startsWith(Status,"in_Betrieb")
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Status=ausser_Betrieb"
+                  )
+               ) == 0
+               OR elementCount(
+                  MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef)
+               ) == 0
+            );
+
+         !!@ cid=3340;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Leitung mit verschmutztem Abwasser mündet in Leitung mit unverschmutztem Abwasser (Ist-Zustand)";
+         !!@ cmsg_fr="Conduite avec eaux usées est connectée à conduite avec eaux non polluées (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Nutzungsart_Ist == #Industrieabwasser
+               OR Nutzungsart_Ist == #Mischabwasser
+               OR Nutzungsart_Ist == #Schmutzabwasser
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Nutzungsart_Ist=Bachwasser,entlastetes_Mischabwasser,Niederschlagsabwasser,Reinabwasser,unbekannt"
+                  )
+               ) == 0
+            );
+      
+         !!@ cid=3341;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Leitung mit verschmutztem Abwasser mündet in Leitung mit unverschmutztem Abwasser (Planungszustand)";
+         !!@ cmsg_fr="Conduite avec eaux usées est connectée à conduite avec eaux non polluées (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Nutzungsart_geplant == #Industrieabwasser
+               OR Nutzungsart_geplant == #Mischabwasser
+               OR Nutzungsart_geplant == #Schmutzabwasser
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Nutzungsart_geplant=Bachwasser,entlastetes_Mischabwasser,Niederschlagsabwasser,Reinabwasser,unbekannt"
+                  )
+               ) == 0
+            );
+      
+         !!@ cid=3350;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Leitung mit Niederschlagsabwasser mündet in Leitung ohne Niederschlagsabwasser (Ist-Zustand)";
+         !!@ cmsg_fr="Conduite avec eaux pluviales est connectée à conduite sans eaux pluviales (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Nutzungsart_Ist == #Bachwasser
+               OR Nutzungsart_Ist == #entlastetes_Mischabwasser
+               OR Nutzungsart_Ist == #Mischabwasser
+               OR Nutzungsart_Ist == #Niederschlagsabwasser
+               OR Nutzungsart_Ist == #Reinabwasser
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Nutzungsart_Ist=Industrieabwasser,Schmutzabwasser"
+                  )
+               ) == 0
+           );
+      
+         !!@ cid=3351;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Leitung mit Niederschlagsabwasser mündet in Leitung ohne Niederschlagsabwasser (Planungszustand)";
+         !!@ cmsg_fr="Conduite avec eaux pluviales est connectée à conduite sans eaux pluviales (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Nutzungsart_geplant == #Bachwasser
+               OR Nutzungsart_geplant == #entlastetes_Mischabwasser
+               OR Nutzungsart_geplant == #Mischabwasser
+               OR Nutzungsart_geplant == #Niederschlagsabwasser
+               OR Nutzungsart_geplant == #Reinabwasser
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_nachRef),
+                     "Nutzungsart_geplant=Industrieabwasser,Schmutzabwasser"
+                  )
+               ) == 0
+            );
+      
+         !!@ cid=3360;
+         !!@ ccat=error;
+         !!@ cmsg_de="Baujahr bestehend > heute";
+         !!@ cmsg_fr="Année construction > aujourd'hui";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Baujahr > IGS_getYear(UNDEFINED)
+            )
+            OR (
+               Status == #weitere.geplant
+               OR Status == #weitere.Projekt
+            );
+
+         !!@ cid=3370;
+         !!@ ccat=error;
+         !!@ cmsg_de="Baujahr geplant < heute - 1 Jahr";
+         !!@ cmsg_fr="Année construction prévue < aujourd'hui - 1 an";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Status == #weitere.geplant
+               OR Status == #weitere.Projekt
+            )
+            OR (
+               Baujahr >= (IGS_sub(IGS_getYear(UNDEFINED),1))
+            );
+
+
+         !! Neue Regel 3380 19.7.2021 
+         !!@ cid=3380;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Versickerungsleitung mit verschmutztem Abwasser (Ist-Zustand)";
+         !!@ cmsg_fr="Conduite d'infiltration avec des eaux usées polluées((état actuel))";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch, Nutzungsart_Ist";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Versickerungsleitung
+            )
+            OR (
+               Nutzungsart_Ist != #Industrieabwasser
+               AND Nutzungsart_Ist != #Mischabwasser
+               AND Nutzungsart_Ist != #Schmutzabwasser !! Rückwärtskompatibilität mit Release 2015
+            );
+
+        !! Neue Regel 3381 19.7.2021 
+
+        !!@ cid=3381;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Versickerungsleitung mit verschmutztem Abwasser (Planungszustand)";
+         !!@ cmsg_fr="Conduite d'infiltration avec des eaux usées polluées (prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch, Nutzungsart_geplant";
+         MANDATORY CONSTRAINT
+            NOT (
+               FunktionHydraulisch == #Versickerungsleitung
+            )
+            OR (
+               !! 22.6.2023 Fehlerkorrektur Nutzungsart_geplant statt Nutzungsart_Ist
+               !! Nutzungsart_Ist != #Industrieabwasser
+               !! AND Nutzungsart_Ist != #Mischabwasser
+               !! AND Nutzungsart_Ist != #Schmutzabwasser !! Rückwärtskompatibilität mit Release 2015
+               Nutzungsart_geplant != #Industrieabwasser
+               AND Nutzungsart_geplant != #Mischabwasser
+               AND Nutzungsart_geplant != #Schmutzabwasser !! Rückwärtskompatibilität mit Release 2015
+            );
+
+         !!@ cid=9101;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Baujahr ist nicht plausibel";
+         !!@ cmsg_fr="Année construction est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Baujahr >= 1800)
+            AND (Baujahr <= (IGS_add(IGS_getYear(UNDEFINED),20)));
+
+        !! 19.7.2021 neu eigene cid für jedes Attribut - neu 9109 statt 9102 für Kote_von
+        !!@ cid=9109;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Kote_von ist nicht plausibel";
+         !!@ cmsg_fr="COTE_DE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Kote_von >= 190.0)
+            AND (Kote_von <= 2500.0);
+
+        !! 19.7.2021 neu eigene cid für jedes Attribut - neu 9110 statt 9102 für Kote_nach
+         !!@ cid=9110;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Kote_nach ist nicht plausibel";
+         !!@ cmsg_fr="COTE_VERS est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Kote_nach >= 190.0)
+            AND (Kote_nach <= 2500.0);
+
+         !!@ cid=9104;
+         !!@ ccat=warning;
+         !!@ cmsg_de="LaengeEffektiv ist nicht plausibel";
+         !!@ cmsg_fr="L_EFFECTIVE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (LaengeEffektiv >= 0.5)  !! statt 1.0 19.7.2021
+            AND (LaengeEffektiv <= 200.0);
+
+         !!@ cid=9105;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Lichte_Breite ist nicht plausibel";
+         !!@ cmsg_fr="LARGEUR_MAX_PROFIL est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Lichte_Breite >= 50.0)
+            AND (Lichte_Breite <= 4000.0);
+
+         !! 19.7.2021 eigene cid pro Attribut - neu 9111 statt 9105
+         !!@ cid=9111;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Lichte_Hoehe ist nicht plausibel";
+         !!@ cmsg_fr="HAUTEUR_MAX_PROFIL est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Lichte_Hoehe >= 50.0)
+            AND (Lichte_Hoehe <= 4000.0);
+
+         !!@ cid=9106;
+         !!@ ccat=warning;
+         !!@ cmsg_de="WBW_Basisjahr ist nicht plausibel";
+         !!@ cmsg_fr="VR_ANNEE_REFERENCE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            WBW_Basisjahr >= 1970
+            AND WBW_Basisjahr <= IGS_getYear(UNDEFINED);
+                  
+         !!@ cid=9107;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Wiederbeschaffungswert ist nicht plausibel";
+         !!@ cmsg_fr="VALUE_REMPLACEMENT est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,FunktionHierarchisch";
+         MANDATORY CONSTRAINT 
+            (Wiederbeschaffungswert >= 500.0)
+            AND (Wiederbeschaffungswert <= 500000.0);
+
+      END;   !! of Leitungen
+      
+      !!#############################################
+      !! Teileinzugsgebiet
+      !!#############################################
+
+      CONSTRAINTS OF Teileinzugsgebiet =
+         !!@ cid="1002";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Datenherr ist untergegangene Organisation";
+         !!@ cmsg_fr="Le MAITRE_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenherrRef)
+            )
+            OR DatenherrRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1003";
+         !!@ ccat=info;
+         !!@ cmsg_de="Datenlieferant ist untergegangene Organisation";
+         !!@ cmsg_fr="Le FOURNISSEUR_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenlieferantRef)
+            )
+            OR DatenlieferantRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1020";
+         !!@ ccat="warning";
+         !!@ cmsg_de="Die Bezeichnung enthält nicht empfohlene Zeichen (alle ausser [0-9], [A-Z], [.] und [-]).";
+         !!@ cmsg_fr="La désignation contient des caractères non recommandés (tous sauf [0-9], [A-Z], [.] et [-]).";
+         !!@ cattr = "Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_match(Bezeichnung,"^[A-Za-z0-9\\-.\\s]*$");
+
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+      
+         !!@ cid=4010;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an SAA (SW Ist)";
+         !!@ cmsg_fr="Raccordement à OAS (EU actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Knoten_SW_IstRef->Funktion != #Einleitstelle_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_SW_IstRef),
+                          "FunktionHierarchisch=PAA.*;Status=ausser_Betrieb,weitere.Berechnungsvariante,weitere.geplant,in_Betrieb,weitere.Projekt,in_Betrieb.provisorisch,unbekannt"
+                  )
+               ) > 0
+            );
+                  
+         !!@ cid=4011;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an SAA (RW Ist)";
+         !!@ cmsg_fr="Raccordement à OAS (EP actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Knoten_RW_IstRef->Funktion != #Einleitstelle_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_RW_IstRef),
+                     "FunktionHierarchisch=PAA.*;Status=ausser_Betrieb,weitere.Berechnungsvariante,weitere.geplant,in_Betrieb,weitere.Projekt,in_Betrieb.provisorisch,unbekannt"
+                  )
+               ) > 0
+            );
+
+         !!@ cid=4012;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an SAA (SW_geplant)";
+         !!@ cmsg_fr="Raccordement à OAS (EU prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Knoten_SW_geplantRef->Funktion != #Einleitstelle_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_SW_geplantRef),
+                     "FunktionHierarchisch=PAA.*;Status=ausser_Betrieb,weitere.Berechnungsvariante,weitere.geplant,in_Betrieb,weitere.Projekt,in_Betrieb.provisorisch,unbekannt"
+                  )
+               ) > 0
+            );
+
+         !!@ cid=4013;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an SAA (RW_geplant)";
+         !!@ cmsg_fr="Raccordement à OAS (EP prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT   
+            NOT (
+               Knoten_RW_geplantRef->Funktion != #Einleitstelle_gewaesserrelevant
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_RW_geplantRef),
+                     "FunktionHierarchisch=PAA.*;Status=ausser_Betrieb,weitere.Berechnungsvariante,weitere.geplant,in_Betrieb,weitere.Projekt,in_Betrieb.provisorisch,unbekannt"
+                  )
+               ) > 0
+            );
+
+         !!@ cid=4020;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an eine nicht in Betrieb stehende Leitung (Ist-Zustand) Knoten_SW_IstRef";
+         !!@ cmsg_fr="Raccordement à une conduite n'étant pas en service (état actuel) Knoten_SW_IstRef";
+         !! 22.2.21 neu auch Knoten_SW_IstRef
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_SW_IstRef";
+         MANDATORY CONSTRAINT   
+            NOT (
+               DEFINED(Knoten_SW_IstRef)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_SW_IstRef),
+                     "Status=in_Betrieb,in_Betrieb.provisorisch,unbekannt"  !! 18.4.2019 sb in_Betrieb.wird_aufgehoben hier ausschliessen und wie tot und weitere behandeln.
+                  )
+               ) >= 1
+            );
+
+         !!@ cid=4020;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an eine nicht in Betrieb stehende Leitung (Ist-Zustand) Knoten_RW_IstRef";
+         !!@ cmsg_fr="Raccordement à une conduite n'étant pas en service (état actuel) Knoten_RW_IstRef";
+         !! 22.2.21 neu auch Knoten_RW_IstRef
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_RW_IstRef";
+         MANDATORY CONSTRAINT   
+            NOT (
+               DEFINED(Knoten_RW_IstRef)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_RW_IstRef),
+                     "Status=in_Betrieb,in_Betrieb.provisorisch,unbekannt"  !! 18.4.2019 sb in_Betrieb.wird_aufgehoben hier ausschliessen und wie tot und weitere behandeln.
+                  )
+               ) >= 1
+            );
+
+         !!@ cid=4021;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an eine nicht in Betrieb stehende Leitung (Planungszustand) Knoten_SW_geplantRef";
+         !!@ cmsg_fr="Raccordement à une conduite n'étant pas en service (prévu) Knoten_SW_geplantRef";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_SW_geplantRef";
+
+         !! 22.2.21 neu auch Knoten_SW_geplantRef
+         !! 24.8.2021 Regel  Anpassen Regel 4021: Bei Status des Knoten weitere.geplant und weitere.Projekt erkennen und zulassen
+
+         MANDATORY CONSTRAINT   
+            NOT (
+               DEFINED(Knoten_SW_geplantRef)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_SW_geplantRef),
+                     "Status=in_Betrieb*,weitere.geplant,weitere.Projekt,unbekannt"
+                  )
+               ) >= 1
+            );
+
+         !!@ cid=4021;
+         !!@ ccat=error;
+         !!@ cmsg_de="Anschluss an eine nicht in Betrieb stehende Leitung (Planungszustand) Knoten_RW_geplantRef";
+         !!@ cmsg_fr="Raccordement à une conduite n'étant pas en service (prévu) Knoten_RW_geplantRef";
+         !! 22.2.21 neu auch Knoten_RW_IstRef
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_RW_IstRef";
+         MANDATORY CONSTRAINT   
+            NOT (
+               DEFINED(Knoten_RW_geplantRef)
+            )
+            OR (
+               elementCount(
+                  IGS_filter(
+                     MINI_Knoten_Leitungen_wegfuehrend(Knoten_RW_geplantRef),
+                     "Status=in_Betrieb*,weitere.geplant,weitere.Projekt,unbekannt"
+                  )
+               ) >= 1
+            );
+
+         !!@ cid=4110;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #Mischsystem
+            )
+            OR (
+               DEFINED(Knoten_SW_IstRef)
+            );
+
+         !!@ cid=4115;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (RW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EP actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #Mischsystem
+            )
+            OR (
+               NOT(DEFINED(Knoten_RW_IstRef))
+            );
+                                          
+         !!@ cid=4120;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #ModifiziertesSystem
+            )
+            OR (
+               DEFINED(Knoten_SW_IstRef)
+            );
+
+         !!@ cid=4125;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (SW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EU actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #nicht_angeschlossen
+               OR Entwaesserungssystem_Ist == #nicht_entwaessert
+            )
+            OR (
+               NOT(DEFINED(Knoten_SW_IstRef))
+            );
+
+         !!@ cid=4130;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (RW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EP actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #nicht_angeschlossen
+               OR Entwaesserungssystem_Ist == #nicht_entwaessert
+            )
+            OR (
+               NOT(DEFINED(Knoten_RW_IstRef))
+            );
+
+         !!@ cid=4135;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_Ist oder RW_Ist)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU actuel ou EP actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_Ist == #Trennsystem
+               !! 23.1.2023 ergänzt
+               OR Entwaesserungssystem_Ist == #vorbereitetes_Trennsystem
+            )
+            OR (
+               DEFINED(Knoten_SW_IstRef)
+               OR DEFINED(Knoten_RW_IstRef)
+            );
+
+         !!@ cid=4140;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #Mischsystem
+            )
+            OR (
+               DEFINED(Knoten_SW_geplantRef)
+            );
+
+         !!@ cid=4145;
+         !!@ ccat=error;
+         !! 22.6.2023 Fehlermeldung korrigiert: Überflüssiger Anschlussknoten (RW_geplant) statt Üeberflüssiger Anschlussknoten (SW_geplant)
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (RW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EP prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #Mischsystem
+            )
+            OR (
+               NOT(DEFINED(Knoten_RW_geplantRef))
+            );
+
+         !!@ cid=4150;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #ModifiziertesSystem
+            )
+            OR (
+               DEFINED(Knoten_SW_geplantRef)
+            );
+
+         !!@ cid=4155;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (SW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EU prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #nicht_angeschlossen
+               OR Entwaesserungssystem_geplant == #nicht_entwaessert
+            )
+            OR (
+               NOT(DEFINED(Knoten_SW_geplantRef))
+            );
+
+         !!@ cid=4160;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überflüssiger Anschlussknoten (RW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement superflu (EP prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #nicht_angeschlossen
+               OR Entwaesserungssystem_geplant == #nicht_entwaessert
+            )
+            OR (
+               NOT(DEFINED(Knoten_RW_geplantRef))
+            );
+
+         !!@ cid=4165;
+         !!@ ccat=error;
+         !!@ cmsg_de="Fehlender Anschlussknoten (SW_geplant oder RW_geplant)";
+         !!@ cmsg_fr="Noeud de raccordement manquant (EU prévu ou EP prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               Entwaesserungssystem_geplant == #Trennsystem
+               !! 23.1.2023 ergänzt
+               OR Entwaesserungssystem_Ist == #vorbereitetes_Trennsystem
+            )
+            OR (
+               DEFINED(Knoten_SW_geplantRef)
+               OR DEFINED(Knoten_RW_geplantRef)
+            );
+
+         !!@ cid=4210;
+         !!@ ccat=error;
+         !!@ cmsg_de="Schmutzabwasserparameter ohne Anschlussknoten (Ist-Zustand)";
+         !!@ cmsg_fr="Paramètres d'eaux usées sans noeud de raccordement (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (     
+               DEFINED(Schmutzabwasseranfall_Ist)
+               OR DEFINED(Einwohnerdichte_Ist)
+               OR DEFINED(Fremdwasseranfall_Ist)
+               OR DEFINED(Abflussbeiwert_SW_Ist)
+               OR DEFINED(Befestigungsgrad_SW_Ist)
+            )
+            OR (
+               DEFINED(Knoten_SW_IstRef)
+            );
+         
+         !!@ cid=4211;
+         !!@ ccat=error;
+         !!@ cmsg_de="Schmutzabwasserparameter ohne Anschlussknoten (Planungszustand)";
+         !!@ cmsg_fr="Paramètres d'eaux usées sans noeud de raccordement (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT   
+            NOT ( 
+               DEFINED (Schmutzabwasseranfall_geplant)
+               OR DEFINED(Einwohnerdichte_geplant)
+               OR DEFINED(Fremdwasseranfall_geplant)
+               OR DEFINED(Abflussbeiwert_SW_geplant)
+               OR DEFINED(Befestigungsgrad_SW_geplant)
+            )
+            OR (
+               DEFINED(Knoten_SW_geplantRef)
+            );
+                              
+         !!@ cid=4220;
+         !!@ ccat=error;
+         !!@ cmsg_de="Regenabwasserparameter ohne Anschlussknoten (Ist-Zustand)";
+         !!@ cmsg_fr="Paramètres d'eaux pluviales sans noeud de raccordement (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Abflussbeiwert_RW_Ist)
+               OR DEFINED(Befestigungsgrad_RW_Ist)
+            )
+            OR (
+               DEFINED(Knoten_RW_IstRef)
+            );                     
+         
+         !!@ cid=4221;
+         !!@ ccat=error;
+         !!@ cmsg_de="Regenabwasserparameter ohne Anschlussknoten (Planungszustand)";
+         !!@ cmsg_fr="Paramètres d'eaux pluviales sans noeud de raccordement (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            NOT (
+               DEFINED(Abflussbeiwert_RW_geplant)
+               OR DEFINED(Befestigungsgrad_RW_geplant)
+            )
+            OR (
+               DEFINED(Knoten_RW_geplantRef)
+            );
+                              
+         !!@ cid=4230;
+         !!@ ccat=error;
+         !!@ cmsg_de="Summe Abflussbeiwerte >100 (Ist-Zustand)";
+         !!@ cmsg_fr="Somme des coefficients de ruissellement >100 (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            IGS_add(Abflussbeiwert_SW_Ist,Abflussbeiwert_RW_Ist) <= 100;
+
+         !!@ cid=4231;
+         !!@ ccat=error;
+         !!@ cmsg_de="Summe Abflussbeiwerte >100 (Planungszustand)";
+         !!@ cmsg_fr="Somme des coefficients de ruissellement >100 (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            IGS_add(Abflussbeiwert_SW_geplant,Abflussbeiwert_RW_geplant) <= 100;
+         
+         !!@ cid=4240;
+         !!@ ccat=error;
+         !!@ cmsg_de="Summe Befestigungsgrade >100 (Ist-Zustand)";
+         !!@ cmsg_fr="Somme des coefficients de ruissellement >100 (état actuel)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            IGS_add(Befestigungsgrad_SW_Ist,Befestigungsgrad_RW_Ist) <= 100;
+         
+         !!@ cid=4241;
+         !!@ ccat=error;
+         !!@ cmsg_de="Summe Befestigungsgrade >100 (Planungszustand)";
+         !!@ cmsg_fr="Somme des coefficients de ruissellement >100 (état prévu)";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            IGS_add(Befestigungsgrad_SW_geplant,Befestigungsgrad_RW_geplant) <= 100;
+         
+         !!@ cid=4310;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Differenz von erfasster zu berechneter Fläche";
+         !!@ cmsg_fr="Différence entre surface saisie et calculée";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_abs(
+               IGS_sub(
+                  IGS_div(IGS_getArea(Perimeter),10000.0),
+                  Flaeche
+               )
+            ) <= 0.001;
+         
+         !!@ cid=4320;
+         !!@ ccat=error;
+         !!@ cmsg_de="Überlappendes Teileinzugsgebiet";
+         !!@ cmsg_fr="Bassin versant partiel superposé";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            NOT(IGS_overlaps("Perimeter"));
+         
+         !!@ cid=4330;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Grosse Distanz zum Anschlussknoten (SW_Ist)";
+         !!@ cmsg_fr="Grande distance au noeud de raccordement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_SW_IstRef";
+         MANDATORY CONSTRAINT
+            IGS_getDistance(Knoten_SW_IstRef->Lage,Perimeter) < 200.0;
+                  
+         !!@ cid=4331;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Grosse Distanz zum Anschlussknoten (RW_Ist)";
+         !!@ cmsg_fr="Grande distance au noeud de raccordement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_RW_IstRef";
+         MANDATORY CONSTRAINT
+            IGS_getDistance(Knoten_RW_IstRef->Lage,Perimeter) < 200.0;
+                  
+         !!@ cid=4332;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Grosse Distanz zum Anschlussknoten (SW_geplant)";
+         !!@ cmsg_fr="Grande distance au noeud de raccordement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_SW_geplantRef";
+         MANDATORY CONSTRAINT
+            IGS_getDistance(Knoten_SW_geplantRef->Lage,Perimeter) < 200.0;
+                  
+         !!@ cid=4333;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Grosse Distanz zum Anschlussknoten (RW_geplant)";
+         !!@ cmsg_fr="Grande distance au noeud de raccordement";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_RW_geplantRef";
+         MANDATORY CONSTRAINT
+            IGS_getDistance(Knoten_RW_geplantRef->Lage,Perimeter) < 200.0;
+                  
+         !!@ cid=4340;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Beschriftung ausserhalb Teileinzugsgebiet";
+         !!@ cmsg_fr="Etiquetage hors bassin versant partiel";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_isInsideSurface(Perimeter,TextPos);
+         
+         !! 19.7.2021 eigene cid pro Attribut neu 9301 statt 9201
+         !!@ cid=9301;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbegrenzung_geplant ist nicht plausibel";
+         !!@ cmsg_fr="RESTRICTION_DEBIT_PREVUE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung";
+         MANDATORY CONSTRAINT 
+            (Abflussbegrenzung_geplant >= 10.0)
+            AND (Abflussbegrenzung_geplant <= 300.0);
+
+         !!@ cid=9201;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbegrenzung_Ist ist nicht plausibel";
+         !!@ cmsg_fr="RESTRICTION_DEBIT_ACTUELLE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Abflussbegrenzung_Ist";
+         MANDATORY CONSTRAINT 
+            (Abflussbegrenzung_Ist >= 10.0)
+            AND (Abflussbegrenzung_Ist <= 300.0);
+
+        !! 19.7.2021 eigene cid pro Attribut neu 9302 statt 9201
+         !!@ cid=9302;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbeiwert_RW_geplant ist nicht plausibel";
+         !!@ cmsg_fr="COEFFICIENT_RUISSELLEMENT_EP_PREVU est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Abflussbeiwert_RW_geplant";
+         MANDATORY CONSTRAINT 
+            (Abflussbeiwert_RW_geplant >= 0.0)
+            AND (Abflussbeiwert_RW_geplant <= 90.0);
+                                                
+         !!@ cid=9202;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbeiwert_RW_Ist ist nicht plausibel";
+         !!@ cmsg_fr="COEFFICIENT_RUISSELLEMENT_EP_ACTUELLE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Abflussbeiwert_RW_Ist";
+         MANDATORY CONSTRAINT 
+            (Abflussbeiwert_RW_Ist >= 0.0)
+            AND (Abflussbeiwert_RW_Ist <= 90.0);
+
+         !! 19.7.2021 eigene cid pro Attribut neu 9502 statt 9201                                                
+         !!@ cid=9502;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbeiwert_SW_geplant ist nicht plausibel";
+         !!@ cmsg_fr="COEFFICIENT_RUISSELLEMENT_EU_PREVU est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Abflussbeiwert_SW_geplant";
+         MANDATORY CONSTRAINT 
+            (Abflussbeiwert_SW_geplant >= 0.0)
+            AND (Abflussbeiwert_SW_geplant <= 90.0);
+
+         !! 19.7.2021 eigene cid pro Attribut neu 9402 statt 9201              
+         !!@ cid=9402;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Abflussbeiwert_SW_Ist ist nicht plausibel";
+         !!@ cmsg_fr="COEFFICIENT_RUISSELLEMENT_EU_ACTUELLE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Abflussbeiwert_SW_Ist";
+         MANDATORY CONSTRAINT 
+            (Abflussbeiwert_SW_Ist >= 0.0)
+            AND (Abflussbeiwert_SW_Ist <= 90.0);
+
+         !! 19.7.2021 eigene cid pro Attribut neu 9303 statt 9203      
+         !!@ cid=9303;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Befestigungsgrad_RW_geplant ist nicht plausibel";
+         !!@ cmsg_fr="TAUX_IMPERMEABILISATION_EP_PREVU est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Befestigungsgrad_RW_geplant";
+         MANDATORY CONSTRAINT 
+            (Befestigungsgrad_RW_geplant >= 0.0)
+            AND (Befestigungsgrad_RW_geplant <= 100.0);
+
+         !!@ cid=9203;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Befestigungsgrad_RW_Ist ist nicht plausibel";
+         !!@ cmsg_fr="TAUX_IMPERMEABILISATION_EP_ACTUELLE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Befestigungsgrad_RW_Ist";
+         MANDATORY CONSTRAINT 
+            (Befestigungsgrad_RW_Ist >= 0.0)
+            AND (Befestigungsgrad_RW_Ist <= 100.0);
+
+         !! 19.7.2021 eigene cid pro Attribut neu 9503 statt 9203  
+         !!@ cid=9503;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Befestigungsgrad_SW_geplant ist nicht plausibel";
+         !!@ cmsg_fr="TAUX_IMPERMEABILISATION_EU_PREVU est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Befestigungsgrad_SW_geplant";
+         MANDATORY CONSTRAINT 
+            (Befestigungsgrad_SW_geplant >= 0.0)
+            AND (Befestigungsgrad_SW_geplant <= 100.0);
+        
+         !! 19.7.2021 eigene cid pro Attribut neu 9403 statt 9203  
+         !!@ cid=9403;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Befestigungsgrad_SW_Ist ist nicht plausibel";
+         !!@ cmsg_fr="TAUX_IMPERMEABILISATION_EP_ACTUELLE es pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Befestigungsgrad_SW_Ist";
+         MANDATORY CONSTRAINT 
+            (Befestigungsgrad_SW_Ist >= 0.0)
+            AND (Befestigungsgrad_SW_Ist <= 100.0);
+         
+         !! 19.7.2021 eigene cid pro Attribut neu 9304 statt 9204   
+         !!@ cid=9304;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Einwohnerdichte_geplant ist nicht plausibel";
+         !!@ cmsg_fr="DENSITE_POPULATION_PREVUE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Einwohnerdichte_geplant";
+         MANDATORY CONSTRAINT 
+            (Einwohnerdichte_geplant >= 0.0)
+            AND (Einwohnerdichte_geplant <= 1000.0);  !! 18.4.2019 Regel geändert, da im städtischen Gebiet auch höher
+
+         !!@ cid=9204;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Einwohnerdichte_Ist ist nicht plausibel";
+         !!@ cmsg_fr="DENSITE_POPULATION_ACTUELLE es pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Einwohnerdichte_Ist";
+         MANDATORY CONSTRAINT 
+            (Einwohnerdichte_Ist >= 0.0)
+            AND (Einwohnerdichte_Ist <= 1000.0);  !! 18.4.2019 Regel geändert da im städtischen Gebiet auch höher
+                                                
+         !!@ cid=9205;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Flaeche ist nicht plausibel";
+         !!@ cmsg_fr="SUPERFICIE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Flaeche";
+         MANDATORY CONSTRAINT 
+            (Flaeche >= 0.0)
+            AND (Flaeche <= 5.0);
+
+        !! 19.7.2021 eigene cid pro Attribut neu 9306 statt 9206  
+         !!@ cid=9306;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Fremdwasseranfall_geplant ist nicht plausibel";
+         !!@ cmsg_fr="APPORT_ECP_PREVU est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Fremdwasseranfall_geplant";
+         MANDATORY CONSTRAINT 
+            (Fremdwasseranfall_geplant >= 0.0)
+            AND (Fremdwasseranfall_geplant <= 100.0);
+
+         !!@ cid=9206;
+         !!@ ccat=warning;
+         !!@ cmsg_de="Fremdwasseranfall_Ist ist nicht plausibel";
+         !!@ cmsg_fr="APPORT_ECP_ACTUELLE est pas plausible";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Fremdwasseranfall_Ist";
+         MANDATORY CONSTRAINT 
+            (Fremdwasseranfall_Ist >= 0.0)
+            AND (Fremdwasseranfall_Ist <= 100.0);
+                                                
+      END; !! of TEZG
+
+
+      !!#############################################
+      !! Ueberlauf_Foerderaggregat
+      !!#############################################
+
+      CONSTRAINTS OF Ueberlauf_Foerderaggregat =
+         !!@ cid="1002";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Datenherr ist untergegangene Organisation";
+         !!@ cmsg_fr="Le MAITRE_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenherrRef)
+            )
+            OR DatenherrRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1003";
+         !!@ ccat=info;
+         !!@ cmsg_de="Datenlieferant ist untergegangene Organisation";
+         !!@ cmsg_fr="Le FOURNISSEUR_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenlieferantRef)
+            )
+            OR DatenlieferantRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1020";
+         !!@ ccat="warning";
+         !!@ cmsg_de="Die Bezeichnung enthält nicht empfohlene Zeichen (alle ausser [0-9], [A-Z], [.] und [-]).";
+         !!@ cmsg_fr="La désignation contient des caractères non recommandés (tous sauf [0-9], [A-Z], [.] et [-]).";
+         !!@ cattr = "Bezeichnung";
+         MANDATORY CONSTRAINT
+            IGS_match(Bezeichnung,"^[A-Za-z0-9\\-.\\s]*$");
+
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID). ";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+         !! 5.7.2032 Neue Fachprüfung Regel 1024 Kontrolle Ueberlauf Zirkelbezug
+         !!@ cid="1024";
+         !!@ ccat="error";
+         !!@ cmsg_de="Ueberlauf Zirkelbezug - Ueberlauf endet im Ausgangsknoten: Knoten_nachRef ist gleich KnotenRef";
+         !!@ cmsg_fr="DEVERSOIR Référence circulaire - le DEVERSOIR se termine au nœud de sortie : DEVERSEMENT_VERRef est égal à NOEUDRef";
+         !!@ cattr = "Metaattribute.Datenherr,Bezeichnung,Knoten_nachRef,KnotenRef";
+         MANDATORY CONSTRAINT
+            NOT (IGS_getObjectValue(Knoten_nachRef,"TID") == IGS_getObjectValue(KnotenRef,"TID"));
+
+      END; !! of Ueberlauf_Foerderaggregat
+
+
+      !!#############################################
+      !! SK
+      !!#############################################
+
+      CONSTRAINTS OF SK =
+
+        
+         !!@ cid="1002";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Datenherr ist untergegangene Organisation";
+         !!@ cmsg_fr="Le MAITRE_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenherrRef)
+            )
+            OR DatenherrRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1003";
+         !!@ ccat=info;
+         !!@ cmsg_de="Datenlieferant ist untergegangene Organisation";
+         !!@ cmsg_fr="Le FOURNISSEUR_DES_DONNEES est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(DatenlieferantRef)
+            )
+            OR DatenlieferantRef->Status != #untergegangen
+         ;
+         
+         !!@ cid="1006";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Standortgemeinde ist untergegangene Organisation";
+         !!@ cmsg_fr="La COMMUNE_IMPLANTATION est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(StandortgemeindeRef)
+            )
+            OR StandortgemeindeRef->Status != #untergegangen
+         ;
+    
+         !!@ cid="1007";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Buero ist untergegangene Organisation";
+         !!@ cmsg_fr="Le BUREAU est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(BueroRef)
+            )
+            OR BueroRef->Status != #untergegangen
+         ;    
+
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID). ";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+         !! 11.10.2023 Neue Regel Prüfung Stammkarten, siehe auch cid 2200 Knoten
+         !!@ cid="5002";
+         !!@ ccat=error;
+         !!@ cmsg_de="PAA_KnotenRef in Stammkarte zeigt nicht auf PAA-Knoten";
+         !!@ cmsg_fr="PAA_KnotenRef dans FICHE_TECHNIQUE mère ne pointe pas vers un nœud PAA";
+         !!@ cattr = " PAA_KnotenRef.TID,PAA_KnotenRef.FunktionHierarchisch";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(PAA_KnotenRef)
+            )
+            OR PAA_KnotenRef->FunktionHierarchisch == #PAA;
+      END; !! of SK
+
+      !!#############################################
+      !! SK_Einleitstelle
+      !!#############################################
+
+      CONSTRAINTS OF SK_Einleitstelle =
+
+         !!@ cid="1006";
+         !!@ ccat=info;
+         !!@ cmsg_de="Ausfuehrende_Firma ist untergegangene Organisation";
+         !!@ cmsg_fr="Le BUREAU_EXECUTANT est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Ausfuehrende_FirmaRef)
+            )
+            OR Ausfuehrende_FirmaRef->Status != #untergegangen
+         ;
+      END; !! of SK_Einleitstelle
+
+
+      !!#############################################
+      !! SK_Regenueberlauf
+      !!#############################################
+
+      CONSTRAINTS OF SK_Regenueberlauf =
+         !!@ cid=5000;
+         !!@ ccat=error;
+         !!@ cmsg_de="Referenzierter Knoten EinleitstelleRef ist keine Einleitstelle";
+         !!@ cmsg_fr="Noeud référencé EXUTOIRERef n'est pas une EXUTOIRE";
+         !!@ cattr = "Bezeichnung,EinleitstelleRef";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(EinleitstelleRef)
+            )
+            OR DEFINED(EinleitstelleRef->Funktion) AND (
+               EinleitstelleRef->Funktion == #Einleitstelle_gewaesserrelevant
+               OR EinleitstelleRef->Funktion == #Einleitstelle_nicht_gewaesserrelevant
+            );
+      END; !! of SK_Regenueberlauf
+
+      !!#############################################
+      !! SK_Regenueberlaufbecken
+      !!#############################################
+
+      CONSTRAINTS OF SK_Regenueberlaufbecken =
+         !!@ cid=5001;
+         !!@ ccat=error;
+         !!@ cmsg_de="Referenzierter Knoten EinleitstelleRef ist keine Einleitstelle";
+         !!@ cmsg_fr="Noeud référencé EXUTOIRERef n'est pas une EXUTOIRE";
+         !!@ cattr = "Bezeichnung,EinleitstelleRef";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(EinleitstelleRef)
+            )
+            OR DEFINED(EinleitstelleRef->Funktion) AND (
+               EinleitstelleRef->Funktion == #Einleitstelle_gewaesserrelevant
+               OR EinleitstelleRef->Funktion == #Einleitstelle_nicht_gewaesserrelevant
+            );
+      END; !! of SK_Regenueberlaufbecken
+
+
+      !!#############################################
+      !!Kennlinie_Stuetzpunkt
+      !!#############################################
+      
+      CONSTRAINTS OF Kennlinie_Stuetzpunkt =
+            
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+      END;  !! of Kennlinie_Stuetzpunkt
+
+
+      !!#############################################
+      !!Bauwerkskomponente
+      !!#############################################
+      
+      CONSTRAINTS OF Bauwerkskomponente =
+            
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID). ";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID). ";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+      END;  !! of Bauwerkskomponente
+      
+      
+      !!#############################################
+      !!Massnahme
+      !!#############################################
+      
+      CONSTRAINTS OF Massnahme =
+
+         !!@ cid="1004";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Traegerschaft ist untergegangene Organisation";
+         !!@ cmsg_fr="L'ENTITE_RESPONSABLE est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(TraegerschaftRef)
+            )
+            OR TraegerschaftRef->Status != #untergegangen
+         ;
+
+         !!@ cid="1005";
+         !!@ ccat=warning;
+         !!@ cmsg_de="Verantwortlich_Ausloesung ist untergegangene Organisation";
+         !!@ cmsg_fr="Le RESPONSABLE_DECLENCHEMENT est une organisation perdue";
+         !!@ cattr = "Bezeichung, Status";
+         MANDATORY CONSTRAINT
+            NOT (
+               DEFINED(Verantwortlich_AusloesungRef)
+            )
+            OR Verantwortlich_AusloesungRef->Status != #untergegangen
+         ;
+    
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+
+      END;  !! of Massnahme
+
+
+      !!#############################################
+      !!ALR
+      !!#############################################
+      
+      CONSTRAINTS OF ALR =
+            
+         !!@ cid="1021";
+         !!@ ccat="error";
+         !!@ cmsg_de="Die TID ist keine gültige OID (STANDARDOID).";
+         !!@ cmsg_fr="La TID n'est pas une OID valable (STANDARDOID).";
+         !!@ cattr = "TID";
+         MANDATORY CONSTRAINT
+            IGS_match(IGS_getObjectValue(THIS,"TID"),"^[A-Za-z0-9]{16}$");
+
+      END;  !! of ALR
+    
+   END Verbands_GEP_; !! of TOPIC
+
+END VSADSSMINI_2020_1_LV95_CHECK_FP. !! of MODEL

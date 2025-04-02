@@ -1,0 +1,835 @@
+INTERLIS 2.4;
+
+/** EN: UAS Geographical Zone Data Model
+ */
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+MODEL UASGeographicalZone_V2 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2025-03-10"  =
+  IMPORTS Text_V2,GeometryCHLV95_V2,InternationalCodes_V2,CatalogueObjects_V2;
+
+  DOMAIN
+
+    /** EN: The value of a code which is a generic placeholder and refers to the corresponding entry in the multilingual code list for predefined and generic additional information text elements, which may be used as display texts. Only values that exist in the code list should be used
+     */
+    AddInfo = (
+      /** EN: Code as placeholder for predefined extended property text 1
+       */
+      EXP01,
+      /** EN: Code as placeholder for predefined extended property text 2
+       */
+      EXP02,
+      /** EN: Code as placeholder for predefined extended property text 3
+       */
+      EXP03,
+      /** EN: Code as placeholder for predefined extended property text 4
+       */
+      EXP04,
+      /** EN: Code as placeholder for predefined extended property text 5
+       */
+      EXP05,
+      /** EN: Code as placeholder for predefined extended property text 6
+       */
+      EXP06,
+      /** EN: Code as placeholder for predefined extended property text 7
+       */
+      EXP07,
+      /** EN: Code as placeholder for predefined extended property text 8
+       */
+      EXP08,
+      /** EN: Code as placeholder for predefined extended property text 9
+       */
+      EXP09,
+      /** EN: Code as placeholder for predefined extended property text 10
+       */
+      EXP10
+    );
+
+    /** EN: The value of a code which is a generic placeholder and refers to the corresponding entry in the multilingual code list for predefined and generic restriction text elements, which may be used as display texts. Only values that exist in the code list should be used
+     */
+    Restriction = (
+      /** EN: Code as placeholder for predefined restriction condition text 1
+       */
+      REC01,
+      /** EN: Code as placeholder for predefined restriction condition text 2a
+       */
+      REC02a,
+      /** EN: Code as placeholder for predefined restriction condition text 2b
+       */
+      REC02b,
+      /** EN: Code as placeholder for predefined restriction condition text 2c
+       */
+      REC02c,
+      /** EN: Code as placeholder for predefined restriction condition text 2
+       */
+      REC02,
+      /** EN: Code as placeholder for predefined restriction condition text 3
+       */
+      REC03,
+      /** EN: Code as placeholder for predefined restriction condition text 4
+       */
+      REC04,
+      /** EN: Code as placeholder for predefined restriction condition text 5
+       */
+      REC05,
+      /** EN: Code as placeholder for predefined restriction condition text 6
+       */
+      REC06,
+      /** EN: Code as placeholder for predefined restriction condition text 7
+       */
+      REC07,
+      /** EN: Code as placeholder for predefined restriction condition text 8
+       */
+      REC08,
+      /** EN: Code as placeholder for predefined restriction condition text 9
+       */
+      REC09,
+      /** EN: Code as placeholder for predefined restriction condition text 10
+       */
+      REC10
+    );
+
+  /** EN: Structure containing localised texts (max. 1000 characters)
+   */
+  STRUCTURE LocalisedTextLong =
+    /** EN: Standard language code (ISO639_1) based on the CHBase model convention
+     */
+    Language : MANDATORY InternationalCodes_V2.LanguageCode_ISO639_1;
+    /** EN: Localised text (max. 1000 characters)
+     */
+    Text : MANDATORY TEXT*1000;
+    /** EN: Allowed languages are German, French, Italian and English
+     */
+    MANDATORY CONSTRAINT ((Language == #de OR Language == #fr) OR Language == #it) OR Language == #en;
+  END LocalisedTextLong;
+
+  /** EN: Structure containing localised texts (max. 200 characters)
+   */
+  STRUCTURE LocalisedTextShort =
+    /** EN: Standard language code (ISO639_1) based on the CHBase model convention
+     */
+    Language : MANDATORY InternationalCodes_V2.LanguageCode_ISO639_1;
+    /** EN: Localised text (max. 200 characters)
+     */
+    Text : MANDATORY TEXT*200;
+    /** EN: Allowed languages are German, French, Italian and English
+     */
+    MANDATORY CONSTRAINT ((Language == #de OR Language == #fr) OR Language == #it) OR Language == #en;
+  END LocalisedTextShort;
+
+  /** EN: Structure containing localised Uniform Resource Identifier (URI)
+   */
+  STRUCTURE LocalisedUri =
+    /** EN: Standard language code (ISO639_1) based on the CHBase model convention
+     */
+    Language : MANDATORY InternationalCodes_V2.LanguageCode_ISO639_1;
+    /** EN: Uniform Resource Identifier (URI)
+     */
+    Text : MANDATORY URI;
+    /** EN: Allowed languages are German, French, Italian and English
+     */
+    MANDATORY CONSTRAINT ((Language == #de OR Language == #fr) OR Language == #it) OR Language == #en;
+  END LocalisedUri;
+
+  /** EN: Structure containing multilingual elements of localised text (max. 1000 characters)
+   */
+  STRUCTURE MultilingualTextLong =
+    /** EN: Multilingual text (max. 1000 characters)
+     */
+    LocalisedLong : BAG {1..*} OF UASGeographicalZone_V2.LocalisedTextLong;
+    /** EN: Uniqueness constraint of multilingual element language
+     */
+    UNIQUE (LOCAL) LocalisedLong:Language;
+  END MultilingualTextLong;
+
+  /** EN: Structure containing multilingual elements of localised text (max. 200 characters)
+   */
+  STRUCTURE MultilingualTextShort =
+    /** EN: Multilingual text (max. 200 characters)
+     */
+    LocalisedShort : BAG {1..*} OF UASGeographicalZone_V2.LocalisedTextShort;
+    /** EN: Uniqueness constraint of multilingual element language
+     */
+    UNIQUE (LOCAL) LocalisedShort:Language;
+  END MultilingualTextShort;
+
+  /** EN: Structure containing multilingual elements of localised Uniform Resource Identifier (URI)
+   */
+  STRUCTURE MultilingualUri =
+    /** EN: Text as localised Uniform Resource Identifier (URI)
+     */
+    LocalisedTextUri : BAG {1..*} OF UASGeographicalZone_V2.LocalisedUri;
+    /** EN: Uniqueness constraint of multilingual element language
+     */
+    UNIQUE (LOCAL) LocalisedTextUri:Language;
+  END MultilingualUri;
+
+  /** EN: Topic for code list texts
+   */
+  TOPIC CodelistTexts =
+    OID AS INTERLIS.UUIDOID;
+
+    /** EN: Class containing a multilingual code list for predefined and generic additional information text elements
+     */
+    CLASS AddInfoText
+    EXTENDS CatalogueObjects_V2.Catalogues.Item =
+      /** EN: An extended property code which refers to an enumeration of codes
+       */
+      Code : MANDATORY UASGeographicalZone_V2.AddInfo;
+      /** EN: Multilingual description text (max. 200 characters)
+       */
+      Description : MANDATORY UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: Uniqueness constraint of the code
+       */
+      UNIQUE Code;
+    END AddInfoText;
+
+    /** EN: Class containing a multilingual code list for predefined and generic restriction text elements
+     */
+    CLASS RestrictionText
+    EXTENDS CatalogueObjects_V2.Catalogues.Item =
+      /** EN: A restriction condition code which refers to an enumeration of codes
+       */
+      Code : MANDATORY UASGeographicalZone_V2.Restriction;
+      /** EN: Multilingual description text (max. 200 characters)
+       */
+      Description : MANDATORY UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: Uniqueness constraint of the code
+       */
+      UNIQUE Code;
+    END RestrictionText;
+
+  END CodelistTexts;
+
+  /** EN: Topic for UAS Geographical Zones
+   */
+  TOPIC UASZones =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      /** EN: Defines the role of an authority in relation with the UAS Geographical Zone, represented by a string with an enumerated list of values
+       */
+      CodeAuthorityRole = (
+        /** EN: The designated authority shall be contacted to get an authorisation before accessing the UAS Geographical Zone
+         */
+        AUTHORIZATION,
+        /** EN: The designated authority shall be notified of the UAS flight prior to accessing the UAS Geographical Zone
+         */
+        NOTIFICATION,
+        /** EN: The designated authority is a general purpose point of contact for the UAS in the zone (out of authorisation and notification)
+         */
+        INFORMATION
+      );
+
+      /** EN: A time identified in relation with an astronomical event, represented by a string with an enumerated list of values
+       */
+      CodeDaylightEventType = (
+        /** EN: Civil sunrise
+         */
+        SR,
+        /** EN: Civil sunset
+         */
+        SS
+      );
+
+      /** EN: Indicates what type of geometry sub-type is being provided (currently only circle is supported)
+       */
+      CodeGeometrySubType = (
+        /** EN: Circular geometry
+         */
+        Circle
+      );
+
+      /** EN: Indicates what type of geometry is being used to describe the feature
+       */
+      CodeGeometryType = (
+        /** EN: A Polygon geometry type
+         */
+        Polygon,
+        /** EN: A Point geometry type
+         */
+        Point
+      );
+
+      /** EN: Indicates the regulation level that establishes the UAS Geographical Zone, represented by a string with an enumerated list of values
+       */
+      CodeRegulationLevel = (
+        /** EN: The UAS Geographical Zone is established by a cantonal regulation
+         */
+        CANTONAL,
+        /** EN: The UAS Geographical Zone is established by a federal regulation
+         */
+        FEDERAL
+      );
+
+      /** EN: A coded value that indicates a vertical reference system, represented by a string with an enumerated list of values
+       */
+      CodeVerticalReferenceType = (
+        /** EN: Height above ground/surface level
+         */
+        AGL,
+        /** EN: Altitude above Mean Sea Level as defined by EGM-96 or a geoid model specified in the dataset metadata
+         */
+        AMSL,
+        /** EN: Height above the WGS84 ellipsoid
+         */
+        WGS84
+      );
+
+      /** EN: A coded value indicating a day of the week, represented by a string with an enumerated list of values
+       */
+      CodeWeekDayType = (
+        /** EN: Monday
+         */
+        MON,
+        /** EN: Tuesday
+         */
+        TUE,
+        /** EN: Wednesday
+         */
+        WED,
+        /** EN: Thursday
+         */
+        THU,
+        /** EN: Friday
+         */
+        FRI,
+        /** EN: Saturday
+         */
+        SAT,
+        /** EN: Sunday
+         */
+        SUN,
+        /** EN: Any day of the week
+         */
+        Any
+      );
+
+      /** EN: A coded value that indicates a choice between a positive (yes) and a negative (no) applicability, represented by a string with an enumerated list of values
+       */
+      CodeYesNoType = (
+        /** EN: The situation is true, according to the property default definition
+         */
+        Yes,
+        /** EN: The situation is not true
+         */
+        No
+      );
+
+      /** EN: A coded identifier of an UAS Geographical Zone
+       */
+      CodeZoneIdentifierType = TEXT*7;
+
+      /** EN: A coded indication of a reason that justifies the existence of an UAS Geographical Zone, represented by a string with an enumerated list of values
+       */
+      CodeZoneReasonType = (
+        /** EN: Due to the presence of air traffic
+         */
+        AIR_TRAFFIC,
+        /** EN: Due to the presence of a sensitive site, in the vicinity of which the presence of drones could be considered a potential threat
+         */
+        SENSITIVE,
+        /** EN: Due to the presence of a sensitive site for which the presence of drones could rise privacy concerns
+         */
+        PRIVACY,
+        /** EN: Due to the presence of a significantly populated area
+         */
+        POPULATION,
+        /** EN: Due to the presence of a wildlife/nature sanctuary or another area with sensitive nature/fauna
+         */
+        NATURE,
+        /** EN: Due to noise abatement regulations
+         */
+        NOISE,
+        /** EN: Due to activity related to a situation that requires urgent intervention (such as an accident)
+         */
+        EMERGENCY,
+        /** EN: Due to the application of a dynamic airspace reconfiguration in a U-space volume, temporarily segregating the zone for UAS operations
+         */
+        DAR
+      );
+
+      /** EN: An indicator of the restriction level for the zone, represented by a string with an enumerated list of values
+       */
+      CodeZoneType = (
+        /** EN: Indicates a zone subject to the requirements of Regulation EU 664/2021
+         */
+        USPACE,
+        /** EN: Indicates that the flight of UAS is prohibited during the applicability time
+         */
+        PROHIBITED,
+        /** EN: Indicates that the flight of UAS is subject to explicit authorization requirements during the time of applicability. Note that one Authority contact with the role Authorization should be provided in this case
+         */
+        REQ_AUTHORIZATION,
+        /** EN: Indicates that access in the UAS Geographical Zone is allowed only to operators fulfilling a special condition, which is defined as a logical expression
+         */
+        CONDITIONAL,
+        /** EN: Indicates that the zone may be used during the applicability time without any special permissions or restrictions
+         */
+        NO_RESTRICTION
+      );
+
+      /** EN: Allows an indication that the definition of an UAS Geographical Zone is specifically customized for a particular UAS or operator
+       */
+      CodeZoneVariant = (
+        /** EN: The Zone is provided with its common definition, valid for any UAS and operator
+         */
+        COMMON
+      );
+
+      /** EN: A date and time instant, represented as a string specified by RFC 3339 in the local time
+       */
+      DateTimeType = FORMAT INTERLIS.XMLDateTime "1900-01-01T00:00:00.000" .. "2099-12-31T23:59:59.000";
+
+      /** EN: A free text with a maximum length of 200 characters
+       */
+      TextShortType = TEXT*200;
+
+      /** EN: A period of time represented as a string formatted according to the ISO 8601 rules
+       */
+      TimeInterval = TEXT*8;
+
+      /** EN: A time instant represented by a string according to the ISO 8601 standard and in the local time
+       */
+      TimeType = FORMAT INTERLIS.XMLTime "00:00:00.000" .. "23:59:59.999";
+
+      /** EN: Defines units of measurement used for distances
+       */
+      UomDistance = (
+        /** EN: Metres
+         */
+        m
+      );
+
+      /** EN: A string of characters that complies with the Uniform Resource Name (URN) scheme as specified in the RFC 2141
+       */
+      URNType = (
+        /** EN: The geoid model used in Switzerland
+         */
+        CHGeo2004
+      );
+
+    /** EN: A GeoJSON feature representing an UAS Geographical Zone
+     */
+    CLASS Feature =
+    END Feature;
+
+    /** EN: A relevant authority that is in charge for authorising, being notified or providing information for UAS operations in the UAS Geographical Zone
+     */
+    CLASS Authority =
+      /** EN: The official multilingual name of a public or private authority
+       */
+      authorityName : MANDATORY UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: The multilingual name of a specific department or service within the organisation
+       */
+      service : UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: The multilingual name or role of a specific person that needs to be contacted within the organisation
+       */
+      contactName : UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: The multilingual URL of the public internet site through which the organisation may be contacted
+       */
+      siteURL : MANDATORY UASGeographicalZone_V2.MultilingualUri;
+      /** EN: The e-mail address by which the organisation may be contacted
+       */
+      email : TextShortType;
+      /** EN: A phone number at which the organisation may be contacted
+       */
+      phone : TextShortType;
+    END Authority;
+
+    /** EN: Specifies a daily applicability schedule of the zone, within the time when the area exists according to the TimePeriod information
+     */
+    CLASS DailyPeriod =
+      /** EN: The day(s) of the week
+       */
+      day : BAG {1..6} OF CodeWeekDayType;
+      /** EN: The daily start time, if startEvent is not specified
+       */
+      startTime : TimeType;
+      /** EN: The event triggering the start of the applicable time period, if startTime is not specified
+       */
+      startEvent : CodeDaylightEventType;
+      /** EN: The daily end time, if endEvent is not specified
+       */
+      endTime : TimeType;
+      /** EN: The event triggering the end of the applicable time period, if endTime is not specified
+       */
+      endEvent : CodeDaylightEventType;
+      /** EN: One of startTime or startEvent must be defined
+       */
+      MANDATORY CONSTRAINT DEFINED (startTime) OR DEFINED (startEvent);
+      /** EN: If startTime is defined, startEvent must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (startTime)) OR NOT (DEFINED (startEvent)); 
+      /** EN: If startEvent is defined, startTime must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (startEvent)) OR NOT (DEFINED (startTime));
+      /** EN: One of endTime or endEvent must be defined
+       */
+      MANDATORY CONSTRAINT DEFINED (endTime) OR DEFINED (endEvent);
+      /** EN: If endTime is defined, endEvent must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (endTime)) OR NOT (DEFINED (endEvent));
+      /** EN: If endEvent is defined, endTime must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (endEvent)) OR NOT (DEFINED (endTime));
+    END DailyPeriod;
+
+    /** EN: Global information that qualifies and constrains the usage of the data contained in the associated data set
+     */
+    CLASS DatasetMetadata =
+      /** EN: The date and time starting from when the information contained in the data set is applicable, which means in particular the date of publication
+       */
+      validFrom : MANDATORY DateTimeType;
+      /** EN: The date and time until when the information contained in the data set is applicable
+       */
+      validTo : DateTimeType;
+      /** EN: Multilingual information (such as name, contact, details) of the organization providing the data set
+       */
+      provider : MANDATORY UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: The date and time when the data set was issued
+       */
+      issued : MANDATORY DateTimeType;
+      /** EN: Multilingual textual description of the data set content, extent, purpose, etc.
+       */
+      description : UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: Identification of another geoid model than EGM96 which is used for the vertical limits that are expressed with reference to the Mean Sea Level
+       */
+      otherGeoid : URNType;
+      /** EN: Multilingual constraints or caution reasons related to the use of the data contained in the data set, in particular with regard to the quality of the data
+       */
+      technicalLimitation : UASGeographicalZone_V2.MultilingualTextShort;
+    END DatasetMetadata;
+
+    /** EN: A feature collection class containing zero or more features representing UAS Geographical Zones
+     */
+    CLASS FeatureCollection =
+      /** EN: A free text name to identify the UAS Geographical Zone data set
+       */
+      collectionName : MANDATORY TextShortType;
+      /** EN: Rectangular surface that comprises the entire area
+       */
+      bbox : TEXT*150;
+      /** EN: The attribute collectionName must be unique
+       */
+      UNIQUE collectionName;
+    END FeatureCollection;
+
+    /** EN: A GeoJSON geometry as defined in the RFC 7946 standard, including additional foreign members based on the LayeredGeoJSON extension
+     */
+    CLASS Geometry =
+      /** EN: Type of geometry being used to describe the feature
+       */
+      geometryType : MANDATORY CodeGeometryType;
+      /** EN: A point shape using the CH1903+ coordinate reference system (EPSG:2056)
+       */
+      coordinatesPoint : GeometryCHLV95_V2.Coord2;
+      /** EN: A polygonal shape using the CH1903+ coordinate reference system (EPSG:2056). There must be a single exterior and no circles. Interior holes are allowed
+       */
+      coordinatesPolygon : SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V2.Coord2 WITHOUT OVERLAPS>0.05;
+      /** EN: If geometryType==Point, coordinatesPoint has to be defined
+       */
+      MANDATORY CONSTRAINT NOT ((geometryType==#Point)) OR DEFINED (coordinatesPoint);
+      /** EN: If geometryType==Polygon, coordinatesPolygon has to be defined
+       */
+      MANDATORY CONSTRAINT NOT ((geometryType==#Polygon)) OR DEFINED (coordinatesPolygon);
+      /** EN: If coordinatesPoint is defined, coordinatesPolygon must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (coordinatesPoint)) OR NOT (DEFINED (coordinatesPolygon));
+      /** EN: If coordinatesPolygon is defined, coordinatesPoint must not be defined
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (coordinatesPolygon)) OR NOT (DEFINED (coordinatesPoint));
+    END Geometry;
+
+    /** EN: An extension to GeoJSON which provides the possibility to specify a horizontal “circle” extent for a point geometry
+     */
+    CLASS HorizontalExtent =
+      /** EN: Fixed value for circle
+       */
+      subType : MANDATORY CodeGeometrySubType;
+      /** EN: Distance, in metres, from the associated point along the surface of the Earth that this geometry extends
+       */
+      radius : MANDATORY 0 .. 999999 [INTERLIS.m];
+    END HorizontalExtent;
+
+    /** EN: Defines, if applicable, the limited applicability dates and time of the zone, including an eventual daily schedule
+     */
+    CLASS TimePeriod =
+      /** EN: The date and time when the UAS Geographical Zone starts to exist. When not provided, it means that the zone is permanent and such zone might still have a schedule specified. It can be also used in order to specify that a zone becomes applicable after the start of validity
+       */
+      startDateTime : DateTimeType;
+      /** EN: The date and time when the UAS Geographical Zone ceases to exist. When not provided, it means that the zone is permanent and such zone might still have a schedule specified
+       */
+      endDateTime : DateTimeType;
+      /** EN: Special marking of annually recurring temporary zones, that is used only in the context of Swiss UAS Geographical Zones
+       */
+      annually : MANDATORY CodeYesNoType;
+      /** EN: It is forbidden to provide the attribute endDateTime without the attribute startDateTime
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (endDateTime)) OR DEFINED (startDateTime);
+      /** EN: The attribute annually==Yes can only occur when startDateTime is defined
+       */
+      MANDATORY CONSTRAINT NOT ((annually==#Yes)) OR DEFINED (startDateTime); 
+      /** EN: The attribute annually==Yes can only occur when endDateTime is defined
+       */
+      MANDATORY CONSTRAINT NOT ((annually==#Yes)) OR DEFINED (endDateTime);
+      /** EN: When both startDateTime and endDateTime are provided, endDateTime must be later than startDateTime
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (startDateTime) AND DEFINED (endDateTime)) OR (startDateTime < endDateTime);
+    END TimePeriod;
+
+    /** EN: A specific version of an airspace of defined dimensions, above the land areas or territorial waters of a state, within which a particular restriction or condition for UAS flights applies
+     */
+    CLASS UASZoneVersion =
+      /** EN: A string of characters that uniquely identifies the UAS Geographical Zone within the State/Territory identified by the country member
+       */
+      identifier : MANDATORY CodeZoneIdentifierType;
+      /** EN: The State that has the authority to declare the zone. A 3 letter identifier using the ISO 3166-1 alpha-3 standard (CHE for Switzerland
+       */
+      country : MANDATORY InternationalCodes_V2.CountryCode_ISO3166_1;
+      /** EN: A multilingual text name by which the zone may be known by the public or by the UAS community. Important: Languages DE, FR, IT and EN have to be provided. Use the main language value as default for the other languages if no specific value in a certain language exists. The permissible length is limited to 200 characters
+       */
+      name : MANDATORY UASGeographicalZone_V2.MultilingualTextShort;
+      /** EN: An indication if flying in the zone is subject to one of the values in CodeZoneType
+       */
+      type : MANDATORY CodeZoneType;
+      /** EN: An indication whether the zone is provided with its common definition (whereas a customized definition for a particular user is not applicable herein)
+       */
+      variant : MANDATORY CodeZoneVariant;
+      /** EN: An indication of the conditions under which the zone can be used
+       */
+      restrictionConditions : MANDATORY UASGeographicalZone_V2.Restriction;
+      /** EN: Identifies the canton where the UAS Geographical Zone is located. 0=Switzerland; 1 to 26 = canton number from Federal Statistical Office; 27=Liechtenstein
+       */
+      region : MANDATORY 0 .. 27;
+      /** EN: A coded indication for the reason that led to the establishment of the zone
+       */
+      reason : MANDATORY CodeZoneReasonType;
+      /** EN: Indicates whether the UAS Geographical Zone underlies to a cantonal or a federal regulation
+       */
+      regulationLevel : MANDATORY CodeRegulationLevel;
+      /** EN: Indicates that exemptions from the national or European regulations are allowed in the UAS Geographical Zone, that will be detailed via the message member
+       */
+      regulationExemption : CodeYesNoType;
+      /** EN: Multilingual message to be displayed to the user of the zone, typically on the RPS for the Remote Pilot, to make him/her aware about specific information associated with the zone
+       */
+      message : UASGeographicalZone_V2.MultilingualTextLong;
+      /** EN: This is a placeholder, allowing data providers to customize the implementation and provide additional information. In Switzerland, this is used to inform about exemption permits or to provide other relevant indications
+       */
+      extendedProperties : MANDATORY UASGeographicalZone_V2.AddInfo;
+      /** EN: PROHIBITED (type) geographical zones must be associated with REC01 (restrictionConditions) and EXP01 (extendedProperties)
+       */
+      MANDATORY CONSTRAINT NOT((type == #PROHIBITED)) OR (restrictionConditions == #REC01) AND (extendedProperties == #EXP01); 
+      /** EN: REQ_AUTHORIZATION (type) geographical zones must be associated with either REC02a or REC02b or REC02c (restrictionConditions) and EXP02 (extendedProperties)
+       */
+      MANDATORY CONSTRAINT NOT((type == #REQ_AUTHORIZATION)) OR (restrictionConditions == #REC02a OR restrictionConditions == #REC02b OR restrictionConditions == #REC02c) AND (extendedProperties == #EXP02); 
+      /** EN: CONDITIONAL (type) geographical zones must be associated with REC03 (restrictionConditions) and EXP03 (extendedProperties)
+       */
+      MANDATORY CONSTRAINT NOT((type == #CONDITIONAL)) OR (restrictionConditions == #REC03) AND (extendedProperties == #EXP03); 
+      /** EN: USPACE (type) geographical zones must be associated with REC04 (restrictionConditions) and EXP04 (extendedProperties)
+       */
+      MANDATORY CONSTRAINT NOT((type == #USPACE)) OR (restrictionConditions == #REC04) AND (extendedProperties == #EXP04); 
+      /** EN: NO_RESTRICTION (type) geographical zones must be associated with REC05 (restrictionConditions) and EXP05 (extendedProperties)
+       */
+      MANDATORY CONSTRAINT NOT((type == #NO_RESTRICTION)) OR (restrictionConditions == #REC05) AND (extendedProperties == #EXP05);
+    END UASZoneVersion;
+
+    /** EN: An extension to GeoJSON which provides a vertical layer extent to all standard geometries
+     */
+    CLASS VerticalLayer =
+      /** EN: The value of the upper limit of the UAS Geographical Zone expressed in a unit of measurement specified in uom, in relation with the vertical datum specified in the upperReference member
+       */
+      upper : MANDATORY 0 .. 99999;
+      /** EN: The vertical reference for the upper limit of the UAS Geographical Zone
+       */
+      upperReference : MANDATORY CodeVerticalReferenceType;
+      /** EN: The value of the lower limit of the UAS Geographical Zone expressed in a unit of measurement specified in uom, in relation with the vertical datum specified in the lowerReference member
+       */
+      lower : MANDATORY 0 .. 99999;
+      /** EN: The vertical reference for the lower limit of the UAS Geographical Zone
+       */
+      lowerReference : MANDATORY CodeVerticalReferenceType;
+      /** EN: The unit of measurement in which the upper and lower values are expressed. Only metres are allowed
+       */
+      uom : MANDATORY UomDistance;
+      /** EN: The upper limit must be greater than the lower
+       */
+      MANDATORY CONSTRAINT upper > lower;
+    END VerticalLayer;
+
+    /** EN: Information that qualifies and provides traceability for the zone operational data, which is not included in the UAS Geographical Zone data provided to the users
+     */
+    CLASS Metadata =
+      /** EN: Indicates when the zone was initially created
+       */
+      creationDateTime : MANDATORY DateTimeType;
+      /** EN: Indicates when the characteristics of the zone have been last time updated
+       */
+      updateDateTime : MANDATORY DateTimeType;
+      /** EN: Identifies the originator of the UAS Geographical Zone
+       */
+      originator : MANDATORY TextShortType;
+    END Metadata;
+
+    /** EN: Defines a relevant authority that is in charge for authorizing, being notified or providing information for UAS operations in the UAS Geographical Zone
+     */
+    ASSOCIATION AuthorityRequirements =
+      /** EN: Association
+       */
+      zoneAuthority -- {1..*} Authority;
+      /** EN: Composition
+       */
+      requiresToContact -<#> {1} UASZoneVersion;
+      /** EN: The role of the Authority in relation with the zone
+       */
+      purpose : MANDATORY CodeAuthorityRole;
+      /** EN: The minimal time interval required between notification or authorization request and starting to operate in the zone
+       */
+      intervalBefore : MANDATORY TimeInterval;
+      /** EN: UAS Geographical Zones of the type PROHIBITED must be associated with an INFORMATION authority role (multi-class constraint)
+       */
+      MANDATORY CONSTRAINT NOT((requiresToContact->type == #PROHIBITED)) OR (purpose == #INFORMATION);
+      /** EN: UAS Geographical Zones of the type NO_RESTRICTION cannot be associated with an AUTHORIZATION authority role (multi-class constraint)
+       */
+      MANDATORY CONSTRAINT NOT((requiresToContact->type == #NO_RESTRICTION)) OR (purpose != #AUTHORIZATION); 
+      /** EN: UAS Geographical Zones of the type REQ_AUTHORIZATION must be associated with an AUTHORIZATION authority role (multi-class constraint)
+       */
+      MANDATORY CONSTRAINT NOT((requiresToContact->type == #REQ_AUTHORIZATION)) OR (purpose == #AUTHORIZATION); 
+      /** EN: UAS Geographical Zones of the type USPACE must be associated with an INFORMATION authority role (multi-class constraint)
+       */
+      MANDATORY CONSTRAINT NOT((requiresToContact->type == #USPACE)) OR (purpose == #INFORMATION);
+    
+  !! This constraint has to be inserted manually in the ili file (not with UML/INTERLIS-Editor)
+  !!=============================================
+  /** EN: intervalBefore must be provided in the format PnnDTnnH
+    */  
+  MANDATORY CONSTRAINT Checkinterval : Text_V2.matches(intervalBefore, "^P{1}[0-9]{2}DT{1}[0-9]{2}H{1}$");  
+  !!=============================================  
+    
+    END AuthorityRequirements;
+
+    /** EN: Association HorizontalExtent with Geometry
+     */
+    ASSOCIATION Extent_rel =
+      /** EN: Association
+       */
+      extent -- {0..1} HorizontalExtent;
+      /** EN: Composition
+       */
+      hasExtent -<#> {1} Geometry;
+    END Extent_rel;
+
+    /** EN: Association Feature with FeatureCollection
+     */
+    ASSOCIATION Features_rel =
+      /** EN: Association
+       */
+      features -- {0..*} Feature;
+      /** EN: Composition
+       */
+      hasFeatures -<#> {1} FeatureCollection;
+    END Features_rel;
+
+    /** EN: Association Geometry with Geometry (for vertically stacked geometries)
+     */
+    ASSOCIATION Geometries_rel =
+      /** EN: Association
+       */
+      geometries -- {0..*} Geometry;
+      /** EN: Composition
+       */
+      hasGeometries -<#> {1} Geometry;
+    END Geometries_rel;
+
+    /** EN: Association Geometry with Feature
+     */
+    ASSOCIATION Geometry_rel =
+      /** EN: Association
+       */
+      geometry -- {1} Geometry;
+      /** EN: Composition
+       */
+      hasGeometry -<#> {1} Feature;
+    END Geometry_rel;
+
+    /** EN: Association VerticalLayer with Geometry
+     */
+    ASSOCIATION Layer_rel =
+      /** EN: Association
+       */
+      layer -- {1} VerticalLayer;
+      /** EN: Composition
+       */
+      hasLayer -<#> {1} Geometry;
+    END Layer_rel;
+
+    /** EN: Association TimePeriod with UASZoneVersion
+     */
+    ASSOCIATION LimitedApplicability_rel =
+      /** EN: Association
+       */
+      limitedApplicability -- {0..*} TimePeriod;
+      /** EN: Composition
+       */
+      isApplicable -<#> {1} UASZoneVersion;
+    END LimitedApplicability_rel;
+
+    /** EN: Association DatasetMetadata with FeatureCollection
+     */
+    ASSOCIATION Metadata_rel =
+      /** EN: Association
+       */
+      metadata -- {1} DatasetMetadata;
+      /** EN: Composition
+       */
+      hasMetadata -<#> {1} FeatureCollection;
+    END Metadata_rel;
+
+    /** EN: Association UASZoneVersion with Feature
+     */
+    ASSOCIATION Properties_rel =
+      /** EN: Association
+       */
+      properties -- {1} UASZoneVersion;
+      /** EN: Composition
+       */
+      hasProperties -<#> {1} Feature;
+    END Properties_rel;
+
+    /** EN: Association DailyPeriod with TimePeriod
+     */
+    ASSOCIATION Schedule_rel =
+      /** EN: Association
+       */
+      schedule -- {0..*} DailyPeriod;
+      /** EN: Composition
+       */
+      hasDailySchedule -<#> {1} TimePeriod;
+    END Schedule_rel;
+
+    /** EN: Association Metadata with UASZoneVersion
+     */
+    ASSOCIATION dataSource_rel =
+      /** EN: Association
+       */
+      dataSource -- {0..1} Metadata;
+      /** EN: Composition
+       */
+      hasDataSource -<#> {1} UASZoneVersion;
+    END dataSource_rel;
+
+  !! This constraint has to be inserted manually in the ili file (not with UML/INTERLIS-Editor)
+  !!=============================================
+  /** EN: validFrom must precede startDateTime when startDateTime is defined (multi-class constraint)
+   */
+  CONSTRAINTS OF TimePeriod =
+    MANDATORY CONSTRAINT
+      isApplicable -> hasProperties -> hasFeatures -> metadata -> validFrom < startDateTime AND DEFINED (startDateTime);
+  END;
+  !!=============================================
+
+  END UASZones;
+
+END UASGeographicalZone_V2.

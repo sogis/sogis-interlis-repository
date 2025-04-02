@@ -1,0 +1,216 @@
+INTERLIS 2.3;
+!!==============================================================================
+!! Einschränkungen für die Binnenschifffahrt
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 100
+!! Bezeichnung GeoIV                         : Einschränkungen für die Binnenschifffahrt
+!! Sammlung-Nr.                              : 100.1
+!! Zuständige Stelle [Fachstelle des Bundes] : Kantone [BAV]
+!! Zugangsberechtigungsstufe                 : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 1.0     | 2020-02-26 | ems   | Publikations-Version
+!! 1.0     | 2022-07-26 | KOGIS | Meta attributes @ili2db deleted
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL EinschraenkungenBinnenschifffahrt_Kataloge_V1 (de)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2020-02-26" =
+
+  IMPORTS CatalogueObjects_V1, LocalisationCH_V1;
+
+  TOPIC Kataloge =
+
+    CLASS Beeinflussungstyp EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code              : MANDATORY TEXT*36;
+      Beeinflussungstyp : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END Beeinflussungstyp;
+
+    STRUCTURE Beeinflussungstyp_KatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Beeinflussungstyp;
+      Ergaenzungstext      : TEXT*256;
+    END Beeinflussungstyp_KatRef;
+
+    CLASS Rechtsgrundlage EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code              : MANDATORY TEXT*36;
+      Titel             : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung        :           LocalisationCH_V1.MultilingualText;
+      OffizielleNummer  : MANDATORY LocalisationCH_V1.MultilingualText;
+      TextImWeb         :           LocalisationCH_V1.MultilingualText;
+      Ansprechpartner   : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END Rechtsgrundlage;
+
+    STRUCTURE Rechtsgrundlage_KatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Rechtsgrundlage;
+      Artikel              : TEXT*30;
+    END Rechtsgrundlage_KatRef;
+
+    CLASS Schifffahrtszeichentyp EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code             : MANDATORY TEXT*36;
+      Vorschrift       : MANDATORY LocalisationCH_V1.MultilingualText;
+      Materialisierung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Bedeutung        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Kategorie        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Symbol           : MANDATORY BLACKBOX BINARY;
+      UNIQUE Code;
+    END Schifffahrtszeichentyp;
+
+    STRUCTURE Schifffahrtszeichentyp_KatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Schifffahrtszeichentyp;
+      Zusatzzeichen        : LocalisationCH_V1.MultilingualText;
+      Ergaenzungstext      : TEXT*256;
+    END Schifffahrtszeichentyp_KatRef;
+
+  END Kataloge;
+
+END EinschraenkungenBinnenschifffahrt_Kataloge_V1.
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL EinschraenkungenBinnenschifffahrt_LV95_V1 (de)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2022-07-26" =
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS EinschraenkungenBinnenschifffahrt_Kataloge_V1;
+
+  TOPIC EBSf =
+    DEPENDS ON EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge;
+
+    STRUCTURE GeometrieWirkungsbereich =
+      Flaeche : GeometryCHLV95_V1.MultiSurface;
+      Linie   : GeometryCHLV95_V1.MultiLine;
+      Punkt   : GeometryCHLV95_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Flaeche) OR DEFINED (Linie) OR DEFINED (Punkt);
+    END GeometrieWirkungsbereich;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit :  MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit   :            INTERLIS.XMLDate;
+      BearbeitungsDatum :  MANDATORY INTERLIS.XMLDate;
+      Stand             :  MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+    CLASS Schifffahrtsbeeinflussung (ABSTRACT) =
+      Beeinflussungstyp : MANDATORY EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Beeinflussungstyp_KatRef;
+      Erlaeuterung      :           TEXT*256;
+      Wirkungsbereich   : MANDATORY GeometrieWirkungsbereich;
+      Anlagename        :           TEXT*50;
+      Gewaessername     : MANDATORY TEXT*256;
+      Wirkungszeit      :           TEXT*256;
+      Gueltigkeit       : MANDATORY Gueltigkeit;
+      KantonaleID       : MANDATORY TEXT*36;
+      Datenherr         : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE KantonaleID, Datenherr;
+    END Schifffahrtsbeeinflussung;
+
+    CLASS Schifffahrtsbeeinflussung_rechtswirksam EXTENDS Schifffahrtsbeeinflussung =
+      Rechtsgrundlage : BAG OF EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Rechtsgrundlage_KatRef;
+      Verfuegung      : TEXT*256;
+    END Schifffahrtsbeeinflussung_rechtswirksam;
+
+    CLASS Schifffahrtsbeeinflussung_informativ EXTENDS Schifffahrtsbeeinflussung =
+    END Schifffahrtsbeeinflussung_informativ;
+
+    CLASS Schifffahrtszeichen =
+      Schifffahrtszeichentyp : MANDATORY EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Schifffahrtszeichentyp_KatRef;
+      Erlaeuterung           :           TEXT*256;
+      Standort               : MANDATORY GeometryCHLV95_V1.Coord2;
+      Orientierung           :           TEXT*7;
+      ZustaendigeStelle      :           TEXT*256;
+      Gueltigkeit            : MANDATORY Gueltigkeit;
+      KantonaleID            : MANDATORY TEXT*36;
+      Datenherr              : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE KantonaleID, Datenherr;
+    END Schifffahrtszeichen;
+
+    ASSOCIATION Beeinflussung_ZeichenAssoc =
+      rBeeinflussung -- {1} Schifffahrtsbeeinflussung;
+      rZeichen       -- {0..*} Schifffahrtszeichen;
+    END Beeinflussung_ZeichenAssoc;
+
+  END EBSf;
+
+END EinschraenkungenBinnenschifffahrt_LV95_V1 .
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL EinschraenkungenBinnenschifffahrt_LV03_V1 (de)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2022-07-26" =
+
+  IMPORTS GeometryCHLV03_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS EinschraenkungenBinnenschifffahrt_Kataloge_V1;
+
+  TOPIC EBSf =
+    DEPENDS ON EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge;
+
+    STRUCTURE GeometrieWirkungsbereich =
+      Flaeche : GeometryCHLV03_V1.MultiSurface;
+      Linie   : GeometryCHLV03_V1.MultiLine;
+      Punkt   : GeometryCHLV03_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Flaeche) OR DEFINED (Linie) OR DEFINED (Punkt);
+    END GeometrieWirkungsbereich;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit :  MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit   :            INTERLIS.XMLDate;
+      BearbeitungsDatum :  MANDATORY INTERLIS.XMLDate;
+      Stand             :  MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+    CLASS Schifffahrtsbeeinflussung (ABSTRACT) =
+      Beeinflussungstyp : MANDATORY EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Beeinflussungstyp_KatRef;
+      Erlaeuterung      :           TEXT*256;
+      Wirkungsbereich   : MANDATORY GeometrieWirkungsbereich;
+      Anlagename        :           TEXT*50;
+      Gewaessername     : MANDATORY TEXT*256;
+      Wirkungszeit      :           TEXT*256;
+      Gueltigkeit       : MANDATORY Gueltigkeit;
+      KantonaleID       : MANDATORY TEXT*36;
+      Datenherr         : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE KantonaleID, Datenherr;
+    END Schifffahrtsbeeinflussung;
+
+    CLASS Schifffahrtsbeeinflussung_rechtswirksam EXTENDS Schifffahrtsbeeinflussung =
+      Rechtsgrundlage : BAG OF EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Rechtsgrundlage_KatRef;
+      Verfuegung      : TEXT*256;
+    END Schifffahrtsbeeinflussung_rechtswirksam;
+
+    CLASS Schifffahrtsbeeinflussung_informativ EXTENDS Schifffahrtsbeeinflussung =
+    END Schifffahrtsbeeinflussung_informativ;
+
+    CLASS Schifffahrtszeichen =
+      Schifffahrtszeichentyp : MANDATORY EinschraenkungenBinnenschifffahrt_Kataloge_V1.Kataloge.Schifffahrtszeichentyp_KatRef;
+      Erlaeuterung           :           TEXT*256;
+      Standort               : MANDATORY GeometryCHLV03_V1.Coord2;
+      Orientierung           :           TEXT*7;
+      ZustaendigeStelle      :           TEXT*256;
+      Gueltigkeit            : MANDATORY Gueltigkeit;
+      KantonaleID            : MANDATORY TEXT*36;
+      Datenherr              : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE KantonaleID, Datenherr;
+    END Schifffahrtszeichen;
+
+    ASSOCIATION Beeinflussung_ZeichenAssoc =
+      rBeeinflussung -- {1} Schifffahrtsbeeinflussung;
+      rZeichen       -- {0..*} Schifffahrtszeichen;
+    END Beeinflussung_ZeichenAssoc;
+
+  END EBSf;
+
+END EinschraenkungenBinnenschifffahrt_LV03_V1 .

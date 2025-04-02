@@ -1,0 +1,1974 @@
+!!@ comment = "VSASDSAMINI_2020_2_i_LV95.ili"
+
+INTERLIS 2.3;
+
+MODEL VSASDSAMINI_2020_LV95 (it) AT "http://www.vsa.ch/models"
+  VERSION "07.08.2023" TRANSLATION OF VSADSSMINI_2020_LV95 [ "07.08.2023" ] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS Base_i_LV95;
+  IMPORTS SIA405_Base_Acque_di_scarico_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Association suisse des professionnels de la protection des eaux (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Rilasciato per uso pubblico e applicazione commerciale"
+!!@ comment = "Specialista: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = "Esaminato per Compiler versione 5.3.2 (30.12.2022)"
+
+
+UNIT
+  Kilogramm_pro_Jahr [kga] = (kg/Units.a);
+  Abitanti_per_ettaro [Aha] = (Units.CountedObjects/Units.ha);
+  litri_al_secondo_ettaro [lsha] = (SIA405_Base_Acque_di_scarico_LV95.ls/Units.ha);
+  Kilogrammo_per_anno_per_metri_cubi_al_secondo [kga_m3s] = (kga/SIA405_Base_Acque_di_scarico_LV95.m3s);
+
+TOPIC VSADSSMini EXTENDS SIA405_Base_Acque_di_scarico_LV95.Amministrazione =
+
+
+DOMAIN
+
+
+!!@ comment = ""
+Numero = -99999999.9999 ..  99999999.9999;
+
+
+!!@ comment = "dilatato codominio SIA405 Stato Condizione operativa e di pianificazione."
+StatoValori EXTENDS SIA405_Base_Acque_di_scarico_LV95.Stato = (  !! Stato di funzionamento e di pianificazione del manufatto.
+!! 1.2.2013 Adeguamento alla nuova versione di SIA405_Base_i_LV95.Stato - Estensione dei valori di base dei fluidi, modellazione gerarchica 
+      !! 17.7.2015 fuori_servizio,  !! Include fuori_servizioe i seguenti valori
+         !!  riserva  !! non esiste nelle acque reflue
+      in_funzione (  !! Contiene in_funzione e i seguenti valori 
+      !! 17.7.2015   in_funzione,
+         provvisorio,
+         da_eliminare
+      ),
+      abbandonato (  !! abbandonato e i seguenti valori
+          !!  abbandonato,
+         eliminato_non_demolito,
+         eliminato_sconosciuto,
+         demolito
+      ),
+      !! 17.7.2015 sconosciuto,
+      altri ( !! Include i seguenti valori
+         variante_calcolo,
+         previsto,
+         progetto
+      )
+    ); 
+    !! nuovo 17.7.2015  
+    Stato = ALL OF StatoValori;
+
+
+!!@ comment = "Coefficiente di rugosità della parete secondo Prandtl Colebrook (ks), unità millimetrica ["
+Prandtl = 0.00 .. 100.00 [Units.mm];
+
+
+!!@ comment = "chilogramme per anno [kg/anno]"
+Carico = 0 .. 1000000 [kga];
+
+
+!!@ comment = "abitanit per hectare [abitanti/ha]"
+Densita_di_popolazione = 0 .. 10000 [Aha];
+
+
+!!@ comment = "popolazione equivalente [PE]"
+Popolazione_equivalente = 0 .. 300000 [Units.CountedObjects];
+
+
+!!@ comment = "numero abitanti"
+Popolazione = 0 .. 9999999 [Units.CountedObjects];
+
+
+!!@ comment = "Numero del corso d’acqua secondo la rete di corsi d’acqua VECTOR25"
+GWLNR = TEXT*25;
+
+
+!!@ comment = "Numero ARA secondo l’Ufficio federale dell’ambiente (UFAM)"
+no_IDA = 1 .. 999999 [Units.CountedObjects];
+
+
+!!@ comment = "Numero nell’ordine del doppio X/Y del profilo del profilo_tubo_geometria"
+Ordine = 1 .. 999;
+
+
+!!@ comment = "frequenza scarichi [numero scarichi/anno]"
+Frequenza_scarichi = 0.0 .. 999.9;
+
+
+!!@ comment = "Numero di aggregati"
+Numero_gruppo = 1 .. 9  [Units.CountedObjects];
+
+
+!!@ comment = "millimetro [mm]"
+Altezza_profilo = 0 .. 99999 [Units.mm];
+
+
+!!@ comment = "metro [m], 2 decimale"
+Prevalenza = 0.00 .. 30000.00 [m];
+
+
+!!@ comment = "Designazione cantonale del tratto di corso d’acqua nella rete cantonale"
+Tratta_corso_acqua_id = TEXT*36;
+
+
+!!@ comment = "percento [%]"
+Percento1000 = 0 .. 1000;
+
+
+!!@ comment = "Carico di scarico specifico [kga]/[m3s]"
+Carico_di_scarico_specifico = 0 .. 10000 [kga_m3s];
+
+!! Nuova Guida GEP Data 2020 Proprietario e fornitore dei dati come relazione con l'organizzazione invece che come attributo di testo
+CLASS VSA_BaseClass (ABSTRACT) EXTENDS SIA405_Base_Acque_di_scarico_LV95.SIA405_BaseClass =
+
+END VSA_BaseClass;
+
+!!@ comment = "Responsabile del trattamento dei dati, ovvero la persona o l'ente autorizzato a cancellare, modificare o gestire questo record di dati. Se un ufficio tecnico svolge questa attività per conto di un comune, il comune deve essere considerato il responsabile del trattamento dei dati e non l'ufficio tecnico. Questo viene quindi elencato tra i fornitori di dati."
+ASSOCIATION proprietario_datiAssoc = 
+   proprietario_datiRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+   VSA_BaseClass_proprietario_datiAssocRef -- {0..*} VSA_BaseClass;
+END proprietario_datiAssoc;
+
+!!@ comment = "Organizzazione che ha creato questo record (vedere anche proprietario_dati e ultima_modifica)."
+ASSOCIATION fornitore_datiAssoc =
+   fornitore_datiRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+   VSA_BaseClass_fornitore_datiAssocRef -- {0..*} VSA_BaseClass;
+END fornitore_datiAssoc;
+
+!!@ comment = "La definizione di un profilo di tubo con designazione può essere utilizzata per diverse linee. Un profilo di tubo viene rilevato solo se non è un profilo normale (condotta.tipo sezione.sezione_speciale o sezione_aperta). Un profilo di tubo è formato da diversi punti di appoggio che, insieme, definiscono la geometria della sezione (-> classe profilo tubo_geometria)."
+CLASS profilo_del_tubo EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Osservazioni generali"
+    osservazione: TEXT*80;
+    denominazione: MANDATORY TEXT*20;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END profilo_del_tubo;
+
+!!@ comment = "Geometria del profilo del tubo come punti x / y con altezza = 1"
+CLASS profilo_tubo_geometria EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Ordine dei punti di dettaglio della definizione della geometria"
+    ordine: Ordine;
+    !!@ comment = "la coordinata X"
+    X: Numero;
+    !!@ comment = "la coordinata Y"
+    Y: Numero;
+END profilo_tubo_geometria;
+
+!!@ comment = "Composition"
+ASSOCIATION profilo_tubo_geometria_profilo_condottaAssoc =
+  profilo_condottaRef  -<#> {1} profilo_del_tubo;
+  profilo_tubo_geometria_profilo_condottaAssocRef -- {0..*} profilo_tubo_geometria;
+END profilo_tubo_geometria_profilo_condottaAssoc;
+
+!!@ comment = "Luogo (puntuale) con funzione costruttiva o idraulica nella rete di smaltimento acque"
+CLASS nodo EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Identificativo univoco dell'IDA (numero IDA dell'UFAM) nel cui comprensorio si trova il nodo. Deve essere compilato anche se il nodo non è allacciato all'IDA. In caso di dubbi la delimitazione del comprensorio IDA deve essere chiarita con i servizi cantonali."
+    no_IDA: no_IDA;
+    !!@ comment = "Anno della messa in servizio (collaudo finale). Se sconosciuto, inserire = 1800 (valore più basso dell'intervallo di valori)"
+    anno_costruzione: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Classi di stato da 0 a 4 come da direttiva VSA 'manutenzione delle canalizzazioni'. Descrizione dello stato costruttivo del manufatto. Da non confondere con le priorità di risanamento, che indicano le priorità degli interventi (attributo necessità_risanamento)."
+    stato_costruttivo: (     
+      sconosciuto,
+      !!@ comment = "Non più funzionante: la canalizzazione è ostruita o lo sarà entro breve termine:canale crollato, completamente pervaso da radici o altri ostacoli al deflusso. Il canale perde acqua (esfiltrazione / possibile inquinamento delle acque sotterranee)"
+      Z0,
+      !!@ comment = "Gravi difetti: difetti costruttivi a causa dei quali la sicurezza statica, l'idraulica o la tenuta non sono piu assicurate: rotture del tubo assiali o radiali, deformazioni del tubo, infiltrazioni o perdite d'acqua visibili, fori nella parete del tubo, raccordi laterali molto sporgenti, notevole pervasione radicale, parete del tubo molto corrosa. Materiale del tubo inadatto."
+      Z1,
+      !!@ comment = "Difetti medi: difetti costruttivi che pregiudicano la statica, l'idraulica o la tenuta: giunti dei tubi larghi, entrate non sigillate, fessurazioni, leggeri ostacoli al deflusso come incrostazioni calcaree, raccordi laterali sporgenti, pareti dei tubi leggermente danneggiate, singole penetrazioni di radici, parete del tubo corrosa ecc."
+      Z2,
+      !!@ comment = "Difetti lievi: difetti costruttivi o anomalie senza influenuza significativa sulla tenuta, l'idraulica o la statica dei tubi: giunti larghi dei tubi, raccordi laterali male sigillati, lievi deformazioni di condotte sintetiche, lievi corrosioni ecc."
+      Z3,
+      !!@ comment = "Nessun difetto"
+      Z4
+    );
+    !!@ comment = "Osservazioni generali"
+    osservazione: TEXT*80;
+    denominazione: MANDATORY TEXT*20;
+    !!@ comment = "Quota della copertura del manufatto. Nel caso di più chiusini deve essere indicata la quota del chiusino principale. Lasciare vuoto in mancanza di chiusino."
+    quota_chiusino: Base_i_LV95.Altitudine;
+    !!@ comment = "Geometria di dettaglio in particolare per i manufatti speciali. Per pozzetti standard utilizzare di regola dimensione1 e 2. lo stesso vale per impianti d'infiltrazione standard. Canali non hanno geometria di dettaglio."
+    geometria_dettaglio: Base_i_LV95.Superficie;
+    !!@ comment = "Dimensione1 del pozzetto (misura interna massima)."
+    dimensione1: SIA405_Base_Acque_di_scarico_LV95.Larghezza;
+    !!@ comment = "Dimensione2 del pozzetto (misura interna minima). Per pozzetti rotondi dimensione2 resta vuota; viene inserita per i pozzetti ovali. Per pozzetti rettangolari utilizzare indicazioni geometriche precise."
+    dimensione2: SIA405_Base_Acque_di_scarico_LV95.Larghezza;
+    !!@ comment = "Finanziamento (finanziamento secondo LPAc Art. 60a)."
+    finanziamento: (     
+      !!@ comment = "Integralità delle condotte sotterrate e manufatti, che vengono finaziati con le tasse per lo smaltimento acque secondo l'art. 60a della legge sulla protezione delle acque."
+      pubblico,
+      !!@ comment = "Integralità delle condotte sotterrate e manufatti, che non vengono finaziati con le tasse per lo smaltimento acque secondo l'art. 60a della legge sulla protezione delle acque."
+      privato,
+      sconosciuto
+    );
+    !!@ comment = "L'attributo 'funzione' determina se un nodo sia un manufatto speciale e se del caso quale scheda tipo è da compilare. E' pertanto importante attribiuire correttamente la funzione."
+    funzione: (     
+      toilette_senza_scarico,
+      !!@ comment = "Fossa senza scarico"
+      fossa_senza_scarico,
+      !!@ comment = "Un pozzetto di caduta è un manufatto speciale nella rete di smaltimento, che permette il superamento di forti dislivelli su una distanza corta con contemporanea rottura dell'energia."
+      manufatto_caduta,
+      !!@ comment = "Camera di fermentazione: 3 camere"
+      camera_fermentazione,
+      !!@ comment = "Da utilizzare unicamente se nessun altro valore corrisponde. La funzioe deve essere descritta nell'attributo 'osservazioni'."
+      altro,
+      !!@ comment = "Rilevare il primo manufatto dell'IDA vero e proprio. Eventualmente stazioni di pompaggio, bacini di chiarificazione o scaricatori di piena a monte devono essere rilevati solo come tali. Rilevare come manufatto IDA in VSA-DSS."
+      manufatto_IDA,
+      !!@ comment = "Dispositivo per la corretta ventilazione in manufatti di smaltimento acque."
+      ventilazione,
+      !!@ comment = "Impianto per il trattamento delle acque di scarico stradali (SABA) o delle acque meteoriche da zone edificate come filtri in terreno vegetale, filtri split, filtri a sabbia o filtri tecnici e adsorber artificiali. Realizzazioni di trincee superficiali, pozzetto d'ispezione, di manufatti speciali/bacino o impianto tecnico. Bacini di decantazione (=raccoglitori di fanghi o bacini di chiarificazione) non sono qui considerati impianti di trattamento; per questi sono previsti attributi specifici."
+      installazione_di_trattamento,
+      !!@ comment = "scarico a pavimento"
+      scarico_a_pavimento,
+      !!@ comment = "Pozzetto nell'ambito dello smaltimento acque dei fondi privati, in cui di regola sfociano i tubi di scarico dei tetti."
+      pozzetto_acque_tetti,
+      !!@ comment = "Manufatto speciale ubicato su una condotta a sifone per il vuotameto della condotta nel suo punto più basso."
+      camera_sifone,
+      !!@ comment = "Manufatto per la ripartizione delle acque di scarico su più condotte a sifone."
+      sifone_entrata,
+      !!@ comment = "Pozzetto con una griglia per la raccolta di acque superficiali (VSS, SN 640 356)."
+      pozzetto_griglia,
+      !!@ comment = "Tutte le immissioni di acqua da IDA pubblici e industriali, da piccoli impianti di depurazione (KLARA) e da reti pubbliche di acque miste e meteoriche come pure immissioni di scarichi stradali con altezza o larghezza interna =30 cm. Sono considerate corpi d'acqua per definizione tutte i corpi d'acqua pubblici (definizione e standardizzazione indici per lo smaltimento delle acque di scarico, VSA/OKI, 2016)."
+      punto_immissione_rilevante_ricettore,
+      !!@ comment = "Tutte le immissioni in ricettore naturale che non rispondono ai criteri definiti in 'punto_immissione_rilevante_ricettore'"
+      punto_immissione_non_rilevante_ricettore,
+      !!@ comment = "Manufatto rettilineo con feritoie per la raccolta di acque superficiali."
+      canaletta_drenaggio,
+      !!@ comment = "Elemento strutturale allungato con aperture a fessura per la raccolta delle acque di deflusso superficiale con un sacco di fango. Il sacco di fango si trova dove il canale di scolo porta via, cioè al nodo (delle acque reflue) e alla copertura."
+      canaletta_drenaggio_con_sacco,
+      !!@ comment = "Fossa di fermentazione: 2 camere"
+      fossa_fermentazione,
+      !!@ comment = "Impianto di separazione per grassi e oli animali e vegetali (SN 592 000:2012)"
+      separatore_di_grasso,
+      !!@ comment = "Depressione naturale o artificaile nel terreno."
+      depressione_terreno,
+      !!@ comment = "Pozzetto standard per lo smaltimento acque di impianti ferroviari."
+      pozzetto_ferrovia,
+      !!@ comment = "Manufatto speciale in un corso d'acqua aperto per la raccolta di acqua con i materiali trasportati. Spesso all'inizio di tratte intubate."
+      camera_ritenuta,
+      !!@ comment = "Fossa per liquame"
+      fossa_liquame,
+      !!@ comment = "Bacino per la raccolta di sostanze nocive alle acque in caso di incidente o evento rilevante."
+      bacino_avaria,
+      !!@ comment = "Una fossa settica serve allo smaltimento acque di singoli edifici non allacciati alla rete di canalizzazione. Si tratta normalmente di una vasca sotterranea in cui sul fondo sedimantano le parti solide. Deve essere vuotato a intervalli regolari."
+      fossa_settica,
+      !!@ comment = "Impianto per il trattamento delle acque luride domestiche con valore di allacciamento limitato (DIN 4045)"
+      piccolo_IDA,
+      !!@ comment = "Pozzetto di ispezione congiunto per due condotte parallele per acque di scarico, in genere una condotta per acque luride e una condotta per acque meteoriche"
+      pozzetto_doppio,
+      !!@ comment = "Pozzetto di accesso o di controllo a scopo di manutenzione e controllo (definizione secondo SIA 190.301 / EN 16323:2014)"
+      pozzetto_di_ispezione,
+      !!@ comment = "Nodi di condotta servono per la rappresentazione di nodi topologici particolari che non possono essere associati a un manufatto specifico. Nodi di condotta sono da rilevare nei seguenti casi: a) confluenza senza pozzetto di più condotte principali (PAA) o secondarie (SAA), b) cambio di pendenza / sezione / materiale / anno di costruzione senza pozzetto, c) inizio condotta senza pozzetto d) inizio condotta sul lato scarico di manufatti speciali con più scarichi (idrauliamente separati), p.es. in scaricatori di piena, bacini di chiarificazione o manufatti ."
+      nodo_condotta,
+      !!@ comment = "La funzione 'stazione_misura' werdeunicamente attribuita a nodi che non hanno alte funzioni di manufatto speciale (puri pozzetti di misura). Per esempio per uno sacricatore con misuratore di portata viene definita la funzione 'scaricatore' e non la funzione 'stazione_misura'. L'apparecchio di misura in questo caso vien definito come componente del manufatto sulla scheda tipo 'scaricatore'."
+      stazione_misura,
+      !!@ comment = "mpianto per la separazione di liquidi leggeri minerali, ev. con filtro a coalescenza e/o chiusura automatica (SN 592 000:2012)"
+      separatore_olii,
+      !!@ comment = "Impianto per il sollevamento di acque di scarico all'interno della rete di smaltimento."
+      stazione_pompaggio,
+      !!@ comment = "Manufatto in reti di acque miste per la decantazione di particelle solide ed accumulo di acque miste (effetto secondario, per l'accumulo di piccoli volumi di acque meteoriche)"
+      bacino_chiarificazione,
+      !!@ comment = "Bacino d'acqua meteorica per la trattenuta del primo flusso (first flush)."
+      bacino_accumulo,
+      !!@ comment = "Canale d'accumulo con a monte scarico nel ricettore."
+      canale_accumulo,
+      !!@ comment = "Bacino di decantazione acque meteoriche in sistema separato. Da utilizzare anche per depuratori lamellari, ma non per bacini con ulteriori stadi di depurazione (filtro a sabbia, adsorber, ecc.) --> Impianto di trattamento"
+      bacino_decantazione_acque_meteoriche,
+      !!@ comment = "Volume di ritenzione per punte di deflusso di acque meteoriche nelea rete acque miste o meteoriche. La sua funzione è quella di sgravare la canalizzazione in caso di forte pioggia, ma al contrario del bacino di chiarificazione non ha uno scarico verso il corpo d'acqua ricettore, o eventualmente unicamente uno scarico d'emergenza."
+      bacino_ritenzione,
+      !!@ comment = "Canalizzazione d'accumulo con la stessa funzione del bacino d'accumulo."
+      canale_ritenzione,
+      !!@ comment = "Canalizzazione d'accumulo con scarico in un corpo d'acqua a valle."
+      canale_stoccaggio,
+      !!@ comment = "Combinazione di bacino di accumulo con bacino di chiarificazione"
+      bacino_combinato,
+      !!@ comment = "Manufatto speciale che separa le acque miste riversandone una parte direttamente in un corpo d'acqua ricettore."
+      scaricatore_piena,
+      !!@ comment = "Impianto di separazione con blocco degli odori (di regola sifone) che serve a trattenere e rimuovere sostanze indesiderate (ghiaia, sabbia, ecc.). Può essere strutturato come pozzetto con caditoia. Anche impianti con trattenuta di fanghi = impianti di separazione senza dispositivo anti odori) vengono definiti come pozzetto raccoglitori di fanghi (SN 592 000)"
+      pozzetto_decantazione,
+      !!@ comment = "Pozzetto di decantazione con un'uscita sifonata o parete sommersa. E' utilizzata in particolare come pretrattamento per impianti d'infiltrazione."
+      separatore_materiali_galleggianti,
+      !!@ comment = "Accesso ad un manufatto a livello del terreno."
+      accesso_laterale,
+      !!@ comment = "Pozzetto che serve per lavaggio. Se non c'è un vero pozzo, modellatelo come un ugello_di_lavaggio (parte dell'edificio)."
+      pozzetto_lavaggio,
+      !!@ comment = "Manufatto che suddivide le acque reflue nel sistema ma senza scaricarle. Eccezione: prima di un bacino di accumulo in parallelo, dopo riempimento del volume del bacino, le acque miste vengono scaricate nel ricettore naturale attraverso la camera di ripartizione. Uno o più entrate, due o più scarichi."
+      camera_ripartizione,
+      sconosciuto,
+      !!@ comment = "Manufatto superficiale o sotterraneo, costruito per l'infiltrazione artificiale di acque meteoriche. Sono considerati impianti di infiltrazione anche superfici riservate all'infiltrazione per le quali viene accettato un accumulazione di sostanze  a lungo termine. Questo è generalmente il caso quando il rapporto tra la superficie di smaltimento e la superficie d'infiltrazione è maggiore di 5."
+      impianto_infiltrazione,
+      !!@ comment = "Impianto per il trattamento preliminare di acque luride industriali o artigianali prima della invio all'IDA, come impianto di pirolisi o flottazione. I separatori di oli e grassi e i pozzetti e i bacini di decantazione (=raccoglitori fanghi o bacino di chiarificazione) non sono considerati impianti per il trattamento preliminare; per questi sono presenti attributi specifici. Per gli impianti di trattamento delle acque meteoriche utilizzare il valore 'Impianto di trattamento'"
+      impianto_trattamento_preliminare,
+      !!@ comment = "Manufatto che permette il deflusso dell'acqua per un dislivello dato. Il manufatto è composta da una camera di formazione del vortice, tubo di caduta, dissipatore d'energia e  tubo di ventilazione."
+      camera_caduta_vortice
+    );
+    !!@ comment = "Attributo derivato - Regola: tutti i nodi, che sono collegati a una condotta IPS (in entrata o in uscita), appartengono alla rete IPS. L'attributo ha la funzione d'esame tecnico e semplificato, dato che diversi principi tecnici dipendono dal fatto se la rete è principale o secondaria."
+    funzione_gerarchica: (     
+      !!@ comment = "Impianto principale di scarico"
+      IPS,
+      !!@ comment = "Impianto secondario di scarico"
+      ISS
+    );
+    !!@ comment = "Posizionamento del nodo. Punto di riferimento per il calcolo di rete delle canalizzazioni. (Di regola la posizione del centro del chiusino o la posizione dello scarico per tempo secco)."
+    posizione: Base_i_LV95.CoordNaz;
+    !!@ comment = "Precisione delle coordinate del chiusino (centro)"
+    precisione_planimetrica: (     
+      maggiore_50cm,
+      piu_meno_10cm,
+      piu_meno_3cm,
+      piu_meno_50cm,
+      sconosciuto
+    );
+    !!@ comment = "Attributo ricavato per la visualizzazione partendo da condotta.utilizzo_pianificato della condotta di deflusso in direzione primaria. Valori definizione v. condotta."
+    utilizzo_pianificato: (     
+      altro,
+      acqua_corso_acqua,
+      acque_miste_scaricate,
+      acque_industriali,
+      acque_miste,
+      acque_piovane,
+      acque_chiare,
+      acque_luride,
+      sconosciuto
+    );
+    !!@ comment = "Attributo ricavato per la visualizzazione partendo da condotta.utilizzo_pianificato della condotta di deflusso in direzione primaria. Valori definizione v. condotta."
+    utilizzo_attuale: (     
+      altro,
+      acqua_corso_acqua,
+      acque_miste_scaricate,
+      acque_industriali,
+      acque_miste,
+      acque_piovane,
+      acque_chiare,
+      acque_luride,
+      sconosciuto
+    );
+    !!@ comment = "OID del corrispondente Manufatto nel VSA-DSS; solo per transfers di modello."
+    OBJ_ID_manufatto_smaltimento_acque: TEXT*16;
+    !!@ comment = "OID del chiusino principale (importante qualora ve ne siano più di uno); solo per tansfer di modello."
+    OBJ_ID_chiusino: TEXT*16;
+    !!@ comment = "1. livello di rigurgito riferito alla pioggia di dimensionamento (dss)  2. Altezza, sotto la quale nello smaltimento acque dai fondi sono necessarie misure particolari anti rigurgito. (DIN 4045)"
+    livello_rigurgito_attuale: Base_i_LV95.Altitudine;
+    !!@ comment = "Gradi di priorità e orizzonte temporale per misure di risanmento secondo la direttiva VSA  'Manutenzione di canalizzazioni'"
+    necessita_risanamento: (     
+      !!@ comment = "Gli interventi sono urgenti. È da valutare la necessità di eventuali interventi immediati come nel grado 0. Orizzonte 3-4 anni."
+      urgente,
+      !!@ comment = "Non sono necessari interventi fino al prossimo rilevamento dello stato e relativa valutazione. Orizzonte >=10 anni"
+      nessuno,
+      !!@ comment = "Gli interventi sono molto urgenti e da eseguire entro breve termine. Con interventi immediati di riparazioni locali provvisorie possono essere evitati temporaneamente maggiori danni. Orizzonte <=2 anni"
+      breve_termine,
+      !!@ comment = "Gli interventi possono essere pianificati a lunga scadenza. Orizzonte 8-10 anni."
+      lungo_termine,
+      !!@ comment = "Gli interventi sono necessari a media scadenza. Orizzonte 5-7 anni."
+      medio_termine,
+      sconosciuto
+    );
+    !!@ comment = "Punto più basso del nodo. In manufatti speciali punto più basso del nodo al quale appartiene la scheda tipo, quindi in genere uscita in direzione IDA"
+    quota_fondo: Base_i_LV95.Altitudine;
+    !!@ comment = "Stato di funzionamento e di pianificazione del manufatto."
+    stato: Stato;
+    !!@ comment = "Default: 90 gradi"
+    simboloori: 0.0 .. 359.9 CIRCULAR [Units.Angle_Degree];
+    !!@ comment = "Possibilità d'accesso all'interno del manufatto per una persona (non per veicoli)"
+    accessibilita: (     
+      !!@ comment = "Prima di poter aprire il chiusino bisogna scavare."
+      coperto,
+      sconosciuto,
+      non_accessibile,
+      !!@ comment = "Possibilità d'accesso per una persona (nonnecessariamente per veicoli)"
+      accessibile
+    );
+    !!@ comment = "Anno dell'ultimo rilevamento dello stato. Serve per il rilevamento degli indicatori PGS. Può essere compilato consultando evento_di_mantenimento.momento (evento più recente) per evento di conservazione.tipo = analisi e stato = esecuzione automatica."
+    rapporto_sullo_stato_anno: SIA405_Base_Acque_di_scarico_LV95.Anno;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END nodo;
+
+CLASS nodo_Testo EXTENDS SIA405_Base_Acque_di_scarico_LV95.SIA405_TestoPos =
+END nodo_Testo;
+
+!!@comment = "Komposition"
+ASSOCIATION nodo_TestoAssoc =
+  nodoRef -<#> {1} nodo;
+  Testo -- {0 .. *} nodo_Testo;
+END nodo_TestoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION nodo_proprietarioAssoc =
+  proprietarioRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  nodo_proprietarioAssocRef -- {0..*} nodo;
+END nodo_proprietarioAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION nodo_gestoreAssoc =
+  gestoreRef (EXTERNAL) -- {0..1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  nodo_gestoreAssocRef -- {0..*} nodo;
+END nodo_gestoreAssoc;
+
+!!@ comment = "Canale chiuso o aperto, costruttivamente ed idraulicamente omogeneo, che serve allo smaltimento delle acque reflue."
+CLASS condotta EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Anno della messa in servizio (collaudo finale). Se sconosciuto, inserire = 1800 (valore più basso dell'intervallo di valori)"
+    anno_costruzione: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Classi di stato da 0 a 4 come da direttiva VSA 'manutenzione delle canalizzazioni'. Descrizione dello stato costruttivo del manufatto. Da non confondere con le priorità di risanamento, che indicano le priorità degli interventi (attributo necessità_risanamento)."
+    stato_costruttivo: (     
+      sconosciuto,
+      !!@ comment = "Non più funzionante: la canalizzazione è ostruita o lo sarà entro breve termine:canale crollato, completamente pervaso da radici o altri ostacoli al deflusso. Il canale perde acqua (esfiltrazione / possibile inquinamento delle acque sotterranee)"
+      Z0,
+      !!@ comment = "Gravi difetti: difetti costruttivi a causa dei quali la sicurezza statica, l'idraulica o la tenuta non sono piu assicurate: rotture del tubo assiali o radiali, deformazioni del tubo, infiltrazioni o perdite d'acqua visibili, fori nella parete del tubo, raccordi laterali molto sporgenti, notevole pervasione radicale, parete del tubo molto corrosa. Materiale del tubo inadatto."
+      Z1,
+      !!@ comment = "Difetti medi: difetti costruttivi che pregiudicano la statica, l'idraulica o la tenuta: giunti dei tubi larghi, entrate non sigillate, fessurazioni, leggeri ostacoli al deflusso come incrostazioni calcaree, raccordi laterali sporgenti, pareti dei tubi leggermente danneggiate, singole penetrazioni di radici, parete del tubo corrosa ecc."
+      Z2,
+      !!@ comment = "Difetti lievi: difetti costruttivi o anomalie senza influenuza significativa sulla tenuta, l'idraulica o la statica dei tubi: giunti larghi dei tubi, raccordi laterali male sigillati, lievi deformazioni di condotte sintetiche, lievi corrosioni ecc."
+      Z3,
+      !!@ comment = "Nessun difetto"
+      Z4
+    );
+    !!@ comment = "Osservazioni generali"
+    osservazione: TEXT*80;
+    !!@ comment = "Nome unico per ogni proprietario dei dati"
+    denominazione: MANDATORY TEXT*41;
+    !!@ comment = "Finanziamento (finanziamento secondo LPAc Art. 60a)."
+    finanziamento: (     
+      !!@ comment = "Integralità delle condotte sotterrate e manufatti, che vengono finaziati con le tasse per lo smaltimento acque secondo l'art. 60a della legge sulla protezione delle acque."
+      pubblico,
+      !!@ comment = "Integralità delle condotte sotterrate e manufatti, che non vengono finaziati con le tasse per lo smaltimento acque secondo l'art. 60a della legge sulla protezione delle acque."
+      privato,
+      sconosciuto
+    );
+    !!@ comment = "Genere di collettore in rapporto alla sua funzione gerarchica nella rete di smaltimento acque."
+    funzione_gerarchica: (     
+      IPS (
+      !!@ comment = "Altri impianti principali di smaltimento acque"
+        altro,
+          !!@ comment = "Rilievo dal punto di vista delle canalizzazioni (p. es. poiché necessaria verifica idraulica)"
+        corpo_acqua,
+          !!@ comment = "Utilizzare per: a) scarichi da scaricatore di piena o da bacino. b) diametro > 1000 mm (in particolare su lunghe tratte senza bacini)"
+        collettore_principale,
+          !!@ comment = "Tutti i collettori di proprietà del consorzio depurazione o collettori di trasporto intercomunali di proprietà del Comune"
+        collettore_principale_regionale,
+          !!@ comment = "Smaltimento acque dai fondi (idraulicamente rilevante). Tutte le condotte di un immobile e per il trasporto dall'immobile al collettore di raccolta. Delimitazione secondo norma SN 592 000"
+        samltimento_acque_fondi,
+          !!@ comment = "Utilizzare per: a) tutte le altre condotte di proprietà del Comune e con finanziamento pubblico oppure b) dopo confluenza dello smaltimento acque fondi privati e smaltimento pubblico acque stradali"
+        collettore,
+          !!@ comment = "Condotta di smaltimento (idraulicamente rilevante) per il raccordo di edifici isolati, per la quale sono possibili delle semplificazioni in fase di progettazione e realizzazione."
+        condotta_risanamento,
+          !!@ comment = "Condotte idraulicamente rilevanti esclusivamente per lo smaltimento acque stradali"
+        samltimento_acque_stradali,
+        sconosciuto
+      ),
+      ISS (
+           !!@ comment = "Altri impianti secondari di smaltimento acqua, es. tutte le condotte di drenaggio e smaltimento strade agricole"
+         altro,
+          !!@ comment = "Smaltimento acque dai fondi (idraulicamente rilevante). Tutte le condotte di un immobile e per il trasporto dall'immobile al canale collettore di raccolta. Delimitazione secondo norma SN 592 000"
+        smaltimento_acque_fondi,
+          !!@ comment = "Condotta di smaltimento (idraulicamente non rilevante) per il raccordo di edifici isolati, per la quale sono possibili delle semplificazioni in fase di realizzazione."
+        condotta_risanamento,
+          !!@ comment = "Condotte idraulicamente non rilevanti esclusivamente per lo smaltimento acque stradali"
+        smaltimento_acque_strade,
+        sconosciuto  !!@ comment = "Condotte idraulicamente non rilevanti esclusivamente per lo smaltimento acque stradali"
+      )
+    );
+    !!@ comment = "Tipo di canalizzazione in rapporto alla sua funzione idraulica"
+    funzione_idraulica: (     
+      altro,
+      !!@ comment = "Canalizzazione che trasporta l'acqua proveniente da un drenaggio"
+      condotta_trasporto_drenaggi,
+      !!@ comment = "Canalizzazione a sezione ridotta per diminuire la portata. Il suo funzionamento si basa sul deflusso in pressione."
+      condotta_strozzamento,
+      !!@ comment = "Sistema di canalizzazione chiuso che permette il superamento di un ostacolo.La canalizzazione è in pressione."
+      canalizzazione_sifone,
+      !!@ comment = "La canalizzazione in cui l'acqua defluisce a gravità da un punto iniziale più elevato ad un punto d'arrivo più basso."
+      canalizzazione_gravita,
+      !!@ comment = "Canalizzazione in pressione in seguito ad una stazione di pompaggio"
+      canalizzazione_pompaggio,
+      !!@ comment = "Canalizzazione con aperture per la raccolta di acqua infiltrata (SN 592 000)"
+      canalizzazione_drenaggio,
+      !!@ comment = "Canalizazzione dimensionata per la ritenzione d'acqua in relazione ad un bacino di ritenzione, un canale d'accumulo o di stoccaggio"
+      canalizzazione_ritenzione,
+      !!@ comment = "Canalizzazione con la particolare funzione di permettere lo spurgo di impianti per lo smaltimento acque"
+      canalizzazione_spurgo,
+      sconosciuto,
+      canalizzazione_sotto_vuoto,
+      !!@ comment = "Condotte d'infiltrazione - contrapposte alle condotte di drenaggio - necessarie in particolare per gli impianti d'infiltrazione interrati"
+      condotta_d_infiltrazione
+    );
+    !!@ comment = "Precisione altimetrica della quota a fine condotta"
+    precisione_altimetrica_verso: (     
+      piu_6cm,
+      piu_meno_1cm,
+      piu_meno_3cm,
+      piu_meno_6cm,
+      sconosciuto
+    );
+    !!@ comment = "Precisione altimetrica della quota a inizio condotta"
+    precisione_altimetrica_da: (     
+      piu_6cm,
+      piu_meno_1cm,
+      piu_meno_3cm,
+      piu_meno_6cm,
+      sconosciuto
+    );
+    !!@ comment = "Deflusso di dimensionamento diviso per la capacità di deflusso normale della condotta [%]"
+    carico_idraulico_attuale: Percento1000;
+    !!@ comment = "Quota di scorrimento alla fine della canalizzazione. Nel caso di quota sconosciuta, interpolare e rispettivamente documentare nell'attributo 'precisione_altimetrica_verso'."
+    quota_a: Base_i_LV95.Altitudine;
+    !!@ comment = "Quota di scorrimento all'inizio della canalizzazione. Nel caso di quota sconosciuta, interpolare e rispettivamente documentare nell'attributo 'precisione_altimetrica_da'."
+    quota_da: Base_i_LV95.Altitudine;
+    !!@ comment = "Lunghezza obliqua effettiva (non proiettata) incluso le curve del canale"
+    lunghezza_effettiva: 0.00 .. 30000.00 [m];
+    !!@ comment = "Definisce la precisione planimetrica del tracciato"
+    precisione_planimetrica: (     
+      !!@ comment = "+/- 10 cm, il triplo nel caso di determinazioni planimetrica con differenti misura, ovvero +/- 30 cm (norma SIA405)"
+      precisa,
+      sconosciuto,
+      !!@ comment = "Vedi preciso"
+      impreciso
+    );
+    !!@ comment = "Tubo a doppia parete o altro sistema per evitare perdite nelle zone di protezione delle acque sotterranee."
+    protezione_da_perdite: (     
+      non_presente,
+      sconosciuto,
+      presente
+    );
+    !!@ comment = "Larghezza interna massima del profilo del tubo. I liners installati non sono da considerare (-> Dimensione nominale del relè)."
+    larghezza_profilo: 0 .. 99999 [Units.mm];
+    !!@ comment = "Altezza interna massima del profilo del tubo. I liners installati non sono da considerare (-> Reliner_Nennweite)."
+    altezza_profilo: Altezza_profilo;
+    !!@ comment = "Materiale del tubo"
+    materiale: (     
+      altro,
+      cemento_amianto,
+      calcestruzzo_normale,
+      calcestruzzo_gettato_opera,
+      calcestruzzo_spingitubo,
+      calcestruzzo_speciale,
+      calcestruzzo_sconosciuto,
+      fibrocemento,
+      ceramica,
+      ghisa_duttile,
+      ghisa_grigia,
+      materiale_sintetico_resina_epossidica,
+      materiale_sintetico_polietilene_duro,
+      !!@ comment = "GUP: glass fibre reinforced unsaturated polyester"
+      materiale_sintetico_poliestere_GUP,
+      materiale_sintetico_polietilene,
+      materiale_sintetico_polipropilene,
+      !!@ comment = "Policloruro di vinile"
+      materiale_sintetico_PVC,
+      !!@ comment = "Materiale sintetico sconosciuto"
+      materiale_sintetico_sconosciuto,
+      acciaio,
+      acciaio_inossidabile,
+      gres,
+      argilla,
+      sconosciuto,
+      cemento
+    );
+    !!@ comment = "Utilizzo previsto dal concetto di smaltimento (vedi anche utilizzo_attuale)"
+    utilizzo_pianificato: (     
+      !!@ comment = "P. es. anche accesso, ventilazione"
+      altro,
+      !!@ comment = "Acqua di un corso d'acqua che scorre in superficie ma che può anche essere intubato a tratti."
+      acqua_corso_acqua,
+      !!@ comment = "Acqua scaricata da un manufatto di scarico e immessa in un corso d'acqua. In questa canalizzazione non possono assere immesse acque luride."
+      acque_miste_scaricate,
+      !!@ comment = "Acque industriali o chimiche: comprendono le acque prodotte durante processi industriali o di fabbricazione. Acque industriali devono di regole essere pretrattate, prima di poter essere convogliate in un IDA. Nel caso di un'immissione diretta nel ricettore è necessario un trattamento in speciali impianti industriali."
+      acque_industriali,
+      !!@ comment = "Miscela di acque luride e pluviali."
+      acque_miste,
+      !!@ comment = "Precipitazione che non è infiltrata nel suolo, e che defluisce da superfici o edificazioni nella rete di smaltimento (DIN EN 16323). L'attribuzione ad acque di scarico inquinate o non inquinateavviene secondo la legge sulal protezione delel acque, rispettivamente sulla abse dell'ausilio alla direttiva VSA  'smaltimento acque meteoriche'"
+      acque_piovane,
+      !!@ comment = "Termine generico per acque di drenaggio, sorgive, di falda, di fontane e acque di raffreddamento. Secondo la LPAc le acque chiare sono considerate come non inquinate  (SN 592 000)."
+      acque_chiare,
+      !!@ comment = "Acqua trasformata dal loro utilizzo (domenstico, commerciale o industriale), che sono immesse in impianto di raccoltae devono essere trasportate ad un'IDA. Acque luride sono considerate acque inquinate nel senso della LPAc (SN 592 000)"
+      acque_luride,
+      sconosciuto
+    );
+    !!@ comment = "Per impianti principali di scarico vale: utilizzo autorizzato attualmente. Per impianti secondari vale: utilizzo attuale effettivo."
+    utilizzo_attuale: (     
+      !!@ comment = "Per es. anche accesso, aerazione e deareazione"
+      altro,
+      !!@ comment = "Acqua di un corso d'acqua che scorre in superficie ma che può anche essere intubato a tratti."
+      acqua_corso_acqua,
+      !!@ comment = "Acqua scaricata da un manufatto di scarico e immessa in un corso d'acqua. In questa canalizzazione non possono assere immesse acque luride."
+      acque_miste_scaricate,
+      !!@ comment = "Acque industriali o chimiche: comprendono le acque prodotte durante processi industriali o di fabbricazione. Acque industriali devono di regole essere pretrattate, prima di poter essere convogliate in un IDA. Nel caso di un'immissione diretta nel ricettore è necessario un trattamento in speciali impianti industriali."
+      acque_industriali,
+      !!@ comment = "Miscela di acque luride e pluviali."
+      acque_miste,
+      !!@ comment = "Precipitazione che non è infiltrata nel suolo, e che defluisce da superfici o edificazioni nella rete di smaltimento (DIN EN 16323). L'attribuzione ad acque di scarico inquinate o non inquinateavviene secondo la legge sulal protezione delel acque, rispettivamente sulla abse dell'ausilio alla direttiva VSA  'smaltimento acque meteoriche'"
+      acque_piovane,
+      !!@ comment = "Termine generico per acque di drenaggio, sorgive, di falda, di fontane e acque di raffreddamento. Secondo la LPAc le acque chiare sono considerate come non inquinate  (SN 592 000)."
+      acque_chiare,
+      !!@ comment = "Acqua trasformata dal loro utilizzo (domenstico, commerciale o industriale), che sono immesse in impianto di raccoltae devono essere trasportate ad un'IDA. Acque luride sono considerate acque inquinate nel senso della LPAc (SN 592 000)"
+      acque_luride,
+      sconosciuto
+    );
+    !!@ comment = "OID del rispettivo Manufatto di smaltimento acqua (canalizzazione), solamente utilizzato per il transfer di modello"
+    OBJ_ID_manufatto_smaltimento_acque: TEXT*16;
+    !!@ comment = "OID del rispettivo a_punto_condotta, solamente utilizzato per il transfer di modello."
+    OBJ_ID_a_punto_condotta: TEXT*16;
+    !!@ comment = "OID del rispettivo da_punto_condotta, solamente utilizzato per il transfer di modello"
+    OBJ_ID_da_punto_condotta: TEXT*16;
+    !!@ comment = "Tipo di sezione"
+    tipo_sezione: (     
+      !!@ comment = "Solo per profili ovoidali secondo la norma DIN 4263 con rapporto altezza/larghezza di 1.5. Altri profili ovoidali, anche quelli con installazioni, devono essere considerati come “profilo speciale” e forniti con la definizione del profilo."
+      ovoidale,
+      !!@ comment = "Solo per profili circolari classici senza canaletta per tempo secco o altre installazioni. Altrimenti devono essere considerati come “profilo speciale” e forniti con la definizione del profilo."
+      cicolare,
+      !!@ comment = "Solo per profili composti secondo la norma DIN 4263. Altri profili composti, anche quelli con installazioni, devono essere considerati come “profilo speciale” e forniti con la definizione del profilo."
+      composto,
+      !!@ comment = "Per profili aperti. Fornire con la definizione del profilo."
+      sezione_aperta,
+      !!@ comment = "Solo per profili rettangolari senza canaletta per tempo secco o altre installazioni. Altrimenti devono essere considerati come “profilo speciale” e forniti con la definizione del profilo."
+      rettangolare,
+      !!@ comment = "Per profili chiusi non a norma. Fornire con la definizione del profilo."
+      sezione_speciale,
+      sconosciuto
+    );
+    !!@ comment = "tipo di relining"
+    tipo_reliner: (     
+      condotta_intera,
+      parziale,
+      sconosciuto
+    );
+    !!@ comment = "Altezza libera con il liner installato (= altezza libera del profilo del tubo originale meno il doppio dello spessore della parete del liner)."
+    dimensione_nominale_del_rele: Altezza_profilo;
+    !!@ comment = "Gradi di priorità e orizzonte temporale per misure di risanmento secondo la direttiva VSA  'Manutenzione di canalizzazioni'"
+    necessita_risanamento: (     
+      !!@ comment = "Gli interventi sono urgenti. È da valutare la necessità di eventuali interventi immediati come nel grado 0. Orizzonte 3-4 anni."
+      urgente,
+      !!@ comment = "Non sono necessari interventi fino al prossimo rilevamento dello stato e relativa valutazione. Orizzonte >=10 anni"
+      nessuno,
+      !!@ comment = "Gli interventi sono molto urgenti e da eseguire entro breve termine. Con interventi immediati di riparazioni locali provvisorie possono essere evitati temporaneamente maggiori danni. Orizzonte <=2 anni"
+      breve_termine,
+      !!@ comment = "Gli interventi possono essere pianificati a lunga scadenza. Orizzonte 8-10 anni."
+      lungo_termine,
+      !!@ comment = "Gli interventi sono necessari a media scadenza. Orizzonte 5-7 anni."
+      medio_termine,
+      sconosciuto
+    );
+    !!@ comment = "Stato di funzionamento e di pianificazione del manufatto."
+    stato: Stato;
+    !!@ comment = "Punti di partenza, intermedi e finali della canalizzazione"
+    tracciato: Base_i_LV95.Polilinea;
+    !!@ comment = "Parametro idraulico per la descrizione delle proprietà della parete canalizzazione. Coefficiente per le formule secondo Prandtl-Colebrook (ks o kb)"
+    rugosita_parete: Prandtl;
+    !!@ comment = "Anno di riferimento per il calcolo del valore di sostituzione (vedi anche attributo valore di sostituzione)"
+    VS_anno_riferimento: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Tipo di costruzione indicativa quale input per la determinazione del valore di sostituzione."
+    VS_tipo_costruzione: (     
+      altro,
+      !!@ comment = "In campo aperto (tipi di profilo secondo norma SIA 190)"
+      campo_aperto,
+      !!@ comment = "Canalizzazioni di risanmento realizzate con scavatrice"
+      canalizazzione_risanmento_scavatrice,
+      !!@ comment = "Canalizzazioni di risanmento realizzate con scavafossi rotativo"
+      condotta_risanamento_scavafossi,
+      !!@ comment = "In strada (tipi di profilo secondo norma SIA 190)"
+      strada,
+      sconosciuto
+    );
+    !!@ comment = "Valore di sostituzione del manufatto. Deve essere registrato anche il valore VS_anno_riferimento"
+    valore_sostituzione: 0.00 .. 99999999.99 [Units.CHF];
+    !!@ comment = "Anno dell'ultimo rilevamento dello stato. Serve per il rilevamento degli indicatori PGS. Può essere compilato consultando evento_di_mantenimento.momento (evento più recente) per evento di conservazione.tipo = analisi e stato = esecuzione automatica."
+    rapporto_sullo_stato_anno: SIA405_Base_Acque_di_scarico_LV95.Anno;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END condotta;
+
+CLASS condotta_Testo EXTENDS SIA405_Base_Acque_di_scarico_LV95.SIA405_TestoPos =
+END condotta_Testo;
+
+!!@comment = "Komposition"
+ASSOCIATION condotta_TestoAssoc =
+  condottaRef -<#> {1} condotta;
+  Testo -- {0 .. *} condotta_Testo;
+END condotta_TestoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_nodo_aAssoc =
+  nodo_aRef  -- {0..1} nodo;
+  condotta_nodo_aAssocRef -- {0..*} condotta;
+END condotta_nodo_aAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_nodo_daAssoc =
+  nodo_daRef  -- {0..1} nodo;
+  condotta_nodo_daAssocRef -- {0..*} condotta;
+END condotta_nodo_daAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_condotta_aAssoc =
+  condotta_aRef  -- {0..1} condotta;
+  condotta_condotta_aAssocRef -- {0..*} condotta;
+END condotta_condotta_aAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_proprietarioAssoc =
+  proprietarioRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  condotta_proprietarioAssocRef -- {0..*} condotta;
+END condotta_proprietarioAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_gestoreAssoc =
+  gestoreRef (EXTERNAL) -- {0..1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  condotta_gestoreAssocRef -- {0..*} condotta;
+END condotta_gestoreAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION condotta_profilo_condottaAssoc =
+  profilo_condottaRef  -- {0..1} profilo_del_tubo;
+  condotta_profilo_condottaAssocRef -- {0..*} condotta;
+END condotta_profilo_condottaAssoc;
+
+!!@ comment = "Scheda tipo (classe superiore), vedi gli attributi nelle sottoclassi"
+CLASS ST (ABSTRACT) EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Numero del piano dei documenti dell'opera eseguita. Breve descrizione di ulteriori documenti (istruzioni di…, ecc)"
+    documenti: MTEXT*255;
+    osservazione: TEXT*80;
+    !!@ comment = "Per le fonti sono a disposizione le possibilità indicate."
+    fonte_informazioni: (     
+      altro,
+      PGS_IDA_bacino_imbrifero,
+      PGS_ente_responsabile,
+      sconosciuto
+    );
+    !!@ comment = "Persona incaricata che ha allestito la scheda tipo"
+    operatore: TEXT*50;
+    !!@ comment = "Nome della strada o del luogo del manufatto"
+    luogo: TEXT*50;
+    !!@ comment = "Diversamente dall'attributo Telegestione nelle classi VSA-DSS stramazzo e limitatore_portata, questo attributo si riferisce a tutto il comando/messa in allarme del manufatto speciale."
+    comando_distanza: (     
+      altro,
+      nessun_comando,
+      comando_locale,
+      trasmissione_allarme,
+      trasmissione_segnali_misura,
+      sconosciuto,
+      comando_composito
+    );
+    !!@ comment = "Anno di riferimento per il calcolo del valore di sostituzione (vedi anche attributo valore di sostituzione)"
+    VS_anno_riferimento: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Valore di sostituzione del manufatto. Deve essere registrato anche il valore VS_anno_riferimento"
+    valore_sostituzione: 0.00 .. 99999999.99 [Units.CHF];
+END ST;
+
+!!@ comment = "Association"
+ASSOCIATION ST_manufatto_principaleAssoc =
+  manufatto_principaleRef  -- {0..1} ST;
+  ST_manufatto_principaleAssocRef -- {0..*} ST;
+END ST_manufatto_principaleAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION ST_nodo_IPSAssoc =
+  nodo_IPSRef  -- {1} nodo;
+  ST_nodo_IPSAssocRef -- {0..1} ST;
+END ST_nodo_IPSAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION ST_comune_appartenenzaAssoc =
+  comune_appartenenzaRef (EXTERNAL) -- {0..1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  ST_comune_appartenenzaAssocRef -- {0..*} ST;
+END ST_comune_appartenenzaAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION ST_manufatto_speciale_seguenteAssoc =
+  manufatto_speciale_seguenteRef  -- {0..1} ST;
+  ST_manufatto_speciale_seguenteAssocRef -- {0..*} ST;
+END ST_manufatto_speciale_seguenteAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION ST_ufficioAssoc =
+  ufficioRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  ST_ufficioAssocRef -- {0..*} ST;
+END ST_ufficioAssoc;
+
+!!@ comment = "Collegamento topologico tra due nodi per la rappresentazione di scaricatori o pompe"
+CLASS stramazzo_dispositivo_trasporto EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Tipo di stramazzo, rispettivamente dispositivo di trasporto"
+    tipo: (     
+      pompaggio,
+      leaping_weir,
+      stramazzo_laterale
+    );
+    denominazione: MANDATORY TEXT*41;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END stramazzo_dispositivo_trasporto;
+
+!!@ comment = "Association"
+ASSOCIATION stramazzo_dispositivo_trasporto_nodoAssoc =
+  nodoRef  -- {1} nodo;
+  stramazzo_dispositivo_trasporto_nodoAssocRef -- {0..*} stramazzo_dispositivo_trasporto;
+END stramazzo_dispositivo_trasporto_nodoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION stramazzo_dispositivo_trasporto_nodo_aAssoc =
+  nodo_aRef  -- {1} nodo;
+  stramazzo_dispositivo_trasporto_nodo_aAssocRef -- {0..*} stramazzo_dispositivo_trasporto;
+END stramazzo_dispositivo_trasporto_nodo_aAssoc;
+
+!!@ comment = "Massima superficie allacciata, le cui acque di scarico defluiscono verso il medesimo punto nella rete di canalizzazioni e che presenta un sistema di smaltimento unico. È possibile definire per ogni area tributaria un punto di allacciamento acque luride e uno per acque meteoriche per lo stato attuale e lo stato pianificato."
+CLASS area_tributaria EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Riduzione di portata, nel caso quasto vincolo sia definito nel concetto di smaltimento. Questo attributo è vincolante. E' vincolante per la verifica di domande di costruzione."
+    riduzione_portata_pianificazione: 0.0 .. 999.9 [lsha];
+    !!@ comment = "Riduzione di portata, nel caso quasto vincolo sia già realizzato."
+    riduzione_portata_attuale: 0.0 .. 999.9 [lsha];
+    !!@ comment = "Coefficiente di scorrimento di pianificazione per le acque meteoriche"
+    coefficiente_scorrimento_meteoriche_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficiente di scorrimento allo stato attuale per le acque meteoriche"
+    coefficiente_scorrimento_meteoriche_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficiente di scorrimento di pianificazione per le acque luride o miste"
+    coefficiente_scorrimento_luride_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficiente di scorrimento allo stato attuale per le acque luride o miste"
+    coefficiente_scorrimento_luride_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Grado di impermeabilizzazione per l'allaccimanento delle acque meteoriche per lo stato di pianificazione"
+    grado_impermeabilizzazione_meteoriche_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Grado di impermeabilizzazione per l'allaccimanento delle acque meteoriche per lo stato attuale"
+    grado_pianificazione_meteoriche_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Grado di impermeabilizzazione per l'allaccimanento delle acque luride e miste allo stato di pianificazione"
+    grado_impermeabilizzazione_luride_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Grado di impermeabilizzazione per l'allaccimanento delle acque luride e miste allo stato attuale"
+    grado_impermeabilizzazione_luride_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Osservazioni generali"
+    osservazione: TEXT*80;
+    denominazione: MANDATORY TEXT*20;
+    !!@ comment = "L'acqua meteorica verra scaricata in futuro direttamente in un ricettore tramite una condotta ISS"
+    scarico_diretto_in_ricettore_pianificazione: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "L'acqua meteorica viene scaricata attualmente direttamente in un ricettore tramite una condotta ISS"
+    scarico_diretto_in_ricettore_attuale: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Densità (fisica) degli abitanti allo stato di pianificazione"
+    densita_abitanti_pianificazione: Densita_di_popolazione;
+    !!@ comment = "Densità (fisica) degli abitanti allo stato attuale"
+    densita_abitanti_stato_attuale: Densita_di_popolazione;
+    !!@ comment = "Sistema di smaltimento acque allo stato di pianificazione (dopo realizzazione del concetto di smaltimento). Questo attributo è vincolante per la valutazione delle domande di costruzione."
+    sistema_smaltimento_pianificazione: (     
+      !!@ comment = "Superfici drenate fuori dalla zona abitata, allacciate allo smaltimento della zona abitata."
+      sistema_di_drenaggio,
+      !!@ comment = "Le acque luride e le acque meteoriche non infiltrabili e che non evaporano devono essere allacciate alla rete delle acque miste. Collegamento obbligatorio ai nodi acque luride/miste, collegamento ad acque meteoriche non ammissibile."
+      sistema_misto,
+      !!@ comment = "Diversamente dal sistema separato, nel sistema modificato oltre alle acque meteoriche di superfici non coperte ed esposte a incidenti deve essere condotta nell'IDA un'altra parte delle acque meteoriche (che in genere necessita di trattamento). Collegamento obbligatorio ai nodi acque luride/miste. Collegamento ammissibile ai nodi acque meteoriche."
+      sistema_modificato,
+      !!@ comment = "Area tributaria da cui l'acqua viene smaltita, ma che anche in futuro non viene collegata ad un impianto IPS. P. es un'area collegata da un ISS ad un ricettore o un'area con infiltrazione sulla banchina. Un collegamento con la rete di canalizzazioni non è ammissibile."
+      non_collegato,
+      !!@ comment = "Area all'interno della zona servita che anche in futuro non sarà collegatra alla canalizzazione. Un collegamento alla rete di canalizzazione non è ammissibile."
+      non_evacuato,
+      !!@ comment = "Sistema di smaltimento usuale composto da due reti di canalizzazione per lo smaltimento separato di acque luride e meteoriche. Le acque luride e le acque meteoriche di superfici non coperte esposte a incidenti devono essere collegate alla rete delle acque luride; le restanti acque meteoriche, se non infiltrabili e se non evaporano, vanno collegate alla rete delle acque meteoriche. Il collegamento a un nodo acque luride/acque miste o a un nodo acque meteoriche è obbligatorio. Il collegamento a un secondo nodo (acque meteoriche o acque luride/miste) è ammissibile."
+      sistema_separato,
+      !!@ comment = "Questo valore è ammesso unicamente durante l'elaborazione PGS. Nessuna regola relativa a collegamenti alla rete di smaltimento."
+      sconosciuto,
+      !!@ comment = "Da assegnare se le aree tributarie sono smaltite nel sistema misto (v. descrizione di questo valore, la condotta acque meteoriche IPS alla quale è allacciata l'area tributaria sfocia più in basso nella rete delle acque miste e la situazione non cambiera nemmeno in futuro."
+      predisposizione_sistema_separato
+    );
+    !!@ comment = "Sistema di smaltimento effettivo allo stato attuale"
+    sistema_smaltimento_attuale: (     
+      !!@ comment = "Superfici drenate fuori dalla zona abitata, allacciate allo smaltimento della zona abitata."
+      sistema_di_drenaggio,
+      !!@ comment = "Le acque luride e le acque meteoriche non infiltrabili e che non evaporano devono essere allacciate alla rete delle acque miste. Collegamento obbligatorio ai nodi acque luride/miste, collegamento ad acque meteoriche non ammissibile."
+      sistema_misto,
+      !!@ comment = "Diversamente dal sistema separato, nel sistema modificato oltre alle acque meteoriche di superfici non coperte ed esposte a incidenti deve essere condotta nell'IDA un'altra parte delle acque meteoriche (che in genere necessita di trattamento). Collegamento obbligatorio ai nodi acque luride/miste. Collegamento ammissibile ai nodi acque meteoriche."
+      sistema_modificato,
+      !!@ comment = "Area tributaria da cui l'acqua viene smaltita, ma che anche in futuro non viene collegata ad un impianto IPS. P. es un'area collegata da un ISS ad un ricettore o un'area con infiltrazione sulla banchina. Un collegamento con la rete di canalizzazioni non è ammissibile."
+      non_collegato,
+      !!@ comment = "Superficie non (ancora) servita come sistema di smaltimento acque all'interno dell'area di canalizzazione pubblica. Ad es. immobile non edificato all'interno della zona edificabile. Un collegamento alla rete di canalizzazione non è ammissibile."
+      non_evacuato,
+      !!@ comment = "Sistema di smaltimento usuale composto da due reti di canalizzazione per lo smaltimento separato di acque luride e meteoriche. Le acque luride e le acque meteoriche di superfici non coperte esposte a incidenti devono essere collegate alla rete delle acque luride; le restanti acque meteoriche, se non infiltrabili e se non evaporano, vanno collegate alla rete delle acque meteoriche. Il collegamento a un nodo acque luride/acque miste o a un nodo acque meteoriche è obbligatorio. Il collegamento a un secondo nodo (acque meteoriche o acque luride/miste) è ammissibile."
+      sistema_separato,
+      !!@ comment = "Questo valore è ammesso unicamente durante l'elaborazione PGS. Nessuna regola relativa a collegamenti alla rete di smaltimento."
+      sconosciuto,
+      !!@ comment = "Da assegnare se le aree tributarie sono drenate nel sistema misto (v. descrizione di questo valore, la condotta acque meteoriche IPS alla quale è allacciata l'area tributaria sfocia più in basso nella rete delle acque miste e la situazione non cambiera nemmeno in futuro."
+      predisposizione_sistema_separato
+    );
+    !!@ comment = "Attributo ridondante indicante la superficie calcolata a partire dal perimetro."
+    superficie: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Deflusso medio di acque chiare parassitarie nello stato di pianificazione scaricate nella rete acque luride o miste."
+    apporto_acque_chiare_parassitarie_pianificazione: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Deflusso medio di acque chiare parassitarie allo stato attuale scaricate nella rete acque luride o miste."
+    acque_chiare_parassitarie_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Punti di delimitazione dell'area tributaria"
+    perimetro: Base_i_LV95.Superficie;
+    !!@ comment = "Acque meteoriche o miste verranno scaricate in maniera regolata nella rete"
+    ritenzione_pianificazione: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Acque meteoriche o miste vengono scaricate in maniera regolata nella rete allo stato attuale"
+    ritenzione_attuale: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Apporto di acque di scarico medio, immesso nella canalizzazione di acque luride o miste allo stato di pianificazione."
+    apporto_acque_scarico_pianificato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto di acque di scarico medio, immesso nella canalizzazione di acque luride o miste allo stato di pianificazione."
+    apporto_acque_scarico_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Posizione del testo dell'area tributaria"
+    testopos: Base_i_LV95.CoordNaz;
+    !!@ comment = "Le acque meteoriche in futuro verranno smaltite completamente o parzialmente in un impianto d'infiltrazione."
+    infiltrazione_pianificazione: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Le acque meteoriche vengono completamente o parzialmente smaltite tramite un impianto d'infiltrazione"
+    infiltrazione_attuale: (     
+      si,
+      no,
+      sconosciuto
+    );
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END area_tributaria;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_nodo_AM_attualeAssoc =
+  nodo_AM_attualeRef  -- {0..1} nodo;
+  area_tributaria_nodo_AM_attualeAssocRef -- {0..*} area_tributaria;
+END area_tributaria_nodo_AM_attualeAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_nodo_AM_pianificatoAssoc =
+  nodo_AM_pianificatoRef  -- {0..1} nodo;
+  area_tributaria_nodo_AM_pianificatoAssocRef -- {0..*} area_tributaria;
+END area_tributaria_nodo_AM_pianificatoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_nodo_AL_attualeAssoc =
+  nodo_AL_attualeRef  -- {0..1} nodo;
+  area_tributaria_nodo_AL_attualeAssocRef -- {0..*} area_tributaria;
+END area_tributaria_nodo_AL_attualeAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_nodo_AL_pianificatoAssoc =
+  nodo_AL_pianificatoRef  -- {0..1} nodo;
+  area_tributaria_nodo_AL_pianificatoAssocRef -- {0..*} area_tributaria;
+END area_tributaria_nodo_AL_pianificatoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_manufatto_speciale_AlattualeAssoc =
+  manufatto_speciale_AlattualeRef  -- {0..1} ST;
+  area_tributaria_manufatto_speciale_AlattualeAssocRef -- {0..*} area_tributaria;
+END area_tributaria_manufatto_speciale_AlattualeAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_manufatto_speciale_AL_pianificatoAssoc =
+  manufatto_speciale_AL_pianificatoRef  -- {0..1} ST;
+  area_tributaria_manufatto_speciale_AL_pianificatoAssocRef -- {0..*} area_tributaria;
+END area_tributaria_manufatto_speciale_AL_pianificatoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_manufatto_speciale_AM_attualeAssoc =
+  manufatto_speciale_AM_attualeRef  -- {0..1} ST;
+  area_tributaria_manufatto_speciale_AM_attualeAssocRef -- {0..*} area_tributaria;
+END area_tributaria_manufatto_speciale_AM_attualeAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION area_tributaria_manufatto_speciale_AM_pianificatoAssoc =
+  manufatto_speciale_AM_pianificatoRef  -- {0..1} ST;
+  area_tributaria_manufatto_speciale_AM_pianificatoAssocRef -- {0..*} area_tributaria;
+END area_tributaria_manufatto_speciale_AM_pianificatoAssoc;
+
+!!@ comment = "Scheda tipo stazione di misura autonoma: la funzione 'stazione_misura_autonoma' viene solo assegnta a nodi, che non hanno altre funzioni di manufatto speciale (puri pozzetti di misura). Per esempio uno scaricatore con misuratore di portata viene definito come 'scaricatore' e non 'stazione_misura_autonoma'. L'apparecchio di musura in questo caso sarà registrato come componente del manufatto nella scheda tipo 'scaricatore'"
+CLASS ST_stazione_misura_autonoma EXTENDS ST =  
+  ATTRIBUTE
+END ST_stazione_misura_autonoma;
+
+!!@ comment = "Scheda tipo sifone_entrata: come entrata al sifone è definito quel manufatto dove normalemnte le acque di scarico vengono suddivise nelle varie condotte per il superamento di un ostacolo. Questo manufatto viene registrato in una scheda tipo. Per le condotte o il manufatto d'uscita non è prevista una documentazione particolare, oltre alle informazioni riguardo alla rete di canalizzazioni. Nel caso in cui nel manufatto vengano scaricate, deve essere compilata la sceda tipo 'scaricatore'. La suddivisione dei quantitativi sulle diverse condotte, viene documentata con la scheda tipo parte_manufatto_scaricatore (se esistente)."
+CLASS ST_innesto_sifone EXTENDS ST =  
+  ATTRIBUTE
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+END ST_innesto_sifone;
+
+!!@ comment = "Scheda tipo punto d'immissione: punto d'immissione da manufatti di scarico (scaricatori di piena, bacini, scaricatori d'emergenza da pompaggi) nel ricettore e da smaltimento in sistema separato della rete primaria registrato in una scheda tipo. In caso di bisogno può venire compilata anche una scheda tipo per impianti della rete secondaria. In questo caso il punto d'immissione deve essere definioto con la funzione 'rilevente_per_corso_d'acqua' nella rete di smaltimento acqua."
+CLASS ST_punto_immissione EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Persona la quale ha eseguito l’ispezione ottica"
+    esecutore: TEXT*50;
+    !!@ comment = "Altezza interna massima dell'uscita. Aiuta a identificare il punto di scarico corretto sul campo."
+    altezza_profilo_scarico: Altezza_profilo;
+    !!@ comment = "Importanti osservazioni relative alla valutazione biologica-ecologica globale dal punto di vista di chi elabora la scheda"
+    valutazione_biol_ecol_globale_osservazioni: MTEXT*255;
+    !!@ comment = "Denominazione della valutazione eco-biologica generale"
+    valutazione_biol_ecol_globale_denominazione: TEXT*20;
+    !!@ comment = "Data dell'ultimo controllo, se presente. La data del controllo attuale viene rilevata nell'attributo data_controllo (VSA-DSS-Mini) o momento (VSA-DSS)."
+    data_ultimo_controllo: INTERLIS_1_DATE;
+    !!@ comment = "Deve essere segnalata la data dell controllo."
+    data_controllo: INTERLIS_1_DATE;
+    !!@ comment = "Risulta dal confronto tra l'aspetto esterno a monte e a valle del punto di immissione"
+    influsso_aspetto_esterno: (     
+      grande,
+      nessuno,
+      giudizio_non_possibile,
+      medio_piccolo,
+      sconosciuto,
+      non_chiaro
+    );
+    !!@ comment = "solo per acque stagnanti"
+    influsso_indicatori_ausiliari: (     
+      grande,
+      nessuno_piccolo,
+      giudizio_non_possibile,
+      medio,
+      sconosciuto,
+      non_chiaro
+    );
+    !!@ comment = "Solo per corsi d'acqua: risulta dal confronto tra i macroinvertebrati a valle e a monte del punto di immissione secondo il modulo Analisi delle acque della direttiva VSA Gestione delle acque di scarico in tempo di pioggia. Da non confondere con gli attributi Macroinvertebrati_sopra, _immissione e _sotto, che sono stati eliminati."
+    influsso_macroinvertebrati: (     
+      grande,
+      nessuno_piccolo,
+      giudizio_non_possibile,
+      medio,
+      sconosciuto,
+      non_chiaro
+    );
+    !!@ comment = "solo per acque stagnanti"
+    influsso_piante_acquatiche: (     
+      grande,
+      nessuno_piccolo,
+      giudizio_non_possibile,
+      medio,
+      sconosciuto,
+      non_chiaro
+    );
+    !!@ comment = "secondo tabella 5.1 del modulo STORM della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019/2021)"
+    genere_corso_acqua: (     
+      corso_d_acqua_di_accummulo,
+      grosso_fiume,
+      grande_corso_d_acqua_dell_altopiano,
+      grande_corso_d_acqua_prealpino,
+      fiume_molto_grande,
+      piccolo_corso_d_acqua_dell_altopiano,
+      piccolo_corso_d_acqua_prealpino,
+      acque_sorgive,
+      !!@ comment = "Il modulo G della linea guida VSA sulla gestione delle acque reflue in tempo di pioggia (2021) abolisce la distinzione tra laghi piccoli e grandi. Questo non è rilevante per la valutazione ecologica dei corpi idrici e non è chiaramente definito."
+      lago,
+      sconosciuto
+    );
+    !!@ comment = "secondo modulo base capitolo 8.4 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_specifico_NH4N_scaricato_pianificato: Carico_di_scarico_specifico;
+    !!@ comment = "secondo modulo base capitolo 8.4 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_specifico_NH4N_scaricato_attuale: Carico_di_scarico_specifico;
+    !!@ comment = "secondo modulo base capitolo 8.4 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_specifico_NH4N_scaricato_ottimizzato: Carico_di_scarico_specifico;
+    !!@ comment = "Necessità d'intervento risultante dalla compromissione del punto d'immissione sul ricettore, che richiede un provvedimento nel piano d'azione. L'attributo serve anche per ricavare la 'compromissione totale' in MGDM 129.1 dell'UFAM, fintanto che aggiornata"
+    necessita_azione: (     
+      !!@ comment = "Grande influenza del punto di scarico a causa delle indagini, quindi necessità di interventi a breve termine."
+      si_corto_termine,
+      !!@ comment = "Impatto medio del punto di scarico in base all'indagine, quindi necessità di intervento a lungo termine."
+      si_lungo_termine,
+      !!@ comment = "A causa delle circostanze, l'indagine non consente di fare dichiarazioni sull'influenza del punto di scarico sul corpo idrico. Un'ulteriore indagine sulle acque non ha potuto fornire ulteriori risultati."
+      giudizio_non_possibile,
+      !!@ comment = "L'indagine non ha evidenziato alcuna influenza sul punto di scarico, pertanto non è necessario intervenire."
+      no,
+      !!@ comment = "I risultati dell'indagine non erano chiari. Si attendono ulteriori risultati da una nuova e più estesa indagine sui corsi d'acqua."
+      chiarire_stato,
+      !!@ comment = "È coperto dal valore 'giudizio_non_possibile' (annullamento del valore in VSA-DSS-Mini 2020 e in MGDM). I valori esistenti ricevono il valore 'giudizio_non_possibile' se è stata effettuata un'indagine sul corso d'acqua, oppure l'attributo viene lasciato vuoto se non è ancora stata effettuata alcuna indagine sul corso d'acqua."
+      sconosciuto
+    );
+    !!@ comment = "Calcolo orientato a immissione disponibile"
+    calcolo_orientato_a_immissione: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Nome del corso d'acqua secondo disposizioni cantonali"
+    acque_superficiali: TEXT*100;
+    !!@ comment = "OID della relativa valutazione generale biologica e ecologica nella VSA-DSS, solo per trasferimento del modello"
+    OBJ_ID_valutazione_biol_ecol_globale: TEXT*16;
+    !!@ comment = "Per la scelta della corretta relazione n:m a biol_ecol_valutazione_generale in VSA-DSS"
+    OBJ_ID_evento_manutenzione_manufatto_smaltimento: TEXT*16;
+    !!@ comment = "Quantitativo da annuari idrologici. Se manca questa indicazione, deve essere definito un quantitativo."
+    Q347: 0.000 .. 10000.000 [SIA405_Base_Acque_di_scarico_LV95.m3s];
+    !!@ comment = "Pendenza rilevante [%] nel punto d'immissione (per il calcolo STORM). Se sconosciuta, la pendenza deve essere determinata sul terreno o sulla base di piani."
+    pendenza_rilevante: 0 .. 1000;
+    !!@ comment = "Matrice di rilevanza secondo le indicazioni nella direttiva Abwasserentsorgung bei Regenwetter', modulo STORM del VSA (2019)"
+    matrice_rilevanza: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "La variazione della valutazione globale ed eventuali risultati differenti rispetto alle analisi precedenti devono essere documentate."
+    confronto_rilievo_precedente: (     
+      uguale,
+      confronto_non_possibile,
+      sconosciuto,
+      non_chiaro,
+      miglioramento,
+      peggioramento
+    );
+    !!@ comment = "Livello d'acqua per il calcolo idraulico (stato attuale). Livello d'acqua calcolato al punto d'immissione. Dove non è richiesto niente in particolare, deve essere determinato il livello d'acqua per un evento Q30."
+    livello_acqua_idraulica: Base_i_LV95.Altitudine;
+END ST_punto_immissione;
+
+!!@ comment = "Association"
+ASSOCIATION ST_punto_immissione_ufficio_esecutoreAssoc =
+  ufficio_esecutoreRef (EXTERNAL) -- {0..1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  ST_punto_immissione_ufficio_esecutoreAssocRef -- {0..*} ST_punto_immissione;
+END ST_punto_immissione_ufficio_esecutoreAssoc;
+
+!!@ comment = "Scheda tipo stazione di pompaggio: impianto di sollevamneto delle acque in una rete di canalizzazioni."
+CLASS ST_stazione_pompaggio EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Numero dispositivi trasporto"
+    numero_dispositivi: Numero_gruppo;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_dim_pianificazione: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'quantità acque luride'."
+    abitanti_dim_attuale: Popolazione_equivalente;
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_pianifacato: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "utilizzo_attuale dell'acqua pompata. Viene ricavato automaticamente dal tipo di utilizzo della condotta di uscita. Presente solo in VSA-DSS-Mini."
+    dispositivo_trasporto_utilizzo_attuale: (     
+      altro,
+      !!@ comment = "Acqua di un corso d'acqua, che allo stato naturale scorre superficialmente, ma che può scorrere anche in tratte sotterranee in alcuni punti."
+      acqua_corso_acqua,
+      !!@ comment = "Acque tra uno scarico e l'immissione nel ricettore naturale. Le acque luride non possono essere smaltite tramite questo canale."
+      acque_miste_scaricate,
+      !!@ comment = "Vengono considerate acque industriali tutte le acque di scarico provenienti da processi di produzione e lavorazione indutriali. In genere, le acque industriali devono essere pre-trattate prima di essere immesse negli impianti pubblici di depurazione delle acuqe (vedi immissione indiretta). Nel caso di immissione diretta (vedi immissione diretta) è necessario un trattamento specifico in un impianto di depurazione privato."
+      acque_industriali,
+      !!@ comment = "1.Miscela tra acque luride e meteoriche nella stessa canalizzqazione.2. Acque di scarico composte da una miscela di acque luride e meteoriche."
+      acque_miste,
+      !!@ comment = "Acqua proveniente da precipitazioni naturali non inquinata da utilizzi. L'attribuzione ad acqua inquinata o acqua non inquinata avviene in base alla legislazione sulla protezione delle acque o alla direttiva VSA 'Smaltimento delle acque di scarico in tempo di pioggia'"
+      acque_piovane,
+      !!@ comment = "Termine generico per acque di drenaggio, sorgive, di falda, di fontane e acque di raffreddamento. Secondo la LPAc le acque chiare sono considerate come non inquinate  (SN 592 000)."
+      acque_chiare,
+      !!@ comment = "Acqua trasformata dal loro utilizzo (domenstico, commerciale o industriale), che sono immesse in impianto di raccoltae devono essere trasportate ad un'IDA. Acque luride sono considerate acque inquinate nel senso della LPAc (SN 592 000)"
+      acque_luride,
+      sconosciuto
+    );
+    altezza_trasporto_geodetica: Prevalenza;
+    !!@ comment = "Portata massima delle pompe (manufatto completo). Di regola si verifica con prevalenza minima."
+    portata_pompata_massima: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata minima delle pompe (manufatto completo). Di regola si verifica con prevalenza massima."
+    portata_pompa_minima: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_pianificazione: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+    !!@ comment = "Funzionamenti particolari devono essere documentati a parte ed allegati alla scheda tipo."
+    regime_pompaggio: (     
+      alternato,
+      altro,
+      singolo,
+      parallelo,
+      sconosciuto
+    );
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_pianificato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Volume di stoccaggio nel bacino e nella canalizzazione affluente tra soglia di stramazzo e livello d'acqua per la portata conservata. Per bacini di chiarificazione in parallelo deve essere rilevato il volume nel manufatto di ripartizione, rispettivamente nello scaricatore di piena a monte (vedi precisazioni per volume_parte_accumulo rispettivamente volume_parte_decantazione). Per le pompe: volume del pozzo pompe dal fondo fino al livello d'acqua massimo (incl. volume disponibile nella canalizzazione d'entrata)."
+    volume_stoccaggio: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume del pozzo delle pompe dal fondo fino al livello massimo dell'acqua (senza il volume di stoccaggio del canale in entrata)."
+    volume_pozzo_pompe: 0.00 .. 10000000.00 [Units.m3];
+END ST_stazione_pompaggio;
+
+!!@ comment = "Scheda tipo Scaricatore di piena: manufatto per lo scarico dalla rete di canalizzazioni delle punte di deflusso di acque miste senza trattamento in un bacino. Non si fa distinzione tra scaricatore di piena, scaricatore d'emergenza (da non confondere con scarico d'emergenza di una stazione di pompaggio, che è unicamente una parte di manufatto della stazione di pompaggio). Il funzionamento del manufatto in condizioni normali (entra in funzione correttamente o solo in caso di malfunzionamento) viene indicato con l'attributo 'scarico attivo'."
+CLASS ST_scaricatore_piena EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_pianificazione: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_attuale: Popolazione_equivalente;
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_ottimizzato: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_pianificato: Carico;
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_attuale: Carico;
+    !!@ comment = "secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_ottimizzato: Carico;
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata del bacino imbrifero diretto. Comprende tutte le aree tributarie a monte del manufatto, fino  allo scaricatore di piena o al bacino di chiarificazione superiore."
+    superficie_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata del bacino imbrifero diretto. Comprende tutte le aree tributarie a monte del manufatto, fino  allo scaricatore di piena o al bacino di chiarificazione superiore."
+    superficie_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie ridotta attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_pianificata: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie ridotta attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_pianificazione: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    bacino_imbrifero_globale_denominazione_pianificato: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale_ottimizzato: TEXT*20;
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    !!@ comment = "Carico supplementare ottimale dopo realizzazione delle misure previste dal concetto."
+    carico_supplementare_pianificato: Percento1000;
+    !!@ comment = "Carico supplementare sulle canalizzazioni a valle con l'evento di dimensionamento = 100 * (Qab – Qan) / Qan 	[%]. Rapporto tra acqua defluita verso IDA al momento dell'entrata in funzione dello scaricatore (Qan) e Qab (quantintà d'acqua che per l'evento di dimensionamento (z=5) defluisce in rete verso l'IDA). Esempio: Qan = 100 l/s, Qab = 150 l/s -> carico supplementare = 50%"
+    carico_supplementare_attuale: Percento1000;
+    !!@ comment = "Carico supplementare ottimale allo stato attuale prima dello studio di eventuali ulteriori accorgimenti."
+    carico_supplementare_attuale_ottimizzato: Percento1000;
+    OBJ_ID_bacino_imbrifero_globale_pianificato: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale_ottimizazto: TEXT*16;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+    !!@ comment = "Quantità ottimale dopo realizzazione interventi."
+    Qcons_pianificata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata conservata (QIDA) allo stato attuale, valore in funzione alle aperture, alle tratte di regolazione, ecc. QIDA è la portata conservata (verso l'IDA) quando si attiva lo scarico. Portata per quale lo scarico si attiva (stato attuale)."
+    Qcons_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Quantità ottimale allo stato attuale prima della realizzazione di eventuali interventi."
+    Qcons_attuale_ottimizzato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_pianificato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Indicazione se lo scaricatore entra in funzione con l'evento di dimensionamento."
+    scarico_attivo: (     
+      si,
+      no,
+      sconosciuto
+    );
+    !!@ comment = "Volume di stoccaggio nel bacino e nella canalizzazione affluente tra soglia di stramazzo e livello d'acqua per la portata conservata. Per bacini di chiarificazione in parallelo deve essere rilevato il volume nel manufatto di ripartizione, rispettivamente nello scaricatore di piena a monte (vedi precisazioni per volume_parte_accumulo rispettivamente volume_parte_decantazione). Per le pompe: volume del pozzo pompe dal fondo fino al livello d'acqua massimo (incl. volume disponibile nella canalizzazione d'entrata)."
+    volume_stoccaggio: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Informazioni determinanti dal punto di vista di chi elabora la scheda."
+    scaricatore_osservazioni: TEXT*80;
+    !!@ comment = "Durata media degli scarichi all'anno dopo realizzazione delle misure definite dal concetto."
+    durata_scarichi_pianificazione: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durata media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    durata_scarichi_attuale: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durata media degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    durata_scarichi_attuale_ottimizzato: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Frequenza media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    frequenza_scarichi_pianificato: Frequenza_scarichi;
+    !!@ comment = "Frequenza media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    frequenza_scarichi_attuale: Frequenza_scarichi;
+    !!@ comment = "Frequenza media degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    frequenza_scarichi_attuale_ottimizzato: Frequenza_scarichi;
+    !!@ comment = "Volume medio degli scarichi all'anno dopo realizzazione delle misure definite dal concetto."
+    volume_scarichi_pianificazione: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume medio degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    volume_scarichi_attuale: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume medio degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    volume_scarichi_attuale_ottimizzato: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Tipo di stramazzo nello scaricatore di piena"
+    stramazzo_tipo: (     
+      altro,
+      !!@ comment = "Con apertura sul fondo"
+      leaping_weir,
+      !!@ comment = "Stramazzo laterale con sfioro alto"
+      stramazzo_laterale_alto,
+      !!@ comment = "Stramazzo laterale con sfioro basso"
+      stamazzo_laterale_basso
+    );
+END ST_scaricatore_piena;
+
+!!@ comment = "Association"
+ASSOCIATION ST_scaricatore_piena_punto_immissioneAssoc =
+  punto_immissioneRef  -- {0..1} nodo;
+!!@comment = " Punto immissione dello sfioratore nel corso d'acqua"
+  ST_scaricatore_piena_punto_immissioneAssocRef -- {0..*} ST_scaricatore_piena;
+END ST_scaricatore_piena_punto_immissioneAssoc;
+
+!!@ comment = "Scheda tipo bacino chiarificazione"
+CLASS ST_bacino_chiarificazione EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_dim_pianificazione: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'quantità acque luride'."
+    abitanti_dim_attuale: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_pianificazione: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_attuale: Popolazione_equivalente;
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_pianificazione: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_attuale: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    percentuale_NH4_N_scaricato_ottimizazto: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_pianificazione: Carico;
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_attuale: Carico;
+    !!@ comment = "Secondo modulo base capitolo 8.5 della direttiva 'Gestione delle acque di scarico in tempo di pioggia' della VSA (2019)"
+    carico_NH4_N_scaricato_ottimizzato: Carico;
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_pianifacato: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata del bacino imbrifero diretto. Comprende tutte le aree tributarie a monte del manufatto, fino  allo scaricatore di piena o al bacino di chiarificazione superiore."
+    superficie_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata del bacino imbrifero diretto. Comprende tutte le aree tributarie a monte del manufatto, fino  allo scaricatore di piena o al bacino di chiarificazione superiore."
+    superficie_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie ridotta attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_pianificata: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema di ripartizione indicare solo la superficie ridotta attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_pianificazione: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    bacino_imbrifero_globale_denominazione_pianificato: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale_ottimizzato: TEXT*20;
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    !!@ comment = "Carico supplementare ottimale dopo realizzazione delle misure previste dal concetto."
+    carico_supplementare_pianificato: Percento1000;
+    !!@ comment = "Carico supplementare sulle canalizzazioni a valle con l'evento di dimensionamento = 100 * (Qab – Qan) / Qan 	[%]. Rapporto tra acqua defluita verso IDA al momento dell'entrata in funzione dello scaricatore (Qan) e Qab (quantintà d'acqua che per l'evento di dimensionamento (z=5) defluisce in rete verso l'IDA). Esempio: Qan = 100 l/s, Qab = 150 l/s -> carico supplementare = 50%"
+    carico_supplementare_attuale: Percento1000;
+    !!@ comment = "Carico supplementare ottimale allo stato attuale prima dello studio di eventuali ulteriori accorgimenti."
+    carico_supplementare_attuale_ottimizzato: Percento1000;
+    !!@ comment = "Volume della camera sotto la quota dello stramazzo senza volume di accumulo nel collettore in entrata. Quest'ultimo viene rilevato con l'attributo 'volume di stoccaggio' (per una disposizione in serie nella scheda tipo del manufatto principale, per una disposizione in parallelo nella scheda tipo del manufatto di ripartizione o scaricatore di piena a monte)."
+    volume_utile_ritenzione: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume della camera sotto la quaota dello stramazzo incluso parte entrata/uscita/sedimentazione senza volume di accumulo nel collettore in entrata. Quest'ultimo viene rilevato con l'attributo 'volume di stoccaggio' (per una disposizione in serie nella scheda tipo del manufatto principale, per una disposizione in parallelo nella scheda tipo del manufatto di ripartizione o scaricatore di piena a monte)."
+    volume_utile_sedimentazione: 0.00 .. 10000000.00 [Units.m3];
+    OBJ_ID_bacino_imbrifero_globale_pianificato: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale_ottimizazto: TEXT*16;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+    !!@ comment = "Quantità ottimale dopo realizzazione interventi."
+    Qcons_pianificata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata conservata (QIDA) allo stato attuale, valore in funzione alle aperture, alle tratte di regolazione, ecc. QIDA è la portata conservata (verso l'IDA) quando si attiva lo scarico. Portata per quale lo scarico si attiva (stato attuale)."
+    Qcons_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Quantità ottimale allo stato attuale prima della realizzazione di eventuali interventi."
+    Qcons_attuale_ottimizzato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Disposizione del bacino nel sistema, cfr. cap. 6.2 modulo DB della direttiva VSA Gestione delle acque di scarico in tempo di pioggia."
+    bacino_disposizione: (     
+      !!@ comment = "Attraversamento del bacino per tempo secco e attraversamento di una parte dell'acqua per tempo di pioggia."
+      in_serie,
+      !!@ comment = "Attraversamento del bacino solo per tempo di pioggia"
+      in_parallelo,
+      sconosciuto
+    );
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_pianificato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Volume di stoccaggio nel bacino e nella canalizzazione affluente tra soglia di stramazzo e livello d'acqua per la portata conservata. Per bacini di chiarificazione in parallelo deve essere rilevato il volume nel manufatto di ripartizione, rispettivamente nello scaricatore di piena a monte (vedi precisazioni per volume_parte_accumulo rispettivamente volume_parte_decantazione). Per le pompe: volume del pozzo pompe dal fondo fino al livello d'acqua massimo (incl. volume disponibile nella canalizzazione d'entrata)."
+    volume_stoccaggio: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Informazioni determinanti dal punto di vista di chi elabora la scheda."
+    scaricatore_osservazioni: TEXT*80;
+    !!@ comment = "Durata media degli scarichi all'anno dopo realizzazione delle misure definite dal concetto."
+    durata_scarichi_pianificazione: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durata media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    durata_scarichi_attuale: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durata media degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    durata_scarichi_attuale_ottimizzato: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Frequenza media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    frequenza_scarichi_pianificato: Frequenza_scarichi;
+    !!@ comment = "Frequenza media degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    frequenza_scarichi_attuale: Frequenza_scarichi;
+    !!@ comment = "Frequenza media degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    frequenza_scarichi_attuale_ottimizzato: Frequenza_scarichi;
+    !!@ comment = "Volume medio degli scarichi all'anno dopo realizzazione delle misure definite dal concetto."
+    volume_scarichi_pianificazione: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume medio degli scarichi all'anno secondo simulazione sul lungo periodo o misurazione."
+    volume_scarichi_attuale: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume medio degli scarichi da scaricatori all'anno calcolati con regolazioni ottimizzate nel manufatto prima di eventuali realizzazioni."
+    volume_scarichi_attuale_ottimizzato: 0.00 .. 10000000.00 [Units.m3];
+END ST_bacino_chiarificazione;
+
+!!@ comment = "Association"
+ASSOCIATION ST_bacino_chiarificazione_punto_immissioneAssoc =
+  punto_immissioneRef  -- {0..1} nodo;
+!!@comment = " Punto immissione dello sfioratore nel corso d'acqua"
+  ST_bacino_chiarificazione_punto_immissioneAssocRef -- {0..*} ST_bacino_chiarificazione;
+END ST_bacino_chiarificazione_punto_immissioneAssoc;
+
+!!@ comment = "Scheda tipo per bacino / canale di ritenzione"
+CLASS ST_bacino_canale_ritenzione EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'qauntità acque luride'."
+    abitanti_dim_pianificazione: Popolazione_equivalente;
+    !!@ comment = "Numero di abitanti nel bacino imbrifero diretto come valore informativo. Il quantitativo di acque luride è da indicare con l'attributo 'quantità acque luride'."
+    abitanti_dim_attuale: Popolazione_equivalente;
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_pianifacato: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie edificata di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie edificata attualmente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_edificata_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Il bacino imbrifero di dimensionamento comprende la superficie effettiva di tutte le aree tributarie a monte del manufatto, fino al bacino di chiarificazione superiore."
+    superficie_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_pianificazione: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Superficie ridotta di tutte le aree tributarie a monte del manufatto, fino  al bacino di chiarificazione superiore. Nel sistema separato indicare solo la superficie ridotta effettivamente allacciata al manufatto (in genere quella collegata tramite il nodo delle acque luride). Indicare almeno una superficie (edificata o ridotta)."
+    superficie_rid_dim_attuale: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_pianificazione: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque chiare parassitarie al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_chiare_parassitarie_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    bacino_imbrifero_globale_denominazione_pianificato: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale: TEXT*20;
+    bacino_imbrifero_globale_denominazione_attuale_ottimizzato: TEXT*20;
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    !!@ comment = "L'attributo descrive, dove la quantità d'acqua eccedente il volume di ritenzione viene scaricata (particolarmente per bacini/canali di accumulo)"
+    Stramazzo_emergenza: (     
+      altro,
+      !!@ comment = "Collegamento diretto in un ricettore naturale  (costruzione indesiderata). Compilare anche scarico_emergenza_punto_immissione per rendere visibile la necessità d'intervento."
+      in_corso_d_acqua,
+      !!@ comment = "'in_canalizzazione_acque_miste' significa che il manufatto è direttamente collegato e non passa liberamente sul terreno"
+      in_canalizzazione_acque_miste,
+      !!@ comment = "'in_canalizzazione_acque_meteoriche' significa che il manufatto è direttamente collegato e non passa liberamente sul terreno"
+      in_canalizzazione_acque_meteoriche,
+      !!@ comment = "'in_canalizzazione_acque_luride' significa che il manufatto è direttamente collegato e non passa liberamente sul terreno"
+      in_canalizzazione_acque_luride,
+      nessuno,
+      !!@ comment = "In caso di ristagno l'acqua fluisce in superficie attraverso il manufatto (indice di impianto ostruito)."
+      con_sbocco_superficiale,
+      sconosciuto
+    );
+    !!@ comment = "Volume della camera sotto lo stramazzo d'emergenza o bypass (volume massimo utile, escluso volume di stoccaggio del canale in entrata. Per canale ritenzione e canali d'invaso in linea il volume utile è 0. C'è solo un bacino d'accumulo, da rilevare con l'attributo corrispondente."
+    volume_utile: 0.00 .. 10000000.00 [Units.m3];
+    OBJ_ID_bacino_imbrifero_globale_pianificato: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale: TEXT*16;
+    OBJ_ID_bacino_imbrifero_globale_attuale_ottimizazto: TEXT*16;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+    !!@ comment = "Portata conservata (QIDA) per lo stato di pianificazione secondo il PGS. (compilare per bacino/canale di accumulo)"
+    Qmax_pianificata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata conservata (QIDA) per lo stato attuale, valore attuale sulla base di aperture di lamiera, strozzatura, ecc. QIDA è il deflusso che per l'evento di dimensionamento (z=5) rimane nella rete di canalizzazioni verso l'IDA. (compilare per bacino/canale di ritenzionel)"
+    Qmax_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Valore portata conservata (QIDA) calcolato, che sulla base delle condizioni quadro attuali permette di rispettare il quadro legislativo e le direttive in vigore (compilare per bacini/canali di ritenzione)"
+    Qmax_attuale_ottimizzato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Disposizione del bacino nel sistema, cfr. cap. 6.2 modulo DB della direttiva VSA Gestione delle acque di scarico in tempo di pioggia."
+    bacino_disposizione: (     
+      !!@ comment = "Attraversamento del bacino per tempo secco e attraversamento di una parte dell'acqua per tempo di pioggia."
+      in_serie,
+      !!@ comment = "Attraversamento del bacino solo per tempo di pioggia"
+      in_parallelo,
+      sconosciuto
+    );
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_pianificato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Apporto totale di acque di scarico al manufatto, incluso tutto il territorio a monte. Indicazione valore medio annuale (media sulle 24 ore) in l/s."
+    apporto_acque_scarico_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Volume di stoccaggio nel bacino e nella canalizzazione affluente tra soglia di stramazzo e livello d'acqua per la portata conservata. Per bacini di chiarificazione in parallelo deve essere rilevato il volume nel manufatto di ripartizione, rispettivamente nello scaricatore di piena a monte (vedi precisazioni per volume_parte_accumulo rispettivamente volume_parte_decantazione). Per le pompe: volume del pozzo pompe dal fondo fino al livello d'acqua massimo (incl. volume disponibile nella canalizzazione d'entrata)."
+    volume_stoccaggio: 0.00 .. 10000000.00 [Units.m3];
+END ST_bacino_canale_ritenzione;
+
+!!@ comment = "Scheda tipo manufatto di ripartizione: Manufatto che ripartisce il flusso nella canalizzazione, senza tuttavia scaricare fuori dal sistema. Uno o più entrate, due o più uscite."
+CLASS ST_manufatto_ripartizione EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Deve venire indicata la tipologia del manufatto di ripartizione"
+    tipo: (     
+      altro,
+      !!@ comment = "Divisione libera significa che il flusso viene diviso in base delle condizioni idrauliche. In questo caso non deve essere definito uno scaricatore di piena (in VSA-DSS)"
+      divisione_libera,
+      !!@ comment = "Leaping weir (apertura sul fondo)"
+      leaping_weir,
+      !!@ comment = "Fino ad ora non esiste una rappresentazione diretta nella VSA-DSS. Direzione_secondaria_chiusa , quando lo stato della condotta_da corrisponde a fuori_servizio."
+      direzione_secondaria_chiusa,
+      !!@ comment = "Stramazzo laterale o altro stramazzo"
+      stramazzo_laterale,
+      sconosciuto
+    );
+    parametri_idraulici_denominazione_pianificato: TEXT*20;
+    parametri_idraulici_denominazione_attuale: TEXT*20;
+    parametri_idraulici_denominazione_attuale_ottimizzato: TEXT*20;
+    !!@ comment = "Carico supplementare ottimale dopo realizzazione delle misure previste dal concetto."
+    carico_supplementare_pianificato: Percento1000;
+    !!@ comment = "Carico supplementare sulle canalizzazioni a valle con l'evento di dimensionamento = 100 * (Qab – Qan) / Qan 	[%]. Rapporto tra acqua defluita verso IDA al momento dell'entrata in funzione dello scaricatore (Qan) e Qab (quantintà d'acqua che per l'evento di dimensionamento (z=5) defluisce in rete verso l'IDA). Esempio: Qan = 100 l/s, Qab = 150 l/s -> carico supplementare = 50%"
+    carico_supplementare_attuale: Percento1000;
+    !!@ comment = "Carico supplementare ottimale allo stato attuale prima dello studio di eventuali ulteriori accorgimenti."
+    carico_supplementare_attuale_ottimizzato: Percento1000;
+    OBJ_ID_parametro_idraulico_pianificato: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale: TEXT*16;
+    OBJ_ID_parametro_idraulico_attuale_ottimizzato: TEXT*16;
+    !!@ comment = "Quantità ottimale dopo realizzazione interventi."
+    Qcons_pianificata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata conservata (QIDA) allo stato attuale, valore in funzione alle aperture, alle tratte di regolazione, ecc. QIDA è la portata conservata (verso l'IDA) quando si attiva lo scarico. Portata per quale lo scarico si attiva (stato attuale)."
+    Qcons_attuale: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Quantità ottimale allo stato attuale prima della realizzazione di eventuali interventi."
+    Qcons_attuale_ottimizzato: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Volume di stoccaggio nel bacino e nella canalizzazione affluente tra soglia di stramazzo e livello d'acqua per la portata conservata. Per bacini di chiarificazione in parallelo deve essere rilevato il volume nel manufatto di ripartizione, rispettivamente nello scaricatore di piena a monte (vedi precisazioni per volume_parte_accumulo rispettivamente volume_parte_decantazione). Per le pompe: volume del pozzo pompe dal fondo fino al livello d'acqua massimo (incl. volume disponibile nella canalizzazione d'entrata)."
+    volume_stoccaggio: 0.00 .. 10000000.00 [Units.m3];
+END ST_manufatto_ripartizione;
+
+!!@ comment = "Association"
+ASSOCIATION ST_manufatto_ripartizione_nodo_direzione_principaleAssoc =
+  nodo_direzione_principaleRef  -- {1} nodo;
+!!@comment = " Nodo successivo nella direzione primaria"
+  ST_manufatto_ripartizione_nodo_direzione_principaleAssocRef -- {0..*} ST_manufatto_ripartizione;
+END ST_manufatto_ripartizione_nodo_direzione_principaleAssoc;
+
+!!@ comment = "Scheda tipo altri manufatti speciali (AMS): manufatti avente una funzione speciale nella rete di smaltimento delle acque e che devono quindi essere documentati in modo specifico, ma che non corrispondono ad alcuna delle categorie di scheda tipo."
+CLASS ST_altri EXTENDS ST =  
+  ATTRIBUTE
+    !!@ comment = "Descrizione del manufatto speciale"
+    descrizione: MTEXT*255;
+END ST_altri;
+
+!!@ comment = "La curva di funzionamento del manufatto descrive l'andamento della portata dal manufatto di scarico verso l'IDA in diverse condizioni di afflusso. Deve comporsi da almeno due valori. In aggiunta può essere indicata sotto forma di tabella o output del modello di calcolo. La curva caratteristica deve essere documentata in una tabella Q/Q o H/Q. Grafico Q(1) / Q(2): Q1 =Q afflusso [l/s], Q2 = deflusso verso IDA [l/s]. Grafico H/Q: H = livello d'acqua allo scarico [m s.l.m.], Q = deflusso verso IDA [l/s]. Nel caso di situazioni di deflusso in rigurgito la funzione deve essere descritta in un allegato separato."
+CLASS curva_funzionamento EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Portata (Q2) verso l'IDA"
+    portata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Livello d'acqua (h) corrispondente alla portata (Q2)"
+    livello: Base_i_LV95.Altitudine;
+    !!@ comment = "OID della relazione_HR corrispondente nella VSA-DSS., solo per il trasferimento del modello"
+    OBJ_ID_relazione_HQ: TEXT*16;
+    stato: (     
+      pianificato,
+      attuale,
+      attuale_ottimizzato
+    );
+    !!@ comment = "Afflusso (Q1)"
+    afflusso: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+END curva_funzionamento;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_scaricatore_pienaAssoc =
+  ST_scaricatore_pienaRef  -- {0..1} ST_scaricatore_piena;
+  curva_funzionamento_ST_scaricatore_pienaAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_scaricatore_pienaAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_manufatto_divisorioAssoc =
+  ST_manufatto_divisorioRef  -- {0..1} ST_manufatto_ripartizione;
+  curva_funzionamento_ST_manufatto_divisorioAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_manufatto_divisorioAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_bacinoAssoc =
+  ST_bacinoRef  -- {0..1} ST_bacino_chiarificazione;
+  curva_funzionamento_ST_bacinoAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_bacinoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_bacino_canale_ritenzioneAssoc =
+  ST_bacino_canale_ritenzioneRef  -- {0..1} ST_bacino_canale_ritenzione;
+  curva_funzionamento_ST_bacino_canale_ritenzioneAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_bacino_canale_ritenzioneAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_innesto_sifoneAssoc =
+  ST_innesto_sifoneRef  -- {0..1} ST_innesto_sifone;
+  curva_funzionamento_ST_innesto_sifoneAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_innesto_sifoneAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION curva_funzionamento_ST_stazione_pompaggioAssoc =
+  ST_stazione_pompaggioRef  -- {0..1} ST_stazione_pompaggio;
+  curva_funzionamento_ST_stazione_pompaggioAssocRef -- {0..*} curva_funzionamento;
+END curva_funzionamento_ST_stazione_pompaggioAssoc;
+
+!!@ comment = "Componenti del manufatto della scheda tipo, equipaggiamenti risp. equipaggiamenti ausiliari"
+CLASS componente_manufatto EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Tipo della componente di manufatto. Per ogni record una componente di manufatto. Le componenti di manufatto devono essere complete, anche se definite 'opzionali' in INTERLIS."
+    tipo: (     
+      vuotamento_bacino,
+      pulizia_bacino,
+      dispositivo_regolazione,
+      ritenzione_solidi,
+      !!@ comment = "Se gli aggregati vengono trasportati in punti diversi della rete, è necessario registrare una scheda tipo separati"
+      pompaggio,
+      !!@ comment = "La componente apparecchio_misura viene utilizzata quando ad esempio esiste una misurazione che serve per la regolazione / controllo del deflusso verso l'IDA."
+      apparecchio_misura,
+      !!@ comment = "Inserire solo per stramazzi d'emergenza in stazioni di pompaggio. Gli stramazzi d'emergenza in manufatti separati sono registrati con la scheda tipo scaricatore (attributo scarico_attivo = impostare no)"
+      scarico_emergenza,
+      protezione_anti_rigurgito,
+      stramazzo
+    );
+    !!@ comment = "La componente del manufatto vuotamento bacino può essere compilata solo una volta. Se ad esempio un bacino viene vuotato con più pompe, nella componente del manufatto viene indicata la potenza complessiva."
+    vuotamento_bacino_tipo: (     
+      altro,
+      !!@ comment = "Il valore 'gravitazione' è utilizzato quando il manufatto viene vuotato senza componenti ausiliari."
+      gravitazione,
+      !!@ comment = "Nel caso di più pompe deve essere rilevato il quantitativo totale massimo."
+      pompa,
+      !!@ comment = "Nel caso di più saracinesche deve essere rilevato il quantitativo totale massimo."
+      saracinesca,
+      sconosciuto
+    );
+    !!@ comment = "Nel caso di più pompe / saracinesche deve essere rilevato il quantitativo totale massimo."
+    vuotamento_bacino_portata: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    pulizia_manufatto_tipo: (     
+      !!@ comment = "Flusso d'aria in pressione"
+      airjet,
+      altro,
+      dispositivo_pulizia,
+      agitatore,
+      cunetta_curva,
+      lavaggio_getto,
+      benna_ribaltabile,
+      sconosciuto
+    );
+    !!@ comment = "Osservazioni generali"
+    osservazione: TEXT*80;
+    dispositivo_regolazione: (     
+      !!@ comment = "Regolatore di portata"
+      regolatore_portata,
+      altro,
+      !!@ comment = "Per una tratta di regolazione devono essere rilevati sia un dispoitivo di regolazione, che una condotta.funzione_idraulica='condotta_strozzamento' (regola di rilevamento)."
+      tratta_regolazione,
+      leaping_weir,
+      !!@ comment = "Compilare in aggiunta la scheda tipo dell'impianto di pompaggio"
+      pompa,
+      saracinesca_fissa,
+      saracinesca_regolazione_manuale,
+      saracinesca_regolazione_automatica,
+      sconosciuto
+    );
+    !!@ comment = "Sono da indicare i seguenti valori: leaping weir: apertura della lamiera, rispettivamente apertura sul fondo; dispositivo di regolazione: nessuna indicazione supplementare. Saracinesca / paratoia: apertura in luce (da fondo scorrimento fino al bordo inferiore della piastra della saracinesca, punto più basso); regolatore di portata: nessuna indicazione supplementare; pompa: nessuna indicazione supplementare."
+    dispositivo_regolazione_apertura_attuale: Altezza_profilo;
+    !!@ comment = "Sono da indicare i seguenti valori: leaping weir: apertura della lamiera, rispettivamente apertura sul fondo; dispositivo di regolazione: nessuna indicazione supplementare. saracinesca / paratoia: apertura in luce (da fondo scorrimento fino al bordo inferiore della piastra della saracinesca, punto più basso); regolatore di portata: nessuna indicazione supplementare; pompa: nessuna indicazione supplementare."
+    dispositivo_regolazione_apertura_attuale_ottimizzata: Altezza_profilo;
+    !!@ comment = "Quota di avviamento in m s.l.m."
+    ritenzione_solidi_quota_avviamento: Base_i_LV95.Altitudine;
+    !!@ comment = "Tipo di ritenzione dei solidi"
+    ritenzione_solidi_tipo: (     
+      altro,
+      griglia_a_spazzola,
+      griglia_fine,
+      !!@ comment = "distanza barre > 10mm"
+      griglia_grossa,
+      !!@ comment = "lamiera perforata"
+      filtro,
+      paratoia_cilindrica,
+      !!@ comment = "parete sommersa"
+      parete_sommersa,
+      sconosciuto
+    );
+    !!@ comment = "Quantità d'acqua, valore di dimensionamento"
+    ritenzione_solidi_dimensionamento: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "tipo di pompe"
+    dispositivo_trasporto_tipo: (     
+      altro,
+      impianto_aria_compressa,
+      pompa_pistoni,
+      pompa_centrifuga,
+      pompa_a_vite,
+      sconosciuto,
+      impinato_a_vuoto_aria
+    );
+    !!@ comment = "Portata massima della pompa (singola); si verifica di regola ad altezza di sollevamneto minima."
+    dispositivo_trasporto_portata_max: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Portata minima della pompa (singola); si verifica di regola ad altezza di sollevamneto massima."
+    dispositivo_trasporto_portata_min: 0.000 .. 100000.000 [SIA405_Base_Acque_di_scarico_LV95.ls];
+    !!@ comment = "Tipo dell'apparecchio di misura"
+    aparecchio_misura_tipo: (     
+      altro,
+      sensore_pressione,
+      insufflazione,
+      !!@ comment = "Misuratore di portata elettromagnetico per condotte parzialmente riempite"
+      MPE_parzialmente_riempito,
+      !!@ comment = "Misuratore di portata elettromagnetico per condotte riempite"
+      MPE_riempito,
+      radar,
+      galleggiante,
+      ultrasuono,
+      sconosciuto
+    );
+    !!@ comment = "Tipo di misura del risultato_misura.tipo_misura, p. es. in proporzione al tempo o alla quantità"
+    apparecchio_misura_tipo_misura: (     
+      altro,
+      portata,
+      livello,
+      sconosciuto
+    );
+    !!@ comment = "Corpo rigurgitante della relativa stazione di misura"
+    apparecchio_misura_corpo_rigurgitante: (     
+      altro,
+      nessuno,
+      !!@ comment = "Tutte le forme come stramazzi triangolari ecc."
+      sfioratore,
+      sconosciuto,
+      restringimento_venturi
+    );
+    !!@ comment = "Scopo della misura"
+    apparecchio_misura_scopo: (     
+      !!@ comment = "Per ripartizione dei costi ed a scopo tecnico."
+      entrambi,
+      ripartizione_costi,
+      !!@ comment = "Di regola per le componenti dei manufatti esiste solo uno scopo tecnico (regolazione)"
+      scopo_tecnico,
+      sconosciuto
+    );
+    !!@ comment = "Quota di scorrimento tubo di scarico. Nel caso vi sia uno sfioratore deve essere rilevata la quota dello stramazzo."
+    scarico_emergenza_quota: Base_i_LV95.Altitudine;
+    !!@ comment = "OID del limitatore di portata nella VSA-DSS, solo per trasferimenti del modello, nel caso in cui dispositivo_regolazione_tipo= 'regolatre_portata' o 'saracinesca' o vuotamento_bacino_tipo= 'saracinesca' o protezione_rigurgito_tipo= 'paratoia_cilindrica'"
+    OBJ_ID_limitatore_portata: TEXT*16;
+    OBJ_ID_vuotamento_bacino: TEXT*16;
+    OBJ_ID_pulizia_manufatto: TEXT*16;
+    OBJ_ID_ritenzione_solidi: TEXT*16;
+    OBJ_ID_apparecchio_misura: TEXT*16;
+    !!@ comment = "OID della relativa stazione di misura dell'apparecchio di misura nella VSA-DSS, solo  per il trasferimento del modello"
+    OBJ_ID_stazione_misura: TEXT*16;
+    OBJ_ID_dispositivo_anti_rigurgito: TEXT*16;
+    !!@ comment = "OID dello stramazzo nella VSA-DSS, solo per trasferimenti di modello, nel caso in cui dispositivo_regolazione_tipo='leaping_weir' o  'pompa', vuotamento_bacino_tipo= 'pompa', rispettivamente protezione_rigurgito_tipo='pompa'. Conpilare anche  per Stramazzo_funzione='scarico_emergenza' (rispettivo stramazzo)"
+    OBJ_ID_stramazzo: TEXT*16;
+    !!@ comment = "Il dispositivo anti-rigurgito ipedisce il riflusso di acqua dal ricettore alla rete di smaltimento acque. L'attributo viene rilevato per quel manufatto speciale, nel quale è montato. Se non esiste un dispositivo anti-rigurgito, questa componente del manufatto deve essere lasciata vuota."
+    dispositivo_anti_rigurgito_tipo: (     
+      altro,
+      pompa,
+      clappa_anti_rigurgito,
+      paratoia_cilindrica,
+      sconosciuto
+    );
+    !!@ comment = "Lunghezza utile dello stramazzo (da indicare unicamente per stramazzi a sfioro). Per stramazzi sui due lati devono essere rilevate le due soglie."
+    stramazzo_lunghezza_idraulica: 0.00 .. 30000.00 [m];
+    !!@ comment = "Quota del punto più alto della soglia di stramazzo (da rilevare unicamete per stramazzi a sfioro). Per soglie di stamazzo orizzontali la quota minima e massima della soglia sono identiche."
+    scaricatore_quota_max: Base_i_LV95.Altitudine;
+    !!@ comment = "Quota del punto più basso della soglia di stramazzo (da rilevare unicamente per stramazzi a sfioro)."
+    scaricatore_quota_min: Base_i_LV95.Altitudine;
+END componente_manufatto;
+
+!!@ comment = "Association"
+ASSOCIATION componente_manufatto_scheda_tipoAssoc =
+  scheda_tipoRef  -- {1} ST;
+  componente_manufatto_scheda_tipoAssocRef -- {0..*} componente_manufatto;
+END componente_manufatto_scheda_tipoAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION componente_manufatto_scarico_emergenza_punto_immissioneAssoc =
+  scarico_emergenza_punto_immissioneRef  -- {0..1} nodo;
+!!@comment = " Collegamento con i nodi del punto di scarico dello scarico di emergenza"
+  componente_manufatto_scarico_emergenza_punto_immissioneAssocRef -- {0..*} componente_manufatto;
+END componente_manufatto_scarico_emergenza_punto_immissioneAssoc;
+
+!!@ comment = "Interventi / misure elaborate in ambito PGS e relativo stato di realizzazione. Per compiti ricorrenti non devono essere definiti 'interventi', ma utilizzata la classe 'evento_di_mantenimento'. I costi per compiti ricorrenti Aufgaben sono da considerare nel progetto parziale finanziamento."
+CLASS intervento EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Osservazioni del progettista o dell'organo di vigilanza"
+    osservazione: TEXT*80;
+    descrizione: TEXT*100;
+    denominazione: MANDATORY TEXT*50;
+    !!@ comment = "Data in cui è l'intervento è stato registrato nella lista delle musure"
+    data_entrata: INTERLIS_1_DATE;
+    !!@ comment = "Somma dei costi propri e di terzi. Possono anche essere elencati separatamente"
+    costi_totali: 0.00 .. 99999999.99 [Units.CHF];
+    !!@ comment = "Descrizione corta della necessità d'intervento"
+    necessita_azione: MTEXT*255;
+    !!@ comment = "Anno in cui effettivamente la misura (intervento) è stata realizzata"
+    anno_realizzazione_effettivo: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Anno in cui è pianificata la realizzazione della misura (intervento)"
+    anno_realizzazione_pianificato: SIA405_Base_Acque_di_scarico_LV95.Anno;
+    !!@ comment = "Categoria dell'intervento (obbligatorio)"
+    categoria: (     
+      !!@ comment = "Misure nell'ambito dello smaltimento delle acque sui fondi per favorire il ciclo dell'acqua a livello locale"
+      limitazione_deflusso_ritenzione_infiltrazione,
+      !!@ comment = "Adeguamento regolamenti, elaborazione disposizioni contrattuali, ecc."
+      misura_amministrativa,
+      !!@ comment = "Per tutte le misure del progetto parziale smaltimento acque nelle zone rurali"
+      smaltimento_acque_zone_rurali,
+      altro,
+      !!@ comment = "Messa fuori esercizio o smantellamento di impianti esistenti"
+      soppressione,
+      gestione_dati,
+      !!@ comment = "Realizzazione di nuove canalizzazioni per acque di scarico nel tracciato attuale o in tracciato diverso; i nuovi impianti comprendono la funzione delle canalizzazioni originali (SN EN 752)"
+      manutenzione_rinnovo,
+      !!@ comment = "Pulizia o svuotamento"
+      manutenzione_pulizia,
+      !!@ comment = "Rinnovo: misure volte a migliorare la funzionalità attuale delle canalizzazioni mediante utilizzo completo o parziale della sostanza originale. Riparazione: misure volte a eliminare danni a livello locale (SN EN 752)"
+      manutenzione_rinnovo_riparazione,
+      !!@ comment = "Qualora la misura di manutenzione non sia ancora specificata"
+      manutenzione_sconosciuto,
+      riduzione_acque_chiare,
+      !!@ comment = "Ad es. modifica del tipo di utilizzo di un tratto di collettore. Per manufatti speciali utilizzare il valore manufatto_speciale_modifica."
+      modifica_funzione,
+      !!@ comment = "Tutti i lavori relativi alla revisione o all'aggiornamento del PGS"
+      elaborazione_PGS,
+      controllo_monitoraggio,
+      !!@ comment = "Nuova proposta Direttiva dati PGS 2020: sostituisce risanamento e rinaturazione torrenti come concetto più generico"
+      intervento_in_corso_d_acqua,
+      !!@ comment = "Costruzione di nuovi impianti. Per manufatti speciali e costruzioni sostitutive utilizzare i valori specifici manufatto speciale_costruzione o conservazione_rinnovo."
+      estensione_rete,
+      !!@ comment = "Modifiche idrauliche/concettuali come nuova impostazione della quantità della portata conservata od ottimizzazione idraulica. Non utilizzare per misure di manutenzione costruttiva."
+      manufatto_speciale_modifica,
+      manufatto_speciale_nuova_costruzione,
+      !!@ comment = "Nuova proposta Direttiva dati PGS 2020"
+      prevenzione_incidenti_rilevanti,
+      sconosciuto
+    );
+    !!@ comment = "Consente la visualizzazione di un intervento con una linea (facoltativo)"
+    linea: Base_i_LV95.Polilinea;
+    OBJ_ID_intervento_mantenimento_manufatto: TEXT*16;
+    !!@ comment = "Consente la visualizzazione di un intervento con una superficie (facoltativo)"
+    perimetro: Base_i_LV95.Superficie;
+    !!@ comment = "Priorità della misura (intervento)"
+    priorita: (     
+      !!@ comment = "La misura è molto urgente e deve essere realizzata a cortissimo termine <= 2 Jahre"
+      M0,
+      !!@ comment = "La miura è urgente e deve essere realizzata urgentemente. Orizzonte temporale 3-4 anni"
+      M1,
+      !!@ comment = "La misura è necessaria a medio termine. Orizzonte temporale da 5 a 7 anni."
+      M2,
+      !!@ comment = "La misura può essere pianificata a lungo termine. Orizzonte temporale da 7 a 10 anni"
+      M3,
+      !!@ comment = "La misura può aspettare fino al prossimo aggiornamento PGS. Orizzonte temporale >= 10 anni"
+      M4,
+      sconosciuto
+    );
+    !!@ comment = "Stato della misura/intervento"
+    stato: (     
+      completato,
+      in_allestimento,
+      in_attesa,
+      sospesa,
+      sconosciuto
+    );
+    !!@ comment = "Per la visualizzazione (senza relazione spaziale)"
+    simbolopos: Base_i_LV95.CoordNaz;
+    !!@ comment = "Riferimento ad altre misure (definizione) o lavori, riferimento a dati basein cui le misure sono spiegate più in dettaglio, come per es. nei progetti PGS"
+    riferimento: MTEXT*255;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END intervento;
+
+!!@ comment = "Association"
+ASSOCIATION intervento_ente_responsabileAssoc =
+  ente_responsabileRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  intervento_ente_responsabileAssocRef -- {0..*} intervento;
+END intervento_ente_responsabileAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION intervento_responsabile_inizioAssoc =
+  responsabile_inizioRef (EXTERNAL) -- {1} SIA405_Base_Acque_di_scarico_LV95.Amministrazione.organizzazione;
+  intervento_responsabile_inizioAssocRef -- {0..*} intervento;
+END intervento_responsabile_inizioAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION intervento_condottaAssoc =
+  condottaRef  -- {0..*} condotta;
+  intervento_condottaAssocRef -- {0..*} intervento;
+END intervento_condottaAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION intervento_nodoAssoc =
+  nodoRef  -- {0..*} nodo;
+  intervento_nodoAssocRef -- {0..*} intervento;
+END intervento_nodoAssoc;
+
+!!@ comment = "Smaltimento delle acque di scarico nelle zone rurali"
+CLASS smaltimento_acque_zone_rurali EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Smaltimento corrente delle acque reflue"
+    smaltimento_attuale: (     
+      !!@ comment = "toilette senza scarico"
+      toilette_senza_scarico,
+      !!@ comment = "Fossa senza scarico"
+      fossa_senza_scarico,
+      !!@ comment = "Camera di fermentazione: 3 camere"
+      camera_fermentazione,
+      !!@ comment = "Se si utilizza il valore 'altro', occorre precisare lo smaltimento nell'osservazione, ad es. immissione o infiltrazione senza trattamento per rifugio di montagna"
+      altro,
+      allacciamento_canalizzazione,
+      !!@ comment = "Fossa di fermentazione: 2 camere"
+      fossa_fermentazione,
+      !!@ comment = "Fossa per  liquame. Valorizzazione agricola."
+      fossa_liquame,
+      senza_acque_scarico,
+      !!@ comment = "Una fossa settica serve allo smaltimento acque di singoli edifici non allacciati alla rete di canalizzazione. Si tratta normalmente di una vasca sotterranea in cui sul fondo sedimantano le parti solide. Deve essere vuotato a intervalli regolari."
+      fossa_settica,
+      !!@ comment = "piccolo impianto di depurazione acque"
+      piccolo_IDA,
+      sconosciuto
+    );
+    denominazione: MANDATORY TEXT*20;
+    !!@ comment = "Consiste nel numero di abitanti (E) e di abitanti equivalenti (AE). Vedi linea guida VSA ALR popolazione equivalente A03"
+    abitanti_equivalenti: Popolazione_equivalente;
+    !!@ comment = "Posizione del gruppo di edifici (può essere ricavato dai dati del Registro federale degli edifici e delle abitazioni REA)"
+    posizione: Base_i_LV95.CoordNaz;
+    !!@ comment = "OID del corrispondente tipo di smaltimento secondo VSA-DSS, solo per trasferimento tra modelli"
+    OBJ_ID_smaltimento: TEXT*16;
+    !!@ comment = "OID del corrispondente smaltimento.manufatto_smaltimento_acqueREF per acque di scarico nel VSA-DSS, solo per trasferimenti tra modelli"
+    OBJ_ID_smaltimento_manufatto: TEXT*16;
+    !!@ comment = "OID del corrispondente riferimento al smaltimento.punto_immissioneREF in VSA-DSS, solo per trasferimenti tra modelli"
+    OBJ_ID_smaltimento_punto_immissione: TEXT*16;
+    !!@ comment = "OID del corrispondente riferimento al smaltimento.impianto_infiltrazione da VSA-DSS, solo per trasferimenti tra modelli"
+    OBJ_ID_smaltimento_impianto_infiltrazione: TEXT*16;
+    OBJ_ID_Smaltimento_gruppo_edifici: TEXT*16;
+    necessita_risanamento: (     
+      si,
+      no,
+      sconosciuto
+    );
+    data_di_risanamento: INTERLIS_1_DATE;
+    !!@ comment = "Versione breve del concetto secondo l'offerta delle prestazioni (capitolato d'oneri tipo del PGS)"
+    concetto_di_risanamento: MTEXT*255;
+UNIQUE 
+    !!@ comment = "UNIQUE Designazione della combinazione proprietario_dei_datiRef, quindi compatibile con VSA-DSS-Mini (Istruzioni pratiche per i dati dello smaltimento acque urbane 2020)
+    denominazione, proprietario_datiRef;
+END smaltimento_acque_zone_rurali;
+
+!!@ comment = "Association"
+ASSOCIATION smaltimento_acque_zone_rurali_interventoAssoc =
+  interventoRef  -- {0..1} intervento;
+  smaltimento_acque_zone_rurali_interventoAssocRef -- {0..*} smaltimento_acque_zone_rurali;
+END smaltimento_acque_zone_rurali_interventoAssoc;
+
+
+!!@comment = "Ende des Topics / Fin du topic"
+END VSADSSMini;
+!!@comment = "Ende des Modells / Fin du modèle"
+END VSASDSAMINI_2020_LV95.
+

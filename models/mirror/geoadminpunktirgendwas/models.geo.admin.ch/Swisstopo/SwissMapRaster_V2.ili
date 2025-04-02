@@ -1,0 +1,106 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ IDGeoIV = "42.1,42.2,42.3,42.4,42.5,42.6,42.15"
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/geodata/maps/smr.html
+MODEL SwissMapRaster_V2 (de)
+  AT "https://models.geo.admin.ch/Swisstopo/"
+  VERSION "2021-03-26" =
+
+  IMPORTS NonVector_Base_LV95_V3_1;
+  IMPORTS GeometryCHLV95_V1; !! from CHBase
+  IMPORTS Units;
+
+  TOPIC SwissMapRaster EXTENDS NonVector_Base_LV95_V3_1.NonVector =
+
+    CLASS SMR EXTENDS NonVector_Base_LV95_V3_1.NonVector.NonVector_Dataset =
+      SMR: MANDATORY (SMR10,SMR25,SMR50,SMR100,SMR200,SMR500,SMR1000);
+    END SMR;
+
+    STRUCTURE NachfuehrungInfo =
+      Gesamtnachfuehrung: MANDATORY 1800..2999;
+    END NachfuehrungInfo;
+
+    CLASS SMRBlatt EXTENDS NonVector_Base_LV95_V3_1.NonVector.ImageGraphicRasterObject =
+      BlattName: TEXT*50; !! e.g. BEGGINGEN
+      BlattNummer: MANDATORY 0..9999; !! z.B. 1011
+      BlattNachfuehrungen: LIST {5} OF NachfuehrungInfo;
+      BlattSchnitt: MANDATORY GeometryCHLV95_V1.Surface;
+      BlattAusdehnungH: MANDATORY 1..10000 [Units.mm];
+      BlattAusdehnungB: MANDATORY 1..10000 [Units.mm];
+      Kartenebenen: MANDATORY (
+        KREL,       !! Farbkombination mit Relief, RGB
+        KOMB,       !! Farbkombination ohne Relief, indiziert
+        KGRS,       !! Graustufenkombination ohne Relief, indiziert
+        KGREL,      !! Graustufenkombination mit Relief, RGB, nur SMR10
+        !! Einzelebenen: Bitmap, RELI und GTON als Graustufen
+        AREALE,     !! Nutzungsareale und Sportareale
+        BAHN,       !! Bahnen, Signaturen rot
+        DEPO,       !! Deponieareale
+        FELS,       !! Fels
+        FELSM,      !! Felsmaske, Gletscherformmaske
+        FLTO,       !! Flusston: Flussfüllung
+        GEB,        !! Gebäude, Gebäudesignaturen
+        GEROELL,    !! Geröll, Kies
+        GEROELLM,   !! Geröllmaske
+        GEWL,       !! Gewässer, Signaturen  blau
+        GLET,       !! Gletscherform
+        GLETFM,     !! Gletscherformmaske
+        GLETM,      !! Gletschermaske
+        GRAUTO,     !! Grauton: Kühlturm, Staumauer
+        GREB,       !! Grenzbänder
+        GREL,       !! Grenzlinien, Landesgrenzsteine
+        GRELI,      !! Gletscher-Relief
+        GTON,       !! Gelbton
+        HYP,        !! Hypsometrie
+        KOORD,      !! Koordinatennetz
+        KOORDWGS,   !! Koordinatennetz
+        KURV,       !! Höhenkurven braun
+        KURVBLAU,   !! Höhenkurven blau
+        KURVFELS,   !! Höhenkurven im Fels/Geröll, Rinnen
+        LEIT,       !! Hochspannungsleitungen
+        NPGREB,     !! Nationalparkgrenzband
+        NPGREL,     !! Nationalpark Grenzlinie
+        RELI,       !! Relief
+        RELIM,      !! Reliefmaske
+        SEET,       !! Seeton: Seefüllung
+        SIG,        !! Liniensignaturen, Punktsignaturen
+        SIGM,       !! Maske Signaturen und Koten
+        SITU,       !! Kombinierte Ebene Schwarz inkl. Schriftmaske
+        SKIL,       !! Skilifte
+        SOLAR,      !! Solaranlagen
+        SPORTM,     !! Maske  Sportplätze, Graspisten
+        STDK,       !! Städtekontur
+        STDT,       !! Städteton
+        STRASSE,    !! Strassen, Wege, Koten, Arealsignaturen
+        STRASSEM,   !! Maske Strassen
+        STRASSENRM, !! Maske Strassennummern, Ausfahrten
+        STRBAUTO,   !! Farbband Autobahn/Autostrasse
+        STRBD,      !! Farbband Durchgangsstrasse
+        STRBV,      !! Farbband Verbindungsstrasse
+        TREPPE,     !! Treppen, Durchfahrtssperren
+        TXTBAHN,    !! Schrift Bahnen: Bahnhofsnamen
+        TXTFAM,     !! Maske Schrift farbig
+        TXTGEW,     !! Schrift Gewässer/Gletscher
+        TXTGRE,     !! Schrift Landesgrenzsteinnummern
+        TXTKURV,    !! Schrift Höhenkurvenzahlen
+        TXTNP,      !! Schrift Nationalpark
+        TXTSITU,    !! Schrift schwarz
+        TXTSITUM,   !! Maske Schrift schwarz
+        VEGT,       !! Vegetation ohne Wald, grüne Konturen
+        WEGM,       !! Maske Wege
+        WTON        !! Waldton
+      );
+      Aufloesung: MANDATORY TEXT*30; !! z.B. "20L/mm / 508dpi"
+      BitTiefe: MANDATORY TEXT*30; !! z.B. "8 Bit / 256 Farben"
+      Farbraum: MANDATORY (CMYK,RGB,Graustufen,indiziert,binaer);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+    END SMRBlatt;
+
+    CLASS Ausschnitt EXTENDS NonVector_Base_LV95_V3_1.NonVector.Clipping =
+    END Ausschnitt;
+
+  END SwissMapRaster;
+
+END SwissMapRaster_V2.

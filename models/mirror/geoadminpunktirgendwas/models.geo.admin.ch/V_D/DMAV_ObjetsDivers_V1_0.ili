@@ -1,0 +1,159 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.9
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_ObjetsDivers_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_Einzelobjekte_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_ModinfoFR_V1_0;
+  IMPORTS DMAVTYM_Qualite_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC ObjetDivers =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      GenreObjetDivers = (
+        mur,
+        batiment_souterrain,
+        autre_corps_de_batiment,
+        eau_canalisee_souterraine,
+        escalier_important,
+        tunnel_passage_inferieur_galerie,
+        pont_passerelle,
+        quai,
+        fontaine,
+        reservoir,
+        pilier,
+        couvert_independant,
+        silo_tour_gazometre,
+        cheminee,
+        monument,
+        mat_antenne,
+        tour_panoramique,
+        ouvrage_de_protection_des_rives,
+        seuil,
+        paravalanche,
+        socle_massif,
+        ruine_objet_archeologique,
+        debarcadere,
+        bloc_erratique,
+        cordon_boise,
+        ru,
+        sentier,
+        ligne_aerienne_a_haute_tension,
+        conduite_forcee,
+        voie_ferree,
+        telepherique,
+        telecabine_telesiege,
+        telepherique_de_chantier,
+        skilift,
+        bac,
+        grotte_entree_de_caverne,
+        axe,
+        arbre_isole_important,
+        statue_crucifix,
+        source,
+        point_de_reference,
+        fosse_purin_tas_fumier
+      );
+
+    CLASS MiseAJourOD =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH090101: IdentDN, Identification;
+    END MiseAJourOD;
+
+    STRUCTURE ElementSurfacique =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      PositionSymbole : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionSymbole;
+    END ElementSurfacique;
+
+    STRUCTURE ElementLineaire =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+      PositionSymbole : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionSymbole;
+    END ElementLineaire;
+
+    STRUCTURE ElementPonctuel =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      OriSymbole : DMAVTYM_Grafique_V1_0.Rotation;
+    END ElementPonctuel;
+
+    STRUCTURE NomObjet =
+      Nom : MANDATORY TEXT*60;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomObjet;
+
+    STRUCTURE NumeroObjet =
+      Numero : MANDATORY TEXT*12;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NumeroObjet;
+
+    CLASS ObjetDivers =
+      StandardQualite : MANDATORY DMAVTYM_Qualite_V1_0.StandardQualite;
+      GenreObjetDivers : MANDATORY GenreObjetDivers;
+      ElementSurfacique : BAG {0..*} OF ElementSurfacique;
+      ElementLineaire : BAG {0..*} OF ElementLineaire;
+      ElementPonctuel : BAG {0..*} OF ElementPonctuel;
+      NumeroObjet : BAG {0..*} OF NumeroObjet;
+      NomObjet : BAG {0..*} OF NomObjet;
+      EGID : 1 .. 900000000;
+      StatutObjet : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      MANDATORY CONSTRAINT CH090701: INTERLIS.elementCount(ElementSurfacique) > 0 OR INTERLIS.elementCount(ElementLineaire) > 0 OR INTERLIS.elementCount(ElementPonctuel) > 0;
+    END ObjetDivers;
+
+    ASSOCIATION Origine_ObjetDivers =
+      Origine -- {1} MiseAJourOD;
+      ObjetDivers_bientotcree -- {0..*} ObjetDivers;
+    END Origine_ObjetDivers;
+
+    ASSOCIATION Caducite_ObjetDivers =
+      Caducite  -- {0..1} MiseAJourOD;
+      ObjetDivers_bientotcaduc -- {0..*} ObjetDivers;
+    END Caducite_ObjetDivers;
+
+    ASSOCIATION Predecesseur_Successeur_ObjetDivers =
+      Predecesseur -- {0..1} ObjetDivers;
+      Successeur -- {0..*} ObjetDivers;
+    END Predecesseur_Successeur_ObjetDivers;
+
+    VIEW ObjetDivers_Valable
+      PROJECTION OF ObjetDivers;
+      WHERE
+        DEFINED(ObjetDivers->Origine) AND NOT (DEFINED(ObjetDivers->Caducite ));
+      =
+      ALL OF ObjetDivers;
+    END ObjetDivers_Valable;
+
+    CLASS PointMesure =
+      Numero : TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : DMAVTYM_Qualite_V1_0.Fiabilite;
+      EstDefiniExactement : MANDATORY BOOLEAN;
+      MANDATORY CONSTRAINT CH091201: DEFINED(GeometrieAltitude) == DEFINED(PrecisionAltimetrie);
+      MANDATORY CONSTRAINT CH091202: DEFINED(GeometrieAltitude) == DEFINED(EstFiableAltimetrie);
+    END PointMesure;
+
+    ASSOCIATION Origine_PointMesure =
+      Origine -- {0..1} MiseAJourOD;
+      PointMesure_bientotcree -- {0..*} PointMesure;
+    END Origine_PointMesure;
+
+  END ObjetDivers;
+
+END DMAV_ObjetsDivers_V1_0.

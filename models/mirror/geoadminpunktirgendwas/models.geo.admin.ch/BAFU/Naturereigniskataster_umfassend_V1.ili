@@ -1,0 +1,979 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2023-05-31 | BAFU  | Korrektur der CONSTRAINT 105, 106, 109, 110, 111, 113 auf MAOE.
+
+/** Dieses INTERLIS-Modell beschreibt das umfassende Datenmodell „Naturereigniskataster“ – Teil
+ *  Kantone. Es importiert den minimalen Teil gemäss GeoIG (MGDM) und definiert den erweiterten
+ *  Teil. In seiner Gesamtheit ist es auf der Applikation StorMe 3.0 implementiert. Dort sind jedoch
+ *  insbesondere noch die Klassen DOKUMENT, GEOFOTO, GROSSEREIGNIS und SBB_ZUSATDATEN vorhanden,
+ *  welche jedoch nicht über das vorliegende INTERLIS-Transfermodell übertragen werden.
+ *
+ *  Allgemeine Hinweise:
+ *  - Im Modell werden zahlreiche Constraints verwendet. Um sie bei Fehlermeldungen der INTERLIS-
+ *    Werkzeuge identifizieren zu können, sind die Constraints nummeriert und mit den hierfür notwen-
+ *    digen Meta-Attributen «!!@ cid» für den iG/Check und «!!@ name» für den ilivalidator versehen.
+ *  - Die Darstellung der vorliegenden ili-Datei ist auf eine Zeilenlänge von 100 Zeichen optimiert.
+ *  - Constraint (121) ist nicht als MANDATORY CONSTRAINT ausformuliert, da hierfür eine View nötig
+ *    wäre. Inhaltlich ist er trotzdem zu beachten. Es geht darum, dass die Attribute DI_R_MATERIAL,
+ *    DI_R_MATERIAL_MAO, DI_R_GLEITFLA, DI_R_GLEITFLA_MAO, DI_R_GLEITFLA_TIEFE und
+ *    DI_R_GLEITFLA_TIEFE_MAO nicht bei Hangmuren vorkommen dürfen.
+ *
+ *  ---
+ *
+ *  Ce modèle INTERLIS décrit le modèle de données complet "Cadastre des événements naturels" –
+ *  partie cantons. Il import, en tant que modèle de transfert, la partie minimale selon la LGéo
+ *  (MGDM) et définit la partie étendue du modèle. Ce modèle est implémenté dans sa totalité dans
+ *  l'application StorMe 3.0. Toutefois, les classes DOKUMENT, GEOFOTO, GROSSEREIGNIS et
+ *  SBB_ZUSATDATEN y sont toujours disponibles et ne sont pas transférées via le modèle de transfert
+ *  INTERLIS.
+ *
+ *  Informations générales:
+ *  - Il y a des nombreuses contraintes dans le modèle. Afin de les identifier en cas de messages
+ *    d'erreur provenant des outils INTERLIS, les contraintes sont numérotées et associées aux
+ *    méta-attributs nécessaires "!!@ cid" pour l'iG/Check et "!!@ name" pour l'ilivalidator.
+ *  - L'affichage de ce fichier ili est optimisé pour une longueur de ligne de 100 caractères.
+ *  - La contrainte (121) n'est pas formulée sous la forme d MANDATORY CONSTRAINT, car une "view"
+ *    serait nécessaire pour cela. Le contenu doit néanmoins être respecté. Le fait est que les
+ *    attributs D_R_MATERIAL, DI_R_MATERIAL_MAO, DI_R_GLEITFLA, DI_R_GLEITFLA_MAO,
+ *    DI_R_GLEITFLA_MAO, DI_R_GLEITFLA_TIEFE et DI_R_GLEITFLA_TIEFE_MAO ne peuvent être utilisés
+ *    avec des coulées boueuses.
+ */
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=167.1
+
+MODEL Naturereigniskataster_umfassend_LV95_V1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-05-31"  =
+  IMPORTS GeometryCHLV95_V1,Naturereigniskataster_MGDM_LV95_V1;
+  IMPORTS Text;
+
+  DOMAIN
+
+    BEOB_FLAECHE_TYP = (
+      W_Ablagerung_Geschiebe,
+      W_Ablagerung_Holz,
+      R_Anrissraum,
+      R_Ablagerungsraum,
+      L_Anrissraum_erwiesen,
+      L_Anrissraum_vermutet,
+      L_Ablagerungsraum_erwiesen,
+      L_Ablagerungsraum_vermutet,
+      andere
+    );
+
+    BEOB_LINIE_TYP = (
+      W_Ausbruchweg_Ueberflutung_Uebersarung_erwiesen,
+      W_Ausbruchweg_Ueberflutung_Uebersarung_vermutet,
+      W_Ausbruch_aus_Gerinne,
+      W_Ufererosion,
+      W_Tiefenerosion,
+      W_Ablagerung_im_Gerinne,
+      R_Rutschungsanriss,
+      R_Zugriss_Bruchlinie,
+      R_Stauchwulst,
+      S_Ausbruchgebiet_erwiesen,
+      S_Ausbruchgebiet_vermutet,
+      S_Sturzbahn_erwiesen,
+      S_Sturzbahn_vermutet,
+      L_Lawinenanriss_erwiesen,
+      L_Lawinenanriss_vermutet,
+      L_Sturzbahn_erwiesen,
+      L_Sturzbahn_vermutet,
+      andere
+    );
+
+    BEOB_PUNKT_TYP = (
+      alt_Anrissort,
+      alt_Ablagerungsort,
+      W_Verklausungsstelle,
+      W_Wasserstand_gemessen,
+      W_Abfluss_gemessen,
+      W_Abfluss_angenommen_geschaetzt,
+      S_Einschlagspur,
+      S_Sturzablagerung_Steine,
+      S_Sturzablagerung_Bloecke,
+      S_Sturzablagerung_Grossbloecke,
+      S_Sturzablagerung_Steine_vorhanden,
+      S_Sturzablagerung_Bloecke_vorhanden,
+      S_Sturzablagerung_Grossbloecke_vorhanden,
+      andere
+    );
+
+    DATUM = FORMAT INTERLIS.XMLDate "1900-01-01" .. "2999-12-31";
+      /** Bezüglich des Datumsformats gelten auch hier die Ausführungen unter
+       *  "Allgemeiner Hinweis zum Datumsformat in INTERLIS" im Modell
+       *  Naturereigniskataster_MGDM_LV95_V1.
+       *  ---
+       *  En ce qui concerne le format de la date, les déclarations ci-dessous
+       *  "Note générale sur le format de la date dans INTERLIS" dans le modèle
+       *  Naturereigniskataster_MGDM_LV95_V1 s'appliquent également ici.
+       */
+
+    E_MATERIAL = (
+      Festgestein,
+      Lockergestein
+    );
+
+    JA_NEIN_TYP = (
+      nicht_bekannt,
+      ja,
+      nein
+    );
+
+    L_ANRISSTYP = (
+      Schneebrettlawine,
+      Lockerschneelawine
+    );
+
+    L_AUSLOESUNG = (
+      spontan,
+      Sprengung,
+      Personen,
+      andere
+    );
+
+    L_EXPOSITION = (
+      N,
+      NE,
+      E,
+      SE,
+      S,
+      SW,
+      W,
+      NW
+    );
+
+    L_GLEITFLAECHE = (
+      auf_dem_Boden,
+      innerhalb_der_Schneedecke
+    );
+
+    L_NEIGUNG = (
+      kleiner_gleich_30,
+      zwischen_31_und_35,
+      zwischen_36_und_40,
+      zwischen_41_und_45,
+      groesser_als_45
+    );
+
+    L_SCHNEEQUALITAET = (
+      trocken,
+      feucht_nass
+    );
+
+    MEMOTEXT = MTEXT*4000;
+
+    NS_QUELLEN = (
+      offizielle_Messung,
+      private_Messung,
+      Niederschlagsradar,
+      andere_Quellen
+    );
+
+    RS_GLEITFLAECHE = (
+      im_Lockergestein,
+      auf_Festgestein
+    );
+
+    RS_GLEITFLAECHE_TIEFE = (
+      flachgruendig,
+      mittelgruendig,
+      tiefgruendig
+    );
+
+    RS_MATERIAL = (
+      Festgestein,
+      Lockergestein
+    );
+
+    S_AUSBRUCH_QUELLE = (
+      Felswand,
+      Gehaengeschutt,
+      Gletscher
+    );
+
+    S_PERMAFROST = (
+      nicht_vorhanden,
+      lokal_moeglich,
+      flaechenhaft_wahrscheinlich
+    );
+
+
+  TOPIC StorMe EXTENDS Naturereigniskataster_MGDM_LV95_V1.StorMe_MGDM =
+
+    CLASS BASISINFORMATION (EXTENDED) =
+      BI_ME_ID : Naturereigniskataster_MGDM_LV95_V1.GUID;
+      BI_ERFASSUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (101)
+        /** BI_ERFASSUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  BI_ERFASSUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+      BI_ERFASSUNG_NACHNAME : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+      BI_ERFASSUNG_VORNAME : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+        /** Die Attribute BI_ERFASSUNG_NACHNAME und BI_ERFASSUNG_VORNAME werden beim Import nach
+         *  StorMe 3.0 verwendet, aus datenschutzrechtlichen Gründen jedoch nicht für den Export.
+         *  ---
+         *  Les attributs BI_ERFASSUNG_NACHNAME et BI_ERFASSUNG_VORNAME sont utilisés pour
+         *  l'importation dans StorMe 3.0, mais pas pour l'exportation pour des raisons de
+         *  confidentialité des données.  */
+      BI_ERFASSUNG_STELLE : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+      BI_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+      BI_QUELLEN : Naturereigniskataster_MGDM_LV95_V1.BEMERKUNGENTEXT;
+
+        !!@ cid = (101)
+        !!@ name = (101)
+        MANDATORY CONSTRAINT  !! (101)
+            ((INTERLIS.len (BI_ERFASSUNG_DATUM)) == 10);
+    END BASISINFORMATION;
+
+    CLASS BEOBACHTUNG (ABSTRACT) =
+      BE_ID : MANDATORY Naturereigniskataster_MGDM_LV95_V1.GUID;
+      BE_BI_ID : MANDATORY Naturereigniskataster_MGDM_LV95_V1.GUID;
+      BE_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+      UNIQUE BE_ID;
+    END BEOBACHTUNG;
+
+    CLASS BEOBACHTUNG_FLAECHE
+    EXTENDS BEOBACHTUNG =
+      BE_F_FLAECHE : MANDATORY GeometryCHLV95_V1.Surface;
+      BE_F_TYP : MANDATORY Naturereigniskataster_umfassend_LV95_V1.BEOB_FLAECHE_TYP;
+    END BEOBACHTUNG_FLAECHE;
+
+    CLASS BEOBACHTUNG_LINIE
+    EXTENDS BEOBACHTUNG =
+      BE_L_LINIE : MANDATORY GeometryCHLV95_V1.Line;
+      BE_L_TYP : MANDATORY Naturereigniskataster_umfassend_LV95_V1.BEOB_LINIE_TYP;
+    END BEOBACHTUNG_LINIE;
+
+    CLASS BEOBACHTUNG_PUNKT
+    EXTENDS BEOBACHTUNG =
+      BE_P_PUNKT : MANDATORY GeometryCHLV95_V1.Coord2;
+      BE_P_TYP : MANDATORY Naturereigniskataster_umfassend_LV95_V1.BEOB_PUNKT_TYP;
+    END BEOBACHTUNG_PUNKT;
+
+    CLASS DETAILINFORMATION_A (EXTENDED) =   !! Prozess Andere  --  processus autres
+      DI_A_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+    END DETAILINFORMATION_A;
+
+    CLASS DETAILINFORMATION_EA_A (EXTENDED) =   !! Prozess Absenkung  --  processus affaissement
+      DI_EA_A_TIEFE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (102)
+      DI_EA_A_TIEFE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (102)
+        /**  Beispielkommentar für alle MAO- und MAOE-Constraints. Der Übersichtlichkeit halber ist
+          *  er nur hier aufgeführt, an den anderen Stellen gilt es analog:
+          *  Teil (a) des Constraints:
+          *  Falls Attribut (hier DI_EA_A_TIEFE) erfasst, ist zwingend ein MAO(E)-Code
+          *    (mit Wert "Messwert_Feststellung" oder "Annahme_Schaetzung") anzugeben.
+          *  Teil (b) des Constraints:
+          *  Falls Attribut (hier DI_EA_A_TIEFE) nicht erfasst, darf MAO-Code nicht
+          *    "Messwert_Feststellung" und nicht "Annahme_Schaetzung" sein.
+          *    MAO-Code ist dann also "nicht_bestimmbar", (bei MAOE auch: "externe_Datenquelle"
+          *    oder oder nicht erfasst (letzeres nicht, falls MAO-Code MANDATORY.
+          *  ---
+          *  Exemple de commentaire pour toutes les contraintes MAO et MAOE. Par souci de clarté,
+          *    elle n'est mentionnée qu'ici, mais s'applique de la même manière aux autres
+          *    endroits :
+          *  Partie (a) de la contrainte :
+          *  Si l'attribut (dans ce cas DI_EA_A_TIEFE) est saisi, un code MAO(E)-Code (avec la
+          *    valeur "Messwert_Feststellung" ou "Annahme_Schaetzung") doit être saisi.
+          *  Partie (b) de la contrainte :
+          *  Si l'attribut (ici DI_EA_A_TIEFE) n'est pas saisi, le code MAO ne doit pas être
+          *    "Messwert_Feststellung" et pas "Annahme_Schaetzung".
+          *    Le code MAO est alors "nicht_bestimmbar" (pour MAOE aussi : "externe_Datenquelle") ou
+          *    non enregistré (ce dernier pas si le code MAO est obligatoire).  */
+      DI_EA_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+        /**  Das Attribut DI_EA_EREIGNIS_MEMO kommt auch in der Klasse DETAILINFORMATION_EA_E vor,
+          *    kann jedoch aus Gründen der Synthax nicht in der Elternklasse platziert werden.
+          *  ---
+          *  L'attribut DI_EA_EREIGNIS_MEMO apparaît également dans la classe
+          *  DETAILINFORMATION_EA_E, mais ne peut pas être placé dans la classe supérieure  pour des
+          *  raisons synthax.  */
+
+        !!@ cid = (102a)
+        !!@ name = (102a)
+        MANDATORY CONSTRAINT  !! (102a)
+            NOT (DEFINED (DI_EA_A_TIEFE)) OR ((DI_EA_A_TIEFE_MAO == #Messwert_Feststellung)
+            OR (DI_EA_A_TIEFE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (102b)
+        !!@ name = (102b)
+        MANDATORY CONSTRAINT  !! (102b)
+            DEFINED (DI_EA_A_TIEFE) OR ((DI_EA_A_TIEFE_MAO != #Messwert_Feststellung)
+            AND (DI_EA_A_TIEFE_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_EA_A;
+
+    CLASS DETAILINFORMATION_EA_E (EXTENDED) =   !! Prozess Einsturz  --  processus effondrement
+      DI_EA_E_MATERIAL : Naturereigniskataster_umfassend_LV95_V1.E_MATERIAL;  !! (103)
+      DI_EA_E_MATERIAL_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (103)
+      DI_EA_E_TIEFE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (104)
+      DI_EA_E_TIEFE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (104)
+      DI_EA_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+        /**  Das Attribut DI_EA_EREIGNIS_MEMO kommt auch in der Klasse DETAILINFORMATION_EA_A vor,
+          *    kann jedoch aus Gründen der Synthax nicht in der Elternklasse platziert werden.
+          *  ---
+          *  L'attribut DI_EA_EREIGNIS_MEMO apparaît également dans la classe
+          *  DETAILINFORMATION_EA_E, mais ne peut pas être placé dans la classe supérieure  pour des
+          *  raisons synthax.  */
+        !!@ cid = (103a)
+        !!@ name = (103a)
+        MANDATORY CONSTRAINT  !! (103a)
+            NOT (DEFINED (DI_EA_E_MATERIAL)) OR ((DI_EA_E_MATERIAL_MAO == #Messwert_Feststellung)
+            OR (DI_EA_E_MATERIAL_MAO == #Annahme_Schaetzung));
+        !!@ cid = (103b)
+        !!@ name = (103b)
+        MANDATORY CONSTRAINT  !! (103b)
+            DEFINED (DI_EA_E_MATERIAL) OR ((DI_EA_E_MATERIAL_MAO != #Messwert_Feststellung)
+            AND (DI_EA_E_MATERIAL_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (104a)
+        !!@ name = (104a)
+        MANDATORY CONSTRAINT  !! (104a)
+            NOT (DEFINED (DI_EA_E_TIEFE)) OR ((DI_EA_E_TIEFE_MAO == #Messwert_Feststellung)
+            OR (DI_EA_E_TIEFE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (104b)
+        !!@ name = (104b)
+        MANDATORY CONSTRAINT  !! (104b)
+            DEFINED (DI_EA_E_TIEFE) OR ((DI_EA_E_TIEFE_MAO != #Messwert_Feststellung)
+            AND (DI_EA_E_TIEFE_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_EA_E;
+
+    CLASS DETAILINFORMATION_L (EXTENDED) =   !! Prozess Lawine  --  processus avalanche
+      DI_L_AUSLOESUNG : Naturereigniskataster_umfassend_LV95_V1.L_AUSLOESUNG;  !! (105)
+      DI_L_AUSLOESUNG_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (105)
+      DI_L_ANRISSTYP : Naturereigniskataster_umfassend_LV95_V1.L_ANRISSTYP;  !! (106)
+      DI_L_ANRISSTYP_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (106)
+      DI_L_ANRISS_HOEHE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (107)
+      DI_L_ANRISS_HOEHE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (107)
+      DI_L_ANRISS_BREITE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (108)
+      DI_L_ANRISS_BREITE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (108)
+      DI_L_ANRISS_EXPO : Naturereigniskataster_umfassend_LV95_V1.L_EXPOSITION;  !! (109)
+      DI_L_ANRISS_EXPO_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (109)
+      DI_L_ANRISS_NEIGUNG : Naturereigniskataster_umfassend_LV95_V1.L_NEIGUNG;  !! (110)
+      DI_L_ANRISS_NEIGUNG_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (110)
+      DI_L_ANRISS_GLEITFLA : Naturereigniskataster_umfassend_LV95_V1.L_GLEITFLAECHE;  !! (111)
+      DI_L_ANRISS_GLEITFLA_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (111)
+      DI_L_ANRISS_WALD : MANDATORY Naturereigniskataster_umfassend_LV95_V1.JA_NEIN_TYP;
+      DI_L_ANRISS_GLETSCHER : MANDATORY Naturereigniskataster_umfassend_LV95_V1.JA_NEIN_TYP;
+      DI_L_ABLAGERUNG_MAXBREITE : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (112)
+      DI_L_ABLAGERUNG_MAXBREITE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (112)
+      DI_L_ABLAGERUNG_SCHNEE : Naturereigniskataster_umfassend_LV95_V1.L_SCHNEEQUALITAET;  !! (113)
+      DI_L_ABLAGERUNG_SCHNEE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAOE;  !! (113)
+      DI_L_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+        !!@ cid = (105a)
+        !!@ name = (105a)
+        MANDATORY CONSTRAINT  !! (105a)
+            NOT (DEFINED (DI_L_AUSLOESUNG)) OR ((DI_L_AUSLOESUNG_MAO == #Messwert_Feststellung)
+            OR (DI_L_AUSLOESUNG_MAO == #Annahme_Schaetzung)
+            OR (DI_L_AUSLOESUNG_MAO == #externe_Datenquelle));
+        !!@ cid = (105b)
+        !!@ name = (105b)
+        MANDATORY CONSTRAINT  !! (105b)
+            DEFINED (DI_L_AUSLOESUNG) OR ((DI_L_AUSLOESUNG_MAO != #Messwert_Feststellung)
+            AND (DI_L_AUSLOESUNG_MAO != #Annahme_Schaetzung)
+            OR (DI_L_AUSLOESUNG_MAO != #externe_Datenquelle));
+
+        !!@ cid = (106a)
+        !!@ name = (106a)
+        MANDATORY CONSTRAINT  !! (106a)
+            NOT (DEFINED (DI_L_ANRISSTYP)) OR ((DI_L_ANRISSTYP_MAO == #Messwert_Feststellung)
+            OR (DI_L_ANRISSTYP_MAO == #Annahme_Schaetzung)
+            OR (DI_L_ANRISSTYP_MAO == #externe_Datenquelle));
+        !!@ cid = (106b)
+        !!@ name = (106b)
+        MANDATORY CONSTRAINT  !! (106b)
+            DEFINED (DI_L_ANRISSTYP) OR ((DI_L_ANRISSTYP_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISSTYP_MAO != #Annahme_Schaetzung)
+            OR (DI_L_ANRISSTYP_MAO != #externe_Datenquelle));
+
+        !!@ cid = (107a)
+        !!@ name = (107a)
+        MANDATORY CONSTRAINT  !! (107a)
+            NOT (DEFINED (DI_L_ANRISS_HOEHE))
+            OR ((DI_L_ANRISS_HOEHE_MAO == #Messwert_Feststellung)
+            OR (DI_L_ANRISS_HOEHE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (107b)
+        !!@ name = (107b)
+        MANDATORY CONSTRAINT  !! (107b)
+            DEFINED (DI_L_ANRISS_HOEHE) OR ((DI_L_ANRISS_HOEHE_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISS_HOEHE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (108a)
+        !!@ name = (108a)
+        MANDATORY CONSTRAINT  !! (108a)
+            NOT (DEFINED (DI_L_ANRISS_BREITE)) OR ((DI_L_ANRISS_BREITE_MAO ==
+                                                    #Messwert_Feststellung)
+            OR (DI_L_ANRISS_BREITE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (108b)
+        !!@ name = (108b)
+        MANDATORY CONSTRAINT  !! (108b)
+            DEFINED (DI_L_ANRISS_BREITE) OR ((DI_L_ANRISS_BREITE_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISS_BREITE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (109a)
+        !!@ name = (109a)
+        MANDATORY CONSTRAINT  !! (109a)
+            NOT (DEFINED (DI_L_ANRISS_EXPO)) OR ((DI_L_ANRISS_EXPO_MAO == #Messwert_Feststellung)
+            OR (DI_L_ANRISS_EXPO_MAO == #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_EXPO_MAO == #externe_Datenquelle));
+        !!@ cid = (109b)
+        !!@ name = (109b)
+        MANDATORY CONSTRAINT  !! (109b)
+            DEFINED (DI_L_ANRISS_EXPO) OR ((DI_L_ANRISS_EXPO_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISS_EXPO_MAO != #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_EXPO_MAO != #externe_Datenquelle));
+
+        !!@ cid = (110a)
+        !!@ name = (110a)
+        MANDATORY CONSTRAINT  !! (110a)
+            NOT (DEFINED (DI_L_ANRISS_NEIGUNG)) OR ((DI_L_ANRISS_NEIGUNG_MAO ==
+                                                     #Messwert_Feststellung)
+            OR (DI_L_ANRISS_NEIGUNG_MAO == #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_NEIGUNG_MAO == #externe_Datenquelle));
+        !!@ cid = (110b)
+        !!@ name = (110b)
+        MANDATORY CONSTRAINT  !! (110b)
+            DEFINED (DI_L_ANRISS_NEIGUNG) OR ((DI_L_ANRISS_NEIGUNG_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISS_NEIGUNG_MAO != #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_NEIGUNG_MAO != #externe_Datenquelle));
+
+        !!@ cid = (111a)
+        !!@ name = (111a)
+        MANDATORY CONSTRAINT  !! (111a)
+            NOT (DEFINED (DI_L_ANRISS_GLEITFLA)) OR ((DI_L_ANRISS_GLEITFLA_MAO ==
+                                                      #Messwert_Feststellung)
+            OR (DI_L_ANRISS_GLEITFLA_MAO == #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_GLEITFLA_MAO == #externe_Datenquelle));
+        !!@ cid = (111b)
+        !!@ name = (111b)
+        MANDATORY CONSTRAINT  !! (111b)
+            DEFINED (DI_L_ANRISS_GLEITFLA) OR ((DI_L_ANRISS_GLEITFLA_MAO != #Messwert_Feststellung)
+            AND (DI_L_ANRISS_GLEITFLA_MAO != #Annahme_Schaetzung)
+            OR (DI_L_ANRISS_GLEITFLA_MAO != #externe_Datenquelle));
+
+        !!@ cid = (112a)
+        !!@ name = (112a)
+        MANDATORY CONSTRAINT  !! (112a)
+            NOT (DEFINED (DI_L_ABLAGERUNG_MAXBREITE)) OR ((DI_L_ABLAGERUNG_MAXBREITE_MAO ==
+                                                           #Messwert_Feststellung)
+            OR (DI_L_ABLAGERUNG_MAXBREITE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (112b)
+        !!@ name = (112b)
+        MANDATORY CONSTRAINT  !! (112b)
+            DEFINED (DI_L_ABLAGERUNG_MAXBREITE) OR ((DI_L_ABLAGERUNG_MAXBREITE_MAO !=
+                                                     #Messwert_Feststellung)
+            AND (DI_L_ABLAGERUNG_MAXBREITE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (113a)
+        !!@ name = (113a)
+        MANDATORY CONSTRAINT  !! (113a)
+             NOT (DEFINED (DI_L_ABLAGERUNG_SCHNEE)) OR ((DI_L_ABLAGERUNG_SCHNEE_MAO ==
+                                                        #Messwert_Feststellung)
+             OR (DI_L_ABLAGERUNG_SCHNEE_MAO == #Annahme_Schaetzung)
+             OR (DI_L_ABLAGERUNG_SCHNEE_MAO == #externe_Datenquelle));
+        !!@ cid = (113b)
+        !!@ name = (113b)
+        MANDATORY CONSTRAINT  !! (113b)
+            DEFINED (DI_L_ABLAGERUNG_SCHNEE) OR ((DI_L_ABLAGERUNG_SCHNEE_MAO !=
+                                                  #Messwert_Feststellung)
+            AND (DI_L_ABLAGERUNG_SCHNEE_MAO != #Annahme_Schaetzung)
+            OR (DI_L_ABLAGERUNG_SCHNEE_MAO != #externe_Datenquelle));
+    END DETAILINFORMATION_L;
+
+    CLASS DETAILINFORMATION_R (EXTENDED) =   !! Prozess Rutschung  --  processus glissement
+      DI_R_AUSLOESUNG_WASSER : MANDATORY BOOLEAN;  !! (114)
+      DI_R_AUSLOESUNG_G_EROSION : MANDATORY BOOLEAN;  !! (114)
+      DI_R_AUSLOESUNG_KUENSTLICH : MANDATORY BOOLEAN;  !! (114)
+      DI_R_AUSLOESUNG_ANDERE : MANDATORY BOOLEAN;  !! (114)
+      DI_R_AUSLOESUNG_MAO : MANDATORY Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (114)
+        /** Falls alle Auslösungsattribute = false, dann muss DI_R_AUSLOESUNG_MAO = 'O',
+              ansonsten 'M' oder 'A'.
+         *  ---
+         *  Si tous les attributs de déclenchement (AUSLOESUNG) = 'false', alors
+         *    DI_R_AUSLOESUNGMAO = 'O', sinon 'M' ou 'A'.  */
+      DI_R_HANGNEIGUNG : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (115)
+      DI_R_HANGNEIGUNG_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (115)
+      DI_R_ANRISS_BREITE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (116)
+      DI_R_ANRISS_BREITE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (116)
+      DI_R_ANRISS_HOEHE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (117)
+      DI_R_ANRISS_HOEHE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (117)
+      DI_R_MATERIAL : Naturereigniskataster_umfassend_LV95_V1.RS_MATERIAL;  !! (118) (121)
+      DI_R_MATERIAL_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (118)
+      DI_R_GLEITFLA : Naturereigniskataster_umfassend_LV95_V1.RS_GLEITFLAECHE;  !! (119) (121)
+      DI_R_GLEITFLA_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (119) (121)
+      DI_R_GLEITFLA_TIEFE :
+              Naturereigniskataster_umfassend_LV95_V1.RS_GLEITFLAECHE_TIEFE;  !! (120) (121)
+      DI_R_GLEITFLA_TIEFE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (120) (121)
+        /** Die Attribute  !! CONSTRAINT (121)
+         *  - DI_R_MATERIAL
+         *  - DI_R_MATERIAL_MAO
+         *  - DI_R_GLEITFLA
+         *  - DI_R_GLEITFLA_MAO
+         *  - DI_R_GLEITFLA_TIEFE
+         *  - DI_R_GLEITFLA_TIEFE_MAO
+         *  dürfen bei Hangmuren (d. h. PR_R_PROZESS == #Hangmure) nicht verwendet werden.
+         *    ** ACHTUNG ** Dieser Constraint ist nicht ausformuliert!!
+         *  Hinweis:
+         *  Diese Bedingung ist nicht als MANDATORY CONSTRAINT formuliert, da zwei getrennte Klassen
+         *  betroffen sind. Somit wäre eine komplizierte INTERLIS-View nötig.
+         *  Die Bedingung muss trotzdem eingehalten werden!
+         *  ---
+         *  Les attributs  !! CONSTRAINT (121)
+         *  - DI_R_MATERIAL
+         *  - DI_R_MATERIAL_MAO
+         *  - DI_R_GLEITFLA
+         *  - DI_R_GLEITFLA_MAO
+         *  - DI_R_GLEITFLA_TIEFE
+         *  - DI_R_GLEITFLA_TIEFE_MAO
+         *  ne sont pas applicables aux coulées boueuses (soit PR_R_PROZESS == #Hangmure).
+         *    ** ATTENTION ** Ce constraint n'est pas formulé !!
+         *  Remarque:
+         *  Cette condition n'est pas formulée en tant que MANDATORY CONSTRAINT, car deux classes
+         *  differentes sont concernées. À cause de cela, une "view" INTERLIS compliqué serait
+         *  nécessaire.
+         *  La condition doit être néanmoins respecté !  */
+      DI_R_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+        !!@ cid = (114)
+        !!@ name = (114)
+        MANDATORY CONSTRAINT  !! (114)
+            ((NOT (DI_R_AUSLOESUNG_WASSER) AND NOT (DI_R_AUSLOESUNG_G_EROSION) AND
+            NOT (DI_R_AUSLOESUNG_KUENSTLICH) AND NOT (DI_R_AUSLOESUNG_ANDERE)) AND
+            ((DI_R_AUSLOESUNG_MAO != #Messwert_Feststellung) AND
+            (DI_R_AUSLOESUNG_MAO != #Annahme_Schaetzung)))
+            OR
+            (((DI_R_AUSLOESUNG_WASSER) OR (DI_R_AUSLOESUNG_G_EROSION) OR
+            (DI_R_AUSLOESUNG_KUENSTLICH) OR (DI_R_AUSLOESUNG_ANDERE)) AND
+            ((DI_R_AUSLOESUNG_MAO == #Messwert_Feststellung) OR
+            (DI_R_AUSLOESUNG_MAO == #Annahme_Schaetzung)));
+
+        !!@ cid = (115a)
+        !!@ name = (115a)
+        MANDATORY CONSTRAINT  !! (115a)
+            NOT (DEFINED (DI_R_HANGNEIGUNG)) OR ((DI_R_HANGNEIGUNG_MAO == #Messwert_Feststellung)
+            OR (DI_R_HANGNEIGUNG_MAO == #Annahme_Schaetzung));
+        !!@ cid = (115b)
+        !!@ name = (115b)
+        MANDATORY CONSTRAINT  !! (115b)
+            DEFINED (DI_R_HANGNEIGUNG) OR ((DI_R_HANGNEIGUNG_MAO != #Messwert_Feststellung)
+            AND (DI_R_HANGNEIGUNG_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (116a)
+        !!@ name = (116a)
+        MANDATORY CONSTRAINT  !! (116a)
+            NOT (DEFINED (DI_R_ANRISS_BREITE)) OR ((DI_R_ANRISS_BREITE_MAO ==
+                                                    #Messwert_Feststellung)
+            OR (DI_R_ANRISS_BREITE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (116b)
+        !!@ name = (116b)
+        MANDATORY CONSTRAINT  !! (116b)
+            DEFINED (DI_R_ANRISS_BREITE) OR ((DI_R_ANRISS_BREITE_MAO != #Messwert_Feststellung)
+            AND (DI_R_ANRISS_BREITE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (117a)
+        !!@ name = (117a)
+        MANDATORY CONSTRAINT  !! (117a)
+            NOT (DEFINED (DI_R_ANRISS_HOEHE)) OR ((DI_R_ANRISS_HOEHE_MAO == #Messwert_Feststellung)
+            OR (DI_R_ANRISS_HOEHE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (117b)
+        !!@ name = (117b)
+        MANDATORY CONSTRAINT  !! (117b)
+            DEFINED (DI_R_ANRISS_HOEHE) OR ((DI_R_ANRISS_HOEHE_MAO != #Messwert_Feststellung)
+            AND (DI_R_ANRISS_HOEHE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (118a)
+        !!@ name = (118a)
+        MANDATORY CONSTRAINT  !! (118a)
+            NOT (DEFINED (DI_R_MATERIAL)) OR ((DI_R_MATERIAL_MAO == #Messwert_Feststellung)
+            OR (DI_R_MATERIAL_MAO == #Annahme_Schaetzung));
+        !!@ cid = (118b)
+        !!@ name = (118b)
+        MANDATORY CONSTRAINT  !! (118b)
+            DEFINED (DI_R_MATERIAL) OR ((DI_R_MATERIAL_MAO != #Messwert_Feststellung)
+            AND (DI_R_MATERIAL_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (119a)
+        !!@ name = (119a)
+        MANDATORY CONSTRAINT  !! (119a)
+            NOT (DEFINED (DI_R_GLEITFLA)) OR ((DI_R_GLEITFLA_MAO == #Messwert_Feststellung)
+            OR (DI_R_GLEITFLA_MAO == #Annahme_Schaetzung));
+        !!@ cid = (119b)
+        !!@ name = (119b)
+        MANDATORY CONSTRAINT  !! (119b)
+            DEFINED (DI_R_GLEITFLA) OR ((DI_R_GLEITFLA_MAO != #Messwert_Feststellung)
+            AND (DI_R_GLEITFLA_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (120a)
+        !!@ name = (120a)
+        MANDATORY CONSTRAINT  !! (120a)
+            NOT (DEFINED (DI_R_GLEITFLA_TIEFE)) OR ((DI_R_GLEITFLA_TIEFE_MAO ==
+                                                     #Messwert_Feststellung)
+            OR (DI_R_GLEITFLA_TIEFE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (120b)
+        !!@ name = (120b)
+        MANDATORY CONSTRAINT  !! (120b)
+            DEFINED (DI_R_GLEITFLA_TIEFE) OR ((DI_R_GLEITFLA_TIEFE_MAO != #Messwert_Feststellung)
+            AND (DI_R_GLEITFLA_TIEFE_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_R;
+
+    CLASS DETAILINFORMATION_S (EXTENDED) =   !! Prozess Sturz  --  processus chute
+      DI_S_AUSLOESUNG_VERWITTERUNG : MANDATORY BOOLEAN;  !! (122)
+      DI_S_AUSLOESUNG_EROSION : MANDATORY BOOLEAN;  !! (122)
+      DI_S_AUSLOESUNG_KUENSTLICH : MANDATORY BOOLEAN;  !! (122)
+      DI_S_AUSLOESUNG_WURZEL : MANDATORY BOOLEAN;  !! (122)
+      DI_S_AUSLOESUNG_ANDERE : MANDATORY BOOLEAN;  !! (122)
+      DI_S_AUSLOESUNG_MAO : MANDATORY Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (122)
+        /** Falls alle Auslösungsattribute = false, dann muss DI_S_AUSLOESUNG_MAO = 'O',
+            ansonsten 'M' oder 'A'.
+         *  ---
+         *  Si tous les attributs de déclenchement (AUSLOESUNG) = 'false', alors
+         *    DI_S_AUSLOESUNG_MAO = 'O', sinon 'M' ou 'A'.  */
+      DI_S_AUSBRUCH_QUELLE : Naturereigniskataster_umfassend_LV95_V1.S_AUSBRUCH_QUELLE;  !! (123)
+      DI_S_AUSBRUCH_QUELLE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (123)
+      DI_S_AUSBRUCH_KUBATUR : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (124)
+      DI_S_AUSBRUCH_KUBATUR_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (124)
+      DI_S_PERMAFROST : Naturereigniskataster_umfassend_LV95_V1.S_PERMAFROST;  !! (125)
+      DI_S_PERMAFROST_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (125)
+      DI_S_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+        !!@ cid = (122)
+        !!@ name = (122)
+        MANDATORY CONSTRAINT  !! (122)
+            ((NOT (DI_S_AUSLOESUNG_VERWITTERUNG) AND NOT (DI_S_AUSLOESUNG_EROSION) AND
+            NOT (DI_S_AUSLOESUNG_KUENSTLICH) AND NOT (DI_S_AUSLOESUNG_WURZEL) AND
+            NOT (DI_S_AUSLOESUNG_ANDERE))
+            AND
+            ((DI_S_AUSLOESUNG_MAO != #Messwert_Feststellung) AND
+            (DI_S_AUSLOESUNG_MAO != #Annahme_Schaetzung)))
+            OR
+            (((DI_S_AUSLOESUNG_VERWITTERUNG) OR (DI_S_AUSLOESUNG_EROSION) OR
+            (DI_S_AUSLOESUNG_KUENSTLICH) OR (DI_S_AUSLOESUNG_WURZEL) OR
+            (DI_S_AUSLOESUNG_ANDERE))
+            AND
+            ((DI_S_AUSLOESUNG_MAO == #Messwert_Feststellung) OR
+            (DI_S_AUSLOESUNG_MAO == #Annahme_Schaetzung)));
+
+        !!@ cid = (123a)
+        !!@ name = (123a)
+        MANDATORY CONSTRAINT  !! (123a)
+            NOT (DEFINED (DI_S_AUSBRUCH_QUELLE)) OR ((DI_S_AUSBRUCH_QUELLE_MAO ==
+                                                      #Messwert_Feststellung)
+            OR (DI_S_AUSBRUCH_QUELLE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (123b)
+        !!@ name = (123b)
+        MANDATORY CONSTRAINT  !! (123b)
+            DEFINED (DI_S_AUSBRUCH_QUELLE) OR ((DI_S_AUSBRUCH_QUELLE_MAO != #Messwert_Feststellung)
+            AND (DI_S_AUSBRUCH_QUELLE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (124a)
+        !!@ name = (124a)
+        MANDATORY CONSTRAINT  !! (124a)
+            NOT (DEFINED (DI_S_AUSBRUCH_KUBATUR)) OR ((DI_S_AUSBRUCH_KUBATUR_MAO ==
+                                                       #Messwert_Feststellung)
+            OR (DI_S_AUSBRUCH_KUBATUR_MAO == #Annahme_Schaetzung));
+        !!@ cid = (124b)
+        !!@ name = (124b)
+        MANDATORY CONSTRAINT  !! (124b)
+            DEFINED (DI_S_AUSBRUCH_KUBATUR) OR ((DI_S_AUSBRUCH_KUBATUR_MAO !=
+                                                 #Messwert_Feststellung)
+            AND (DI_S_AUSBRUCH_KUBATUR_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (125a)
+        !!@ name = (125a)
+        MANDATORY CONSTRAINT  !! (125a)
+            NOT (DEFINED (DI_S_PERMAFROST)) OR ((DI_S_PERMAFROST_MAO == #Messwert_Feststellung)
+            OR (DI_S_PERMAFROST_MAO == #Annahme_Schaetzung));
+        !!@ cid = (125b)
+        !!@ name = (125b)
+        MANDATORY CONSTRAINT  !! (125b)
+            DEFINED (DI_S_PERMAFROST) OR ((DI_S_PERMAFROST_MAO != #Messwert_Feststellung)
+            AND (DI_S_PERMAFROST_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_S;
+
+    /** Die Klasse DETAILINFORMATION_W kann hier ohne Namensänderung nicht erweitert werden.
+     *  Daher tritt das identische Attribut DI_W_EREIGNIS_MEMO dreimal auf, nämlich in den Klassen
+     *  DETAILINFORMATION_W_O, DETAILINFORMATION_W_U und DETAILINFORMATION_W_UM.
+     *  ---
+     *  La classe DETAILINFORMATION_W ne peut pas être étendue ici sans modifier le nom.
+     *  Par conséquent, l'attribut identique DI_W_EREIGNIS_MEMO apparaît trois fois, à savoir dans
+     *  les classes DETAILINFORMATION_W_O, DETAILINFORMATION_W_U et DETAILINFORMATION_W_UM.
+     */
+
+    CLASS DETAILINFORMATION_W_OG (EXTENDED) =   !! Prozesse Oberflächenabfluss / Grundwasseraufstoss
+      DI_W_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;   !! |ruissellement /
+    END DETAILINFORMATION_W_OG;                                                !! |remontée de nappe
+
+    CLASS DETAILINFORMATION_W_U (EXTENDED) =   !! Prozess Ufererosion  --  érosion des berges
+      DI_W_U_LAENGE : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (126)
+      DI_W_U_LAENGE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (126)
+      DI_W_U_BREITE : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (127)
+      DI_W_U_BREITE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (127)
+      DI_W_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+        !!@ cid = (126a)
+        !!@ name = (126a)
+        MANDATORY CONSTRAINT  !! (126a)
+            NOT (DEFINED (DI_W_U_LAENGE)) OR ((DI_W_U_LAENGE_MAO == #Messwert_Feststellung)
+            OR (DI_W_U_LAENGE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (126b)
+        !!@ name = (126b)
+        MANDATORY CONSTRAINT  !! (126b)
+            DEFINED (DI_W_U_LAENGE) OR ((DI_W_U_LAENGE_MAO != #Messwert_Feststellung)
+            AND (DI_W_U_LAENGE_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (127a)
+        !!@ name = (127a)
+        MANDATORY CONSTRAINT  !! (127a)
+            NOT (DEFINED (DI_W_U_BREITE)) OR ((DI_W_U_BREITE_MAO == #Messwert_Feststellung)
+            OR (DI_W_U_BREITE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (127b)
+        !!@ name = (127b)
+        MANDATORY CONSTRAINT  !! (127b)
+            DEFINED (DI_W_U_BREITE) OR ((DI_W_U_BREITE_MAO != #Messwert_Feststellung)
+            AND (DI_W_U_BREITE_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_W_U;
+
+    CLASS DETAILINFORMATION_W_UM (EXTENDED) = !! Überschwemmung / Übermurung  --  inondation / laves
+      DI_W_UM_ABLAG_ANTEIL_HOLZ : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (128)  !! |torren-
+      DI_W_UM_ABLAG_ANTEIL_HOLZ_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (128)  !! |tielles
+      DI_W_UM_ABLAG_TIEFE_FEST : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (129)
+      DI_W_UM_ABLAG_TIEFE_FEST_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (129)
+      DI_W_UM_HW_SPUREN : MANDATORY Naturereigniskataster_umfassend_LV95_V1.JA_NEIN_TYP;
+      DI_W_EREIGNIS_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+        !!@ cid = (128a)
+        !!@ name = (128a)
+        MANDATORY CONSTRAINT  !! (128a)
+            NOT (DEFINED (DI_W_UM_ABLAG_ANTEIL_HOLZ)) OR ((DI_W_UM_ABLAG_ANTEIL_HOLZ_MAO ==
+                                                           #Messwert_Feststellung)
+            OR (DI_W_UM_ABLAG_ANTEIL_HOLZ_MAO == #Annahme_Schaetzung));
+        !!@ cid = (128b)
+        !!@ name = (128b)
+        MANDATORY CONSTRAINT  !! (128b)
+            DEFINED (DI_W_UM_ABLAG_ANTEIL_HOLZ) OR ((DI_W_UM_ABLAG_ANTEIL_HOLZ_MAO !=
+                                                     #Messwert_Feststellung)
+            AND (DI_W_UM_ABLAG_ANTEIL_HOLZ_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (129a)
+        !!@ name = (129a)
+        MANDATORY CONSTRAINT  !! (129a)
+            NOT (DEFINED (DI_W_UM_ABLAG_TIEFE_FEST)) OR ((DI_W_UM_ABLAG_TIEFE_FEST_MAO ==
+                                                          #Messwert_Feststellung)
+            OR (DI_W_UM_ABLAG_TIEFE_FEST_MAO == #Annahme_Schaetzung));
+        !!@ cid = (129b)
+        !!@ name = (129b)
+        MANDATORY CONSTRAINT  !! (129b)
+            DEFINED (DI_W_UM_ABLAG_TIEFE_FEST) OR ((DI_W_UM_ABLAG_TIEFE_FEST_MAO !=
+                                                    #Messwert_Feststellung)
+            AND (DI_W_UM_ABLAG_TIEFE_FEST_MAO != #Annahme_Schaetzung));
+    END DETAILINFORMATION_W_UM;
+
+    CLASS METEO =
+      ME_ID : MANDATORY Naturereigniskataster_MGDM_LV95_V1.GUID;
+      ME_WITTERUNG_DAUERREGEN : MANDATORY BOOLEAN;
+      ME_WITTERUNG_GEWITTER : MANDATORY BOOLEAN;
+      ME_WITTERUNG_HAGEL : MANDATORY BOOLEAN;
+      ME_WITTERUNG_SCHNEEFALL : MANDATORY BOOLEAN;
+      ME_WITTERUNG_TEMPANSTIEG : MANDATORY BOOLEAN;
+      ME_WITTERUNG_TRIEBSCHNEE : MANDATORY BOOLEAN;
+      ME_WITTERUNG_SCHNEEFEUCHT : MANDATORY BOOLEAN;
+      ME_WITTERUNG_SCHNEESCHMELZE : MANDATORY BOOLEAN;
+      ME_WITTERUNG_FROST : MANDATORY BOOLEAN;
+      ME_WITTERUNG_BODENGEFROREN : MANDATORY BOOLEAN;
+      ME_WITTERUNG_STURM : MANDATORY BOOLEAN;
+      ME_WITTERUNG_ANDERE : MANDATORY BOOLEAN;
+      ME_NS_QUELLE : Naturereigniskataster_umfassend_LV95_V1.NS_QUELLEN;
+      ME_NS_DAUER : Naturereigniskataster_MGDM_LV95_V1.DOUBLE;  !! (130)
+      ME_NS_DAUER_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (130)
+      ME_NS_SUMME : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (131)
+      ME_NS_SUMME_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (131)
+      ME_NS_SCHNEE_1_TAG : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (132)
+      ME_NS_SCHNEE_1_TAG_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (132)
+      ME_NS_SCHNEE_3_TAGE : Naturereigniskataster_MGDM_LV95_V1.INTEGER;  !! (133)
+      ME_NS_SCHNEE_3_TAGE_MAO : Naturereigniskataster_MGDM_LV95_V1.MAO;  !! (133)
+      ME_WETTER_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+
+      UNIQUE ME_ID;
+
+        !!@ cid = (130a)
+        !!@ name = (130a)
+        MANDATORY CONSTRAINT  !! (130a)
+            NOT (DEFINED (ME_NS_DAUER)) OR ((ME_NS_DAUER_MAO == #Messwert_Feststellung)
+            OR (ME_NS_DAUER_MAO == #Annahme_Schaetzung));
+        !!@ cid = (130b)
+        !!@ name = (130b)
+        MANDATORY CONSTRAINT  !! (130b)
+            DEFINED (ME_NS_DAUER) OR ((ME_NS_DAUER_MAO != #Messwert_Feststellung)
+            AND (ME_NS_DAUER_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (131a)
+        !!@ name = (131a)
+        MANDATORY CONSTRAINT  !! (131a)
+            NOT (DEFINED (ME_NS_SUMME)) OR ((ME_NS_SUMME_MAO == #Messwert_Feststellung)
+            OR (ME_NS_SUMME_MAO == #Annahme_Schaetzung));
+        !!@ cid = (131b)
+        !!@ name = (131b)
+        MANDATORY CONSTRAINT  !! (131b)
+            DEFINED (ME_NS_SUMME) OR ((ME_NS_SUMME_MAO != #Messwert_Feststellung)
+            AND (ME_NS_SUMME_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (132a)
+        !!@ name = (132a)
+        MANDATORY CONSTRAINT  !! (132a)
+            NOT (DEFINED (ME_NS_SCHNEE_1_TAG)) OR ((ME_NS_SCHNEE_1_TAG_MAO ==
+                                                    #Messwert_Feststellung)
+            OR (ME_NS_SCHNEE_1_TAG_MAO == #Annahme_Schaetzung));
+        !!@ cid = (132b)
+        !!@ name = (132b)
+        MANDATORY CONSTRAINT  !! (132b)
+            DEFINED (ME_NS_SCHNEE_1_TAG) OR ((ME_NS_SCHNEE_1_TAG_MAO != #Messwert_Feststellung)
+            AND (ME_NS_SCHNEE_1_TAG_MAO != #Annahme_Schaetzung));
+
+        !!@ cid = (133a)
+        !!@ name = (133a)
+        MANDATORY CONSTRAINT  !! (133a)
+            NOT (DEFINED (ME_NS_SCHNEE_3_TAGE)) OR ((ME_NS_SCHNEE_3_TAGE_MAO ==
+                                                     #Messwert_Feststellung)
+            OR (ME_NS_SCHNEE_3_TAGE_MAO == #Annahme_Schaetzung));
+        !!@ cid = (133b)
+        !!@ name = (133b)
+        MANDATORY CONSTRAINT  !! (133b)
+            DEFINED (ME_NS_SCHNEE_3_TAGE) OR ((ME_NS_SCHNEE_3_TAGE_MAO != #Messwert_Feststellung)
+            AND (ME_NS_SCHNEE_3_TAGE_MAO != #Annahme_Schaetzung));
+    END METEO;
+
+    CLASS PROZESSRAUM_A (EXTENDED) =   !! Prozess Andere  --  processus autres
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (134)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (134)
+        !!@ name = (134)
+        MANDATORY CONSTRAINT  !! (134)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_A;
+
+    CLASS PROZESSRAUM_EA (EXTENDED) =   !! Prozesse Einsturz / Absenkung  --  effondrement /
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;            !! |affaissement
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (135)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (135)
+        !!@ name = (135)
+        MANDATORY CONSTRAINT  !! (135)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_EA;
+
+    CLASS PROZESSRAUM_L (EXTENDED) =   !! Prozess Lawine  --  processus avalanche
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (136)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (136)
+        !!@ name = (136)
+        MANDATORY CONSTRAINT  !! (136)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_L;
+
+    CLASS PROZESSRAUM_R (EXTENDED) =   !! Prozess Rutschung  --  processus glissement
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (137)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (137)
+        !!@ name = (137)
+        MANDATORY CONSTRAINT  !! (137)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_R;
+
+    CLASS PROZESSRAUM_S (EXTENDED) =   !! Prozess Sturz  --  processus chute
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (138)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (138)
+        !!@ name = (138)
+        MANDATORY CONSTRAINT  !! (138)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_S;
+
+    CLASS PROZESSRAUM_W (EXTENDED) =   !! Prozess Wasser  --  processus eau
+      PR_ERHEBUNGSART : Naturereigniskataster_MGDM_LV95_V1.ERHEBUNGSART;
+      PR_KARTIERUNG_DATUM : Naturereigniskataster_umfassend_LV95_V1.DATUM;  !! (139)
+        /** PR_KARTIERUNG_DATUM: Format muss XML-Spezifikation enstrechen, d .h zum Beispiel
+         *    2020-01-02, nicht 2020-1-2.
+         * ---
+         *  PR_KARTIERUNG__DATUM: Le format doit être conforme à la spécification XML, par exemple
+         *    2020-01-02, et non 2020-1-2.  */
+
+        !!@ cid = (139)
+        !!@ name = (139)
+        MANDATORY CONSTRAINT  !! (139)
+            ((INTERLIS.len (PR_KARTIERUNG_DATUM)) == 10);
+    END PROZESSRAUM_W;
+
+    CLASS SAMMELEREIGNIS (EXTENDED) =
+      SE_ERHEBUNG_NACHNAME : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+      SE_ERHEBUNG_VORNAME : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+        /** Die Attribute SE_ERHEBUNG_NACHNAME und SE_ERHEBUNG_VORNAME werden beim Import nach
+         *  StorMe 3.0 verwendet, aus datenschutzrechtlichen Gründen jedoch nicht für den Export.
+         *  ---
+         *  Les attributs SE_ERHEBUNG_NACHNAME et SE_ERHEBUNG_VORNAME sont utilisés pour
+         *  l'importation dans StorMe 3.0, mais pas pour l'exportation pour des raisons de
+         *  confidentialité des données.  */
+      SE_ERHEBUNG_STELLE : Naturereigniskataster_MGDM_LV95_V1.NORMALTEXT;
+      SE_DOKUMENTATION_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+    END SAMMELEREIGNIS;
+
+    CLASS SCHADEN (EXTENDED) =
+      SC_SCHADEN_MEMO : Naturereigniskataster_umfassend_LV95_V1.MEMOTEXT;
+    END SCHADEN;
+
+    CLASS SCHADENSPEZIFIKATION (EXTENDED) =
+    END SCHADENSPEZIFIKATION;
+
+    ASSOCIATION REL_ME_BI =
+      ME -- {0..1} METEO;
+      BI -- {1} BASISINFORMATION;
+      !!@ cid = (140a)
+      !!@ name = (140a)
+      MANDATORY CONSTRAINT  !! (140b)
+          DEFINED (ME) AND (ME->ME_ID == BI->BI_ME_ID);
+    END REL_ME_BI;
+
+    ASSOCIATION REL_BI_BE =
+      BI -- {1} BASISINFORMATION;
+      BE -- {0..*} BEOBACHTUNG;
+      !!@ cid = (140b)
+      !!@ name = (140b)
+      MANDATORY CONSTRAINT  !! (140b)
+          DEFINED (BE) AND (BE->BE_BI_ID == BI->BI_ID);
+    END REL_BI_BE;
+
+  END StorMe;
+
+END Naturereigniskataster_umfassend_LV95_V1.

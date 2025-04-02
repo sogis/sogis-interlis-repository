@@ -1,0 +1,62 @@
+!!==============================================================================
+!! BaulinienNS_V2.ili
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 88
+!! Bezeichnung GeoIV                         : Baulinien Nationalstrassen
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (ASTRA)
+!! Zugangsberechtigungsstufe                 : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Wer | Modifikation
+!!------------------------------------------------------------------------------
+!! 2013-02-26 | LS  | V1 publiziert
+!! 2014-09-22 | LS  | V2 Ergänzung Baubeschränkungsflächen, Geometrien mit Bögen, Modellname mit Versionskennung ergänzt (_V2)
+!!==============================================================================
+INTERLIS 2.3;
+!!@ IDGeoIV = "88"
+!!@ technicalContact = mailto:info@astra.admin.ch
+!!@ furtherInformation = https://portal.mistra.ch
+
+MODEL BaulinienNS_V2 (de) 
+  AT "http://www.astra.admin.ch" VERSION "2014-09-22" =
+
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;      !! CHBase_Part1_GEOMETRY_20110830.ili; imports Units, Coordsys
+
+  TOPIC BaulinienNS =
+
+    DOMAIN
+      Linie =     POLYLINE WITH (STRAIGHTS, ARCS) VERTEX Coord2;
+      Perimeter = SURFACE WITH (STRAIGHTS, ARCS) VERTEX Coord2
+                          WITHOUT OVERLAPS > 0.050; 
+
+      WebReferenz = URI;
+      StatusBaulinie =(inKraft
+                      ,bestehend
+                      ,inGenehmigung
+                      ,aufzuheben);
+
+    CLASS BaulinieNS =
+      Status :             MANDATORY StatusBaulinie;
+      DatumGenehmigung :   MANDATORY INTERLIS.XMLDate;
+      DatumBekanntmachung: MANDATORY INTERLIS.XMLDate;
+      Genehmigungsorgan:   MANDATORY TEXT*72;
+      TextImWeb :          MANDATORY WebReferenz;
+      Geometrie :          MANDATORY Linie;
+    END BaulinieNS;
+
+    CLASS BaubeschraenkungsflaecheNS =
+      Geometrie :          MANDATORY Perimeter;
+    END BaubeschraenkungsflaecheNS;
+
+    ASSOCIATION Baulinie_Baubeschraenkungsflaeche =
+      rBaubeschraenkungsflaeche -- {1..*} BaubeschraenkungsflaecheNS;
+      rBaulinie -- {1..*} BaulinieNS;        
+    END Baulinie_Baubeschraenkungsflaeche;
+
+  END BaulinienNS;
+
+END BaulinienNS_V2 .

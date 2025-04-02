@@ -1,0 +1,261 @@
+!! VSA_ALR_2015_2_d_LV95-20231031.ili
+!! Erweitert VSA-DSS für die "Abwasserentsorgung im ländlichen Raum" (VSA-ALR)
+
+INTERLIS 2.3;
+
+MODEL VSA_ALR_2015_LV95 (de) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  IMPORTS Units;
+  IMPORTS Base_LV95;
+  IMPORTS SIA405_Base_LV95;
+  IMPORTS DSS_2015_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Verband Schweizer Abwasser- und Gewässerschutzfachleute (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Freigegeben für öffentlichen Gebrauch und kommerzielle Anwendung"
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = "Geprüft mit Compiler Version 5.3.3 (03.08.2023)"
+
+!! 14.5.2021 Version _LV95 ergänzt
+
+!! 31.10.2023 Lizenzbestimmungen angepasst
+!! 31.10.2023 LV03 Version aufgehoben und entfernt, nur noch LV95
+
+
+UNIT
+
+TOPIC ALR EXTENDS DSS_2015_LV95.Siedlungsentwaesserung =
+
+
+DOMAIN
+
+
+CLASS Entsorgung EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Informationen zur Entsorgung des Abwassers von Gebäudegruppen (Behandlung / Schlammentsorgung)
+  ATTRIBUTE
+    Entsorgungsintervall_Ist: Intervall;  !! Abstände, in welchen das Bauwerk aktuell geleert wird (Jahre);
+    Entsorgungsintervall_Soll: Intervall;  !! Abstände, in welchen das Bauwerk geleert werden sollte (Jahre); Vorgabe aus GEP
+    Entsorgungsort_geplant: (          !! Ort der Schlammentsorgung im Planungszustand (gemäss GEP)
+      andere,
+      Guelleaustrag,
+      keiner,
+      oeffentlicheKanalisation,  !! Grube wird mit Saugwagen geleert und der Schlamm an einem anderen Ort in die öffentliche Kanalisation entsorgt
+      unbekannt,
+      zentraleARA  !! Grube wird mit Saugwagen geleert und Inhalt direkt auf die zentrale ARA gefahren
+    );
+    Entsorgungsort_Ist: (          !! Ort der Schlammentsorgung im heutigen Zustand
+      andere,
+      Guelleaustrag,
+      keiner,
+      oeffentlicheKanalisation,  !! Grube wird mit Saugwagen geleert und der Schlamm an einem anderen Ort in die öffentliche Kanalisation entsorgt.
+      unbekannt,
+      zentraleARA  !! Grube wird mit Saugwagen geleert und Inhalt direkt auf die zentrale ARA gefahren
+    );
+    VolumenAbflussloseGrube: 0.00 .. 10000000.00 [Units.m3];  !! Abflusslose Grube: Stapelraum in m3
+END Entsorgung;
+
+ASSOCIATION Entsorgung_VersickerungsanlageAssoc =    !! Assoziation
+  VersickerungsanlageRef (EXTERNAL) -- {0..1} DSS_2015_LV95.Siedlungsentwaesserung.Versickerungsanlage; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Entsorgung_VersickerungsanlageAssocRef -- {0..*} Entsorgung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Entsorgung_VersickerungsanlageAssoc;
+
+ASSOCIATION Entsorgung_EinleitstelleAssoc =    !! Assoziation
+  EinleitstelleRef (EXTERNAL) -- {0..1} DSS_2015_LV95.Siedlungsentwaesserung.Einleitstelle; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Entsorgung_EinleitstelleAssocRef -- {0..*} Entsorgung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Entsorgung_EinleitstelleAssoc;
+
+ASSOCIATION Entsorgung_AbwasserbauwerkAssoc =    !! Assoziation
+  AbwasserbauwerkRef (EXTERNAL) -- {0..1} DSS_2015_LV95.Siedlungsentwaesserung.Abwasserbauwerk; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Entsorgung_AbwasserbauwerkAssocRef -- {0..1} Entsorgung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Entsorgung_AbwasserbauwerkAssoc;
+
+CLASS Gebaeudegruppe EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Gebäude oder Gebäudegruppe im ländlichen Raum, die ausserhalb des Kanalisationsbereichs liegt sowie Gebäude von Landwirtschaftsbetrieben (auch innerhalb Kanalisationsbereich)
+  ATTRIBUTE
+    AndereNutzungArt: TEXT*50;  !! Beschreibung für andere Art der Gebäudenutzung
+    AndereNutzungEGW: EGW;  !! Einwohnergleichwert für andere Art der Gebäudenutzung
+    AnschlussARA: (        
+      angeschlossen,  !! Falls angeschlossen, muss Kanalnetz erfasst werden
+      nicht_angeschlossen,  !! Erfassen Sie zusätzlich ein Objekt Entsorgung und das zugehörige Abwasserbauwerk (Spezialbauwerk, KLARA oder Toilette)
+      unbekannt
+    );
+    Anschlusspflicht: (          !! Definiert, ob das Gebäude anschlusspflichtig ist
+      ja,
+      nein,
+      unbekannt
+    );
+    Bemerkung: TEXT*80;  !! Allgemeine Bemerkungen
+    Bezeichnung: MANDATORY TEXT*20;
+    CampingFlaeche: 0.0000 .. 100000.0000 [Units.ha];  !! Camping: Fläche Campingplatz in ha
+    CampingUebernachtungen: 0 .. 100000;  !! Camping: Anzahl Übernachtungen pro Jahr
+    Entwaesserungsplan: (          !! Angabe ob Pläne der Entwässerungsanlagen vorhanden
+      ja,
+      nein,
+      unbekannt
+    );
+    FerienUebernachtungen: 0 .. 100000;  !! Ausschliesslich Feriennutzung: Anzahl Übernachtungen pro Jahr
+    Funktion: (          !! Art der Gebäudenutzung
+      andere,
+      Feriengebaeude,  !! Reine Feriennutzung
+      IndustrieGewerbe,  !! Industrie- oder Gewerbebetrieb
+      Landwirtschaftsbetrieb,
+      unbekannt,
+      Wohngebaeude  !! Reine Wohnnutzung
+    );
+    GewerbeBeschaeftigte: 0 .. 1000;  !! Verwaltungsgebäude, Geschäftshaus, Fabrik (ohne Industrieabwasser): Anzahl Beschäftigte
+    HotelBetten: 0 .. 1000;  !! Hotel: Anzahl Betten
+    HotelUebernachtungen: 0 .. 100000;  !! Hotel: Anzahl Übernachtungen pro Jahr
+    KinoSitzplaetze: 0 .. 1000;  !! Kino: Anzahl Sitzplätze
+    KircheSitzplaetze: 0 .. 1000;  !! Kirche: Anzahl Sitzplätze (ohne Nebenräume);
+    RaststaetteSitzplaetze: 0 .. 1000;  !! Stark frequentierte Gaststätte, wie Autobahnraststätte, Berggasthaus, etc.: Anzahl Sitzplätze
+    RestaurantSitzplaetze_permanent: 0 .. 1000;  !! Restaurant: Anzahl Sitzplätze (ohne Säle und Garten);
+    RestaurantSitzplaetze_SaalGarten: 0 .. 1000;  !! Restaurant: Anzahl Sitzplätze Säle und Garten
+    SchlafsaalBetten: 0 .. 1000;  !! Schlafsaal: Anzahl Betten
+    SchlafsaalUebernachtungen: 0 .. 100000;  !! Schlafsaal: Anzahl Übernachtungen pro Jahr
+    SchuleSchueler: 0 .. 1000;  !! Schule: Anzahl Schüler
+    SpitalBetten: 0 .. 1000;  !! Spital, Pflegeanstalt: Anzahl Betten
+    Stromanschluss: (          !! Angabe ob Anschluss an Stromversorgung vorhanden
+      angeschlossen,
+      nicht_angeschlossen,
+      unbekannt
+    );
+    TrinkwasserAndere: (          !! Andere Trinkwasserversorgung als Netzanschluss (Hauptversorgung oder zusätzlich zum Netzanschluss)
+      andere,
+      keine,  !! Keine andere Trinkwasserversorgung als allfälliger Netzanschluss
+      Quelle,
+      unbekannt,
+      Zisterne
+    );
+    TrinkwasserNetzanschluss: (          !! Angabe ob Trinkwasseranschluss an öffentliches Netz vorhanden
+      angeschlossen,
+      nicht_angeschlossen,
+      unbekannt
+    );
+    TurnhalleFlaeche: 0.00 .. 100000.00 [Units.m2];  !! Turnhalle: Hallenfläche in m2
+    VeranstaltungBesucher: 0 .. 10000;  !! Maximale Anzahl Besucher pro Veranstaltung
+END Gebaeudegruppe;
+
+ASSOCIATION Gebaeudegruppe_EigentuemerAssoc =    !! Assoziation
+  EigentuemerRef (EXTERNAL) -- {0..*} DSS_2015_LV95.Siedlungsentwaesserung.Organisation; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Gebaeudegruppe_EigentuemerAssocRef -- {0..*} Gebaeudegruppe; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Gebaeudegruppe_EigentuemerAssoc;
+
+ASSOCIATION Gebaeudegruppe_PaechterAssoc =    !! Assoziation
+  PaechterRef (EXTERNAL) -- {0..*} DSS_2015_LV95.Siedlungsentwaesserung.Organisation; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Gebaeudegruppe_PaechterAssocRef -- {0..*} Gebaeudegruppe; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Gebaeudegruppe_PaechterAssoc;
+
+ASSOCIATION Gebaeudegruppe_EntsorgungAssoc =    !! Assoziation
+  EntsorgungRef  -- {0..*} Entsorgung; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Gebaeudegruppe_EntsorgungAssocRef -- {1..*} Gebaeudegruppe; !! Rolle2 - Klasse2
+END Gebaeudegruppe_EntsorgungAssoc;
+
+ASSOCIATION Gebaeudegruppe_MieterAssoc =    !! Assoziation
+  MieterRef (EXTERNAL) -- {0..*} DSS_2015_LV95.Siedlungsentwaesserung.Organisation; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Gebaeudegruppe_MieterAssocRef -- {0..*} Gebaeudegruppe; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Gebaeudegruppe_MieterAssoc;
+
+CLASS Gebaeudegruppe_BAUGWR EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Zwischentabelle zur Auflösung der n-n Beziehung zwischen Gebäudegruppe und Gebäudedetails (in BAU/GWR)
+  ATTRIBUTE
+    EGID: 0 .. 900000000;  !! EGID aus BAU/GWR der zur Gebäudegruppe gehörigen Gebäude
+END Gebaeudegruppe_BAUGWR;
+
+ASSOCIATION Gebaeudegruppe_BAUGWR_GebaeudegruppeAssoc =    !! Assoziation
+  GebaeudegruppeRef  -- {1} Gebaeudegruppe; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Gebaeudegruppe_BAUGWR_GebaeudegruppeAssocRef -- {0..*} Gebaeudegruppe_BAUGWR; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Gebaeudegruppe_BAUGWR_GebaeudegruppeAssoc;
+
+CLASS Landwirtschaftsbetrieb EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Landwirtschaftsbetrieb: Muss auch innerhalb Kanalisationsbereich (d.h. auch falls der Betrieb innerhalb der Teileinzugsgebiete des GEP liegt) angegeben werden
+  ATTRIBUTE
+    Bemerkung: TEXT*80;  !! Allgmeine Bemerkungen
+    Fortbestand: (          !! Potentieller Fortbestand des Betriebs
+      nicht_definiert,
+      unwahrscheinlich,
+      wahrscheinlich
+    );
+    FortbestandBemerkung: TEXT*80;  !! Bemerkungen zum Fortbestand des Betriebs
+    GuellegrubeBemerkung: TEXT*100;  !! Weitere Anmerkungen zur Güllegrube
+    GuellegrubeBewilligungsjahr: SIA405_Base_LV95.Jahr;  !! Güllegrube: Bewilligungsjahr
+    GuellegrubeVolumen: (          !! Klassifizierung, ob das Volumen (teilweise) in einem Fremdbetrieb in der gleichen oder einer anderen Gemeinde vorhanden ist
+      Eigen_und_Fremdbetrieb,
+      Eigenbetrieb,
+      Fremdbetrieb,
+      unbekannt
+    );
+    GuellegrubeVolumen_Ist: 0.00 .. 10000000.00 [Units.m3];  !! Güllegrube: aktuell vorhandenes Volumen in m3
+    GuellegrubeVolumen_Soll: 0.00 .. 10000000.00 [Units.m3];  !! Güllegrube: erforderliches Volumen in m3  (Sollzustand); Vorgabe aus GEP
+    GuellegrubeVolumen_SW_behandelt: 0.00 .. 10000000.00 [Units.m3];  !! Güllegrube: erforderliches Volumen in m3, falls häusliches Abwasser separat behandelt würde
+    HirtenhuetteAbwasser: (          !! Hirtenhütte: Fällt häusliches Abwasser an?
+      ja,
+      nein,
+      unbekannt
+    );
+    HirtenhuetteBemerkung: TEXT*80;  !! Hirtenhütte: Bemerkung betreffend Abwasserproduktion
+    HirtenhuetteEGW: EGW;  !! Hirtenhütte: Einwohnergleichwert
+    Konformitaet: (          !! Konformität der Einrichtungen (Güllegrube, Mistplatz, etc.)
+      konform,
+      Sanierung_aufgeschoben,  !! Sanierung aufgrund Gesuch aufgeschoben
+      Sanierung_bevorstehend,  !! Bevorstehende Sanierung
+      unbekannt
+    );
+    MistplatzFlaeche_Ist: 0.00 .. 100000.00 [Units.m2];  !! Mistplatz: aktuell vorhandene Fläche in m2
+    MistplatzFlaeche_Soll: 0.00 .. 100000.00 [Units.m2];  !! Mistplatz: erforderliche Fläche in m2 (Sollzustand); Vorgabe aus GEP
+    NutzflaecheLandwirtschaft: 0.0000 .. 100000.0000 [Units.ha];  !! Landwirtschaftliche Nutzfläche in ha
+    StallGrossvieheinheit_eigenesVieh: 0.00 .. 300000.00;  !! Stall: Anzahl Tiere in Düngergrossvieheinheiten DGVE (eigenes Vieh);
+    StallGrossvieheinheit_Fremdvieh: 0.00 .. 300000.00;  !! Stall: Anzahl Tiere in Düngergrossvieheinheiten DGVE (Fremdvieh);
+    StallVieh: (          !! Stall: Vieh vorhanden?
+      ja,  !! In der Regel wird der Stall für die Viehhaltung verwendet.
+      nein,
+      unbekannt
+    );
+END Landwirtschaftsbetrieb;
+
+ASSOCIATION Landwirtschaftsbetrieb_GebaeudegruppeAssoc =    !! Komposition
+  GebaeudegruppeRef  -<#> {1} Gebaeudegruppe; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Landwirtschaftsbetrieb_GebaeudegruppeAssocRef -- {0..1} Landwirtschaftsbetrieb; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Landwirtschaftsbetrieb_GebaeudegruppeAssoc;
+
+CLASS KLARA EXTENDS DSS_2015_LV95.Siedlungsentwaesserung.Abwasserbauwerk =  
+!! Kleinkläranlage (KLARA)
+  ATTRIBUTE
+    Anlagenummer: ARANr;  !! ARA-Nummer gemäss BAFU
+    Bewilligungsnummer: TEXT*50;  !! Bewilligungsnummer der Aufsichtsbehörde
+    Fernueberwachung: (        
+      ja,
+      nein,
+      unbekannt
+    );
+    Funktion: (          !! Art des Verfahrens
+      andere,
+      Belebtschlammverfahren,  !! Belebtschlammverfahren
+      Bettverfahren,  !! Wirbelbettverfahren / Festbettverfahren
+      Membranbioreaktor,  !! Membranbelebungsanlage / Membranbioreaktor (MBR)
+      Pflanzenklaeranlage,  !! Bewachsener Bodenfilter / Pflanzenkläranlage
+      Sandfilter,  !! Unbewachsener Bodenfilter / Sandfilter
+      SequencingBatchReactor,  !! Einbeckenanlage / Sequencing Batch Reactor (SBR)
+      Tauchkoerper,  !! Tauchtropfkörper / Rotationstauchkörper
+      unbekannt
+    );
+END KLARA;
+
+CLASS Toilette EXTENDS DSS_2015_LV95.Siedlungsentwaesserung.Abwasserbauwerk =  
+!! Beschreibung spezieller Verfahren der Abwasserentsorgung
+  ATTRIBUTE
+    Art: (        
+      andere,
+      chemischeToilette,
+      Komposttoilette,
+      unbekannt,
+      Verbrennungstoilette
+    );
+END Toilette;
+
+
+END ALR;   !! Ende des Topics / Fin du topic
+END VSA_ALR_2015_LV95.   !! Ende des Modells / Fin du modèle
+

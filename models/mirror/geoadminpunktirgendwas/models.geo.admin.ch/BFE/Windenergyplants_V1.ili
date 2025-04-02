@@ -1,0 +1,159 @@
+INTERLIS 2.3;
+
+/** Geodata model of wind power plants in Switzerland
+ */
+ 
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 83)
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformaton
+
+MODEL Windenergyplants_V1 (en)
+AT "http://models.geo.admin.ch/BFE/" VERSION "2015-05-22"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,WithOneState_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Text with max length 500 characters
+     */
+    Text = TEXT*500;
+
+    /** Numeric with one decimal place
+     */
+    we_decimal = 0.0 .. 1000000.0;
+
+    /** Natural number
+     */
+    we_natural = 0 .. 1000000000;
+
+    Year = 1800 .. 2999;
+
+!! ****************************************************
+!! ****************************************************	
+  /** Types of plants
+   */
+  TOPIC FacilityTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.ANYOID;
+    DEPENDS ON CatalogueObjects_V1.Catalogues;
+
+    /** Types of windpower plants
+     */
+    CLASS FacilityType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      modification : WithOneState_V1.ModInfo;
+      type : MANDATORY LocalisationCH_V1.MultilingualText;
+    END FacilityType;
+
+    STRUCTURE FacilityTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      ref : REFERENCE TO (EXTERNAL) FacilityType;
+    END FacilityTypeRef;
+
+  END FacilityTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************  
+  TOPIC OperationalStatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.ANYOID;
+    DEPENDS ON CatalogueObjects_V1.Catalogues;
+
+    CLASS OperationalStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      modification : WithOneState_V1.ModInfo;
+      operationalStatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END OperationalStatus;
+
+    STRUCTURE OperationalStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      ref : REFERENCE TO (EXTERNAL) OperationalStatus;
+    END OperationalStatusRef;
+
+  END OperationalStatusCatalogue;
+
+!! ****************************************************
+!! ****************************************************  
+  /** Facilities and turbines
+   */
+  TOPIC Plant =
+    OID AS INTERLIS.ANYOID;
+    DEPENDS ON Windenergyplants_V1.FacilityTypeCatalogue,Windenergyplants_V1.OperationalStatusCatalogue,CatalogueObjects_V1.Catalogues;
+
+    /** A facility contains one or more turbines and is run by one owner
+     */
+    CLASS Facility =
+      position : MANDATORY GeometryCHLV95_V1.Coord2;
+      name : MANDATORY Windenergyplants_V1.Text;
+      /** Name of the owner
+       */
+      operator : MANDATORY Windenergyplants_V1.Text;
+      website : URI;
+      type : MANDATORY Windenergyplants_V1.FacilityTypeCatalogue.FacilityTypeRef;
+      operationalStatus : MANDATORY Windenergyplants_V1.OperationalStatusCatalogue.OperationalStatusRef;
+      /** Sum of the rated power of all turbines contained in this facility
+       */
+      ratedPower : MANDATORY Windenergyplants_V1.we_decimal;
+      modification : WithOneState_V1.ModInfo;
+    END Facility;
+
+    CLASS Turbine =
+      position : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Height above sea level
+       */
+      altitude : MANDATORY Windenergyplants_V1.we_natural;
+      yearOfConstruction : MANDATORY Windenergyplants_V1.Year;
+      yearOfDismantling : Windenergyplants_V1.Year;
+      manufacturer : MANDATORY Windenergyplants_V1.Text;
+      model : MANDATORY Windenergyplants_V1.Text;
+      /** Diameter of the circle described by the blades.
+       */
+      diameter : MANDATORY Windenergyplants_V1.we_natural;
+      /** Height above the ground
+       */
+      hubHeight : MANDATORY Windenergyplants_V1.we_natural;
+      cutInSpeed : MANDATORY Windenergyplants_V1.we_natural;
+      ratedSpeed : MANDATORY Windenergyplants_V1.we_natural;
+      cutOutSpeed : MANDATORY Windenergyplants_V1.we_natural;
+      /** Rated power of the turbine.
+       */
+      ratedPower : MANDATORY Windenergyplants_V1.we_decimal;
+      operationalStatus : MANDATORY Windenergyplants_V1.OperationalStatusCatalogue.OperationalStatusRef;
+      modification : WithOneState_V1.ModInfo;
+    END Turbine;
+
+    ASSOCIATION TurbineFacility =
+      turbine -- {0..*} Turbine;
+      facility -<#> {1} Facility;
+    END TurbineFacility;
+
+  END Plant;
+
+!! ****************************************************
+!! ****************************************************  
+  /** Power production of the plants
+   */
+  TOPIC Production =
+    OID AS INTERLIS.ANYOID;
+    DEPENDS ON Windenergyplants_V1.Plant;
+
+    /** Power production of the facilities
+     */
+    CLASS Production =
+      year : MANDATORY Windenergyplants_V1.Year;
+      /** Power produced by all the turbines of a facility during one year
+       */
+      production : MANDATORY Windenergyplants_V1.we_natural;
+      modification : WithOneState_V1.ModInfo;
+    END Production;
+
+    ASSOCIATION FacilityProduction =
+      facility (EXTERNAL) -<> {1} Windenergyplants_V1.Plant.Facility;
+      production -- {0..*} Production;
+    END FacilityProduction;
+
+  END Production;
+
+END Windenergyplants_V1.

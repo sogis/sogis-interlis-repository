@@ -1,0 +1,311 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Nationales Messnetz zur Erhebung der Wasserisotope
+!!------------------------------------------------------------------------------
+!!
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.1"
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL Wasserisotope_LV95_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-01-23" =
+
+  IMPORTS GeometryCHLV95_V1,
+          CHAdminCodes_V1,
+          CodeISO,
+          LocalisationCH_V1;
+
+  TOPIC Wasserisotope =
+
+    DOMAIN
+      Beprobungsart = (Stichprobe,
+                       Sammelprobe,
+                       unbestimmt);
+
+      Medium = (Niederschlag,
+                Fliessgewaesser,
+                Grundwasser);
+
+      Naturraum = (Jura,
+                   Mittelland,
+                   Voralpen,
+                   Alpen,
+                   Alpensuedseite);
+
+      Parametergruppe = (StabileIsotope,
+                         InstabileIsotope);
+
+      Periodizitaet = (taeglich,
+                       woechentlich,
+                       vier_woechentlich,
+                       monatlich,
+                       mehrmals_im_Jahr,
+                       jaehrlich,
+                       unregelmaessig);
+
+      Telefontyp = (Hauptnummer,
+                    Direktwahl,
+                    Mobiltelefon,
+                    Fax);
+
+    CLASS Messnetz =
+      Name                  : MANDATORY TEXT*100;
+      Kurzbezeichnung       :           TEXT*20;
+      Beschreibung          :           LocalisationCH_V1.MultilingualText;
+      Betriebsbeginn        : MANDATORY INTERLIS.XMLDate;
+      Betriebsende          : MANDATORY INTERLIS.XMLDate;
+      Weitere_Informationen :     INTERLIS.URI;
+    END Messnetz;
+
+    CLASS Messstation =
+      Stationsname   :           TEXT*50;
+      Stationsnummer :           TEXT*20;
+      Bemerkungen    :           LocalisationCH_V1.MultilingualText;
+      Lage           : MANDATORY GeometryCHLV95_V1.Coord2;
+      Stationshoehe  : MANDATORY 0..5000;
+      MittlereHoehe  :           0..5000;
+      Naturraum      : MANDATORY Naturraum;
+      Medium         : MANDATORY Medium;
+      Betriebsbeginn : MANDATORY INTERLIS.XMLDate;
+      Betriebsende   : MANDATORY INTERLIS.XMLDate;
+
+      UNIQUE Stationsname;
+      UNIQUE Stationsnummer;
+      MANDATORY CONSTRAINT DEFINED(Stationsname) OR DEFINED(Stationsnummer); !! Stationsname oder Stationsnummer muss zwingend angegeben werden.
+
+    END Messstation;
+
+    CLASS Werterhebung =
+      Parametergruppe : MANDATORY Parametergruppe;
+      Einzelparameter :           TEXT*150;
+      Beprobungsart   : MANDATORY Beprobungsart;
+      Periodizitaet   : MANDATORY Periodizitaet;
+      Messbeginn      : MANDATORY INTERLIS.XMLDate;
+      Messende        : MANDATORY INTERLIS.XMLDate;
+    END Werterhebung;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung   :           LocalisationCH_V1.MultilingualText;
+      Abteilung    :           LocalisationCH_V1.MultilingualText;
+      Sektion      :           LocalisationCH_V1.MultilingualText;
+      Nachname     :           TEXT*50;
+      Vorname      :           TEXT*50;
+      Email        :           INTERLIS.URI;
+      Link         :           INTERLIS.URI;
+    END Verantwortlichkeit;
+
+    CLASS Adresse =
+      Strasse      : MANDATORY TEXT*50;
+      Hausnummer   :           TEXT*10;
+      Adresszusatz :           TEXT*50;
+      Postfach     :           TEXT*10;
+      PLZ          : MANDATORY TEXT*4;
+      Ort          : MANDATORY TEXT*50;
+      Kanton       :           CHAdminCodes_V1.CHCantonCode;
+      Land         : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Telefon =
+      Nummer     : MANDATORY TEXT*20;
+      Telefontyp : MANDATORY Telefontyp;
+    END Telefon;
+
+    ASSOCIATION MessnetzWerterhebung =
+      Messnetz -- {1..*} Messnetz;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessnetzWerterhebung;
+
+    ASSOCIATION MessstationWerterhebung =
+      Werterhebung -- {1..*} Werterhebung;
+      Messstation -- {1} Messstation;
+    END MessstationWerterhebung;
+
+    ASSOCIATION VerantwortlickeitMessstation =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messstation -- {0..*} Messstation;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :           LocalisationCH_V1.MultilingualText;
+    END VerantwortlickeitMessstation;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :          LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :           LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -- {1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -- {1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+  END Wasserisotope;
+
+END Wasserisotope_LV95_V1.
+
+!! Kopie des Datenmodells für Koordinaten im Bezugsrahmen LV03:
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.1"
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL Wasserisotope_LV03_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-01-23" =
+
+  IMPORTS GeometryCHLV03_V1,
+          CHAdminCodes_V1,
+          CodeISO,
+          LocalisationCH_V1;
+
+  TOPIC Wasserisotope =
+
+    DOMAIN
+      Beprobungsart = (Stichprobe,
+                       Sammelprobe,
+                       unbestimmt);
+
+      Medium = (Niederschlag,
+                Fliessgewaesser,
+                Grundwasser);
+
+      Naturraum = (Jura,
+                   Mittelland,
+                   Voralpen,
+                   Alpen,
+                   Alpensuedseite);
+
+      Parametergruppe = (StabileIsotope,
+                         InstabileIsotope);
+
+      Periodizitaet = (taeglich,
+                       woechentlich,
+                       vier_woechentlich,
+                       monatlich,
+                       mehrmals_im_Jahr,
+                       jaehrlich,
+                       unregelmaessig);
+
+      Telefontyp = (Hauptnummer,
+                    Direktwahl,
+                    Mobiltelefon,
+                    Fax);
+
+    CLASS Messnetz =
+      Name                  : MANDATORY TEXT*100;
+      Kurzbezeichnung       :           TEXT*20;
+      Beschreibung          :           LocalisationCH_V1.MultilingualText;
+      Betriebsbeginn        : MANDATORY INTERLIS.XMLDate;
+      Betriebsende          : MANDATORY INTERLIS.XMLDate;
+      Weitere_Informationen :     INTERLIS.URI;
+    END Messnetz;
+
+    CLASS Messstation =
+      Stationsname   :           TEXT*50;
+      Stationsnummer :           TEXT*20;
+      Bemerkungen    :           LocalisationCH_V1.MultilingualText;
+      Lage           : MANDATORY GeometryCHLV03_V1.Coord2;
+      Stationshoehe  : MANDATORY 0..5000;
+      MittlereHoehe  :           0..5000;
+      Naturraum      : MANDATORY Naturraum;
+      Medium         : MANDATORY Medium;
+      Betriebsbeginn : MANDATORY INTERLIS.XMLDate;
+      Betriebsende   : MANDATORY INTERLIS.XMLDate;
+
+      UNIQUE Stationsname;
+      UNIQUE Stationsnummer;
+      MANDATORY CONSTRAINT DEFINED(Stationsname) OR DEFINED(Stationsnummer); !! Stationsname oder Stationsnummer muss zwingend angegeben werden.
+
+    END Messstation;
+
+    CLASS Werterhebung =
+      Parametergruppe : MANDATORY Parametergruppe;
+      Einzelparameter :           TEXT*150;
+      Beprobungsart   : MANDATORY Beprobungsart;
+      Periodizitaet   : MANDATORY Periodizitaet;
+      Messbeginn      : MANDATORY INTERLIS.XMLDate;
+      Messende        : MANDATORY INTERLIS.XMLDate;
+    END Werterhebung;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung   :           LocalisationCH_V1.MultilingualText;
+      Abteilung    :           LocalisationCH_V1.MultilingualText;
+      Sektion      :           LocalisationCH_V1.MultilingualText;
+      Nachname     :           TEXT*50;
+      Vorname      :           TEXT*50;
+      Email        :           INTERLIS.URI;
+      Link         :           INTERLIS.URI;
+    END Verantwortlichkeit;
+
+    CLASS Adresse =
+      Strasse      : MANDATORY TEXT*50;
+      Hausnummer   :           TEXT*10;
+      Adresszusatz :           TEXT*50;
+      Postfach     :           TEXT*10;
+      PLZ          : MANDATORY TEXT*4;
+      Ort          : MANDATORY TEXT*50;
+      Kanton       :           CHAdminCodes_V1.CHCantonCode;
+      Land         : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Telefon =
+      Nummer     : MANDATORY TEXT*20;
+      Telefontyp : MANDATORY Telefontyp;
+    END Telefon;
+
+    ASSOCIATION MessnetzWerterhebung =
+      Messnetz -- {1..*} Messnetz;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessnetzWerterhebung;
+
+    ASSOCIATION MessstationWerterhebung =
+      Werterhebung -- {1..*} Werterhebung;
+      Messstation -- {1} Messstation;
+    END MessstationWerterhebung;
+
+    ASSOCIATION VerantwortlickeitMessstation =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messstation -- {0..*} Messstation;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :           LocalisationCH_V1.MultilingualText;
+    END VerantwortlickeitMessstation;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :          LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Rolle        : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung :           LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -- {1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -- {1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+  END Wasserisotope;
+
+END Wasserisotope_LV03_V1.

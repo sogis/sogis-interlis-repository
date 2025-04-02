@@ -1,0 +1,86 @@
+INTERLIS 2.3;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Minimal Geodata Model for Official Index of Streets (Art. 26a GeoNV)
+!! INTERLIS Version 2.3 (SN 612031).
+!!
+!! Federal Office of Topography (swisstopo)
+!! Seftigenstrasse 264
+!! CH-3084 Wabern
+!!
+!! Filename: OfficialIndexOfStreets_V2_1.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who       | Modification
+!!------------------------------------------------------------------------------
+!! 2023-01-01 | swisstopo | Removed STR_VALID; added STR_GEOMSRC
+!! 2021-03-15 | swisstopo | Added COM_NAME; renamed STR_ZIP>ZIP_ZIP6, STR_VALIDATED>STR_VALID, LocalisationName>STN; modified: STR_MODIFIED as INTERLIS.XMLDate
+
+!!@ IDGeoIV = 196.1
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/geodata/amtliche-verzeichnisse/strassenverzeichnis.html
+
+CONTRACTED MODEL OfficialIndexOfStreets_V2_1 (en) AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2023-01-01" =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC OfficialIndexOfStreets =
+    OID AS INTERLIS.ANYOID;
+
+    STRUCTURE ZIP =
+      ZIP_ZIP4: MANDATORY 1000 .. 9999;  !! postal code, e.g. 8580
+      ZIP_ZIPA: MANDATORY 0 .. 99;  !! additional number, e.g. 5
+      ZIP_NAME: MANDATORY TEXT*40;  !! locality, e.g. Hagenwil b. Amriswil
+    END ZIP;
+
+    STRUCTURE STN =
+      STN_TEXT: MANDATORY TEXT*60;  !! e.g. Conrad-Ferdinand-Meyer-Strasse
+      STN_SHORT: TEXT*24;  !! e.g. CF Meyer Str
+      STN_INDEX: TEXT*3;  !! e.g. Mey
+      STN_LANG: MANDATORY (
+        de,
+        fr,
+        it,
+        rm: FINAL);
+    END STN;
+
+    CLASS Localisation =
+      STR_ESID: MANDATORY 0 .. 90000000;
+      STN_NAME: BAG {1..*} OF STN;
+      ZIP_ZIP6: BAG {1..*} OF ZIP;
+      COM_FOSNR: MANDATORY 1 .. 9999;
+      COM_NAME: MANDATORY TEXT*40;
+      STR_TYPE: MANDATORY (
+        Area,
+        Street,
+        Place: FINAL);
+      STR_STATUS: MANDATORY (
+        planned,
+        real,
+        outdated: FINAL);
+      STR_OFFICIAL: MANDATORY BOOLEAN;
+      STR_GEOMSRC: MANDATORY (
+        Municipal_Administration,
+        Cadastral_Survey,
+        Topographic_Landscape_Model,
+        Official_Street_Index : FINAL);
+      STR_MODIFIED: MANDATORY INTERLIS.XMLDate;
+      LIN_SHAPE: GeometryCHLV95_V1.MultiLine;
+      PLY_SHAPE: GeometryCHLV95_V1.MultiSurface;
+    UNIQUE STR_ESID;
+
+    !! Type Area must only be associated with PLY_SHAPE
+    !! Type Street must only be associated with LIN_SHAPE
+    !! Type Place must be associated with PLY_SHAPE and/or LIN_SHAPE
+    MANDATORY CONSTRAINT
+      (STR_TYPE==#Area AND DEFINED (PLY_SHAPE) AND NOT (DEFINED (LIN_SHAPE)))
+      OR (STR_TYPE==#Street AND DEFINED (LIN_SHAPE) AND NOT (DEFINED (PLY_SHAPE)))
+      OR (STR_TYPE==#Place AND (DEFINED (PLY_SHAPE) OR DEFINED (LIN_SHAPE)));
+
+    END Localisation;
+
+  END OfficialIndexOfStreets;
+
+END OfficialIndexOfStreets_V2_1.

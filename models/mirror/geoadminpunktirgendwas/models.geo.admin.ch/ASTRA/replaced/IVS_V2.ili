@@ -1,0 +1,236 @@
+INTERLIS 2.3;
+
+!! Datenmodell zur Verwaltung des "Inventar historischer Verkehrswege der Schweiz" (IVS)
+!! Datum 30. November 2010
+!! Revision 2 (Anpassungen auf Version 2.3)
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-04-01 | KOGIS | WITHOUT OVERLAPS added (line 40)
+!! 2018-02-16 | KOGIS | WITHOUT OVERLAPS corrected (line 40)
+
+!!@ furtherInformation=http://www.ivs.admin.ch/
+!!@ technicalContact=mailto:hans-peter.kistler@astra.admin.ch
+!!@ IDGeoIV="16.1,17.1"
+CONTRACTED MODEL IVS_V2 (de)
+  AT "http://models.geo.admin.ch/ASTRA/"
+  VERSION "2018-02-16" =
+
+  UNIT
+    Meter [m] = 1 [INTERLIS.m];
+    Sekunde [s] = 1 [INTERLIS.s];
+    Minute [min] = 60 [s];
+    Stunde [h] = 60 [min];
+    Tag [d] = 24 [h];
+    Monat [mon] = 31 [d];
+    Jahr [a] = 12 [mon];
+    !! Datum_Jahr = {a:mon[1..12]:d[1..31]};
+    Winkel_Grad = 180 / PI [INTERLIS.rad];
+
+  DOMAIN
+    INTEGER = 0 .. 9999999999999999;
+    DOUBLE = 0.000000000000000 .. 9999999999999999.999999999999999;
+    MEMO = TEXT*64000;
+    DATUM = FORMAT INTERLIS.XMLDate "1980-01-01" .. "2999-12-31";
+    WINKEL = 0.00 .. 359.99 [Winkel_Grad];
+    CHLKoord = COORD 480000.00 .. 850000.00 [m],
+      60000.00 .. 320000.00 [m],
+      ROTATION 2 -> 1;
+    IVS_Linie = POLYLINE WITH (STRAIGHTS) VERTEX CHLKoord;
+    IVS_Flaeche = SURFACE WITH (STRAIGHTS) VERTEX CHLKoord WITHOUT OVERLAPS > 0.01;
+
+
+  TOPIC IVS_Inventarkarte =
+
+    !! Klasse zur Verwaltung der IVS-Objekte (Strecken, Linienführungen oder Abschnitte des IVS)
+    CLASS ivs_objekte =
+      ivs_ivsid : MANDATORY INTEGER;
+      ivs_slalnkid : INTEGER;
+      ivs_slatyp : MANDATORY INTEGER;
+      ivs_kanton : MANDATORY TEXT*2;
+      ivs_slanr : MANDATORY INTEGER;
+      ivs_nummer : MANDATORY TEXT*14;
+      ivs_sortsla : MANDATORY TEXT*10;
+      ivs_snr : MANDATORY INTEGER;
+      ivs_lnr : MANDATORY INTEGER;
+      ivs_anr : MANDATORY INTEGER;
+      ivs_slabedeutung : MANDATORY INTEGER;
+      ivs_lang : MANDATORY INTEGER;
+      UNIQUE ivs_ivsid;
+      UNIQUE ivs_sortsla;
+      UNIQUE ivs_kanton, ivs_snr, ivs_lnr, ivs_anr;
+    END ivs_objekte;
+
+    !! Klasse zur Verwaltung der Strecken-, Linienführungs- und Abschnittsnamen (SLA-Namen) der IVS-Objekte
+    CLASS ivs_slanamen =
+      ivs_slanameid : MANDATORY INTEGER;
+      ivs_ivsfk : MANDATORY INTEGER;
+      ivs_lang : MANDATORY INTEGER;
+      ivs_slaname : MANDATORY TEXT*255;
+      UNIQUE ivs_slanameid;
+      UNIQUE ivs_ivsfk, ivs_lang;
+    END ivs_slanamen;
+
+    !! Klasse zur Verwaltung der IVS-Streckenbeschriebe
+    CLASS ivs_streckenbeschriebe =
+      ivs_docid : MANDATORY INTEGER;
+      ivs_ivsfk : MANDATORY INTEGER;
+      ivs_sladatehist : DATUM;
+      ivs_sladatemorph : DATUM;
+      ivs_sladateplan : DATUM;
+      UNIQUE ivs_docid;
+    END ivs_streckenbeschriebe;
+
+    !! Klasse zur Verwaltung der IVS-Streckenbeschriebelemente
+    CLASS ivs_streckenbeschriebelemente =
+      ivs_streckenbeschriebelementid : MANDATORY INTEGER;
+      ivs_docfk : MANDATORY INTEGER;
+      ivs_doctype : MANDATORY INTEGER;
+      ivs_elementposition : MANDATORY INTEGER;
+      ivs_elementtyp : MANDATORY INTEGER;
+      UNIQUE ivs_streckenbeschriebelementid;
+      UNIQUE ivs_docfk, ivs_doctype, ivs_elementposition;
+    END ivs_streckenbeschriebelemente;
+
+    !! Klasse zur Verwaltung der IVS-Streckenbeschriebelementtexte
+    CLASS ivs_streckenbeschriebelementtexte =
+      ivs_streckenbeschriebelementtextid : MANDATORY INTEGER;
+      ivs_streckenbeschriebelemtfk : MANDATORY INTEGER;
+      ivs_lang : MANDATORY INTEGER;
+      ivs_streckenbeschriebelementtext : MANDATORY TEXT*255;
+      UNIQUE ivs_streckenbeschriebelementtextid;
+      UNIQUE ivs_streckenbeschriebelemtfk, ivs_lang;
+    END ivs_streckenbeschriebelementtexte;
+
+    !! Klasse zur Verwaltung von Bildinformationen der Abbildungen in den IVS-Streckenbeschrieben
+    CLASS ivs_bildinformationen =
+      ivs_bildinformationid : MANDATORY INTEGER;
+      ivs_streckenbeschriebelementfk : MANDATORY INTEGER;
+      ivs_darstellungstyp : MANDATORY INTEGER;
+      ivs_bildbeschriftung_zelle_w : MANDATORY DOUBLE;
+      ivs_bildname : MANDATORY TEXT*10;
+      ivs_bild_zelle_cm_w : MANDATORY DOUBLE;
+      ivs_bild_cm_w : MANDATORY DOUBLE;
+      ivs_bild_cm_h : MANDATORY DOUBLE;
+      ivs_bild_px_w : MANDATORY DOUBLE;
+      ivs_bild_px_h : MANDATORY DOUBLE;
+      UNIQUE ivs_bildinformationid;
+    END ivs_bildinformationen;
+
+    !! Klasse zur Verknüpfung der IVS-Streckenbeschriebe mit den Autoren
+    CLASS ivs_streckenbeschriebe_autoren =
+      ivs_docfk : MANDATORY INTEGER;
+      ivs_userfk : MANDATORY INTEGER;
+      ivs_doctype : MANDATORY INTEGER;
+      UNIQUE ivs_docfk, ivs_userfk, ivs_doctype;
+    END ivs_streckenbeschriebe_autoren;
+
+    !! Klasse zur Verwaltung der Autoren der IVS-Streckenbeschriebe
+    CLASS ivs_autoren =
+      ivs_userid : MANDATORY INTEGER;
+      ivs_userkzeichen : MANDATORY TEXT*3;
+      ivs_username : MANDATORY TEXT*50;
+      ivs_uservorname : MANDATORY TEXT*50;
+      UNIQUE ivs_userid;
+    END ivs_autoren;
+
+    !! Klassen zur Veraltung der Liniengeometrien des IVS
+    CLASS ivs_linienobjekte =
+      ivs_geometrie : MANDATORY IVS_Linie;
+      ivs_ivsfk : MANDATORY INTEGER;
+      ivs_signatur : MANDATORY INTEGER;
+      ivs_geometrie_laenge : MANDATORY DOUBLE;
+    END ivs_linienobjekte;
+
+    !! Klassen zur Veraltung von Kantonsinformationen zum IVS
+    CLASS ivs_kantone =
+      ivs_kanton : MANDATORY INTEGER;
+      ivs_kantonnr : MANDATORY INTEGER;
+      ivs_kantonalesinventar : MANDATORY BOOLEAN;
+      UNIQUE ivs_kantonnr;
+    END ivs_kantone;
+
+    !! Klassen zur Veraltung der Wegbegleiter des IVS
+    CLASS ivs_punktobjekte =
+      ivs_geometrie : MANDATORY CHLKoord;
+      ivs_signatur : MANDATORY INTEGER;
+      ivs_ausrichtung : WINKEL;
+    END ivs_punktobjekte;
+
+    !! Klassen zur Veraltung der Signaturen und Legendeneinträge der Liniengeometrien des IVS
+    CLASS ivs_signatur_linie =
+      ivs_signatur : MANDATORY INTEGER;
+      ivs_deutsch : MANDATORY TEXT*100;
+      ivs_franzoesisch : MANDATORY TEXT*100;
+      ivs_italienisch : MANDATORY TEXT*100;
+    END ivs_signatur_linie;
+
+    !! Klassen zur Veraltung der Signaturen und Legendeneinträge der Wegbegleiter des IVS
+    CLASS ivs_signatur_punkt =
+      ivs_signatur : MANDATORY INTEGER;
+      ivs_deutsch : MANDATORY TEXT*100;
+      ivs_franzoesisch : MANDATORY TEXT*100;
+      ivs_italienisch : MANDATORY TEXT*100;
+      ivs_zeichen : MANDATORY TEXT*1;
+    END ivs_signatur_punkt;
+
+    !!Relationen
+
+    ASSOCIATION ivs_objekte__ivs_linienobjekte =
+      Role_ivs_linienobjekte -- {0..*} ivs_linienobjekte;
+      Role_ivs_objekte -- {1} ivs_objekte;
+    END ivs_objekte__ivs_linienobjekte;
+
+    ASSOCIATION ivs_signatur_linie__ivs_linienobjekte =
+      Role_ivs_linienobjekte -- {0..*} ivs_linienobjekte;
+      Role_ivs_signatur_linie -- {1} ivs_signatur_linie;
+    END ivs_signatur_linie__ivs_linienobjekte;
+
+    ASSOCIATION ivs_objekte__ivs_slanamen =
+      Role_ivs_slanamen -- {1..*} ivs_slanamen;
+      Role_ivs_objekte -- {1} ivs_objekte;
+    END ivs_objekte__ivs_slanamen;
+
+    ASSOCIATION ivs_objekte__ivs_kantone =
+      Role_ivs_kantone -- {1} ivs_kantone;
+      Role_ivs_objekte -- {0..*} ivs_objekte;
+    END ivs_objekte__ivs_kantone;
+
+    ASSOCIATION ivs_signatur_punkt__ivs_punktobjekte =
+      Role_ivs_signatur_punkt -- {1} ivs_signatur_punkt;
+      Role_ivs_punktobjekte -- {0..*} ivs_punktobjekte;
+    END ivs_signatur_punkt__ivs_punktobjekte;
+
+    ASSOCIATION ivs_objekte__ivs_streckenbeschriebe =
+      Role_ivs_streckenbeschriebe -- {0..1} ivs_streckenbeschriebe;
+      Role_ivs_objekte -- {1} ivs_objekte;
+    END ivs_objekte__ivs_streckenbeschriebe;
+
+    ASSOCIATION ivs_streckenbeschriebe__ivs_streckenbeschriebe_autoren =
+      Role_ivs_streckenbeschriebe -- {1} ivs_streckenbeschriebe;
+      Role_ivs_streckenbeschriebe_autoren -- {1..*} ivs_streckenbeschriebe_autoren;
+    END ivs_streckenbeschriebe__ivs_streckenbeschriebe_autoren;
+
+    ASSOCIATION ivs_streckenbeschriebe_autoren_ivs_autoren =
+      Role_ivs_autoren -- {1} ivs_autoren;
+      Role_ivs_streckenbeschriebe_autoren -- {0..*} ivs_streckenbeschriebe_autoren;
+    END ivs_streckenbeschriebe_autoren_ivs_autoren;
+
+    ASSOCIATION ivs_streckenbeschriebe__ivs_streckenbeschriebelemente =
+      Role_ivs_streckenbeschriebe -- {1} ivs_streckenbeschriebe;
+      Role_ivs_streckenbeschriebelemente -- {1..*} ivs_streckenbeschriebelemente;
+    END ivs_streckenbeschriebe__ivs_streckenbeschriebelemente;
+
+    ASSOCIATION ivs_streckenbeschriebelemente__ivs_streckenbeschriebelementtexte =
+      Role_ivs_streckenbeschriebelementtexte -- {1..*} ivs_streckenbeschriebelementtexte;
+      Role_ivs_streckenbeschriebelemente -- {1} ivs_streckenbeschriebelemente;
+    END ivs_streckenbeschriebelemente__ivs_streckenbeschriebelementtexte;
+
+    ASSOCIATION ivs_streckenbeschriebelemente__ivs_bildinformationen =
+      Role_ivs_bildinformationen -- {0..1} ivs_bildinformationen;
+      Role_ivs_streckenbeschriebelemente -- {1} ivs_streckenbeschriebelemente;
+    END ivs_streckenbeschriebelemente__ivs_bildinformationen;
+
+  END IVS_Inventarkarte;
+
+END IVS_V2.

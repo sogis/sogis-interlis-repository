@@ -1,0 +1,778 @@
+INTERLIS 2.3;
+
+/**
+Geodatenmodell Strukturverbesserung SV
+der Suissemelio
+(CH)
+ */
+
+!! Date       | Who  | Modification
+!!------------------------------------------------------------------------------
+!! 2018-04-27 | eugr | Korrekturen der Kommentare
+
+!!@ technicalContact=mailto:info@suissemelio.ch
+!!@ furtherInformation=http://www.suissemelio.ch/
+MODEL Strukturverbesserungen_LV03_V2 (de)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2015-09-06" // eugr // =
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS Units;
+
+DOMAIN
+
+!! Allgemeine Domains
+!! *************************************
+
+Datum = FORMAT INTERLIS.XMLDate "1800-01-01" .. "2099-12-31";
+
+!! Wertebereiche der raeumlichen Elemente
+!! *************************************
+
+!! Definition Geschaeftsnummer des Bundes
+
+  Geschaeftsnummerdef = TEXT*10;
+
+!! Definition Kantonsnummer
+  Kantonsnummerdef = TEXT*40;
+
+!! Mit der Werks-ID koennen Elemente zu einen Werk zusammengefasst werden.
+  WerksID = TEXT*20;
+
+!! Mit der Unterhalts-ID koennen Elemente zu einem Unterhalt zusammengefasst werden.
+  UnterhaltsID = TEXT*20;
+
+!! Projektschwerpunkte
+  Projektschwerpunkte (FINAL) = (
+    PRE,        !! Code 6111
+    Landumlegung,                   !! Code 6112
+    Uebrige,      !! Code 6113
+    Projektinitiative,             !! Code 80
+    Grundlagen_generell,         !! Code 6102
+    Landwirtschaftliche_Planung,   !! Code 6101
+    Gemeinschaftliche_Initiative_zur_Senkung_der_Produktionskosten !! Code 82
+    );
+
+!! Beizugsgebiete
+  Beizugsgebiete (FINAL) = (
+    Alter_Bestand,    !! Code 5103
+    Neuer_Bestand,    !! Code 5104
+    uebrige        !! Code 5111
+  );
+
+!! Bautypen
+  Bautyp (FINAL) = (
+    Neubau,
+    PWI,
+    Ausbau_Ersatz,
+    Wiederherstellung
+    );
+
+!! oekologische Flaechen
+  Oekologische_Flaechen (FINAL) = (
+    Biotop,       !! Code 5506
+    Andere_Massnahme,     !! Code 5507
+    Perimeter_Vernetzungsprojekt   !! Code 5508
+    );
+
+!! oekologische Linie
+  Oekologie_Linien (FINAL) = (
+    Revitalisierung_Gewaesser,    !! Code 5505
+    Ausdolung_Gewaesser,       !! Code 5502
+    Hecke          !! Code 5503
+    );
+
+!! oekologie Trockenmauern
+  Oekologie_Trockenmauern (FINAL) = (
+    freistehende_Trockenmauer,    !! Code 5512
+    Terrasse_Trockenmauer       !! Code 5509 wenn Hoehe < 1.5m, Code 5510 wenn Hoehe zwischen 1.5 und 3m, Code 5511 wenn Hoehe > 3m
+    );
+
+!! Stand der Realisierung der raeumlichen Elemente
+  Status (FINAL) = (
+    projektiert,
+    in_Ausfuehrung,
+    ausgefuehrt,
+    sistiert,
+    untergegangen,
+    unbekannt
+    );
+
+!! Linienbezogene Wegtypen
+  Wege (FINAL) = (
+    Wanderweg_bauliche_Massnahmen,    !! Code 5211
+    Viehtrieb_Reitweg,      !! Code 5217
+    Tunnel,          !! Code 5209
+    Aufhebung_von_Wegen,      !! Code 5207
+    Rasenweg,          !! Code 5206
+    Spurweg_Rasengitter,      !! Code 5216
+    Spurweg_Beton,        !! Code 5214
+    Spurweg_Bitumen,        !! Code 5215
+    Belagseinbau_auf_Kiesweg,      !! Code 5202
+    Betonweg,          !! Code 5204
+    Bituminoeser_Weg,        !! Code 5203
+    Kiesweg          !! Code 5201
+    );
+
+!! Linienbezogene Seilbahntypen
+  Seilbahnen_Linien (FINAL) = (
+    Monorail_u_aehnliche,      !! Code 5304
+    Materialseilbahn,        !! Code 5302
+    Personenseilbahn,        !! Code 5301
+    Abbruch_Seilbahn        !! Code 5306
+    );
+
+!! Punktbezogene Seilbahntypen
+  Seilbahnen_Punkte (FINAL) = (
+    Station,          !! Code 5303
+    Abbruch_Station        !! Code 5307
+    );
+
+!! Flaechenbezogene Entwaesserungs- und Bodenstrukturtypen
+  Entw_Bodenstruktur_Flaechen (FINAL) = (
+    Rutschhangstabiliserung,      !! Code 5402
+    Entwaesserung_FFF,       !! Code 5409
+    Entwaesserung_uebrige_Flaechen,    !! Code 5401
+    Aufbringung_Humus,      !! Code 5413
+    Bodenstrukturverbesserung,    !! Code 5403
+    Wiederherstellung_Kulturland    !! Code 5414
+    );
+
+!! Linienbezogene Entwaesserungs- und Bodenstrukturtypen
+  Entw_Bodenstruktur_Linien (FINAL) = (
+    Hauptleitung_Ableitung,      !! Code 5410
+    Drainageleitung_perforiert,    !! Code 5411
+    Entwaesserungsgraben      !! Code 5412
+    );
+
+!! Linienbezogene Bewaesserungstypen
+  Bewaesserung_Linien (FINAL) = (
+    Stollen,          !! Code 5604
+    Kanal,          !! Code 5603
+    Verteilleitung,        !! Code 5612
+    Zuleitung_Bewaesserung      !! Code 5613
+    );
+
+!! Flaechenbezogene_Bewaesserungstypen
+  Bewaesserung_Flaechen (FINAL) = (
+    Tropfen_Mikrobewaesserung,    !! Code 5609
+    Beregnungsanlage,        !! Code 5610
+    Traditionelle_Berieselung      !! Code 5611
+    );
+
+!! Punktbezogene Bewaesserungstypen
+  Bewaesserung_Punkte (FINAL) = (
+    Fassung_Entsander,      !! Code 5605
+    Pumpwerk,          !! Code 5606
+    Speicher          !! Code 5607
+    );
+
+!! Punktbezogene Wasserversorgungstypen
+  Wasserversorgung_Punkte (FINAL) = (
+    Grundwasserfassung,      !! Code 5702
+    Quellfassung_inkl_Brunnenstube,    !! Code 5701
+    Traenkeanlage,        !! Code 5710
+    Aufbereitungsanlage,      !! Code 5709
+    Pumpwerk,          !! Code 5705
+    Fernwirkanlage,        !! Code 5708
+    Reservoir          !! Code 5704
+    );
+
+!! Punktbezogene Elektritzitaetseinrichtungstypen
+  Elektrizitaet_Punkte (FINAL) =(
+    Trafostation,        !! Code 5802
+    Stromerzeugung        !! Code 5801
+    );
+
+!! Linienbezogene Elektritzitaetseinrichtungstypen
+  Elektrizitaet_Linien (FINAL) = (
+    Kabel_unterirdisch,      !! Code 5803
+    Abbruch_Leitung,        !! Code 5805
+    Freileitung        !! Code 5804
+    );
+
+!! Hochbau
+  Hochbau_Punkte (FINAL) = (
+    Anlage_fuer_gewerblichen_Kleinbetrieb,          !! Code 49
+    Gemeinschaftliche_Anlage_fuer_die_Verabeitung_Lagerung_und_Verkauf,  !! Code 46
+    Gemeinschaftliche_Anlage_fuer_die_Milchverarbeitung,       !! Code 45
+    Oekonomiegebaeude,              !! Code 41
+    Alpgebaeude,                 !! Code 47
+    Gemeinschaftliche_Anlage_zur_Produktion_erneuerbarer_Energie_aus_Biomasse,!! Code 38
+    Anlage_fuer_produzierenden_Gartenbaubetrieb,        !! Code 37
+    Anlage_zur_Diversifizierung,            !! Code 36
+    Anlage_fuer_einheimischen_Fischfang_und_Fischzucht,      !! Code 35
+    Anlage_fuer_Spezialkulturen,            !! Code 34
+    Gefluegelstall,                 !! Code 33
+    Schweinestall,                !! Code 32
+    Wohngebaeude,                !! Code 30
+    PRE_andere_Gebaeude_und_Einrichtungen          !! Code 72
+    );
+
+!!*************************************
+
+
+TOPIC RaeumlicheElemente =
+
+!! Diese Attributwerte sind bei allen Elementen vorgesehen.
+  CLASS Raeumliches_Element (ABSTRACT) =
+    Status : MANDATORY Status;
+    Status_Datum: MANDATORY Datum;
+    Bauabnahme_Datum : Datum;
+    WerksID : WerksID;
+    UnterhaltsID:  UnterhaltsID;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Raeumliches_Element;
+
+!! Das Thema Wegebau beschreibt und klassifiziert Wege.
+  CLASS Wegebau_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Wege;
+    Bautyp : MANDATORY Bautyp;
+    Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+    Geometrie : MANDATORY Line;
+  END Wegebau_Linie;
+
+!! Code 5208
+  CLASS Wege_Bruecke_Lehnenviadukt
+    EXTENDS Raeumliches_Element =
+    Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+    Laenge: 0.0 .. 100000000.0 [INTERLIS.m];
+    Bautyp : MANDATORY Bautyp;
+    Tonnage : 0.0 .. 100.0 [Units.t];
+    Material (FINAL) : MANDATORY (
+    Beton,
+    Holz,
+    uebrige
+    );
+    Widerlager : BOOLEAN;
+    Geometrie : MANDATORY Coord2;
+  END Wege_Bruecke_Lehnenviadukt;
+
+  CLASS Seilbahn_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Seilbahnen_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Seilbahn_Linie;
+
+  CLASS Seilbahn_Station
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Seilbahnen_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Seilbahn_Station;
+
+  CLASS Entw_Bodenstruktur_Flaeche
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Entw_Bodenstruktur_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Entw_Bodenstruktur_Flaeche;
+
+  CLASS Entw_Bodenstruktur_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Entw_Bodenstruktur_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Entw_Bodenstruktur_Linie;
+
+!! Code 5405
+  CLASS Entw_Bodenstruktur_Pumpwerk
+    EXTENDS Raeumliches_Element =
+    Geometrie : MANDATORY Coord2;
+    Bautyp : MANDATORY Bautyp;
+  END Entw_Bodenstruktur_Pumpwerk;
+
+  CLASS Bew_Flaechen_Bewaesserung
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Bew_Flaechen_Bewaesserung;
+
+  CLASS Bewaesserung_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Bewaesserung_Linie;
+
+  CLASS Bewaesserung_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Bewaesserung_Punkt;
+
+  CLASS Wasserversorgung_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Wasserversorgung_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Wasserversorgung_Punkt;
+
+  CLASS WV_Leitung_Wasserversorgung
+    EXTENDS Raeumliches_Element =
+    Geometrie : MANDATORY Line;
+    Bautyp : MANDATORY Bautyp;
+  END WV_Leitung_Wasserversorgung;
+
+  CLASS EV_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Elektrizitaet_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END EV_Punkt;
+
+  CLASS EV_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Elektrizitaet_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END EV_Linie;
+
+!! Code 5901
+  CLASS Milchleitung_Leitung
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Milchleitung_Leitung;
+
+!! Code 5902
+  CLASS Milchleitung_Lokal
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Milchleitung_Lokal;
+
+  CLASS Oekologie_Linie
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Typ : MANDATORY Oekologie_Linien;
+    Geometrie : MANDATORY Line;
+  END Oekologie_Linie;
+
+  CLASS Oekologie_Trockenmauer
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Oekologie_Trockenmauern;
+    Hoehe : 0.0 .. 50.0 [INTERLIS.m];
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Oekologie_Trockenmauer;
+
+  CLASS Oekologie_Flaeche
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Oekologische_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Oekologie_Flaeche;
+
+  CLASS Hochbau
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Hochbau_Punkte;
+    Geometrie : MANDATORY Coord2;
+  END Hochbau;
+
+  CLASS Beizugsgebiet =
+    Geometrie : MANDATORY Surface;
+    Datum_Nachfuehrung : Datum;
+    Typ: MANDATORY Beizugsgebiete;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Beizugsgebiet;
+
+  CLASS Projektschwerpunkt =
+    Geometrie : MANDATORY Coord2;
+    Projekttypen: MANDATORY Projektschwerpunkte;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Projektschwerpunkt;
+
+END RaeumlicheElemente;
+
+END Strukturverbesserungen_LV03_V2.
+
+
+!!@ technicalContact=mailto:info@suissemelio.ch
+!!@ furtherInformation=http://www.suissemelio.ch/
+MODEL Strukturverbesserungen_LV95_V2 (de)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2015-09-06" // eugr // =
+  IMPORTS UNQUALIFIED GeometryCHLV95_V1;
+  IMPORTS Units;
+
+DOMAIN
+
+!! Allgemeine Domains
+!! *************************************
+
+Datum = FORMAT INTERLIS.XMLDate "1800-01-01" .. "2099-12-31";
+
+!! Wertebereiche der raeumlichen Elemente
+!! *************************************
+
+!! Definition Geschaeftsnummer des Bundes
+
+  Geschaeftsnummerdef = TEXT*10;
+
+!! Definition Kantonsnummer
+  Kantonsnummerdef = TEXT*40;
+
+!! Mit der Werks-ID koennen Elemente zu einen Werk zusammengefasst werden.
+  WerksID = TEXT*20;
+
+!! Mit der Unterhalts-ID koennen Elemente zu einem Unterhalt zusammengefasst werden.
+  UnterhaltsID = TEXT*20;
+
+!! Projektschwerpunkte
+  Projektschwerpunkte (FINAL) = (
+    PRE,        !! Code 6111
+    Landumlegung,                   !! Code 6112
+    Uebrige,      !! Code 6113
+    Projektinitiative,             !! Code 80
+    Grundlagen_generell,         !! Code 6102
+    Landwirtschaftliche_Planung,   !! Code 6101
+    Gemeinschaftliche_Initiative_zur_Senkung_der_Produktionskosten !! Code 82
+    );
+
+!! Beizugsgebiete
+  Beizugsgebiete (FINAL) = (
+    Alter_Bestand,    !! Code 5103
+    Neuer_Bestand,    !! Code 5104
+    uebrige        !! Code 5111
+  );
+
+!! Bautypen
+  Bautyp (FINAL) = (
+    Neubau,
+    PWI,
+    Ausbau_Ersatz,
+    Wiederherstellung
+    );
+
+!! oekologische Flaechen
+  Oekologische_Flaechen (FINAL) = (
+    Biotop,       !! Code 5506
+    Andere_Massnahme,     !! Code 5507
+    Perimeter_Vernetzungsprojekt   !! Code 5508
+    );
+
+!! oekologische Linie
+  Oekologie_Linien (FINAL) = (
+    Revitalisierung_Gewaesser,    !! Code 5505
+    Ausdolung_Gewaesser,       !! Code 5502
+    Hecke          !! Code 5503
+    );
+
+!! oekologie Trockenmauern
+  Oekologie_Trockenmauern (FINAL) = (
+    freistehende_Trockenmauer,    !! Code 5512
+    Terrasse_Trockenmauer       !! Code 5509 wenn Hoehe < 1.5m, Code 5510 wenn Hoehe zwischen 1.5 und 3m, Code 5511 wenn Hoehe > 3m
+    );
+
+!! Stand der Realisierung der raeumlichen Elemente
+  Status (FINAL) = (
+    projektiert,
+    in_Ausfuehrung,
+    ausgefuehrt,
+    sistiert,
+    untergegangen,
+    unbekannt
+    );
+
+!! Linienbezogene Wegtypen
+  Wege (FINAL) = (
+    Wanderweg_bauliche_Massnahmen,    !! Code 5211
+    Viehtrieb_Reitweg,      !! Code 5217
+    Tunnel,          !! Code 5209
+    Aufhebung_von_Wegen,      !! Code 5207
+    Rasenweg,          !! Code 5206
+    Spurweg_Rasengitter,      !! Code 5216
+    Spurweg_Beton,        !! Code 5214
+    Spurweg_Bitumen,        !! Code 5215
+    Belagseinbau_auf_Kiesweg,      !! Code 5202
+    Betonweg,          !! Code 5204
+    Bituminoeser_Weg,        !! Code 5203
+    Kiesweg          !! Code 5201
+    );
+
+!! Linienbezogene Seilbahntypen
+  Seilbahnen_Linien (FINAL) = (
+    Monorail_u_aehnliche,      !! Code 5304
+    Materialseilbahn,        !! Code 5302
+    Personenseilbahn,        !! Code 5301
+    Abbruch_Seilbahn        !! Code 5306
+    );
+
+!! Punktbezogene Seilbahntypen
+  Seilbahnen_Punkte (FINAL) = (
+    Station,          !! Code 5303
+    Abbruch_Station        !! Code 5307
+    );
+
+!! Flaechenbezogene Entwaesserungs- und Bodenstrukturtypen
+  Entw_Bodenstruktur_Flaechen (FINAL) = (
+    Rutschhangstabiliserung,      !! Code 5402
+    Entwaesserung_FFF,       !! Code 5409
+    Entwaesserung_uebrige_Flaechen,    !! Code 5401
+    Aufbringung_Humus,      !! Code 5413
+    Bodenstrukturverbesserung,    !! Code 5403
+    Wiederherstellung_Kulturland    !! Code 5414
+    );
+
+!! Linienbezogene Entwaesserungs- und Bodenstrukturtypen
+  Entw_Bodenstruktur_Linien (FINAL) = (
+    Hauptleitung_Ableitung,      !! Code 5410
+    Drainageleitung_perforiert,    !! Code 5411
+    Entwaesserungsgraben      !! Code 5412
+    );
+
+!! Linienbezogene Bewaesserungstypen
+  Bewaesserung_Linien (FINAL) = (
+    Stollen,          !! Code 5604
+    Kanal,          !! Code 5603
+    Verteilleitung,        !! Code 5612
+    Zuleitung_Bewaesserung      !! Code 5613
+    );
+
+!! Flaechenbezogene_Bewaesserungstypen
+  Bewaesserung_Flaechen (FINAL) = (
+    Tropfen_Mikrobewaesserung,    !! Code 5609
+    Beregnungsanlage,        !! Code 5610
+    Traditionelle_Berieselung      !! Code 5611
+    );
+
+!! Punktbezogene Bewaesserungstypen
+  Bewaesserung_Punkte (FINAL) = (
+    Fassung_Entsander,      !! Code 5605
+    Pumpwerk,          !! Code 5606
+    Speicher          !! Code 5607
+    );
+
+!! Punktbezogene Wasserversorgungstypen
+  Wasserversorgung_Punkte (FINAL) = (
+    Grundwasserfassung,      !! Code 5702
+    Quellfassung_inkl_Brunnenstube,    !! Code 5701
+    Traenkeanlage,        !! Code 5710
+    Aufbereitungsanlage,      !! Code 5709
+    Pumpwerk,          !! Code 5705
+    Fernwirkanlage,        !! Code 5708
+    Reservoir          !! Code 5704
+    );
+
+!! Punktbezogene Elektritzitaetseinrichtungstypen
+  Elektrizitaet_Punkte (FINAL) =(
+    Trafostation,        !! Code 5802
+    Stromerzeugung        !! Code 5801
+    );
+
+!! Linienbezogene Elektritzitaetseinrichtungstypen
+  Elektrizitaet_Linien (FINAL) = (
+    Kabel_unterirdisch,      !! Code 5803
+    Abbruch_Leitung,        !! Code 5805
+    Freileitung        !! Code 5804
+    );
+
+!! Hochbau
+  Hochbau_Punkte (FINAL) = (
+    Anlage_fuer_gewerblichen_Kleinbetrieb,          !! Code 49
+    Gemeinschaftliche_Anlage_fuer_die_Verabeitung_Lagerung_und_Verkauf,  !! Code 46
+    Gemeinschaftliche_Anlage_fuer_die_Milchverarbeitung,       !! Code 45
+    Oekonomiegebaeude,              !! Code 41
+    Alpgebaeude,                 !! Code 47
+    Gemeinschaftliche_Anlage_zur_Produktion_erneuerbarer_Energie_aus_Biomasse,!! Code 38
+    Anlage_fuer_produzierenden_Gartenbaubetrieb,        !! Code 37
+    Anlage_zur_Diversifizierung,            !! Code 36
+    Anlage_fuer_einheimischen_Fischfang_und_Fischzucht,      !! Code 35
+    Anlage_fuer_Spezialkulturen,            !! Code 34
+    Gefluegelstall,                 !! Code 33
+    Schweinestall,                !! Code 32
+    Wohngebaeude,                !! Code 30
+    PRE_andere_Gebaeude_und_Einrichtungen          !! Code 72
+    );
+
+!!*************************************
+
+
+TOPIC RaeumlicheElemente =
+
+!! Diese Attributwerte sind bei allen Elementen vorgesehen.
+  CLASS Raeumliches_Element (ABSTRACT) =
+    Status : MANDATORY Status;
+    Status_Datum: MANDATORY Datum;
+    Bauabnahme_Datum : Datum;
+    WerksID : WerksID;
+    UnterhaltsID:  UnterhaltsID;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Raeumliches_Element;
+
+!! Das Thema Wegebau beschreibt und klassifiziert Wege.
+  CLASS Wegebau_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Wege;
+    Bautyp : MANDATORY Bautyp;
+    Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+    Geometrie : MANDATORY Line;
+  END Wegebau_Linie;
+
+!! Code 5208
+  CLASS Wege_Bruecke_Lehnenviadukt
+    EXTENDS Raeumliches_Element =
+    Fahrbahnbreite : 0.0 .. 10.0 [INTERLIS.m];
+    Laenge: 0.0 .. 100000000.0 [INTERLIS.m];
+    Bautyp : MANDATORY Bautyp;
+    Tonnage : 0.0 .. 100.0 [Units.t];
+    Material (FINAL) : MANDATORY (
+    Beton,
+    Holz,
+    uebrige
+    );
+    Widerlager : BOOLEAN;
+    Geometrie : MANDATORY Coord2;
+  END Wege_Bruecke_Lehnenviadukt;
+
+  CLASS Seilbahn_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Seilbahnen_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Seilbahn_Linie;
+
+  CLASS Seilbahn_Station
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Seilbahnen_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Seilbahn_Station;
+
+  CLASS Entw_Bodenstruktur_Flaeche
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Entw_Bodenstruktur_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Entw_Bodenstruktur_Flaeche;
+
+  CLASS Entw_Bodenstruktur_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Entw_Bodenstruktur_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Entw_Bodenstruktur_Linie;
+
+!! Code 5405
+  CLASS Entw_Bodenstruktur_Pumpwerk
+    EXTENDS Raeumliches_Element =
+    Geometrie : MANDATORY Coord2;
+    Bautyp : MANDATORY Bautyp;
+  END Entw_Bodenstruktur_Pumpwerk;
+
+  CLASS Bew_Flaechen_Bewaesserung
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Bew_Flaechen_Bewaesserung;
+
+  CLASS Bewaesserung_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Bewaesserung_Linie;
+
+  CLASS Bewaesserung_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Bewaesserung_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Bewaesserung_Punkt;
+
+  CLASS Wasserversorgung_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Wasserversorgung_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Wasserversorgung_Punkt;
+
+  CLASS WV_Leitung_Wasserversorgung
+    EXTENDS Raeumliches_Element =
+    Geometrie : MANDATORY Line;
+    Bautyp : MANDATORY Bautyp;
+  END WV_Leitung_Wasserversorgung;
+
+  CLASS EV_Punkt
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Elektrizitaet_Punkte;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END EV_Punkt;
+
+  CLASS EV_Linie
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Elektrizitaet_Linien;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END EV_Linie;
+
+!! Code 5901
+  CLASS Milchleitung_Leitung
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Milchleitung_Leitung;
+
+!! Code 5902
+  CLASS Milchleitung_Lokal
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Coord2;
+  END Milchleitung_Lokal;
+
+  CLASS Oekologie_Linie
+    EXTENDS Raeumliches_Element =
+    Bautyp : MANDATORY Bautyp;
+    Typ : MANDATORY Oekologie_Linien;
+    Geometrie : MANDATORY Line;
+  END Oekologie_Linie;
+
+  CLASS Oekologie_Trockenmauer
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Oekologie_Trockenmauern;
+    Hoehe : 0.0 .. 50.0 [INTERLIS.m];
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Line;
+  END Oekologie_Trockenmauer;
+
+  CLASS Oekologie_Flaeche
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Oekologische_Flaechen;
+    Bautyp : MANDATORY Bautyp;
+    Geometrie : MANDATORY Surface;
+  END Oekologie_Flaeche;
+
+  CLASS Hochbau
+    EXTENDS Raeumliches_Element =
+    Typ : MANDATORY Hochbau_Punkte;
+    Geometrie : MANDATORY Coord2;
+  END Hochbau;
+
+  CLASS Beizugsgebiet =
+    Geometrie : MANDATORY Surface;
+    Datum_Nachfuehrung : Datum;
+    Typ: MANDATORY Beizugsgebiete;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Beizugsgebiet;
+
+  CLASS Projektschwerpunkt =
+    Geometrie : MANDATORY Coord2;
+    Projekttypen: MANDATORY Projektschwerpunkte;
+    Geschaeftsnummer: Geschaeftsnummerdef;
+    Kantonsnummer: Kantonsnummerdef;
+  END Projektschwerpunkt;
+
+END RaeumlicheElemente;
+
+END Strukturverbesserungen_LV95_V2.

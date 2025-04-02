@@ -1,0 +1,72 @@
+!! VSA_Melioration_2015_2_d_LV95-20231031.ili
+
+INTERLIS 2.3;
+
+MODEL VSA_MELIORATION_2015_LV95 (de) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  IMPORTS Units;
+  IMPORTS Base_LV95;
+  IMPORTS SIA405_Base_LV95;
+  IMPORTS SIA405_ABWASSER_2015_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Verband Schweizer Abwasser- und Gewässerschutzfachleute (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Freigegeben für öffentlichen Gebrauch und kommerzielle Anwendung"
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = "Geprüft mit Compiler Version 5.3.3 (03.08.2023)"
+
+
+!! 14.5.2021 Version _LV95 ergänzt
+
+!! 31.10.2023 Lizenzbestimmungen angepasst
+!! 31.10.2023 LV03 Version aufgehoben und entfernt, nur noch LV95
+
+
+UNIT
+  Kilogramm_pro_Jahr [kga] = (kg/Units.a);
+  Einwohner_pro_Hektare [EWha] = (Units.CountedObjects/Units.ha);
+  Liter_pro_Sekunde_Hektare [lsha] = (SIA405_Base_LV95.ls/Units.ha);
+
+TOPIC Melioration EXTENDS SIA405_ABWASSER_2015_LV95.SIA405_Abwasser =
+
+
+DOMAIN
+
+
+CLASS Kanal (EXTENDED)  =  
+!! Offenes oder geschlossenes Gerinne zur Ableitung von Abwasser zwischen zwei Abwasserbauwerken
+!! Erweitert die Basisklasse für Erweiterung Melioration
+  ATTRIBUTE
+    FunktionMelioration: (          !! Zur Unterscheidung der Funktion einer Leitung bei Meliorationen (Entwässerungen)
+      Hauptkanal,  !! Keine seitlichen Einmündungen. Nicht gelocht. Nur Transport
+      Sammelkanal,  !! Falls gelocht, geschlitzt oder gestossen, dann FunktionHydraulisch = Sickerleitung - falls geschlossen, dann FunktionHydraulisch = Drainagetransportleitung. Mit seitlichen Einmündungen. Drainage und Transportfunktion
+      Sauger,  !! Drainagefunktion. gelocht, geschlitzt oder gestossen. In der Regel keine seitlichen Einmündungen
+      unbekannt
+    );
+    Sickerung: (          !! Beschreibung des oberliegenden Materials bei Saugern
+      andere,
+      Holzschnitzel,
+      Sickerkies,
+      unbekannt
+    );
+END Kanal;
+
+CLASS Versickerungsanlage (EXTENDED)  =  
+!! Einbringen von Reinabwasser und wenig verschmutztem Regenabwasser in den Untergrund (Definition gemäss VSA Richtlinie Regenwasserentsorgung 2002)
+!! Erweitert die Basisklasse für Erweiterung Melioration
+  ATTRIBUTE
+    Fuellmaterial: (          !! Beschreibung des oberliegenden Materials bei Sickerschlitzen. Für Modellierung Sickerschlitze siehe Hinweise Titelblatt.
+      andere,
+      Holzschnitzel,
+      Sickerkies,
+      unbekannt
+    );
+END Versickerungsanlage;
+
+
+END Melioration;   !! Ende des Topics / Fin du topic
+END VSA_MELIORATION_2015_LV95.   !! Ende des Modells / Fin du modèle
+

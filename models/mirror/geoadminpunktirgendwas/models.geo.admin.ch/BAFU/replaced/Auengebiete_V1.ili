@@ -1,0 +1,80 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (line 32),
+!!                      Property EXTERNAL added (line 26)
+
+!!@ IDGeoIV=19.1
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Auengebiete_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-05-26"  =
+  IMPORTS GeometryCHLV03_V1,Units,LocalisationCH_V1,CatalogueObjects_V1;
+
+  TOPIC aCodelisten =
+
+    CLASS AU_OBJEKTTYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END AU_OBJEKTTYP_Catalogue;
+
+    STRUCTURE AU_OBJEKTTYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) AU_OBJEKTTYP_Catalogue;
+    END AU_OBJEKTTYP_CatRef;
+
+  END aCodelisten;
+
+  TOPIC Auengebiete =
+    DEPENDS ON Auengebiete_V1.aCodelisten;
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    CLASS Auengebiet_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+    END Auengebiet_Teilobjekt;
+
+    CLASS Auengebiet =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : MANDATORY DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 1.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      AU_OBJEKTTYP : MANDATORY Auengebiete_V1.aCodelisten.AU_OBJEKTTYP_CatRef;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund_Text : LocalisationCH_V1.MultilingualMText;
+    END Auengebiet;
+
+    ASSOCIATION Auengebiet_TeilobjektAuengebiet =
+      Auengebiet_Teilobjekt -- {1..*} Auengebiet_Teilobjekt;
+      Auengebiet -<#> {1} Auengebiet;
+    END Auengebiet_TeilobjektAuengebiet;
+
+  END Auengebiete;
+
+END Auengebiete_V1.

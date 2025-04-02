@@ -1,0 +1,2369 @@
+INTERLIS 2.3;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Modele de donnees 2001 de la mensuration officielle "Confederation"
+!! (MD.01-MO-CH) decrit en INTERLIS version 2.3 (SN 612031).
+!!
+!! Office federal de topographie (swisstopo)
+!! Direction federale des mensurations cadastrales (D+M)
+!! CH-3084 Wabern
+!!
+!! Version: 24 francaise (basée dur MD.01-MO-CH, Version 24F)
+!! Nom du fichier: DM.01-AV-CH_LV95_24f_ili2.ili
+!!
+!! Le présent modèle de données est valable dans le cadre de référence
+!! "Mensuration Nationale 1903+ (MN95)". Pour le cadre de référence "Mensuration
+!! Nationale 1903 (MN03)", il existe un modèle de données MD.01-MO-MN03-CH qui se
+!! differencie du présent modèle de données uniquement par la définition du DOMAIN
+!! (Domaine des coordonnées).
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2018-02-16 | KOGIS | WITHOUT OVERLAPS corrected (line 1890, 1964, 2016 and 2080)
+
+!!@ technicalContact = mailto:infovd@swisstopo.ch
+!!@ furtherInformation = https://www.cadastre.ch/de/manual-av/method/modell.html
+CONTRACTED MODEL MD01MOCH24MN95F_ili2 (fr) AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2018-02-16"
+  TRANSLATION OF DM01AVCH24LV95D_ili2 ["2018-02-16"] =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+  OBJECTS OF GeoCartesian2D : CHLV95
+  OBJECTS OF GeoHeight : SwissOrthometricAlt;
+
+
+  DOMAIN
+
+    CoordP = COORD
+      2480000.000 .. 2850000.000 [m] {CHLV95[1]},
+      1070000.000 .. 1310000.000 [m] {CHLV95[2]},
+      ROTATION 2 -> 1;
+
+    CoordA = COORD
+      2480000.000 .. 2850000.000 [m] {CHLV95[1]},
+      1070000.000 .. 1310000.000 [m] {CHLV95[2]},
+         -200.000 ..   5000.000 [m] {SwissOrthometricAlt[1]},
+      ROTATION 2 -> 1;
+
+    TypeNom = TEXT*30;
+
+    TypeNumero = TEXT*12;
+    NumeroDN = TEXT*12;
+
+    Fiabilite = BOOLEAN;
+      !! True = suffisante
+      !! False = insuffisante
+
+    Statut = (
+      projete,
+      valable:FINAL);
+
+    Altitude = -200.000 .. 5000.000 [m];
+
+    Precision = 0.0 .. 700.0 [Units.cm];
+
+    Rotation = 0.0 .. 399.9 [Units.Gon];
+
+    StandardQualite = (
+      MO93,
+      MP74,
+      NP,
+      PRP,    !! Produits de remplacement provisoires
+      autre:FINAL);
+
+    Materiel = (
+      borne,
+      borne_artificielle,
+      cheville,
+      tuyau,
+      pieu,
+      croix,
+      non_materialise,
+      autre:FINAL);
+
+    Statut_mise_a_jour_AB = ( !! Pour adresses_batiment, voir SN 612040
+      projete,     !! nouvel objet en travail
+                   !! Etat provisoire ou non reconnu
+      reel,        !! L'objet existe vraiment
+      caduc:FINAL);     !! L'objet n'existe plus
+
+    TypeLangue = ( !! Pour adresses_batiment, voir SN 612040
+      de,  !! deutsch
+      fr,  !! francais
+      it,  !! italiano
+      rm,  !! rumantsch
+      en:FINAL);  !! english
+
+    GrandeurEcriture = (
+      petite,
+      moyenne,
+      grande:FINAL);
+
+    StyleEcriture = (
+      normal,
+      ecarte,
+      autre:FINAL);
+
+    UUIDOID = OID TEXT*36;  !! selon ISO 11578
+
+!! Les OIDs identifient d'une manière unique un objet, à l'intérieur d'une communauté de transfert.
+!! L'OID d'un objet supprimé ne peut plus être ré-utilisé.
+!! L'OID identifie un objet de la base de données et non l'objet de la réalité, cela signifie que si le même objet de la
+!! réalité est saisi plusieurs fois (dans le même modèle de données), il y aura plusieurs objets dans la base données
+!! où chaque objet aura son propre OID.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! FONCTION
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  FUNCTION CoordIn
+             (Point: CoordP;
+              Surface: SURFACE): BOOLEAN
+     // Retourne vrai, si le point est à l'intérieur de la Surface //;
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!!                TOPIC
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  TOPIC Points_fixesCategorie1 =
+
+      BASKET OID AS UUIDOID;
+      OID AS UUIDOID;
+
+    CLASS Mise_a_jourPFP1 =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFP1;
+
+    !! Lorsque le PFP1 est aussi point limite territoriale, il est necessaire
+    !! de renseigner Signe, ce point etant copie dans
+    !! limites_commune.point_limite_ter
+    CLASS PFP1=
+      IdentDN: MANDATORY NumeroDN; !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt: Altitude;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      PrecAlt: Precision;
+      FiabAlt: Fiabilite;
+      Accessibilite : MANDATORY (
+        accessible,
+        inaccessible:FINAL);
+      Signe: Materiel;
+      MANDATORY CONSTRAINT ((NOT (DEFINED (Signe)) OR Signe <> #non_materialise));
+    UNIQUE IdentDN, Numero;
+    END PFP1;
+
+    ASSOCIATION Rel_PFP1 =
+      Origine -- {1} Mise_a_jourPFP1;
+      De_PFP1 -- {0..*} PFP1;
+    END Rel_PFP1;
+
+    CLASS PosPFP1=
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation;  !! indéfini = 100.0
+      HAli: HALIGNMENT;  !!  HAli indéfini = Left
+      VAli: VALIGNMENT;  !!  VAli indéfini = Bottom
+    END PosPFP1;
+
+    ASSOCIATION Rel_PosPFP1 =
+      PosPFP1_de -<#> {1} PFP1;
+      Pos -- {1} PosPFP1;
+    END Rel_PosPFP1;
+
+    CLASS SymbolePFP1=
+      Ori: Rotation; !! indéfini = 0.0
+    END SymbolePFP1;
+
+    ASSOCIATION Rel_SymbolePFP1 =
+      SymbolePFP1_de -<#> {1} PFP1;
+      Symbole -- {0..1} SymbolePFP1;
+    END Rel_SymbolePFP1;
+
+    CLASS Mise_a_jourPFA1 =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFA1;
+
+    CLASS PFA1=
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero : MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt : MANDATORY Altitude;
+      PrecPlan: Precision;
+      FiabPlan: Fiabilite;
+      PrecAlt : MANDATORY Precision;
+      FiabAlt : MANDATORY Fiabilite;
+    UNIQUE IdentDN, Numero;
+    UNIQUE Geometrie;
+    END PFA1;
+
+    ASSOCIATION Rel_PFA1 =
+      Origine -- {1} Mise_a_jourPFA1;
+      De_PFA1 -- {0..*} PFA1;
+    END Rel_PFA1;
+
+    CLASS PosPFA1=
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPFA1;
+
+    ASSOCIATION Rel_PosPFA1 =
+      PosPFA1_de -<#> {1} PFA1;
+      Pos -- {1} PosPFA1;
+    END Rel_PosPFA1;
+
+  END Points_fixesCategorie1;
+
+
+
+  TOPIC Points_fixesCategorie2 =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Mise_a_jourPFP2  =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFP2;
+
+    !! Lorsque le PFP2 est aussi point limite territoriale, il est necessaire
+    !! de renseigner Signe, ce point etant copie dans
+    !! limites_commune.point_limite_ter
+    CLASS PFP2 =
+      IdentDN: MANDATORY NumeroDN; !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt: Altitude;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      PrecAlt: Precision;
+      FiabAlt: Fiabilite;
+      Accessibilite : MANDATORY (
+        accessible,
+        inaccessible:FINAL);
+      Signe: Materiel;
+      MANDATORY CONSTRAINT ((NOT (DEFINED (Signe)) OR Signe <> #non_materialise));
+    UNIQUE IdentDN, Numero;
+    END PFP2;
+
+    ASSOCIATION Rel_PFP2 =
+      Origine -- {1} Mise_a_jourPFP2;
+      De_PFP2 -- {0..*} PFP2;
+    END Rel_PFP2;
+
+    CLASS PosPFP2=
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPFP2;
+
+    ASSOCIATION Rel_PosPFP2 =
+      PosPFP2_de -<#> {1} PFP2;
+      Pos -- {1} PosPFP2;
+    END Rel_PosPFP2;
+
+    CLASS SymbolePFP2=
+      Ori: Rotation; !! indéfini = 0.0
+    END SymbolePFP2;
+
+    ASSOCIATION Rel_SymbolePFP2 =
+      SymbolePFP2_de -<#> {1} PFP2;
+      Symbole-- {0..1} SymbolePFP2;
+    END Rel_SymbolePFP2;
+
+    CLASS Mise_a_jourPFA2  =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFA2;
+
+    CLASS PFA2=
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero : MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt : MANDATORY Altitude;
+      PrecPlan: Precision;
+      FiabPlan: Fiabilite;
+      PrecAlt : MANDATORY Precision;
+      FiabAlt : MANDATORY Fiabilite;
+    UNIQUE IdentDN, Numero;
+    UNIQUE Geometrie;
+    END PFA2;
+
+    ASSOCIATION Rel_PFA2 =
+      Origine -- {1} Mise_a_jourPFA2;
+      De_PFA2 -- {0..*} PFA2;
+    END Rel_PFA2;
+
+    CLASS PosPFA2=
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPFA2;
+
+    ASSOCIATION Rel_PosPFA2 =
+      PosPFA2_de -<#> {1} PFA2;
+      Pos -- {1} PosPFA2;
+    END Rel_PosPFA2;
+
+  END Points_fixesCategorie2;
+
+
+
+  TOPIC Points_fixesCategorie3 =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Mise_a_jourPFP3  =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFP3;
+
+    CLASS PFP3=
+      IdentDN: MANDATORY NumeroDN; !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt: Altitude;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      PrecAlt: Precision;
+      FiabAlt: Fiabilite;
+      Signe: MANDATORY Materiel;
+      Fiche: MANDATORY BOOLEAN;
+      MANDATORY CONSTRAINT Signe != #non_materialise;
+    UNIQUE IdentDN, Numero;
+    UNIQUE Geometrie;
+    END PFP3;
+
+    ASSOCIATION Rel_PFP3 =
+      Origine -- {1} Mise_a_jourPFP3;
+      De_PFP3 -- {0..*} PFP3;
+    END Rel_PFP3;
+
+    CLASS PosPFP3 =
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPFP3;
+
+    ASSOCIATION Rel_PosPFP3 =
+      PosPFP3_de -<#> {1} PFP3;
+      Pos -- {1} PosPFP3;
+    END Rel_PosPFP3;
+
+    CLASS SymbolePFP3=
+      Ori: Rotation; !! indéfini = 0.0
+    END SymbolePFP3;
+
+    ASSOCIATION Rel_SymbolePFP3 =
+      SymbolePFP3_de -<#> {1} PFP3;
+      Symbole-- {0..1} SymbolePFP3;
+    END Rel_SymbolePFP3;
+
+    CLASS Mise_a_jourPFA3 =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourPFA3;
+
+    CLASS PFA3=
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero : MANDATORY TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      GeomAlt : MANDATORY Altitude;
+      PrecPlan: Precision;
+      FiabPlan: Fiabilite;
+      PrecAlt : MANDATORY Precision;
+      FiabAlt : MANDATORY Fiabilite;
+    UNIQUE IdentDN, Numero;
+    UNIQUE Geometrie;
+    END PFA3;
+
+    ASSOCIATION Rel_PFA3 =
+      Origine -- {1} Mise_a_jourPFA3;
+      De_PFA3 -- {0..*} PFA3;
+    END Rel_PFA3;
+
+    CLASS PosPFA3=
+      Pos: MANDATORY CoordP; !! Inscription de Nummero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPFA3;
+
+    ASSOCIATION Rel_PosPFA3 =
+      PosPFA3_de -<#> {1} PFA3;
+      Pos -- {1} PosPFA3;
+    END Rel_PosPFA3;
+
+  END Points_fixesCategorie3;
+
+
+
+  TOPIC Couverture_du_sol =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Genre_CS = (
+        batiment,
+        revetement_dur (
+          route_chemin,
+          trottoir,
+          ilot,
+          chemin_de_fer,
+          place_aviation,
+          bassin,
+          autre_revetement_dur:FINAL),
+        verte (
+          champ_pre_paturage,
+          culture_intensive (
+            vigne,
+            autre_culture_intensive:FINAL),
+          jardin,
+          tourbiere,
+          autre_verte:FINAL),
+        eau (
+          eau_stagnante,
+          cours_eau,
+          roseliere:FINAL),
+        boisee (
+          foret_dense,
+          paturage_boise ( !! voir explications chap. 3.4
+            paturage_boise_dense,
+            paturage_boise_ouvert:FINAL),
+          autre_boisee:FINAL),
+        sans_vegetation (
+          rocher,
+          glacier_neve,
+          eboulis_sable,
+          graviere_decharge,
+          autre_sans_vegetation:FINAL):FINAL);
+
+
+    CLASS Mise_a_jourCS =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+     WITHOUT OVERLAPS > 0.050;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourCS;
+
+    CLASS SurfaceCSProj =
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+        Qualite: MANDATORY StandardQualite;
+        Genre: MANDATORY Genre_CS;
+    END SurfaceCSProj;
+
+    ASSOCIATION Rel_SurfaceCSProj =
+        Origine -- {1} Mise_a_jourCS;
+        SurfaceCSProj_de -- {0..*} SurfaceCSProj;
+      MANDATORY CONSTRAINT Origine->Validite == #projete;
+    END Rel_SurfaceCSProj;
+
+    CLASS NumeroBatimentProj =
+        Numero: MANDATORY TypeNumero;  !! attribution par le canton (resp. la commune)
+        !! RegBL_EGID si la definition du batiment correspond a celle de l'OFS
+        RegBL_EGID: 1 .. 999999999;
+    END NumeroBatimentProj;
+
+    ASSOCIATION Rel_NumeroBatimentProj =
+        NumeroBatimentProj_de -<#> {1} SurfaceCSProj;
+        Numero -- {0..*} NumeroBatimentProj;
+      MANDATORY CONSTRAINT NumeroBatimentProj_de->Genre == #batiment;
+    END Rel_NumeroBatimentProj;
+
+    CLASS PosNumeroBatimentProj =  !! inscription de Numero
+      Pos: MANDATORY CoordP;
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNumeroBatimentProj;
+
+    ASSOCIATION Rel_PosNumeroBatimentProj =
+        PosNumeroBatimentProj_de -<#> {1} NumeroBatimentProj;
+        Pos -- {0..*} PosNumeroBatimentProj;
+    END Rel_PosNumeroBatimentProj;
+
+    CLASS NomObjetProj =
+        Nom: MANDATORY TypeNom;
+    END NomObjetProj;
+
+    ASSOCIATION Rel_NomObjetProj =
+        NomObjetProj_de -<#> {1} SurfaceCSProj;
+        Nom -- {0..*} NomObjetProj;
+    END Rel_NomObjetProj;
+
+    CLASS PosNomObjetProj=
+      Pos: MANDATORY CoordP;  !! inscription de Nom
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNomObjetProj;
+
+    ASSOCIATION Rel_PosNomObjetProj=
+        PosNomObjetProj_de -<#> {1} NomObjetProj;
+        Pos -- {0..*} PosNomObjetProj;
+    END Rel_PosNomObjetProj;
+
+    CLASS SymboleSurfaceCSProj=
+        !! Se referer aussi aux commentaires de SymboleSurfaceCS.
+        Pos: MANDATORY CoordP;
+        Ori: Rotation; !! indéfini = 0.0
+    END SymboleSurfaceCSProj;
+
+    ASSOCIATION Rel_SymboleSurfaceCSProj =
+        SymboleSurfaceCSProj_de -<#> {1} SurfaceCSProj;
+        Symbole -- {0..*} SymboleSurfaceCSProj;
+      MANDATORY CONSTRAINT CoordIn(Symbole->Pos, SymboleSurfaceCSProj_de->Geometrie);
+    END Rel_SymboleSurfaceCSProj;
+
+    CLASS SurfaceCS =
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+        Qualite: MANDATORY StandardQualite;
+        Genre: MANDATORY Genre_CS;
+    END SurfaceCS;
+
+    ASSOCIATION Rel_SurfaceCS =
+        Origine -- {1} Mise_a_jourCS;
+        De_SurfaceCS -- {0..*} SurfaceCS;
+      MANDATORY CONSTRAINT Origine->Validite == #valable;
+    END Rel_SurfaceCS;
+
+    CLASS Numero_de_batiment =
+        Numero: MANDATORY TypeNumero;
+        !! RegBL_EGID si la definition du batiment correspond a celle de l'OFS
+        RegBL_EGID: 1 .. 999999999;
+    END Numero_de_batiment;
+
+    ASSOCIATION Rel_Numero_de_batiment =
+        Numero_de_batiment_de -<#> {1} SurfaceCS;
+        Numero -- {0..*} Numero_de_batiment;
+      MANDATORY CONSTRAINT Numero_de_batiment_de->Genre == #batiment;
+    END Rel_Numero_de_batiment;
+
+    CLASS PosNumero_de_batiment=
+      Pos: MANDATORY CoordP;  !! inscription de Numero
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNumero_de_batiment;
+
+    ASSOCIATION Rel_PosNumero_de_batiment =
+        PosNumero_de_batiment_de -<#> {1} Numero_de_batiment;
+        Pos -- {0..*} PosNumero_de_batiment;
+    END Rel_PosNumero_de_batiment;
+
+    CLASS Nom_objet =
+        Nom: MANDATORY TypeNom;
+    END Nom_objet;
+
+    ASSOCIATION Rel_Nom_Objet=
+        Nom_objet_de -<#> {1} SurfaceCS;
+        Nom -- {0..*} Nom_objet;
+    END Rel_Nom_Objet;
+
+    CLASS PosNom_objet=
+      Pos: MANDATORY CoordP;  !! inscription de Nom
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNom_objet;
+
+    ASSOCIATION Rel_PosNom_Objet =
+        PosNom_objet_de -<#> {1} Nom_objet;
+        Pos -- {0..*} PosNom_objet;
+    END Rel_PosNom_Objet;
+
+    !! Sur le plan du registre foncier, les surfaces de la couverture du sol
+    !! seront remplies soit a l'aide de trames, soit avec des symboles. Ainsi,
+    !! en fonction du genre, uniquement les symboles suivants sont judicieusement
+    !! figures:
+    !! revetement_dur.bassin, vigne, tourbiere (symbole marais), eau.eau_stagnante
+    !! (symbole bassin), eau.cours_eau (symbole direction du courant),
+    !! eau.roseliere (symbole roseliere).
+    CLASS SymboleSurfaceCS=
+        Pos: MANDATORY CoordP;
+        Ori: Rotation; !! indéfini = 0.0
+    END SymboleSurfaceCS;
+
+    ASSOCIATION Rel_SymboleSurfaceCS =
+        SymboleSurfaceCS_de -<#> {1} SurfaceCS;
+        Symbole -- {0..*} SymboleSurfaceCS;
+      MANDATORY CONSTRAINT CoordIn(Symbole->Pos, SymboleSurfaceCS_de->Geometrie);
+    END Rel_SymboleSurfaceCS;
+
+    CLASS Point_particulier=
+        !! pas de PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter;
+      Identification: TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      Defini_exactement: MANDATORY BOOLEAN;  !! tenir compte des tolérances selon OTEMO
+    UNIQUE Geometrie;
+    END Point_particulier;
+
+    ASSOCIATION Rel_Point_particulier =
+        Origine -- {0..1} Mise_a_jourCS;
+        De_Point_particulier -- {0..*} Point_particulier;
+    END Rel_Point_particulier;
+
+    CLASS PosPoint_particulier =
+      Pos: MANDATORY CoordP;  !! inscription de Identification
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_particulier;
+
+    ASSOCIATION Rel_PosPoint_particulier =
+        PosPoint_particulier_de -<#> {1} Point_particulier;
+        Pos -- {0..1} PosPoint_particulier;
+    END Rel_PosPoint_particulier;
+
+  END Couverture_du_sol;
+
+
+
+  TOPIC Objets_divers =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Genre_OD = (
+        mur,
+        batiment_souterrain,
+        autre_corps_de_batiment,
+        eau_canalisee_souterraine,
+        escalier_important,
+        tunnel_passage_inferieur_galerie,
+        pont_passerelle,
+        quai, !! quai de chemin de fer
+        fontaine,
+        reservoir,
+        pilier,
+        couvert_independant,
+        silo_tour_gazometre,
+        cheminee,
+        monument,
+        mat_antenne,
+        tour_panoramique,
+        ouvrage_de_protection_des_rives,
+        seuil,
+        paravalanche,
+        socle_massif,
+        ruine_objet_archeologique,
+        debarcadere,
+        bloc_erratique,
+        cordon_boise,
+        ru,
+        sentier,
+        ligne_aerienne_a_haute_tension,
+        conduite_forcee,
+        voie_ferree,
+        telepherique,
+        telecabine_telesiege,
+        telepherique_de_chantier,
+        skilift,
+        bac,
+        grotte_entree_de_caverne,
+        axe,
+        arbre_isole_important,
+        statue_crucifix,
+        source,
+        point_de_reference,
+        autre:FINAL); !! Pas d'objet dans la categorie autre, uniquement pour extensions
+
+
+    CLASS Mise_a_jourOD =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+     WITHOUT OVERLAPS > 0.050;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourOD;
+
+    CLASS Objet_divers =
+        Qualite: MANDATORY StandardQualite;
+        Genre: MANDATORY Genre_OD;
+    END Objet_divers;
+
+    ASSOCIATION Rel_Objet_divers =
+        Origine -- {1} Mise_a_jourOD;
+        De_Objet_divers -- {0..*} Objet_divers;
+    END Rel_Objet_divers;
+
+    CLASS Element_surfacique =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    END Element_surfacique;
+
+    ASSOCIATION Rel_Element_surfacique =
+      Element_surfacique_de -<#> {1} Objet_divers;
+      Element -- {0..*} Element_surfacique;
+    END Rel_Element_surfacique;
+
+    CLASS SymboleElement_surf=  !! par ex. direction du courant pour un ru
+      Pos: MANDATORY CoordP;
+      Ori: Rotation; !! indéfini = 0.0
+    END SymboleElement_surf;
+
+    ASSOCIATION Rel_SymboleElement_surf =
+      SymboleElement_surf_de -<#> {1} Element_surfacique;
+      Symbole -- {0..*} SymboleElement_surf;
+    END Rel_SymboleElement_surf;
+
+    CLASS Element_lineaire =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+    END Element_lineaire;
+
+    ASSOCIATION Rel_Element_lineaire =
+      Element_lineaire_de -<#> {1} Objet_divers;
+      LinienElemente -- {0..*} Element_lineaire;
+    END Rel_Element_lineaire;
+
+    CLASS SymboleElement_lineaire=  !! par ex. bac
+      Pos: MANDATORY CoordP;
+      Ori: MANDATORY Rotation;
+    END SymboleElement_lineaire;
+
+    ASSOCIATION Rel_SymboleElement_lineaire =
+      SymboleElement_lineaire_de -<#> {1} Element_lineaire;
+      Symbole -- {0..*} SymboleElement_lineaire;
+    END Rel_SymboleElement_lineaire;
+
+    CLASS Element_ponctuel =
+      Geometrie: MANDATORY CoordP;
+      Ori: MANDATORY Rotation;
+    END Element_ponctuel;
+
+    ASSOCIATION Rel_Element_ponctuel =
+      Element_ponctuel_de -<#> {1} Objet_divers;
+      Element_ponctuel -- {0..*} Element_ponctuel;
+    END Rel_Element_ponctuel;
+
+    CLASS Nom_Objet =
+      Nom: MANDATORY TypeNom;
+    END Nom_Objet;
+
+    ASSOCIATION Rel_Nom_Objet =
+      Nom_Objet_de -<#> {1} Objet_divers;
+      Nom -- {0..*} Nom_Objet;
+    END Rel_Nom_Objet;
+
+    CLASS PosNom_Objet=
+      Pos: MANDATORY CoordP; !! inscription de Nom
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNom_Objet;
+
+    ASSOCIATION Rel_PosNom_Objet =
+        PosNom_Objet_de -<#> {1} Nom_Objet;
+        Pos -- {0..*} PosNom_Objet;
+    END Rel_PosNom_Objet;
+
+    CLASS Numero_Objet =
+        Numero: MANDATORY TypeNumero;
+        !! RegBL_EGID si la definition du batiment correspond a celle de l'OFS
+        RegBL_EGID: 1 .. 999999999;
+    END Numero_Objet;
+
+    ASSOCIATION Rel_Numero_Objet =
+        Numero_Objet_de -<#> {1} Objet_divers;
+        Numero -- {0..*} Numero_Objet;
+    END Rel_Numero_Objet;
+
+    CLASS PosNumero_Objet=
+      Pos: MANDATORY CoordP; !! inscription de Numero
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !! HAli indéfini = Center
+      VAli: VALIGNMENT; !! VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNumero_Objet;
+
+    ASSOCIATION Rel_PosNumero_Objet =
+        PosNumero_Objet_de -<#> {1} Numero_Objet;
+        Pos -- {0..*} PosNumero_Objet;
+    END Rel_PosNumero_Objet;
+
+    CLASS Point_particulier=
+        !! pas de PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      Identification: TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      Defini_exactement: MANDATORY BOOLEAN;  !! tenir compte des tolérances selon OTEMO
+    UNIQUE Geometrie;
+    END Point_particulier;
+
+    ASSOCIATION Rel_Point_particulier =
+        Origine -- {0..1} Mise_a_jourOD;
+        De_Point_particulier -- {0..*} Point_particulier;
+    END Rel_Point_particulier;
+
+    CLASS PosPoint_particulier=
+      Pos: MANDATORY CoordP; !! inscription de Identification
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_particulier;
+
+    ASSOCIATION Rel_PosPoint_particulier =
+        PosPoint_particulier_de -<#> {1} Point_particulier;
+        Pos -- {0..1} PosPoint_particulier;
+    END Rel_PosPoint_particulier;
+
+  END Objets_divers;
+
+
+
+  TOPIC Altimetrie =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Mise_a_jourAL =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourAL;
+
+    CLASS Point_cote =  !! valable ou projete
+        Geometrie: MANDATORY CoordA;
+        Qualite: MANDATORY StandardQualite;
+    UNIQUE Geometrie;
+    END Point_cote;
+
+    ASSOCIATION Rel_Point_cote =
+        Origine -- {1} Mise_a_jourAL;
+        De_Point_cote -- {0..*} Point_cote;
+    END Rel_Point_cote;
+
+    CLASS PosPoint_cote =
+      Pos: MANDATORY CoordP;  !! inscription de Geometrie (Altitude)
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_cote;
+
+    ASSOCIATION Rel_PosPoint_cote =
+        PosPoint_cote_de -<#> {1} Point_cote;
+        Pos -- {0..1} PosPoint_cote;
+    END Rel_PosPoint_cote;
+
+    CLASS Arete =
+        Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX CoordA;
+        Qualite: MANDATORY StandardQualite;
+        Genre : MANDATORY (
+          ligne_de_rupture,
+          ligne_de_structure,
+          autre:FINAL);
+    END Arete;
+
+    ASSOCIATION Rel_Arete =
+        Origine -- {1} Mise_a_jourAL;
+        De_Arete -- {0..*} Arete;
+    END Rel_Arete;
+
+    CLASS Surface_vide =
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.200;
+        Qualite: MANDATORY StandardQualite;
+        Genre : MANDATORY (
+          surface_morte,
+        autre:FINAL);
+    END Surface_vide;
+
+    ASSOCIATION Rel_Surface_vide =
+        Origine -- {1} Mise_a_jourAL;
+        De_Surface_vide -- {0..*} Surface_vide;
+    END Rel_Surface_vide;
+
+  END Altimetrie;
+
+
+
+  TOPIC Nomenclature =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Mise_a_jourNO =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourNO;
+
+    CLASS Nom_local =
+        Nom: MANDATORY TEXT*40;
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.200;
+    END Nom_local;
+
+    ASSOCIATION Rel_Nom_local =
+        Origine -- {1} Mise_a_jourNO;
+        De_Nom_local -- {0..*} Nom_local;
+    END Rel_Nom_local;
+
+    CLASS PosNom_local=  !! inscription de Nom
+      Pos: MANDATORY CoordP; !! inscription de Nom
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+      Style: StyleEcriture; !! indéfini = normal;
+    END PosNom_local;
+
+    ASSOCIATION Rel_PosNom_local =
+        PosNom_local_de -<#> {1} Nom_local;
+        Pos -- {0..*} PosNom_local;
+    END Rel_PosNom_local;
+
+    CLASS Nom_de_lieu =
+        Nom: MANDATORY TEXT*40;
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.200;
+        Type: TypeNom;  !! Attribué par canton
+    END Nom_de_lieu;
+
+    ASSOCIATION Rel_Nom_de_lieu =
+        Origine -- {1} Mise_a_jourNO;
+        De_Nom_de_lieu -- {0..*} Nom_de_lieu;
+    END Rel_Nom_de_lieu;
+
+    CLASS PosNom_de_lieu =  !! inscription de Nom
+      Pos: MANDATORY CoordP; !! inscription de Nom
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+      Style: StyleEcriture; !! indéfini = normal;
+    END PosNom_de_lieu;
+
+    ASSOCIATION Rel_PosNom_de_lieu =
+        PosNom_de_lieu_de -<#> {1} Nom_de_lieu;
+        Pos -- {0..*} PosNom_de_lieu;
+    END Rel_PosNom_de_lieu;
+
+    CLASS Lieudit =
+        Nom: MANDATORY TEXT*40;
+    END Lieudit;
+
+    ASSOCIATION Rel_Lieudit =
+        Origine -- {1} Mise_a_jourNO;
+        De_Lieudit -- {0..*} Lieudit;
+    END Rel_Lieudit;
+
+    CLASS PosLieudit =
+      Pos: MANDATORY CoordP; !! inscription de Nom
+       Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+      Style: StyleEcriture; !! indéfini = normal;
+    END PosLieudit;
+
+    ASSOCIATION Rel_PosLieudit =
+        PosLieudit_de -<#> {1} Lieudit;
+        Pos -- {1..*} PosLieudit;
+    END Rel_PosLieudit;
+
+  END Nomenclature;
+
+
+
+  TOPIC Biens_fonds =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+     Genre_Immeuble = (
+        bien_fonds,
+        DDP (
+          superficie,
+          source,
+          concession,
+          autre:FINAL),
+        mine:FINAL);
+
+      Validite = (
+        en_vigueur,
+        litigieux:FINAL);
+
+      Integralite = (
+          complet,
+          incomplet:FINAL);
+
+    STRUCTURE Ligne_frontiere =
+      Genre_ligne : (
+        !! indéfini signifie complet
+        litigieux,
+        incomplet:FINAL);
+    END Ligne_frontiere;
+
+    CLASS Mise_a_jourBF =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Enregistrement_RF: XMLDate;
+      Date1: XMLDate;
+      Date2: XMLDate;  !! Attribué par le canton
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourBF;
+
+    !! Comprend tous les points limites d'un bien-fonds a l'exception des points
+    !! limites de bien-fonds qui sont aussi des points limites
+    !! territoriaux et/ou PFP1, PFP2, PFP3.
+    !! Se référer aussi aux remarques sur les points limites
+    !! territoriaux (topic Limites_commune).
+    CLASS Point_limite=
+      Identification: TypeNumero;  !! Numéro du dossier technique
+      Geometrie: MANDATORY CoordP;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      Signe: MANDATORY Materiel;
+      Defini_exactement: MANDATORY BOOLEAN;  !! tenir compte des tolérances selon OTEMO
+      !! Suite au declassement d'une ancienne borne speciale de limite territoriale
+      !! en un point limite uniquement (voir aussi explications chap. 3.11).
+      Anc_borne_speciale: MANDATORY BOOLEAN; !! indication de la materialisation
+    UNIQUE Geometrie;
+    END Point_limite;
+
+    ASSOCIATION Rel_Point_limite =
+        Origine -- {1} Mise_a_jourBF;
+        De_Point_limite -- {0..*} Point_limite;
+    END Rel_Point_limite;
+
+    CLASS PosPoint_limite =
+      Pos: MANDATORY CoordP; !! inscription de Identification
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_limite;
+
+    ASSOCIATION Rel_PosPoint_limite =
+        PosPoint_limite_de -<#> {1} Point_limite;
+        Pos -- {0..1} PosPoint_limite;
+    END Rel_PosPoint_limite;
+
+    CLASS SymbolePoint_limite=
+      Ori: Rotation; !! indéfini = 0.0
+    END SymbolePoint_limite;
+
+    ASSOCIATION Rel_SymbolePoint_limite =
+        SymbolePoint_limite_de -<#> {1} Point_limite;
+        Symbole -- {0..1} SymbolePoint_limite;
+    END Rel_SymbolePoint_limite;
+
+    CLASS ImmeubleProj=
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      !! Identificateur du systeme electronique d'informations foncieres
+      EGRIS_EGRID: TEXT*14;
+      !! Contenu de l'attribut: doit etre litigieux si le Bien_fonds,
+      !! le DDP, ou la Mine est litigieux;
+      Validite: MANDATORY Validite;
+      !! incomplet si par ex. l'immeuble est situe en partie
+      !! a l'exterieur du perimetre.
+      Integralite: MANDATORY Integralite;
+      Genre: MANDATORY Genre_Immeuble;
+      !! Superficie_totale sera renseignee uniquement dans le cas des parties
+      !! d'immeubles. Cela signife que plusieurs objets Bien_fonds, DDP
+      !! ou Mine forment un objet ImmeubleProj.
+      Superficie_totale: 1 .. 999999999 [Units.m2];
+    UNIQUE IdentDN, Numero;
+    END ImmeubleProj;
+
+    ASSOCIATION Rel_ImmeubleProj =
+        Origine -- {1} Mise_a_jourBF;
+        De_ImmeubleProj -- {0..*} ImmeubleProj;
+    UNIQUE Origine, De_ImmeubleProj->IdentDN, De_ImmeubleProj->Numero;
+    MANDATORY CONSTRAINT Origine->Validite == #projete;
+    END Rel_ImmeubleProj;
+
+    CLASS PosImmeubleProj =
+      Pos: MANDATORY CoordP; !! inscription de Numero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+      Ligne_auxiliaire: POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+      !! Pas de point intermédiaire; !! trait de rappel pour numero d'immeuble
+    END PosImmeubleProj;
+
+    ASSOCIATION Rel_PosImmeubleProj =
+        PosImmeubleProj_de -<#> {1} ImmeubleProj;
+        Pos -- {1..*} PosImmeubleProj;
+    END Rel_PosImmeubleProj;
+
+    CLASS Bien_fondsProj=
+      !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END Bien_fondsProj;
+
+    ASSOCIATION Rel_Bien_fondsProj =
+        Bien_fondsProj_de -<#> {1} ImmeubleProj;
+        bien_fonds -- {0..*} Bien_fondsProj;
+      MANDATORY CONSTRAINT Bien_fondsProj_de->Genre == #bien_fonds;
+    END Rel_Bien_fondsProj;
+
+    !! Si un DDPProj n'a pas de surface, alors il n'existe aussi pas d'objet.
+    !! Une inscription avec une localisation dans PosImmeubleProj est tout de meme
+    !! possible.
+    CLASS DDPProj =
+      !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END DDPProj;
+
+    ASSOCIATION Rel_DDPProj=
+        DDPProj_de -<#> {1} ImmeubleProj;
+        DDP -- {0..*} DDPProj;
+      MANDATORY CONSTRAINT (DDPProj_de->Genre == #DDP.superficie) OR
+                           (DDPProj_de->Genre == #DDP.source) OR
+                           (DDPProj_de->Genre == #DDP.concession) OR
+                           (DDPProj_de->Genre == #DDP.autre);
+    END Rel_DDPProj;
+
+    !! Si une MineProj n'a pas de surface, alors il n'existe pas non plus d'objet.
+    !! Une inscription avec une localisation dans PosImmeubleProj est tout de meme
+    !! possible.
+    CLASS MineProj=
+      !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END MineProj;
+
+    ASSOCIATION Rel_MineProj =
+        MineProj_de -<#> {1} ImmeubleProj;
+        Mine -- {0..*} MineProj;
+      MANDATORY CONSTRAINT MineProj_de->Genre == #mine;
+    END Rel_MineProj;
+
+    CLASS Immeuble=
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      !! Identificateur du systeme electronique d'informations foncieres
+      EGRIS_EGRID: TEXT*14;
+      !! Contenu de l'attribut: doit etre litigieux si le Bien_fonds,
+      !! le DDP, ou la Mine est litigieux;
+      Validite: MANDATORY Validite;
+      !! incomplet si par ex. l'immeuble est situe en partie
+      !! a l'exterieur du perimetre.
+      Integralite: MANDATORY Integralite;
+      Genre: MANDATORY Genre_Immeuble;
+      !! Superficie_totale sera renseignee uniquement dans le cas des parties
+      !! d'immeubles. Cela signife que plusieurs objets Bien_fonds, DDP
+      !! ou Mine forment un objet ImmeubleProj.
+      Superficie_totale: 1 .. 999999999 [Units.m2];
+    UNIQUE IdentDN, Numero;
+    END Immeuble;
+
+    ASSOCIATION Rel_Immeuble =
+        Origine -- {1} Mise_a_jourBF;
+        De_Immeuble -- {0..*} Immeuble;
+      MANDATORY CONSTRAINT Origine->Validite == #valable;
+    END Rel_Immeuble;
+
+    CLASS PosImmeuble =
+      Pos: MANDATORY CoordP; !! inscription de Numero
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+      Ligne_auxiliaire: POLYLINE WITH (STRAIGHTS) VERTEX CoordP;  !! Pas de point intermédiaire; !! trait de rappel pour numero d'immeuble
+    END PosImmeuble;
+
+    ASSOCIATION Rel_PosImmeuble =
+        PosImmeuble_de -<#> {1} Immeuble;
+        Pos -- {1..*} PosImmeuble;
+    END Rel_PosImmeuble;
+
+    CLASS Bien_fonds=
+      !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END Bien_fonds;
+
+    ASSOCIATION Rel_Bien_fondsImmeuble=
+        Bien_fonds_de -<#> {1} Immeuble;
+        Biens_fonds -- {0..*} Bien_fonds;
+      MANDATORY CONSTRAINT Bien_fonds_de->Genre == #bien_fonds;
+    END Rel_Bien_fondsImmeuble;
+
+    !! Si un DDP n'a pas de surface, alors il n'existe aussi pas d'objet.
+    !! Une inscription avec une localisation dans PosImmeuble est tout de meme
+    !! possible.
+    CLASS DDP=
+      !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END DDP;
+
+    ASSOCIATION Rel_DDP =
+        DDP_de -<#> {1} Immeuble;
+        DDPs -- {0..*} DDP;
+      MANDATORY CONSTRAINT (DDP_de->Genre == #DDP.superficie) OR
+                           (DDP_de->Genre == #DDP.source) OR
+                           (DDP_de->Genre == #DDP.concession) OR
+                           (DDP_de->Genre == #DDP.autre);
+    END Rel_DDP;
+
+    !! Si une mine n'a pas de surface, alors il n'existe aussi pas d'objet.
+    !! Une inscription avec une localisation dans PosImmeuble est tout de meme
+    !! possible.
+    CLASS Mine=
+     !! Geometrie uniquement PFP1, PFP2, PFP3, Point_limite ou Point_limite_ter
+      !! Numero_ PartieNumeroImmeuble si necessaire partie d'immeuble
+      PartieNumeroImmeuble: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Ligne_frontiere;
+      Superficie: MANDATORY 1 .. 999999999 [Units.m2];
+    END Mine;
+
+    ASSOCIATION Rel_Mine =
+        Mine_de -<#> {1} Immeuble;
+        Mines -- {0..*} Mine;
+      MANDATORY CONSTRAINT Mine_de->Genre == #mine;
+    END Rel_Mine;
+
+  END Biens_fonds;
+
+
+
+  TOPIC Conduites =
+    !! selon la Loi federale sur les installations de transport par conduites
+    !! de combustibles ou carburants liquides ou gazeux
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+    Matiere = (
+        petrole,
+        gaz,
+        autre:FINAL);
+
+    STRUCTURE Limite_Element_surfacique =
+        !! L'attribut Genre_ligne doit etre principalement reference comme
+        !! indéfini a l'exception de la valeur visible.
+        Genre_ligne : (
+          visible:FINAL);
+   END Limite_Element_surfacique;
+
+
+    CLASS Mise_a_jourCO =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourCO;
+
+    CLASS Element_conduite =
+        Exploitant: MANDATORY TypeNom;
+        Qualite: MANDATORY StandardQualite;
+        Genre: MANDATORY Matiere;
+    END Element_conduite;
+
+    ASSOCIATION Rel_Element_conduite =
+        Origine -- {1} Mise_a_jourCO;
+        De_Element_conduite -- {0..*} Element_conduite;
+    END Rel_Element_conduite;
+
+    CLASS PosElement_conduite=
+      Pos: MANDATORY CoordP;  !! inscription de Exploitant
+      Ori: MANDATORY Rotation;
+      HAli: MANDATORY HALIGNMENT;
+      VAli: MANDATORY VALIGNMENT;
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosElement_conduite;
+
+    ASSOCIATION Rel_PosElement_conduite =
+        PosElement_conduite_de -<#> {1} Element_conduite;
+        Pos -- {0..*} PosElement_conduite;
+    END Rel_PosElement_conduite;
+
+    CLASS Element_surfacique =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Limite_Element_surfacique;
+    END Element_surfacique;
+
+    ASSOCIATION Rel_Element_surfacique =
+        Element_surfacique_de -<#> {1} Element_conduite;
+        Element_surfaciquee -- {0..*} Element_surfacique;
+    END Rel_Element_surfacique;
+
+    CLASS Element_lineaire =
+        Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+        !! L'attribut Genre_ligne doit etre principalement reference comme
+        !! indéfini a l'exception de la valeur visible.
+        Genre_ligne: (
+          visible:FINAL);
+    END Element_lineaire;
+
+    ASSOCIATION Rel_Element_lineaire =
+        Element_lineaire_de -<#> {1} Element_conduite;
+        Elements_lineaires -- {0..*} Element_lineaire;
+    END Rel_Element_lineaire;
+
+    CLASS Element_ponctuel =
+        Geometrie: MANDATORY CoordP;
+        GeomAlt: Altitude;
+        Ori: MANDATORY Rotation;
+    END Element_ponctuel;
+
+    ASSOCIATION Rel_Element_ponctuel =
+        Element_ponctuel_de -<#> {1} Element_conduite;
+        Elements_ponctuels -- {0..*} Element_ponctuel;
+    END Rel_Element_ponctuel;
+
+    CLASS Signal =
+        Numero: MANDATORY TypeNumero;
+        Exploitant: MANDATORY TypeNom;
+        Geometrie: MANDATORY CoordP;
+        Qualite: MANDATORY StandardQualite;
+        Genre: MANDATORY Matiere;
+        Genre_point: MANDATORY (
+          balise,
+          plaquette_borne,
+          autre:FINAL);
+    END Signal;
+
+    ASSOCIATION Rel_Signal =
+        Origine -- {1} Mise_a_jourCO;
+        De_Signal -- {0..*} Signal;
+    END Rel_Signal;
+
+    CLASS PosSignal=  !! inscription de Numero
+      Pos: MANDATORY CoordP; !! inscription de Numero
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosSignal;
+
+    ASSOCIATION Rel_PosSignal =
+        PosSignal_de -<#> {1} Signal;
+        Pos -- {0..1} PosSignal;
+    END Rel_PosSignal;
+
+    CLASS Point_particulier=
+      Identification: TypeNumero;
+      Geometrie: MANDATORY CoordP;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      Defini_exactement: MANDATORY BOOLEAN;  !! tenir compte des tolérances selon OTEMO
+    UNIQUE Geometrie;
+    END Point_particulier;
+
+    ASSOCIATION Rel_Point_particulier =
+        Origine -- {0..1} Mise_a_jourCO;
+        De_Point_particulier -- {0..*} Point_particulier;
+    END Rel_Point_particulier;
+
+    CLASS PosPoint_particulier=
+      Pos: MANDATORY CoordP; !! inscription de Identification
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_particulier;
+
+    ASSOCIATION Rel_PosPoint_particulier =
+        PosPoint_particulier_de -<#> {1} Point_particulier;
+        Pos -- {0..1} PosPoint_particulier;
+    END Rel_PosPoint_particulier;
+
+  END Conduites;
+
+
+
+  TOPIC Domaines_numerotation =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Abreviation_cantonale (FINAL) = (  !! Ordre de l'OFS, completee avec FL et CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! La clé utilisateur définie ici et les surfaces associées peuvent correspondre
+    !! à une commune, à une partie ou à une aggrégation de plusieurs communes et
+    !! encore event. au canton et/ou a la Suisse (resp. au FL) dans leur ensemble
+    !! (se référer au document explications).
+    CLASS Domaine_numerotation =
+      Ct: MANDATORY Abreviation_cantonale;    !! univoque pour la Suisse (inclus le FL)
+      NumeroDN: MANDATORY TEXT*10;
+      DossierTech: MANDATORY TypeNumero;
+      En_vigueur: XMLDate;
+    UNIQUE Ct, NumeroDN;  !! constitue la cle utilisateur IdentDN
+    END Domaine_numerotation;
+
+    !! Les geometries, des domaines de numerotation decoupant le territoire
+    !! selon la meme unite logique (par ex: perimetre des communes), doivent
+    !! creer entre elles une partition du territoire (AREA).
+    CLASS GeometrieDN =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    END GeometrieDN;
+
+    ASSOCIATION Rel_GeometrieDN =
+        GeometrieDN_de -<#> {1} Domaine_numerotation;
+        Geometrie -- {1..*} GeometrieDN;
+    END Rel_GeometrieDN;
+
+    CLASS PosDomaine_numerotation=
+      Pos: MANDATORY CoordP; !! inscription de NumeroDN
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosDomaine_numerotation;
+
+    ASSOCIATION Rel_PosDomaine_numerotation =
+        PosDomaine_numerotation_de -<#> {1} Domaine_numerotation;
+        Pos -- {0..*} PosDomaine_numerotation;
+    END Rel_PosDomaine_numerotation;
+
+  END Domaines_numerotation;
+
+
+
+  TOPIC Limites_commune =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    STRUCTURE Attributs_Limites_commune =
+        Genre_ligne : MANDATORY (
+          en_vigueur,      !! limite exacte de la mensuration officielle
+          litigieux,       !! limite litigieuse
+          provisoire,      !! limite definitive mais qualitativement insuffisante
+          indefini:FINAL); !! par ex. jonction inconnue dans un lac
+    END Attributs_Limites_commune;
+
+    CLASS Mise_a_jourCOM =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Validite: MANDATORY Statut;
+      !! Pour les mises a jour futures la date a renseigner est En_vigueur.
+      !! Date1 correspond aux anciennes mises a jour.
+      !! Dans la prochaine revision du modele de donnees Date1 sera supprime et
+      !! En_vigueur sera declare obligatoire.
+      En_vigueur: XMLDate;
+      Date1: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourCOM;
+
+    !! Contient tous les points d'appui qui définissent une limite territoriale.
+    !! (nationale, cantonale, de district et communale) avec les règles
+    !! complémentaires suivantes:
+    !! - Les PFP1, PFP2 et PFP3 qui se situent sur une limite territoriale sont
+    !!   aussi contenus ici; lors de la reprise du topic Points_fixes, les
+    !!   attributs restent inchangés;
+    !! - Bornes limites territoriales materialisées à l'aide de pierre spéciale
+    !!   (cf. Chap 3.11 des explications): Attribut Borne_territoriale = oui;
+    CLASS Point_limite_ter=
+      Identification: TypeNumero;  !! Numéro du dossier technique
+      Geometrie: MANDATORY CoordP;
+      PrecPlan: MANDATORY Precision;
+      FiabPlan: MANDATORY Fiabilite;
+      Signe: MANDATORY Materiel;
+      Borne_territoriale: MANDATORY BOOLEAN;  !! indication de la materialisation
+      Defini_exactement: MANDATORY BOOLEAN;  !! tenir compte des tolérances selon OTEMO
+    UNIQUE Geometrie;
+    END Point_limite_ter;
+
+    ASSOCIATION Rel_Point_limite_ter =
+        Origine -- {1} Mise_a_jourCOM;
+        De_Point_limite_ter -- {0..*} Point_limite_ter;
+    END Rel_Point_limite_ter;
+
+    CLASS PosPoint_limite_ter=
+      Pos: MANDATORY CoordP; !! inscription de Identification
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Left
+      VAli: VALIGNMENT; !!  VAli indéfini = Bottom
+    END PosPoint_limite_ter;
+
+    ASSOCIATION Rel_PosPoint_limite_ter =
+        PosPoint_limite_ter_de -<#> {1} Point_limite_ter;
+        Pos -- {0..1} PosPoint_limite_ter;
+    END Rel_PosPoint_limite_ter;
+
+    CLASS SymbolePoint_limite_ter=
+      Ori: Rotation; !! indéfini = 0.0
+    END SymbolePoint_limite_ter;
+
+    ASSOCIATION Rel_SymbolePoint_limite_ter=
+        SymbolePoint_limite_ter_de -<#> {1} Point_limite_ter;
+        Symbole -- {0..1} SymbolePoint_limite_ter;
+    END Rel_SymbolePoint_limite_ter;
+
+    CLASS Commune =
+        Nom: MANDATORY TypeNom;
+        NoOFS: MANDATORY 1 .. 9999;
+    UNIQUE NoOFS;
+    END Commune;
+
+    CLASS Limite_communeProj =
+      Geometrie : MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050; !! Geometrie seulement Point_limite_ter
+    END Limite_communeProj;
+
+    ASSOCIATION Rel_Limite_communeProj =
+        Origine -- {1} Mise_a_jourCOM;
+        De_Limite_communeProj -- {0..*} Limite_communeProj;
+      MANDATORY CONSTRAINT Origine->Validite == #projete;
+    END Rel_Limite_communeProj;
+
+    ASSOCIATION Rel_Limite_communeProj_Commune =
+        Limite_communeProj_de -- {1} Commune;
+        Grenzen -- {0..*} Limite_communeProj;
+    END Rel_Limite_communeProj_Commune;
+
+    CLASS Limite_commune =  !! pour rendre possible des exclaves
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050  LINE ATTRIBUTES Attributs_Limites_commune;
+          !! Geometrie uniquement Point_limite_ter
+          !! si Genre_ligne = en_vigueur ou litigieux
+    END Limite_commune;
+
+    ASSOCIATION Rel_Limite_commune =
+      Origine -- {1} Mise_a_jourCOM;
+      De_Limite_commune -- {0..*} Limite_commune;
+      MANDATORY CONSTRAINT Origine->Validite == #valable;
+    END Rel_Limite_commune;
+
+    ASSOCIATION Rel_Limite_commune_Commune =
+      Limite_commune_de -- {1} Commune;
+      Limites_communes -- {1..*} Limite_commune;
+    END Rel_Limite_commune_Commune;
+
+  END Limites_commune;
+
+
+
+  TOPIC Limites_district =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Partie_limite_district =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      !! Geometrie nur Point_limite_ter
+      Validite : MANDATORY (
+        en_vigueur,   !! limite exacte de la mensuration officielle
+        litigieux,    !! limite litigieuse
+        provisoire,   !! limite definitive mais qualitativement insuffisante
+        indefini:FINAL);   !! par ex. jonction inconnue dans un lac
+    END Partie_limite_district;
+
+  END Limites_district;
+
+
+
+  TOPIC Limites_canton =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Partie_limite_canton =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      !! Geometrie nur Point_limite_ter
+      Validite : MANDATORY (
+        en_vigueur,   !! limite exacte de la mensuration officielle
+        litigieux,    !! limite litigieuse
+        provisoire,   !! limite definitive mais qualitativement insuffisante
+        indefini:FINAL);   !! par ex. jonction inconnue dans un lac
+    END Partie_limite_canton;
+
+  END Limites_canton;
+
+
+
+  TOPIC Limites_nationales =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Partie_limite_nationale=
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      !! Geometrie nur Point_limite_ter
+      Validite : MANDATORY (
+        en_vigueur,   !! limite exacte de la mensuration officielle
+        litigieux,    !! limite litigieuse
+        provisoire,   !! limite definitive mais qualitativement insuffisante
+        indefini:FINAL);   !! par ex. jonction inconnue dans un lac
+    END Partie_limite_nationale;
+
+  END Limites_nationales;
+
+
+
+  TOPIC Repartitions_plans =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Plan =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Numero: MANDATORY TypeNumero;
+      DossierTech: MANDATORY TypeNumero;
+      En_vigueur: XMLDate;
+    UNIQUE IdentDN, Numero;
+    END Plan;
+
+    CLASS Geometrie_plan =
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    END Geometrie_plan;
+
+    ASSOCIATION Rel_Geometrie_plan =
+      Geometrie_plan_de -<#> {1} Plan;
+      Geometrie -- {1..*} Geometrie_plan;
+    END Rel_Geometrie_plan;
+
+    CLASS Posplan=  !! inscription de Numero
+      Pos: MANDATORY CoordP;
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END Posplan;
+
+    ASSOCIATION Rel_Posplan =
+      Posplan_de -<#> {1} Plan;
+      Pos -- {0..*} Posplan;
+    END Rel_Posplan;
+
+  END Repartitions_plans;
+
+
+
+  TOPIC RepartitionNT =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Niveau_tolerance =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;  !! Numéro du dossier technique
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      En_vigueur: XMLDate;
+      Genre (FINAL): MANDATORY (
+        NT1,
+        NT2,
+        NT3,
+        NT4,
+        NT5);
+    UNIQUE IdentDN, Identification;
+    END Niveau_tolerance;
+
+    CLASS PosNiveau_tolerance=
+      Pos: MANDATORY CoordP; !! inscription de Genre
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNiveau_tolerance;
+
+    ASSOCIATION Rel_PosNiveau_tolerance =
+      PosNiveau_tolerance_de -<#> {1} Niveau_tolerance;
+      Pos -- {0..*} PosNiveau_tolerance;
+      MANDATORY CONSTRAINT CoordIn(Pos->Pos, PosNiveau_tolerance_de->Geometrie);
+    END Rel_PosNiveau_tolerance;
+
+  END RepartitionNT;
+
+
+
+  TOPIC Zones_glissement =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Glissement =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;  !! Numéro du dossier technique
+      Nom: TypeNom;  !! eigener Nom
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.200;
+      En_vigueur: XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Glissement;
+
+    CLASS PosGlissement=
+      Pos: MANDATORY CoordP; !! inscription de Nom
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosGlissement;
+
+    ASSOCIATION Rel_PosGlissement =
+        PosGlissement_de -<#> {1} Glissement;
+        Pos -- {0..*} PosGlissement;
+      MANDATORY CONSTRAINT CoordIn(Pos->Pos, PosGlissement_de->Geometrie);
+    END Rel_PosGlissement;
+
+  END Zones_glissement;
+
+
+
+TOPIC NPA_Localite = !! voir norme SN 612040;
+                     !! Localites sous la responsabilite des cantons
+                     !! NPA sous la responsabilite de la Poste
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Mise_a_jourLoc =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+      Validite: MANDATORY Statut;
+      En_vigueur: MANDATORY XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourLoc;
+
+    CLASS Groupement_de_Localite =
+      Vide: TEXT*1;
+    END Groupement_de_Localite;
+
+    CLASS Texte_Groupement_de_Localite=
+      Texte: MANDATORY TEXT*200;
+      Langue: MANDATORY TypeLangue;
+    END Texte_Groupement_de_Localite;
+
+    ASSOCIATION Rel_Groupement_de_Localite_Texte_Groupement_de_Localite =
+      Groupement_de_Localite_de -<#> {1} Groupement_de_Localite;
+      De_Texte_Groupement_de_Localite -- {1..*} Texte_Groupement_de_Localite;
+      UNIQUE Groupement_de_Localite_de, De_Texte_Groupement_de_Localite->Langue;
+    END Rel_Groupement_de_Localite_Texte_Groupement_de_Localite;
+
+    !! Les localites reelles forment une AREA
+    CLASS Localite =
+      Validite: MANDATORY Statut_mise_a_jour_AB;
+      En_cours_modification: MANDATORY BOOLEAN;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+    END Localite;
+
+    ASSOCIATION Rel_MAJ_Localite =
+      Origine -- {1} Mise_a_jourLoc;
+      De_Localite -- {0..*} Localite;
+    END Rel_MAJ_Localite;
+
+    ASSOCIATION Rel_Appartenance_groupement =
+      Repertoire -- {0..1} Groupement_de_Localite;
+      Localite_participante -- {1..*} Localite;
+    END Rel_Appartenance_groupement;
+
+    !! Exemple pour Texte, Texte_abrege et Texte_index:
+    !! Texte (Nom complet): La Chaux-de-Fonds
+    !! Texte_abrege (ecriture presente sur une adresse postale): La Chx-de-Fds
+    !! Texte_index (pour index): Chaux-de-Fonds
+    CLASS Nom_localite =
+        Texte: MANDATORY TEXT*40;
+        Texte_abrege: TEXT*18;
+        Texte_index: TEXT*16;
+        Langue: MANDATORY TypeLangue;
+    END Nom_localite;
+
+    ASSOCIATION Rel_Localite_Nom_localite =
+      De_Localite -<#> {1} Localite;
+      Noms -- {1..*} Nom_localite;
+      UNIQUE De_Localite, Noms->Langue;
+    END Rel_Localite_Nom_localite;
+
+    CLASS PosNom_localite=
+      Pos: MANDATORY CoordP; !! inscription de Texte
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !! indéfini = Center
+      VAli: VALIGNMENT; !! indéfini = Half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosNom_localite;
+
+    ASSOCIATION Rel_PosNom_localite =
+        Localite_de -<#> {1} Localite;
+        PosNoms -- {0..*} PosNom_localite;
+    END Rel_PosNom_localite;
+
+    CLASS Mise_a_jourNPA6 =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+      Validite: MANDATORY Statut;
+      En_vigueur: MANDATORY XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourNPA6 ;
+
+    !! Il faut eviter d'avoir un NPA6 avec Validite=reel sur une localite avec
+    !! une Validite<>reel.
+    CLASS NPA6=
+      !! Si plusieurs codes postaux a six chiffres sont affectes a une meme
+      !! localite, une surface doit etre affectee a chacun d'entre eux et
+      !! doit etre incluse en totalite dans les limites de la surface de
+      !! la localite.
+      !! Les NPA6 reels sont de type AREA
+      Geometrie: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+            WITHOUT OVERLAPS > 0.500;
+      Validite: MANDATORY Statut_mise_a_jour_AB;
+      En_cours_modification: MANDATORY BOOLEAN;
+      NPA: MANDATORY 1000 .. 9999;
+      Chiffres_supplementaires: MANDATORY 0 .. 99;
+    UNIQUE NPA, Chiffres_supplementaires;
+    END NPA6;
+
+    ASSOCIATION Rel_Numero_postal =
+      NPA_dans_localite -- {1} Localite;
+      NPA -- {*} NPA6;
+    END Rel_Numero_postal;
+
+    ASSOCIATION Rel_MAJ_NPA6 =
+      Origine -- {1} Mise_a_jourNPA6;
+      De_NPA6 -- {0..*} NPA6;
+    END Rel_MAJ_NPA6;
+
+END NPA_Localite;
+
+
+
+TOPIC Adresses_des_batiments =  !! voir SN 612040;
+                                !! Responsabilite des communes
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    !! Relation geometrique entre Entree_batiment et NPA6
+    !! Relation geometrique entre Entree_batiment et Localite
+    !! Relation geometrique entre Localisation et Groupement_de_Localite
+
+    CLASS Mise_a_jourBAT =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TypeNumero;
+      Description: MANDATORY TypeNom;
+      Perimetre: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+      Validite: MANDATORY Statut;
+      En_vigueur: MANDATORY XMLDate;
+    UNIQUE IdentDN, Identification;
+    END Mise_a_jourBAT;
+
+    CLASS Localisation =
+      Principe_numerotation: MANDATORY (
+         aucun_numero,
+         quelconque,
+         croissant,
+         impair_a_gauche,
+         pair_a_gauche:FINAL);
+      Numero_localisation: TEXT*12;
+      Attributs_provisoires: MANDATORY BOOLEAN;
+      Est_designation_officielle: MANDATORY BOOLEAN;
+      Validite:MANDATORY Statut_mise_a_jour_AB;
+      En_cours_modification: MANDATORY BOOLEAN;
+      Genre: MANDATORY (
+          Lieu_denomme,
+          Rue,
+          Place:FINAL);
+    END Localisation;
+
+    ASSOCIATION Rel_MAJlocalisation = !! MD01: en plus de SN
+      Origine -- {1} Mise_a_jourBAT;
+      De_localisation -- {0..*} Localisation;
+    END Rel_MAJlocalisation;
+
+    !! Exemple pour Texte, Texte_abrege et Texte_index:
+    !! Texte (Nom complet): Conrad-Ferdinand-Meyer-Strasse
+    !! Texte_abrege (ecriture presente sur une adresse postale): CF Meyer Str
+    !! Texte_index (pour index): Meyer CF Str
+    CLASS Nom_localisation =
+        Texte: MANDATORY TEXT*60;
+        Texte_abrege: TEXT*24;
+        Texte_index: TEXT*16;
+        Langue: MANDATORY TypeLangue;
+    END Nom_localisation;
+
+    ASSOCIATION Rel_Localisation_Nom_localisation =
+      Denomination -<#> {1} Localisation;
+      De_localisation -- {1..*} Nom_localisation;
+      UNIQUE Denomination, De_localisation->Langue;
+    END Rel_Localisation_Nom_localisation;
+
+    CLASS PosNom_localisation =
+      Indice_deb: 1 .. 60; !! indéfini = 1
+      Indice_fin: 1 .. 60; !! indéfini = dernier caractere
+      Pos: MANDATORY CoordP; !! inscription Texte
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = half
+      Grandeur: GrandeurEcriture; !! indéfini = moyenne
+      Ligne_auxiliaire: POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+    END PosNom_localisation;
+
+    ASSOCIATION Rel_PosNom_localisation =
+        PosNom_localisation_de -<#> {1} Nom_localisation;
+        Pos -- {0..*} PosNom_localisation;
+    END Rel_PosNom_localisation;
+
+    CLASS Lieu_denomme =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+    END Lieu_denomme;
+
+    ASSOCIATION Rel_Lieu_denomme_Localisation =
+      De_Localisation -<#> {1} Localisation;
+      Du_Lieu_denomme -- {0..*} Lieu_denomme;
+      MANDATORY CONSTRAINT De_Localisation -> Genre==#Lieu_denomme;
+    END Rel_Lieu_denomme_Localisation;
+
+    !! La geometrie correspond a l'axe de la rue,
+    !! voir explication chap.3.18.2
+    !! Troncons de rue principaux. Les acces prives ne sont pas saisis
+    !! dans le modele federal
+   CLASS Troncon_rue =
+     Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+     Point_depart: CoordP; !! MD01: en plus de SN
+     Ordre: MANDATORY 1 .. 999;  !! Sequence de troncons de rue
+     Est_axe: MANDATORY BOOLEAN;
+    END Troncon_rue;
+
+    ASSOCIATION Rel_Troncon_rue_Localisation =
+      De_localisation -<#> {1} Localisation;
+      Du_Troncon_rue -- {0..*} Troncon_rue;
+      MANDATORY CONSTRAINT
+      De_localisation -> Genre==#Rue OR De_localisation -> Genre==#Place;
+    END Rel_Troncon_rue_Localisation;
+
+    CLASS Entree_batiment=
+      Validite: MANDATORY Statut_mise_a_jour_AB;
+      En_cours_modification: MANDATORY BOOLEAN;
+      Attributs_provisoires: MANDATORY BOOLEAN;
+      Est_designation_officielle: MANDATORY BOOLEAN;
+      Pos: MANDATORY CoordP;
+        !! Pos a l'int. de CS.Batiment, elements OD (bat souterrain,
+        !! Niveau est necessaire lorsque plusieurs entrees se trouvent a differents
+        !! niveaux. Approximativement niveau au-dessus du sol
+      Niveau: -99 .. 99 [m];
+        !! Le numero de maison est constitue d'un numero,
+        !! lequel peut-etre accompagne d'une lettre a, b, c.
+        !! Entre le numero et la lettre, pas de blanc, de souligne ou de
+        !! trait d'union.
+        !! Lorsque le numero de maison est defini, alors pour Localisation et
+        !! Entree_batiment:
+        !! - la localisation et le numero doivent etre ensemble unique
+        !!   pour une validite = reel
+        !! - le principe de numerotation ne doit pas etre aucun_numero.
+      Numero_maison: TEXT*12;
+        !! Dans_batiment est utile pour definir si le numero est rattache a un
+        !! objet de la CS ou a un objet divers.uepft ist.
+      Dans_batiment (FINAL): MANDATORY (CS, OD); !! MD01: en plus de SN
+        !! Identificateur du batiment du RegBL, lorsque disponible,
+        !! voir explication chap. 3.18.2
+      RegBL_EGID: 1 .. 999999999;
+        !! Identificateur de l'entree du batiment du RegBL, lorsque disponible,
+        !! voir explication chap. 3.18.2
+      RegBL_EDID: 0 .. 99 ; !! MD01: en plus de SN
+    END Entree_batiment;
+
+    ASSOCIATION Rel_MAJ_Entree_batiment = !! MD01: en plus de SN
+      Origine -- {1} Mise_a_jourBAT;
+      Entree -- {0..*} Entree_batiment;
+    END Rel_MAJ_Entree_batiment;
+
+    ASSOCIATION Rel_Entree_batiment_Localisation =
+      De_Localisation -<> {0..1} Localisation;
+      A_Entrees_batiments -- {0..*} Entree_batiment;
+    MANDATORY CONSTRAINT
+      ((De_Localisation->Principe_numerotation != #aucun_numero) ==
+      (DEFINED(A_Entrees_batiments->Numero_maison)));
+    END Rel_Entree_batiment_Localisation;
+
+    CLASS PosNumero_maison =
+      Pos: MANDATORY CoordP; !! Inscription Numero_maison
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = half
+      Grandeur: GrandeurEcriture; !! indéfini = moyenne
+    END PosNumero_maison;
+
+    ASSOCIATION Rel_PosNumero_maison =
+        De_Entree_batiment -<#> {1} Entree_batiment;
+        PositionNo -- {0..*} PosNumero_maison;
+    END Rel_PosNumero_maison;
+
+    CLASS Nom_batiment =
+      Texte: MANDATORY TEXT*40;
+      Texte_abrege: TEXT*24;
+      Texte_index: TEXT*16;
+      Langue: MANDATORY TypeLangue;
+    END Nom_batiment;
+
+    ASSOCIATION Rel_Nom_batiment_Entree_batiment =
+        De_Entree_batiment -<#> {1} Entree_batiment;
+        A_Nom_batiment -- {0..*} Nom_batiment;
+        UNIQUE De_Entree_batiment, A_Nom_batiment->Langue;
+    END Rel_Nom_batiment_Entree_batiment;
+
+    CLASS PosNom_batiment =
+      Pos: MANDATORY CoordP; !! inscription Texte
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = half
+      Grandeur: GrandeurEcriture; !! indéfini = moyenne
+      Ligne_auxiliaire: POLYLINE WITH (STRAIGHTS) VERTEX CoordP;
+    END PosNom_batiment;
+
+    ASSOCIATION Rel_PosNom_batiment =
+        De_Nom_batiment_de -<#> {1} Nom_batiment;
+        Pos -- {0..*} PosNom_batiment;
+    END Rel_PosNom_batiment;
+
+    CLASS Description_batiment =
+      Texte: MANDATORY TEXT*100;
+      Langue: MANDATORY TypeLangue;
+    END Description_batiment;
+
+    ASSOCIATION Rel_Description_batiment_Entree_batiment =
+      De_Entree_batiment -<#> {1} Entree_batiment;
+      A_Description_batiment -- {0..*} Description_batiment;
+      UNIQUE De_Entree_batiment, A_Description_batiment->Langue;
+    END Rel_Description_batiment_Entree_batiment;
+
+  END Adresses_des_batiments;
+
+
+
+  TOPIC Bords_de_plan =
+  !! Les objets mentionnés dans l'Ordonnance technique sur la mensuration
+  !! officielle doivent être gérés.
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+
+      Type_echelle = 1 .. 1000000;
+
+      Genre_description = (
+        voisins,               !! commune, district, canton ou pays
+        plan_voisin,           !! plans voisins en situation
+        plan_synoptique,       !! plans voisins, commune, district, canton ou pays
+                               !! dans un plan synoptique
+        direction_route,
+        no_CN,
+        noOFS,
+        autre:FINAL);
+
+      Type_ligne = (
+        standard,
+        autre:FINAL);
+
+      Genre_symbole = (
+        flecheNord,
+        autre:FINAL);
+
+      Genre_croix = (
+        croix_coord,
+        croix_filet,
+        marque_filet,
+        autre:FINAL);
+
+
+    CLASS Bord_de_plan =
+      IdentDN: MANDATORY NumeroDN;  !! relation 1-m avec Domaine_numerotation
+      Identification: MANDATORY TEXT*32;
+      Type_bord_de_plan: MANDATORY TEXT*20;  !! Definition des verwendeten Planspiegels
+      Numero_du_plan: MANDATORY TypeNumero;
+      Nom_commune: MANDATORY TypeNom;
+      Nom_geometre: TypeNom;
+      Date_etablissement: MANDATORY XMLDate;
+      Nom_geometre_conservateur: TypeNom;
+      Date_MAJ: XMLDate;
+      Nombre_echelle: MANDATORY Type_echelle;
+      Origine_plan: MANDATORY CoordP;
+      E_Azimut: MANDATORY Rotation;  !! Azimut 100 est E
+      Nombre_echelle_plan_synoptique: Type_echelle;
+      Origine_plan_synoptique: CoordP;
+      Avec_reseau_coord: MANDATORY BOOLEAN;
+        !! True   livré avec
+        !! False  a générer
+    UNIQUE IdentDN, Identification;
+    END Bord_de_plan;
+
+    CLASS Description_plan =
+      Description: MANDATORY TypeNom;
+      Genre: MANDATORY Genre_description;
+    END Description_plan;
+
+    ASSOCIATION Rel_Description_plan_Bord_de_plan =
+      Description_plan_de -<#> {1} Bord_de_plan;
+      Description -- {0..*} Description_plan;
+    END Rel_Description_plan_Bord_de_plan;
+
+    CLASS PosDescription_plan=  !! inscription de Description
+      Pos: MANDATORY CoordP;
+      Ori:  Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosDescription_plan;
+
+    ASSOCIATION Rel_PosDescription_plan =
+      PosDescription_plan_de -<#> {1} Description_plan;
+      Pos -- {1..*} PosDescription_plan;
+    END Rel_PosDescription_plan;
+
+    CLASS Indication_coordonnees =
+      Description: MANDATORY TypeNom;
+    END Indication_coordonnees;
+
+    ASSOCIATION Rel_Indication_coordonnees =
+      Indication_coordonnees_de -<#> {1} Bord_de_plan;
+      Indications -- {0..*} Indication_coordonnees;
+    END Rel_Indication_coordonnees;
+
+    CLASS PosIndication_coord=
+      Pos: MANDATORY CoordP; !! inscription de Description
+      Ori: Rotation; !! indéfini = 100.0
+      HAli: HALIGNMENT; !!  HAli indéfini = Center
+      VAli: VALIGNMENT; !!  VAli indéfini = half
+      Grandeur: GrandeurEcriture;  !! indéfini = moyenne
+    END PosIndication_coord;
+
+    ASSOCIATION Rel_PosIndication_coord =
+      PosIndication_coord_de -<#> {1} Indication_coordonnees;
+      Position -- {1..*} PosIndication_coord;
+    UNIQUE PosIndication_coord_de, Position->Pos;
+    END Rel_PosIndication_coord;
+
+    CLASS Element_lineaire =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Genre: MANDATORY Type_ligne;
+    END Element_lineaire;
+
+    ASSOCIATION Rel_Element_lineaire =
+      Element_lineaire_de -<#> {1} Bord_de_plan;
+      Element_lineairee -- {0..*} Element_lineaire;
+    END Rel_Element_lineaire;
+
+    CLASS Ligne_coordonnees =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX CoordP;  !! Pas de point intermédiaire;
+    END Ligne_coordonnees;
+
+    ASSOCIATION Rel_Ligne_coordonnees =
+      Ligne_coordonnees_de -<#> {1} Bord_de_plan;
+      Lignes_coordonnees -- {0..*} Ligne_coordonnees;
+    END Rel_Ligne_coordonnees;
+
+    CLASS Surface_representation =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Choix_representation: MANDATORY (
+        completement_represente,
+        partiellement_represente:FINAL);
+    END Surface_representation;
+
+    ASSOCIATION Rel_Surface_representation =
+      Surface_representation_de -<#> {1} Bord_de_plan;
+      Surfaces_representations -- {0..*} Surface_representation;
+    END Rel_Surface_representation;
+
+    CLASS SymboleBord_de_plan =
+      Pos: MANDATORY CoordP;
+      Ori: Rotation;    !! indéfini = 0.0
+      Genre: MANDATORY Genre_symbole;
+    END SymboleBord_de_plan;
+
+    ASSOCIATION Rel_SymboleBord_de_plan =
+      SymboleBord_de_plan_de -<#> {1} Bord_de_plan;
+      Symbole -- {0..*} SymboleBord_de_plan;
+    END Rel_SymboleBord_de_plan;
+
+    CLASS Croix_filet =
+      Pos: MANDATORY CoordP;
+      Ori: Rotation;    !! indéfini = 0.0
+      Genre: MANDATORY Genre_croix;
+    END Croix_filet;
+
+    ASSOCIATION Rel_Croix_filet=
+      Croix_filet_de -<#> {1} Bord_de_plan;
+      Croix_filets -- {0..*} Croix_filet;
+    UNIQUE Croix_filet_de, Croix_filets->Pos;
+    END Rel_Croix_filet;
+
+  END Bords_de_plan;
+
+
+END MD01MOCH24MN95F_ili2.
+

@@ -1,0 +1,70 @@
+INTERLIS 2.3;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Minimal Geodata Model for Official Index of Addresses (Art. 26b GeoNV)
+!! INTERLIS Version 2.3 (SN 612031).
+!!
+!! Federal Office of Topography (swisstopo)
+!! Seftigenstrasse 264
+!! CH-3084 Wabern
+!!
+!! Filename: OfficialIndexOfAddresses_V1.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!@ IDGeoIV = 197.1
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.ch
+
+CONTRACTED MODEL OfficialIndexOfAddresses_V1 (en) AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2019-12-01" =
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS LocalisationCH_V1;
+  IMPORTS WithLatestModification_V1;
+
+  TOPIC OfficialIndexOfAddresses =
+    OID AS INTERLIS.UUIDOID;
+
+    STRUCTURE ZIP6 =
+      ZIP_ZIP4: MANDATORY 1000 .. 9999;  !! postal code, e.g. 8580
+      ZIP_ZIPA: MANDATORY 0 .. 99;  !! additional number, e.g. 05
+      ZIP_NAME: MANDATORY TEXT*40;  !! locality, e.g. Hagenwil b. Amriswil
+    END ZIP6;
+
+    STRUCTURE LocalisationName =
+      STN_TEXT: MANDATORY LocalisationCH_V1.MultilingualText;  !! e.g. Conrad-Ferdinand-Meyer-Strasse
+      STN_SHORT: LocalisationCH_V1.MultilingualText;  !! e.g. CF Meyer Str
+      STN_INDEX: LocalisationCH_V1.MultilingualText;  !! e.g. Meyer CF Str
+    END LocalisationName;
+
+    CLASS Address =
+      ADR_EGAID: MANDATORY 100000000 .. 900000000;
+      STR_ESID: MANDATORY 0 .. 90000000;
+      BDG_EGID: MANDATORY 1 .. 900000000;
+      ADR_EDID: MANDATORY 0 .. 99;
+      STN_NAME: LocalisationName;
+      ADR_NUMBER: TEXT*12;  !! house number, e.g. 12a
+      BDG_NAME: TEXT*50;  !! building name, e.g. Haus Steindach
+      ADR_ZIP: ZIP6;
+      COM_FOSNR: MANDATORY 1 .. 9999;
+      ADR_STATUS: MANDATORY (
+        planned,
+        real,
+        outdated: FINAL);
+      ADR_OFFICIAL: MANDATORY BOOLEAN;
+      ADR_RELIABLE: MANDATORY BOOLEAN;
+      ADR_MODIFIED: MANDATORY WithLatestModification_V1.ModInfo;
+      PNT_SHAPE: MANDATORY GeometryCHLV95_V1.Coord2;
+    UNIQUE ADR_EGAID;
+    UNIQUE STR_ESID, BDG_EGID, ADR_EDID;
+
+    !! Every address must have either house number or building name
+    MANDATORY CONSTRAINT
+      DEFINED (ADR_NUMBER) OR DEFINED (BDG_NAME);
+
+    END Address;
+
+  END OfficialIndexOfAddresses;
+
+END OfficialIndexOfAddresses_V1.

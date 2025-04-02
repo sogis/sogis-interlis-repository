@@ -1,0 +1,98 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL ImpulseConsultingRenewableHeating_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2019-08-28"  =
+  IMPORTS GeometryCHLV95_V1,WithOneState_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Numeric = 0 .. 99999999999;
+    PostalCode = 1000 .. 9999;
+    Text = TEXT*500;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ConsultantCategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS ConsultantCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ConsultantCategory : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ConsultantCategory;
+
+    STRUCTURE ConsultantCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ConsultantCategory;
+    END ConsultantCategoryRef;
+
+  END ConsultantCategoryCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ConsultingTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS ConsultingType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ConsultingType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ConsultingType;
+
+    STRUCTURE ConsultingTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ConsultingType;
+    END ConsultingTypeRef;
+
+  END ConsultingTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC LanguageCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Language
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Language : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Language;
+
+    STRUCTURE LanguageRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Language;
+    END LanguageRef;
+
+  END LanguageCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ImpulseConsultingRenewableHeating =
+    DEPENDS ON ImpulseConsultingRenewableHeating_V1.ConsultantCategoryCatalogue,ImpulseConsultingRenewableHeating_V1.ConsultingTypeCatalogue,ImpulseConsultingRenewableHeating_V1.LanguageCatalogue;
+
+    CLASS ImpulseConsultingRenewableHeating =
+      FirstName : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      Name : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      EMail : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      PhoneNumber : MANDATORY ImpulseConsultingRenewableHeating_V1.Numeric;
+      Company : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      Website : INTERLIS.URI;
+      Street : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      StreetNumber : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      PostalCode : MANDATORY ImpulseConsultingRenewableHeating_V1.PostalCode;
+      Place : MANDATORY ImpulseConsultingRenewableHeating_V1.Text;
+      PrivateControl : ImpulseConsultingRenewableHeating_V1.Text;
+      AdditionalInformation : ImpulseConsultingRenewableHeating_V1.Text;
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      ConsultantCategory : BAG {1..3} OF ImpulseConsultingRenewableHeating_V1.ConsultantCategoryCatalogue.ConsultantCategoryRef;
+      ConsultingType : MANDATORY ImpulseConsultingRenewableHeating_V1.ConsultingTypeCatalogue.ConsultingTypeRef;
+      Language : BAG {1..3} OF ImpulseConsultingRenewableHeating_V1.LanguageCatalogue.LanguageRef;
+    END ImpulseConsultingRenewableHeating;
+
+  END ImpulseConsultingRenewableHeating;
+
+END ImpulseConsultingRenewableHeating_V1.

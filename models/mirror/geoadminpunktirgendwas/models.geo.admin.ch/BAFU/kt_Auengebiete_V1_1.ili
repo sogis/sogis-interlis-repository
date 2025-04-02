@@ -1,0 +1,83 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-02-08 | BAFU  | Korrektur Schreibfehler in Attribut "Mutationsgrund"; Anpassung auf LV95; Textlängen definiert
+!! 2022-11-18 | BAFU  | Korrektur: Einheit bei Obj_GISFlaeche auf m2
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=26.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL kt_Auengebiete_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-11-18"  =
+  IMPORTS CatalogueObjects_V1,Units,LocalisationCH_V1,CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC Codelisten =
+
+    CLASS AU_TYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END AU_TYP_Catalogue;
+
+    CLASS Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bedeutung_Catalogue;
+
+    CLASS Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kartierungsgrundlage_Catalogue;
+
+    STRUCTURE AU_TYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) AU_TYP_Catalogue;
+    END AU_TYP_CatRef;
+
+    STRUCTURE Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Bedeutung_Catalogue;
+    END Bedeutung_CatRef;
+
+    STRUCTURE Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Kartierungsgrundlage_Catalogue;
+    END Kartierungsgrundlage_CatRef;
+
+  END Codelisten;
+
+  TOPIC kt_Auengebiet =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON kt_Auengebiete_V1_1.Codelisten;
+
+    CLASS kt_Auengebiet =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      Obj_GISFlaeche : MANDATORY 1.000 .. 999999999.000 [Units.m2];
+      AU_TYP : kt_Auengebiete_V1_1.Codelisten.AU_TYP_CatRef;
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY kt_Auengebiete_V1_1.Codelisten.Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY kt_Auengebiete_V1_1.Codelisten.Bedeutung_CatRef;
+    END kt_Auengebiet;
+
+    CLASS kt_Auengebiet_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*30;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END kt_Auengebiet_Teilobjekt;
+
+    ASSOCIATION Teilobjektkt_Auengebiet =
+      kt_Auengebiet_Teilobjekt -- {1..*} kt_Auengebiet_Teilobjekt;
+      kt_Auengebiet -<#> {1} kt_Auengebiet;
+    END Teilobjektkt_Auengebiet;
+
+  END kt_Auengebiet;
+
+END kt_Auengebiete_V1_1.

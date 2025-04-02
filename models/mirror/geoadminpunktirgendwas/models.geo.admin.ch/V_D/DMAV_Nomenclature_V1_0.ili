@@ -1,0 +1,108 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.7
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_Nomenclature_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_Nomenklatur_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC Nomenclature =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS MiseAJourNC =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH070101: IdentDN, Identification;
+    END MiseAJourNC;
+
+    CLASS NomLocal =
+      Nom : MANDATORY TEXT*60;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Fictif : MANDATORY BOOLEAN;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomLocal;
+
+    ASSOCIATION Origine_NomLocal =
+      Origine -- {1} MiseAJourNC;
+      NomLocal_bientotcree -- {0..*} NomLocal;
+    END Origine_NomLocal;
+
+    ASSOCIATION Caducite_NomLocal =
+      Caducite  -- {0..1} MiseAJourNC;
+      NomLocal_bientotcaduc -- {0..*} NomLocal;
+    END Caducite_NomLocal;
+
+    VIEW NomLocal_Valable
+      PROJECTION OF NomLocal;
+      WHERE
+        DEFINED(NomLocal->Origine) AND NOT (DEFINED(NomLocal->Caducite ));
+      =
+      ALL OF NomLocal;
+      SET CONSTRAINT CH070501:
+        INTERLIS.areAreas(ALL, UNDEFINED, >>Geometrie);
+    END NomLocal_Valable;
+
+    CLASS NomLieu =
+      Nom : MANDATORY TEXT*60;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Type : TEXT*30;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomLieu;
+
+    ASSOCIATION Origine_NomLieu =
+      Origine -- {1} MiseAJourNC;
+      NomLieu_bientotcree -- {0..*} NomLieu;
+    END Origine_NomLieu;
+
+    ASSOCIATION Caducite_NomLieu =
+      Caducite  -- {0..1} MiseAJourNC;
+      NomLieu_bientotcaduc -- {0..*} NomLieu;
+    END Caducite_NomLieu;
+
+    VIEW NomLieu_Valable
+      PROJECTION OF NomLieu;
+      WHERE
+        DEFINED(NomLieu->Origine) AND NOT (DEFINED(NomLieu->Caducite ));
+      =
+      ALL OF NomLieu;
+    END NomLieu_Valable;
+
+    CLASS Lieudit =
+      Nom : MANDATORY TEXT*60;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END Lieudit;
+
+    ASSOCIATION Origine_Lieudit =
+      Origine -- {1} MiseAJourNC;
+      Lieudit_bientotcree -- {0..*} Lieudit;
+    END Origine_Lieudit;
+
+    ASSOCIATION Caducite_Lieudit =
+      Caducite  -- {0..1} MiseAJourNC;
+      Lieudit_bientotcaduc -- {0..*} Lieudit;
+    END Caducite_Lieudit;
+
+    VIEW Lieudit_Valable
+      PROJECTION OF Lieudit;
+      WHERE
+        DEFINED(Lieudit->Origine) AND NOT (DEFINED(Lieudit->Caducite ));
+      =
+      ALL OF Lieudit;
+    END Lieudit_Valable;
+
+  END Nomenclature;
+
+END DMAV_Nomenclature_V1_0.

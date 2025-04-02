@@ -1,0 +1,252 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=http://www.kgs.admin.ch/
+!!@ IDGeoIV=65.1
+!!@ technicalContact=mailto:Geographisches-Informationssystem@babs.admin.ch
+MODEL KGS_PBC_LV03_V2 (de)
+AT "http://models.geo.admin.ch/BABS"
+VERSION "2015-04-18"  =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1;
+
+  TOPIC KGS_Inventar =
+
+    CLASS KGS_Objekt =
+      /** [DE] X-Y Koordinaten im Swissgrid format
+       * /
+       * [FR] Coordonnées X-Y au format Swissgrid
+       */
+      X_Y_Koordinaten : MANDATORY GeometryCHLV03_V1.Coord2;
+      /** [DE] BABS KGS-Objekt-Nummer. Fünfstellige Nummer des Datensatzes in der KGS-SAP-Datenbank
+       * /
+       * [FR] Numéro BABS de l'objet PBC: code à 5 chiffres dans la base de donnée PBC-SAP
+       */
+      Objekt_Nr : MANDATORY 1 .. 89999;
+      /** [DE] Objektkategorieverzeichnis der Kulturgüter. Ein- bis vierstellige Nummer des KGS-Gattungsthesaurus (Sakralbau, Wohnbau, Sammlung usw.)
+       * /
+       * [FR] Numéro du type de bien culturel, de 1 à 4 chiffres suivant type.
+       */
+      Obj_Bezeichnung_Nr : MANDATORY 0 .. 9999;
+      /** [DE] Kanton (Abkürzung)
+       * /
+       * [FR] NPA (Abréviation)
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** [DE] Gemeindename. Offizieller Name der Gemeinden gemäss aktueller Liste des Bundesamtes für Statistik
+       * /
+       * [FR] Nom officiel de la commune, selon liste de l'OFS.
+       */
+      Gemeinde : MANDATORY TEXT*100;
+      /** [DE] A: Objekt von nationaler Bedeutung / B: Objekt von regionaler Bedeutung. Es gibt weitere Kategorien, aber für das Inventar sind nur A wichtig, evtl. später AA = international (= verstärkter Schutz)
+       * /
+       * [FR] Importance de l'objet - A: Objet d'importance nationale / B: Objet d'importance régionale, éventuellement dans le futur AA: international (= protection renforcée)
+       */
+      Kategorie : MANDATORY (
+        /** International (= verstärkter Schutz)
+         */
+        AA,
+        /** National
+         */
+        A,
+        /** Regional
+         */
+        B
+      );
+      /** [DE] Beschreibung des KGS-Objekts. Name bzw. (ehemalige) Funktion des Objekts, z.B. Palais de Justice (ancien hôpital)
+       * /
+       * [FR] Description de l'objet PBC. Nom ou fonction de l'objet: par exemple Palais de justice (ancien hôpital)
+       */
+      Beschreibung : MANDATORY TEXT*256;
+      /** [DE] Nein = Punktobjekt / Ja = Flächenobjekt. Die Wahl des Feldes entscheidet über die Darstellung des KGS-Schutzzeichens: Nein = KGS-Schild / Ja = KGS-Schild mit umgebendem violetten Kreis
+       * /
+       * [FR] Nein = objet à emplacement précis / Ja = bien avec superficie.
+       * Le choix pour ce champs se fait sur la représentation de l'écusson PBC: Nein = écusson, Ja = écusson avec un cercle violet l'entourant.
+       */
+      Signatur_Typ (FINAL) : MANDATORY (
+        punktartig,
+        flaechenhaft
+      );
+      /** [DE] Postadresse. Adresse möglichst gemäss Bezeichnung im GWR-Layer (Gemeinde- und Wohnungsregister des Bundesamtes für Statistik)
+       * /
+       * [FR] Adresse postale, si possible selon le format RegBL de l'OFS (Registre fédéral des bâtiments et des logements)
+       */
+      Adresse : TEXT*1000;
+      /** [DE] Adressnummer. Hausnummer möglichst gemäss Bezeichnung im GWR-Layer (Gemeinde- und Wohnungsregister des Bundesamtes für Statistik)
+       * /
+       * [FR] Numéro de l'adresse - si possible selon le format RegBL de l'OFS (Registre fédéral des bâtiments et des logements)
+       */
+      HausNr : 0 .. 1000;
+      /** [DE] Foto-Nummer. Vierstellige Bildnummer, jeweils kombiniert mit der fünfstelligen Nummer des Datensatzes in der KGS-SAP-Datenbank (z.B. KGS_12457_0001.jpg)
+       * /
+       * [FR] Numéro de la photo - Chiffre à 4 position, combiné avec le No a 5 chiffre de l'objet dans la base de donnée PBC-SAB (par exemple: KGS_12457_0001.jpg)
+       */
+      Bild_Nr : 0 .. 9999;
+      /** [DE] Name des Fotografs. Falls bekannt, Name des Fotografs des betreffenden Bildes. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * /
+       * [FR] Nom du photographe - Si connu, le nom du photographe. Si pas connu, il doit y avoir au moins une remarque sur le copyright.
+       */
+      Fotograf : TEXT*100;
+      /** [DE] Copyright-Besitzer. Falls Fotograf und Copyright identisch sind, genügt ein einziger Name. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * /
+       * [FR] Détenteur du copyright. Si le photographe et le copyright sont identiques, 1 seul nom suffit. Si le photographe n'est pas connu, ne laisser que le copyright.
+       */
+      Copyright : TEXT*100;
+    END KGS_Objekt;
+
+    CLASS KGS_txt =
+      txt_file : MANDATORY URI;
+    END KGS_txt;
+
+    CLASS KGS_pdf =
+      pdf_file : MANDATORY URI;
+    END KGS_pdf;
+
+    ASSOCIATION KGS_Objekt_txt =
+      R5_KGSObj -<#> {1} KGS_Objekt;
+      R6_KGStxt -- {0..1} KGS_txt;
+    END KGS_Objekt_txt;
+
+    CLASS URL_Link =
+      Weblink : URI;
+      Bemerkung : MANDATORY TEXT*80;
+    END URL_Link;
+
+    ASSOCIATION KGS_Objekt_pdf =
+      R3_KGSObj -- {0..5} KGS_pdf;
+      R4_KGSpdf -<#> {1} KGS_Objekt;
+    END KGS_Objekt_pdf;
+
+    ASSOCIATION KGS_Objekt_Weblink(FINAL) =
+      R1_KGSObj -- {0..3} URL_Link;
+      R2_URLlink -<#> {1} KGS_Objekt;
+    END KGS_Objekt_Weblink;
+
+  END KGS_Inventar;
+
+END KGS_PBC_LV03_V2.
+
+
+
+!!@ furtherInformation=http://www.kgs.admin.ch/
+!!@ IDGeoIV=65.1
+!!@ technicalContact=mailto:Geographisches-Informationssystem@babs.admin.ch
+MODEL KGS_PBC_LV95_V2 (de)
+AT "http://models.geo.admin.ch/BABS"
+VERSION "2015-04-18"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC KGS_Inventar =
+
+    CLASS KGS_Objekt =
+      /** [DE] X-Y Koordinaten im Swissgrid format
+       * /
+       * [FR] Coordonnées X-Y au format Swissgrid
+       */
+      X_Y_Koordinaten : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** [DE] BABS KGS-Objekt-Nummer. Fünfstellige Nummer des Datensatzes in der KGS-SAP-Datenbank
+       * /
+       * [FR] Numéro BABS de l'objet PBC: code à 5 chiffres dans la base de donnée PBC-SAP
+       */
+      Objekt_Nr : MANDATORY 1 .. 89999;
+      /** [DE] Objektkategorieverzeichnis der Kulturgüter. Ein- bis vierstellige Nummer des KGS-Gattungsthesaurus (Sakralbau, Wohnbau, Sammlung usw.)
+       * /
+       * [FR] Numéro du type de bien culturel, de 1 à 4 chiffres suivant type.
+       */
+      Obj_Bezeichnung_Nr : MANDATORY 0 .. 9999;
+      /** [DE] Kanton (Abkürzung)
+       * /
+       * [FR] NPA (Abréviation)
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** [DE] Gemeindename. Offizieller Name der Gemeinden gemäss aktueller Liste des Bundesamtes für Statistik
+       * /
+       * [FR] Nom officiel de la commune, selon liste de l'OFS.
+       */
+      Gemeinde : MANDATORY TEXT*100;
+      /** [DE] A: Objekt von nationaler Bedeutung / B: Objekt von regionaler Bedeutung. Es gibt weitere Kategorien, aber für das Inventar sind nur A wichtig, evtl. später AA = international (= verstärkter Schutz)
+       * /
+       * [FR] Importance de l'objet - A: Objet d'importance nationale / B: Objet d'importance régionale, éventuellement dans le futur AA: international (= protection renforcée)
+       */
+      Kategorie : MANDATORY (
+        /** International (= verstärkter Schutz)
+         */
+        AA,
+        /** National
+         */
+        A,
+        /** Regional
+         */
+        B
+      );
+      /** [DE] Beschreibung des KGS-Objekts. Name bzw. (ehemalige) Funktion des Objekts, z.B. Palais de Justice (ancien hôpital)
+       * /
+       * [FR] Description de l'objet PBC. Nom ou fonction de l'objet: par exemple Palais de justice (ancien hôpital)
+       */
+      Beschreibung : MANDATORY TEXT*256;
+      /** [DE] Nein = Punktobjekt / Ja = Flächenobjekt. Die Wahl des Feldes entscheidet über die Darstellung des KGS-Schutzzeichens: Nein = KGS-Schild / Ja = KGS-Schild mit umgebendem violetten Kreis
+       * /
+       * [FR] Nein = objet à emplacement précis / Ja = bien avec superficie.
+       * Le choix pour ce champs se fait sur la représentation de l'écusson PBC: Nein = écusson, Ja = écusson avec un cercle violet l'entourant.
+       */
+      Signatur_Typ (FINAL) : MANDATORY (
+        punktartig,
+        flaechenhaft
+      );
+      /** [DE] Postadresse. Adresse möglichst gemäss Bezeichnung im GWR-Layer (Gemeinde- und Wohnungsregister des Bundesamtes für Statistik)
+       * /
+       * [FR] Adresse postale, si possible selon le format RegBL de l'OFS (Registre fédéral des bâtiments et des logements)
+       */
+      Adresse : TEXT*1000;
+      /** [DE] Adressnummer. Hausnummer möglichst gemäss Bezeichnung im GWR-Layer (Gemeinde- und Wohnungsregister des Bundesamtes für Statistik)
+       * /
+       * [FR] Numéro de l'adresse - si possible selon le format RegBL de l'OFS (Registre fédéral des bâtiments et des logements)
+       */
+      HausNr : 0 .. 1000;
+      /** [DE] Foto-Nummer. Vierstellige Bildnummer, jeweils kombiniert mit der fünfstelligen Nummer des Datensatzes in der KGS-SAP-Datenbank (z.B. KGS_12457_0001.jpg)
+       * /
+       * [FR] Numéro de la photo - Chiffre à 4 position, combiné avec le No a 5 chiffre de l'objet dans la base de donnée PBC-SAB (par exemple: KGS_12457_0001.jpg)
+       */
+      Bild_Nr : 0 .. 9999;
+      /** [DE] Name des Fotografs. Falls bekannt, Name des Fotografs des betreffenden Bildes. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * /
+       * [FR] Nom du photographe - Si connu, le nom du photographe. Si pas connu, il doit y avoir au moins une remarque sur le copyright.
+       */
+      Fotograf : TEXT*100;
+      /** [DE] Copyright-Besitzer. Falls Fotograf und Copyright identisch sind, genügt ein einziger Name. Falls der Fotograf nicht bekannt ist, muss mindestens ein Copyright-Vermerk stehen
+       * /
+       * [FR] Détenteur du copyright. Si le photographe et le copyright sont identiques, 1 seul nom suffit. Si le photographe n'est pas connu, ne laisser que le copyright.
+       */
+      Copyright : TEXT*100;
+    END KGS_Objekt;
+
+    CLASS KGS_txt =
+      txt_file : MANDATORY URI;
+    END KGS_txt;
+
+    CLASS KGS_pdf =
+      pdf_file : MANDATORY URI;
+    END KGS_pdf;
+
+    ASSOCIATION KGS_Objekt_txt =
+      R5_KGSObj -<#> {1} KGS_Objekt;
+      R6_KGStxt -- {0..1} KGS_txt;
+    END KGS_Objekt_txt;
+
+    CLASS URL_Link =
+      Weblink : URI;
+      Bemerkung : MANDATORY TEXT*80;
+    END URL_Link;
+
+    ASSOCIATION KGS_Objekt_pdf =
+      R3_KGSObj -- {0..5} KGS_pdf;
+      R4_KGSpdf -<#> {1} KGS_Objekt;
+    END KGS_Objekt_pdf;
+
+    ASSOCIATION KGS_Objekt_Weblink(FINAL) =
+      R1_KGSObj -- {0..3} URL_Link;
+      R2_URLlink -<#> {1} KGS_Objekt;
+    END KGS_Objekt_Weblink;
+
+  END KGS_Inventar;
+
+END KGS_PBC_LV95_V2.
+

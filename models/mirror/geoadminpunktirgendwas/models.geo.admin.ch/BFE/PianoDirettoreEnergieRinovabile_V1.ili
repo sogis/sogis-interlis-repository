@@ -1,0 +1,122 @@
+INTERLIS 2.3;
+
+/** !!-----------------------------------------------------------------------------
+ * !! Version    | Wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-11-30 | CJ  | Finale Version
+ */
+
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+!!@ technicalContact=mailto:info@bfe.admin.ch
+
+MODEL PianoDirettoreEnergieRinovabile_V1 (it)
+  AT "https://models.geo.admin.ch/BFE/"
+  VERSION "2020-11-30" TRANSLATION OF RichtplanungErneuerbareEnergien_V1 ["2020-11-30"]  =
+  IMPORTS GeometryCHLV95_V1, CHAdminCodes_V1, CatalogueObjects_V1;
+
+  STRUCTURE PointStructure =
+    Point : GeometryCHLV95_V1.Coord2;
+  END PointStructure;
+
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF PointStructure;
+  END MultiPoint;
+
+  DOMAIN
+  
+    Testo = TEXT*255;
+
+    TipoOggetto = (
+      Situazione_iniziale,
+      ContenutoPianoDirettore (
+        Informazione_preliminare,
+        Risultato_intermedio,
+        Dato_acquisito,
+        Sconosciuto
+        )
+    );
+
+  TOPIC Catalogo_FormaEnergia 
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS FormaEnergia 
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      FormaEnergia : MANDATORY PianoDirettoreEnergieRinovabile_V1.Testo;
+    END FormaEnergia;
+
+    STRUCTURE FormaEnergiaRef 
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) FormaEnergia;
+    END FormaEnergiaRef;
+
+  END Catalogo_FormaEnergia;
+
+  TOPIC Catalogo_TipoInformazione 
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS TipoInformazione 
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      TipoInformazione : MANDATORY PianoDirettoreEnergieRinovabile_V1.Testo;
+    END TipoInformazione;
+
+    STRUCTURE TipoInformazioneRef 
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) TipoInformazione;
+    END TipoInformazioneRef;
+
+  END Catalogo_TipoInformazione;
+
+  TOPIC Oggetti =
+    DEPENDS ON PianoDirettoreEnergieRinovabile_V1.Catalogo_FormaEnergia;
+
+    CLASS Oggetto (ABSTRACT) =
+      FormaEnergia : MANDATORY PianoDirettoreEnergieRinovabile_V1.Catalogo_FormaEnergia.FormaEnergiaRef;
+      NomeOggetto : PianoDirettoreEnergieRinovabile_V1.Testo;
+      Descrizione : PianoDirettoreEnergieRinovabile_V1.Testo;
+      TipoOggetto : PianoDirettoreEnergieRinovabile_V1.TipoOggetto;
+      DataApprovazione : INTERLIS.XMLDate;
+      DataDecisoCantone : INTERLIS.XMLDate;
+      Cantone : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Weblink : INTERLIS.URI;
+      Osservazioni : PianoDirettoreEnergieRinovabile_V1.Testo;
+    END Oggetto;
+
+    CLASS Superficie 
+    EXTENDS Oggetto =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Superficie;
+
+    CLASS Linea 
+    EXTENDS Oggetto =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Linea;
+
+    CLASS Punto 
+    EXTENDS Oggetto =
+      Geometrie : MANDATORY MultiPoint;
+    END Punto;
+
+  END Oggetti;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione;
+
+    CLASS Cantone =
+      Cantone : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Energia_eolica : BAG {1..2} OF PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione.TipoInformazioneRef;
+      Energia_idroelettrica : BAG {1..2} OF PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione.TipoInformazioneRef;
+      Geotermia : BAG {1..2} OF PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione.TipoInformazioneRef;
+      Biomassa : BAG {1..2} OF PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione.TipoInformazioneRef;
+      Energia_solare : BAG {1..2} OF PianoDirettoreEnergieRinovabile_V1.Catalogo_TipoInformazione.TipoInformazioneRef;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Cantone;
+
+    CLASS SetDiDati =
+      Base : MANDATORY INTERLIS.XMLDate;
+      Osservazioni : PianoDirettoreEnergieRinovabile_V1.Testo;
+    END SetDiDati;
+
+  END MetadatiTrasferimento;
+
+END PianoDirettoreEnergieRinovabile_V1.
+

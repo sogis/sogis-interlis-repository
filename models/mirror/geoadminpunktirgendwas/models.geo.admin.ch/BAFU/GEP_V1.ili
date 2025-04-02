@@ -1,0 +1,284 @@
+!!==============================================================================
+!! GEP_V1.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 129
+!! Bezeichnung GeoIV                         : Kommunale Entwässerungsplanung GEP
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAFU)
+!! Zugangsberechtigungsstufe                 : A
+!! 
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 129.1
+!! Bezeichnung Geobasisdatensatz             : Kommunale Entwässerungsplanung GEP
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Wer | Änderung
+!!------------------------------------------------------------------------------
+!! 2014-02-05 | CG  | Entwurf
+!! 2014-10-29 | CG  | Version zur Anhörung
+!! 2016-11-22 | CG  | Schlussversion
+!! 2023-08-22 | BAFU  | Korrekturen auf Grund Umsetzung
+!!==============================================================================
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "129.1"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL GEP_LV03_V1 (de) AT "https://models.geo.admin.ch/BAFU" VERSION "2023-08-22" =
+
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS GeometryCHLV03_V1;     
+  IMPORTS LocalisationCH_V1;
+  IMPORTS Units;
+  
+  DOMAIN
+!!==============================================================================
+    dEinleitungArt = (BW, EW, CW, MW, RW, KW, A, U);
+    dGewaesserArt = (Fluss_Stau, Grosses_Fliessgewaesser, Groesseres_Fliessgewaesser, Grosser_Mittellandbach,
+                     Grosser_Voralpenbach, Kleiner_Mittellandbach, Kleiner_Voralpenbach, Quellgewaesser,
+                     Grosser_See, Kleiner_See, Versickerung, unbekannt);
+    dGesamtbeeintraechtigung = (grosser_Einfluss, mittlerer_Einfluss, kleiner_Einfluss,
+                                kein_Einfluss, keine_Aussage_moeglich, unklar, unbekannt);
+    
+  TOPIC CAT =                            !!  Klassen zur Beschreibung der Domains
+!!==============================================================================
+    CLASS EinleitungArt = 
+      Typ          : MANDATORY dEinleitungArt;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EinleitungArt;  
+  
+    CLASS GewaesserArt = 
+      Typ          : MANDATORY dGewaesserArt;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END GewaesserArt;  
+  
+    CLASS Gesamtbeeintraechtigung = 
+      Typ          : MANDATORY dGesamtbeeintraechtigung;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gesamtbeeintraechtigung;  
+  
+  END CAT;
+  
+  TOPIC GEP =                            !!  Die eigentlichen Klassen
+!!==============================================================================
+    CLASS StandGEP =
+    !!=============================================
+      GemeindeNr  :           CHAdminCodes_V1.CHMunicipalityCode;
+      VerbandsBez :           TEXT*100;
+      GEP         : MANDATORY BOOLEAN;
+      GEP_Jahr    :           1900 .. 2500;
+      
+      MANDATORY CONSTRAINT                                      !! GemeindeNr oder VerbandsBez muss definiert sein
+           DEFINED(GemeindeNr)
+        OR DEFINED(VerbandsBez);        
+      MANDATORY CONSTRAINT (GEP == #true) == DEFINED(GEP_Jahr); !! Wenn GEP genehmigt, muss Jahr definiert sein
+    END StandGEP;
+    
+    CLASS StrukturZustand =
+    !!=============================================
+      ARANr                  : MANDATORY 1 .. 99999999;
+      FlEntw                 : MANDATORY 0 .. 999999 [Units.ha];
+      FlRedARA               : MANDATORY 0 .. 999999 [Units.ha];
+      FlRedGewaesser         :           0 .. 990099 [Units.ha];
+      FlTrennsystem          : MANDATORY 0 .. 999999 [Units.ha];
+      FlMischsystem          : MANDATORY 0 .. 999999 [Units.ha];
+      FlVers                 :           0 .. 999999 [Units.ha];
+      LaengeKanalOeff        : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeKanalPriv        :           0 .. 9999999 [INTERLIS.m];
+      LaengeUntersuchtOeff   : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeZustandOeff      : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeUntersuchtPriv   :           0 .. 9999999 [INTERLIS.m];
+      LaengeZustandPriv      :           0 .. 9999999 [INTERLIS.m];
+      VolNetzMWbehandl       : MANDATORY 0 .. 9999999 [Units.m3];
+      AnzEinleitst           : MANDATORY 0 .. 9999;
+      AnzEinleitstUntersucht : MANDATORY 0 .. 9999;
+      AnzEinleitstBedarf     : MANDATORY 0 .. 9999;
+      FWMenge                : MANDATORY 0 .. 999999; !! m3/Tag   
+    END StrukturZustand;
+    
+    CLASS KostenErtraege =
+    !!=============================================
+      ARANr               : MANDATORY 1 .. 99999999;
+      Jahr                : MANDATORY 1900 .. 2500;
+      PersonalkostenKanal : MANDATORY 0 .. 999999999;     !! pro Jahr
+      SachkostenKanal     : MANDATORY 0 .. 999999999;     !! pro Jahr
+      ZinskostenKanal     : MANDATORY -999999999 .. 999999999;      !! pro Jahr
+      BruttoInvKanal      : MANDATORY 0 .. 9999999999;   !! pro Jahr
+      WBWKanal            : MANDATORY 0 .. 9999999999;
+      WBWSBW              : MANDATORY 0 .. 9999999999;
+      AWGebuehren         : MANDATORY 0 .. 9999999999;
+    END KostenErtraege;
+    
+    CLASS Einleitstelle =
+    !!=============================================
+      ARANr         : MANDATORY 1 .. 99999999;
+      Lage          : MANDATORY GeometryCHLV03_V1.Coord2;
+      EinleitungArt : MANDATORY dEinleitungArt;
+      GewaesserArt  : MANDATORY dGewaesserArt;
+      Gesamtbeeint  : MANDATORY dGesamtbeeintraechtigung;
+    END Einleitstelle;
+
+    CLASS Regenueberlauf =
+    !!=============================================
+      ARANr                   : MANDATORY 1    .. 99999999;
+      FlRedIst                : MANDATORY 0.00 .. 999999.99 [Units.ha];
+      UeberlaufDauerIst       :           0.0  .. 9999.9; !! h/Jahr
+      UeberlaufHaeufigkeitIst :           0.0  .. 999.9;
+      UeberlaufMengeIst       :           0    .. 99999999; !! m3/Jahr
+    END Regenueberlauf;
+    
+        
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION StandGEP_KostenErtraege =
+      rStand          -<#> {1}    StandGEP;                
+      rKostenErtraege --   {1..*} KostenErtraege; 
+    END StandGEP_KostenErtraege;                              
+
+    ASSOCIATION StandGEP_StrukturZustand =
+      rStand           -<#> {1}    StandGEP;                
+      rStrukturZustand --   {1..*} StrukturZustand; 
+    END StandGEP_StrukturZustand;                              
+
+    ASSOCIATION Regenueberlauf_Einleitstelle =
+      rUeberlauf  -- {0..*} Regenueberlauf; 
+      rEinleitung -- {1}    Einleitstelle;                
+    END Regenueberlauf_Einleitstelle;                              
+
+  END GEP;                                        !! topic
+                                                         
+END GEP_LV03_V1.                                  !! model
+
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "129.1"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL GEP_LV95_V1 (de) AT "https://models.geo.admin.ch/BAFU" VERSION "2023-08-22" =
+
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS GeometryCHLV95_V1;     
+  IMPORTS LocalisationCH_V1;
+  IMPORTS Units;
+  
+  DOMAIN
+!!==============================================================================
+    dEinleitungArt = (BW, EW, CW, MW, RW, KW, A, U);
+    dGewaesserArt = (Fluss_Stau, Grosses_Fliessgewaesser, Groesseres_Fliessgewaesser, Grosser_Mittellandbach,
+                     Grosser_Voralpenbach, Kleiner_Mittellandbach, Kleiner_Voralpenbach, Quellgewaesser,
+                     Grosser_See, Kleiner_See, Versickerung, unbekannt);
+    dGesamtbeeintraechtigung = (grosser_Einfluss, mittlerer_Einfluss, kleiner_Einfluss,
+                                kein_Einfluss, keine_Aussage_moeglich, unklar, unbekannt);
+    
+  TOPIC CAT =                            !!  Klassen zur Beschreibung der Domains
+!!==============================================================================
+    CLASS EinleitungArt = 
+      Typ          : MANDATORY dEinleitungArt;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EinleitungArt;  
+  
+    CLASS GewaesserArt = 
+      Typ          : MANDATORY dGewaesserArt;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END GewaesserArt;  
+  
+    CLASS Gesamtbeeintraechtigung = 
+      Typ          : MANDATORY dGesamtbeeintraechtigung;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gesamtbeeintraechtigung;  
+  
+  END CAT;
+  
+  TOPIC GEP =                            !!  Die eigentlichen Klassen
+!!==============================================================================
+    CLASS StandGEP =
+    !!=============================================
+      GemeindeNr  :           CHAdminCodes_V1.CHMunicipalityCode;
+      VerbandsBez :           TEXT*100;
+      GEP         : MANDATORY BOOLEAN;
+      GEP_Jahr    :           1900 .. 2500;
+      
+      MANDATORY CONSTRAINT                                      !! GemeindeNr oder VerbandsBez muss definiert sein
+           DEFINED(GemeindeNr)
+        OR DEFINED(VerbandsBez);        
+      MANDATORY CONSTRAINT (GEP == #true) == DEFINED(GEP_Jahr); !! Wenn GEP genehmigt, muss Jahr definiert sein
+    END StandGEP;
+    
+    CLASS StrukturZustand =
+    !!=============================================
+      ARANr                  : MANDATORY 1 .. 99999999;
+      FlEntw                 : MANDATORY 0 .. 999999 [Units.ha];
+      FlRedARA               : MANDATORY 0 .. 999999 [Units.ha];
+      FlRedGewaesser         :           0 .. 990099 [Units.ha];
+      FlTrennsystem          : MANDATORY 0 .. 999999 [Units.ha];
+      FlMischsystem          : MANDATORY 0 .. 999999 [Units.ha];
+      FlVers                 :           0 .. 999999 [Units.ha];
+      LaengeKanalOeff        : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeKanalPriv        :           0 .. 9999999 [INTERLIS.m];
+      LaengeUntersuchtOeff   : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeZustandOeff      : MANDATORY 0 .. 9999999 [INTERLIS.m];
+      LaengeUntersuchtPriv   :           0 .. 9999999 [INTERLIS.m];
+      LaengeZustandPriv      :           0 .. 9999999 [INTERLIS.m];
+      VolNetzMWbehandl       : MANDATORY 0 .. 9999999 [Units.m3];
+      AnzEinleitst           : MANDATORY 0 .. 9999;
+      AnzEinleitstUntersucht : MANDATORY 0 .. 9999;
+      AnzEinleitstBedarf     : MANDATORY 0 .. 9999;
+      FWMenge                : MANDATORY 0 .. 999999; !! m3/Tag   
+    END StrukturZustand;
+    
+    CLASS KostenErtraege =
+    !!=============================================
+      ARANr               : MANDATORY 1 .. 99999999;
+      Jahr                : MANDATORY 1900 .. 2500;
+      PersonalkostenKanal : MANDATORY 0 .. 999999999;     !! pro Jahr
+      SachkostenKanal     : MANDATORY 0 .. 999999999;     !! pro Jahr
+      ZinskostenKanal     : MANDATORY -999999999 .. 999999999;      !! pro Jahr
+      BruttoInvKanal      : MANDATORY 0 .. 9999999999;   !! pro Jahr
+      WBWKanal            : MANDATORY 0 .. 9999999999;
+      WBWSBW              : MANDATORY 0 .. 9999999999;
+      AWGebuehren         : MANDATORY 0 .. 9999999999;
+    END KostenErtraege;
+    
+    CLASS Einleitstelle =
+    !!=============================================
+      ARANr         : MANDATORY 1 .. 99999999;
+      Lage          : MANDATORY GeometryCHLV95_V1.Coord2;
+      EinleitungArt : MANDATORY dEinleitungArt;
+      GewaesserArt  : MANDATORY dGewaesserArt;
+      Gesamtbeeint  : MANDATORY dGesamtbeeintraechtigung;
+    END Einleitstelle;
+
+    CLASS Regenueberlauf =
+    !!=============================================
+      ARANr                   : MANDATORY 1    .. 99999999;
+      FlRedIst                : MANDATORY 0.00 .. 999999.99 [Units.ha];
+      UeberlaufDauerIst       :           0.0  .. 9999.9; !! h/Jahr
+      UeberlaufHaeufigkeitIst :           0.0  .. 999.9;
+      UeberlaufMengeIst       :           0    .. 99999999; !! m3/Jahr
+    END Regenueberlauf;
+    
+        
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION StandGEP_KostenErtraege =
+      rStand          -<#> {1}    StandGEP;                
+      rKostenErtraege --   {1..*} KostenErtraege; 
+    END StandGEP_KostenErtraege;                              
+
+    ASSOCIATION StandGEP_StrukturZustand =
+      rStand           -<#> {1}    StandGEP;                
+      rStrukturZustand --   {1..*} StrukturZustand; 
+    END StandGEP_StrukturZustand;                              
+
+    ASSOCIATION Regenueberlauf_Einleitstelle =
+      rUeberlauf  -- {0..*} Regenueberlauf; 
+      rEinleitung -- {1}    Einleitstelle;                
+    END Regenueberlauf_Einleitstelle;                              
+
+  END GEP;                                        !! topic
+                                                         
+END GEP_LV95_V1.                                  !! model

@@ -1,0 +1,2102 @@
+/* ==============================================================================
+ *  RoadTrafficAccidentLocation.ili
+ * ------------------------------------------------------------------------------
+ *
+ *  DE: GeoIV, Anhang 1
+ *  ===============
+ *  Identifikator GeoIV                       : 95
+ *  Bezeichnung GeoIV                         : Strassenverkehrsunfallorte
+ *  Zuständige Stelle (Fachstelle des Bundes) : Bund (ASTRA)
+ *  Zugangsberechtigungsstufe                 : B
+ *
+ *  Zusatzinformationen
+ *  ===================
+ *  Identifikator                             : 95.1
+ *  Bezeichnung Geobasisdatensatz             : Unfallprotokolle (Standorte)
+ *
+ *
+ *  FR: GeoIV, Annexe 1
+ *  ===============
+ *  Identificateur GeoIV                      : 95
+ *  Désignation GeoIV                         : Lieux des accidents de la circulation routière
+ *  Service compétent (Service spécialisé
+ *   de la Confédération)                     : Bund (OFRU)
+ *  Niveaux d’autorisation d’accès            : B
+ *
+ *  Informations supplémentaires
+ *  ============================
+ *  Identificateur                            : 95.1
+ *  Désignation des géodonnées de base        : Rapports d’accidents (emplacements)
+ *
+ *
+ *  IT: GeoIV, Allegato 1
+ *  ===============
+ *  Identificatore GeoIV                      : 95
+ *  Denominazione GeoIV                       : Ubicazioni degli incidenti stradali
+ *  Servizio competente (servizio
+ *   specializzato della Confederazione)      : Bund (USTRA)
+ *  Livello di autorizzazione all’accesso     : B
+ *
+ *  Informazioni supplementari
+ *  ============================
+ *  Identificatore                            : 95.1
+ *  Denominazione delle raccolte 
+ *   di geodati di base                       : Verbali d'incidente (ubicazioni)
+ *
+ *
+ * ------------------------------------------------------------------------------
+ *
+ *  Version    | Who | Modification
+ * ------------------------------------------------------------------------------
+ *  2012-05-26 | UB  | Final
+ * ==============================================================================
+ */
+
+
+INTERLIS 2.3;
+
+MODEL RoadTrafficAccidentLocation_V1 (en) AT "http://www.mistra.ch/" 
+  VERSION "2012-05-26" =
+
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;    !! CHBASE PART I -- GEOMETRY
+
+  TOPIC RoadTrafficAccidentLocation =
+
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+ 
+      /*
+       * DE: Unfalltyp	
+       * FR: Type d'accident
+       * IT: Tipo d'incidente
+       */
+      AccidentTyp = (
+        /*
+         * DE: Schleuder- oder Selbstunfall
+         * FR: Dérapage ou perte de maîtrise
+         * IT: Incidente di sbandamento o per colpa propria
+         */
+        t0 (
+          /*
+           * DE: Ohne Kollision
+           * FR: Sans collision
+           * IT: Senza collisione
+           */
+          t01,
+          /*
+           * DE: Kollision mit Hindernis auf der Fahrbahn
+           * FR: Collision avec un obstacle sur la chaussée
+           * IT: Collisione con un ostacolo sulla carreggiata
+           */
+          t02,
+          /*
+           * DE: Kollision mit Hindernis ausserhalb der Fahrbahn
+           * FR: Collision avec un obstacle hors de la chaussée
+           * IT: Collisione con un ostacolo al di fuori della carreggiata
+           */
+          t03,
+          /*
+           * DE: Kollision mit anderem Verkehrsteilnehmer (inkl. Fussgänger)
+           * FR: Collision avec un autre usager (piéton y compris)
+           * IT: Collisione con altri utenti della strada (inclusi pedoni)
+           */
+          t04,
+          /*
+           * DE: Beim Ausweichen, ohne Kollision
+           * FR: Lors de l'évitement, sans collision
+           * IT: Scansamento, senza collisione
+           */
+          t05,
+          /*
+           * DE: Beim Ausweichen, mit Kollision
+           * FR: Lors de l'évitement, avec collision
+           * IT: Scansamento, con collisione
+           */
+          t06,
+          /*
+           * DE: Beim Manövrieren und Kollision mit Hindernis
+           * FR: Collision avec un obstacle en manœuvrant
+           * IT: Collisione con un ostacolo nel manovrare
+           */
+          t07,
+          /*
+           * DE: Schleudern während Überholvorgang, ohne Kollision
+           * FR: Dérapage au cours d'un dépassement, sans collision
+           * IT: Sbandamento durante il sorpasso, senza collisione
+           */
+          t08,
+          /*
+           * DE: Anderer Schleuder- oder Selbstunfall
+           * FR: Autre cas de dérapage ou de perte de maîtrise
+           * IT: Altro incidente di sbandamento o per colpa propria
+           */
+          t09),
+ 
+        /*
+         * DE: Überholunfall und Fahrstreifenwechsel
+         * FR: Accident lors d'un dépassement ou lors d'un changement de voie de circulation
+         * IT: Incidente di sorpasso o al cambiamento di corsia
+         */
+        t1 (
+          /*
+           * DE: Kollision mit Gegenverkehr
+           * FR: Collision avec le trafic venant en sens inverse
+           * IT: Collisione con il traffico in senso inverso
+           */
+          t10,
+          /*
+           * DE: Kollision beim Ausscheren vor überholendem Fahrzeug
+           * FR: Collision en déboîtant devant un véhicule en train de dépasser
+           * IT: Collisione uscendo per il sorpasso a fianco del veicolo da sorpassare
+           */
+          t11,
+          /*
+           * DE: Kollision beim Ausscheren mit überholtem Fahrzeug
+           * FR: Collision avec le véhicule dépassé en déboîtant
+           * IT: Collisione uscendo per il sorpasso con il veicolo sorpassato
+           */
+          t12,
+          /*
+           * DE: Streifen mit überholtem Fahrzeug
+           * FR: Frôlement latéral avec le véhicule dépassé
+           * IT: Collisione di striscio con il veicolo sorpassato
+           */
+          t13,
+          /*
+           * DE: Kollision beim Wiedereinbiegen mit überholtem Fahrzeug
+           * FR: Collision avec le véhicule dépassé en se rabattant
+           * IT: Collisione al rientro nella corsia con il veicolo sorpassato
+           */
+          t14,
+          /*
+           * DE: Kollision mit überholtem Fahrzeug beim Rechtsüberholen
+           * FR: Collision avec le véhicule dépassé par la droite
+           * IT: Collisione al sorpasso a destra con il veicolo sorpassato
+           */
+          t15,
+          /*
+           * DE: Kollision beim Fahrstreifenwechsel nach rechts
+           * FR: Collision lors du changement de voie vers la droite
+           * IT: Collisione al cambiamento di corsia a destra
+           */
+          t16,
+          /*
+           * DE: Streifen beim Vorbeifahren
+           * FR: Frôlement latéral avec le véhicule sur la voie voisine
+           * IT: Collisione di striscio nel passare
+           */
+          t17,
+          /*
+           * DE: Kollision beim Fahrstreifenwechsel nach links
+           * FR: Collision lors du changement de voie vers la gauche
+           * IT: Collisione al cambiamento di corsia a sinistra
+           */
+          t18,
+          /*
+           * DE: Anderer Unfall beim Überholen oder Fahrstreifenwechsel
+           * FR: Autre cas d'accident lors d'un dépassement ou lors d'un changement de 
+           *     voie de circulation
+           * IT: Altro incidente di sorpasso o al cambiamento di corsia
+           */
+          t19),
+ 
+        /*
+         * DE: Auffahrunfall
+         * FR: Accident par tamponnement
+         * IT: Incidente di tamponamento
+         */
+        t2 (
+          /*
+           * DE: Aufprall auf fahrendes Fahrzeug
+           * FR: Collision avec un véhicule en marche
+           * IT: Collisione con un veicolo in marcia
+           */
+          t20,
+          /*
+           * DE: Aufprall auf stehendes Fahrzeug
+           * FR: Collision avec un véhicule à l'arrêt
+           * IT: Collisione con un veicolo fermo
+           */
+          t21,
+          /*
+           * DE: Aufprall auf fahrendes Fahrzeug beim Rückwärtsfahren
+           * FR: Collision avec un véhicule en marche, en reculant
+           * IT: Collisione con un veicolo in marcia durante la retromarcia
+           */
+          t22,
+          /*
+           * DE: Aufprall auf stehendes Fahrzeug beim Rückwärtsfahren
+           * FR: Collision avec un véhicule à l'arrêt, en reculant
+           * IT: Collisione con un veicolo fermo durante la retromarcia
+           */
+          t23,
+          /*
+           * DE: Anderer Unfall beim Auffahren
+           * FR: Autre cas d'accident par tamponnement
+           * IT: Altro incidente di tamponamento
+           */
+          t29),
+        /*
+         * DE: Abbiegeunfall
+         * FR: Accident en quittant une route
+         * IT: Incidente nello svoltare
+         */
+        t3 (
+          /*
+           * DE: Kollision beim Linksabbiegen mit Gegenverkehr
+           * FR: Collision en obliquant à gauche avec le trafic venant en sens inverse
+           * IT: Collisione svoltando a sinistra con il traffico in senso inverso
+           */
+          t30,
+          /*
+           * DE: Kollision beim Linksabbiegen mit nachfolgendem Fahrzeug
+           * FR: Collision en obliquant à gauche avec le trafic dans le même sens
+           * IT: Collisione svoltando a sinistra con un veicolo che procede nello stesso senso
+           */
+          t31,
+          /*
+           * DE: Kollision beim Rechtsabbiegen mit nachfolgendem Fahrzeug
+           * FR: Collision en obliquant à droite avec le trafic dans le même sens
+           * IT: Collisione svoltando a destra con un veicolo che procede nello stesso senso
+           */
+          t32,
+          /*
+           * DE: Kollision beim Linksabbiegen mit Verkehr auf separatem Streifen, 
+           *     separater Spur, Radweg, Gehweg, Tramgleis usw.
+           * FR: Collision en obliquant à gauche avec les usagers d'une voie séparée, 
+           *     d'une piste séparée, d'une piste cyclable/voie piétonne séparée, des 
+           *     rails de tramway ...
+           * IT: Collisione svoltando a sinistra con il traffico su una corsia separata, 
+           *     carreggiata separata, pista ciclabile / strada pedonale, binario del 
+           *     tram ecc.
+           */
+          t33,
+ 
+          /*
+           * DE: Kollision beim Rechtsabbiegen mit Verkehr auf separatem Streifen, 
+           *     separater Spur, Radweg, Gehweg, Tramgleis usw.
+           * FR: Collision en obliquant à droite avec les usagers d'une voie séparée,
+           *     d'une piste séparée, d'une piste cyclable/voie piétonne séparée, des 
+           *     rails de tramway ...
+           * IT: Collisione svoltando a destra con il traffico su una corsia separata, 
+           *     carreggiata separata, pista ciclabile / strada pedonale, binario del 
+           *     tram ecc.
+           */
+          t34,
+          /*
+           * DE: Kollision beim Wenden mit nachfolgendem Fahrzeug
+           * FR: Collision avec le trafic dans le même sens lors d'un demi-tour
+           * IT: Collisione facendo inversione con un veicolo che procede nello stesso senso
+           */
+          t35,
+          /*
+           * DE: Kollision beim Wenden mit Gegenverkehr
+           * FR: Collision avec le trafic venant en sens inverse lors d'un demi-tour
+           * IT: Collisione facendo inversione con il traffico in senso inverso
+           */
+          t36,
+          /*
+           * DE: Anderer Unfall beim Abbiegen
+           * FR: Autre cas d'accident en quittant une route
+           * IT: Altro incidente nello svoltare
+           */
+          t39),
+        /*
+         * DE: Einbiegeunfall
+         * FR: Accident en s'engageant sur une route
+         * IT: Incidente nel rientrare in una strada
+         */
+        t4 (
+          /*
+           * DE: Kollision beim Linkseinbiegen mit von links kommendem Fahrzeug
+           * FR: Collision en obliquant à gauche avec le trafic venant de gauche
+           * IT: Collisione svoltando a sinistra con un veicolo proveniente da si-nistra
+           */
+          t40,
+          /*
+           * DE: Kollision beim Rechtseinbiegen mit von links kommendem Fahrzeug
+           * FR: Collision en obliquant à droite avec le trafic venant de gauche
+           * IT: Collisione svoltando a destra con un veicolo proveniente da sinistra
+           */
+          t41,
+          /*
+           * DE: Kollision beim Wiedereinfügen ab Strassenrand
+           * FR: Collision en s'engageant depuis le bord de la route
+           * IT: Collisione nel rientrare dal bordo della strada
+           */
+          t42,
+          /*
+           * DE: Kollision beim Linkseinbiegen mit von rechts kommendem Fahrzeug
+           * FR: Collision en obliquant à gauche avec le trafic venant de droite
+           * IT: Collisione svoltando a sinistra con un veicolo proveniente da destra
+           */
+          t43,
+          /*
+           * DE: Kollision beim Rechtseinbiegen mit von rechts kommendem Fahrzeug
+           * FR: Collision en obliquant à droite avec le trafic venant de droite
+           * IT: Collisione svoltando a destra con un veicolo proveniente da destra
+           */
+          t44,
+          /*
+           * DE: Kollision beim Linkseinbiegen mit linksabbiegendem Fahrzeug
+           * FR: Collision en obliquant à gauche avec le trafic obliquant à gauche
+           * IT: Collisione svoltando a sinistra con un veicolo che svolta a sinistra
+           */
+          t45,
+ 
+          /*
+           * DE: Anderer Unfall beim Einbiegen
+           * FR: Autre cas d'accident en s'engageant sur une route
+           * IT: Altro incidente nel rientrare in una strada
+           */
+          t49),
+        /*
+         * DE: Überqueren der Fahrbahn
+         * FR: Accident en traversant une route
+         * IT: Incidente nell'attraversare la carreggiata
+         */
+        t5 (
+          /*
+           * DE: Kollision mit von links kommendem Überquerer
+           * FR: Collision avec le trafic traversant depuis la gauche
+           * IT: Collisione con un veicolo che attraversa la carreggiata 
+           *     proveniente da sinistra
+           */
+          t50,
+          /*
+           * DE: Kollision mit von rechts kommendem Überquerer
+           * FR: Collision avec le trafic traversant depuis la droite
+           * IT: Collisione con un veicolo che attraversa la carreggiata proveniente da destra
+           */
+          t51,
+          /*
+           * DE: Kollision mit von rechts kommendem Linksabbieger
+           * FR: Collision avec le trafic venant de la droite et obliquant à gauche
+           * IT: Collisione con un veicolo proveniente da destra che svolta a sinistra
+           */
+          t52,
+          /*
+           * DE: Anderer Unfall beim Überqueren der Fahrbahn
+           * FR: Autre cas d'accident en traversant une route
+           * IT: Altro incidente nell'attraversare la carreggiata
+           */
+          t59),
+        /*
+         * DE: Frontalkollision
+         * FR: Collision frontale
+         * IT: Collisione frontale
+         */
+        t6 (
+          /*
+           * DE: Frontalkollision mit Gegenverkehr (ohne Überholen)
+           * FR: Collision frontale avec le trafic venant en sens inverse (sans dé-passement)
+           * IT: Collisione frontale con il traffico in senso inverso (senza sorpasso)
+           */
+          t60,
+          /*
+           * DE: Streifen mit Gegenverkehr (ohne Überholen)
+           * FR: Frôlement avec le trafic venant en sens inverse (sans dépassement)
+           * IT: Collisione di striscio con il traffico in senso inverso (senza sorpasso)
+           */
+          t61,
+          /*
+           * DE: Andere Frontalkollision (z.B. Geisterfahrer)
+           * FR: Autre cas de collision frontale (par ex. conducteur roulant à contre-sens)
+           * IT: Altra collisione frontale (ad es. conducente che circola contromano)
+           */
+          t69),
+        /*
+         * DE: Parkierunfall
+         * FR: Accident en parquant
+         * IT: Incidente nel parcheggiare
+         */
+        t7 (
+          /*
+           * DE: Kollision mit festem Hindernis (inkl. mit richtig parkiertem Fahr-zeug)
+           * FR: Collision avec un obstacle fixe (y compris véhicule correctement stationné)
+           * IT: Collisione con un ostacolo fisso (incluso un veicolo parcheggiato 
+           *     correttamente)
+           */
+          t70,
+ 
+          /*
+           * DE: Kollision mit anderem Verkehrsteilnehmer
+           * FR: Collision avec un autre usager de la route
+           * IT: Collisione con un altro utente della strada
+           */
+          t71,
+          /*
+           * DE: Kollision mit offener Wagentür
+           * FR: Collision avec une portière ouverte
+           * IT: Collisione con una portiera aperta
+           */
+          t72,
+          /*
+           * DE: Parkierunfall mit "Nichtgenügen der Meldepflicht"
+           * FR: Avec violation de l'obligation de déclarer
+           * IT: Con fuga di un protagonista
+           */
+          t73,
+          /*
+           * DE: Anderer Unfall beim Parkieren
+           * FR: Autre cas d'accident en parquant
+           * IT: Altro incidente nel parcheggiare
+           */
+          t79),
+        /*
+         * DE: Fussgängerunfall
+         * FR: Accident impliquant des piétons
+         * IT: Incidente con pedoni
+         */
+        t8 (
+          /*
+           * DE: Kollision zwischen geradeaus fahrendem Fahrzeug und querendem Fussgänger
+           * FR: Piéton traversant la chaussée touché par un véhicule circulant en 
+           *     ligne droite
+           * IT: Collisione tra un veicolo che procede dritto e un pedone che at-traversa 
+           *     la carreggiata
+           */
+          t80,
+          /*
+           * DE: Kollision zwischen Rechtsabbieger und querendem Fussgänger
+           * FR: Piéton touché par un véhicule obliquant à droite
+           * IT: Collisione tra un veicolo che svolta a destra e un pedone che 
+           *     attraversa la carreggiata
+           */
+          t81,
+          /*
+           * DE: Kollision zwischen Linksabbieger und querendem Fussgänger
+           * FR: Piéton touché par un véhicule obliquant à gauche
+           * IT: Collisione tra un veicolo che svolta a sinistra e un pedone che 
+           *     attraversa la carreggiata
+           */
+          t82,
+          /*
+           * DE: Kollision mit Gegenverkehr auf der rechten Seite des Fussgängers
+           * FR: Piéton touché par un véhicule venant face à lui sur sa droite
+           * IT: Collisione tra un veicolo in senso inverso e un pedone alla sua destra
+           */
+          t83,
+          /*
+           * DE: Kollision mit Gegenverkehr auf der linken Seite des Fussgängers
+           * FR: Piéton touché par un véhicule venant face à lui sur sa gauche
+           * IT: Collisione tra un veicolo in senso inverso e un pedone alla sua sinistra
+           */
+          t84,
+          /*
+           * DE: Kollision mit Verkehr in gleicher Richtung auf der linken Seite des 
+           *     Fussgängers
+           * FR: Piéton touché par un véhicule arrivant dans son dos sur sa gauche
+           * IT: Collisione tra un veicolo che procede nella stessa direzione e un 
+           *     pedone alla sua sinistra
+           */
+          t85,
+ 
+          /*
+           * DE: Kollision mit Verkehr in gleicher Richtung auf der rechten Seite des 
+           *     Fussgängers
+           * FR: Piéton touché par un véhicule arrivant dans son dos sur sa droite
+           * IT: Collisione tra un veicolo che procede nella stessa direzione e un 
+           *     pedone alla sua destra
+           */
+          t86,
+          /*
+           * DE: Kollision zwischen Fahrzeug mit aussteigender, umladender, 
+           *     reparierender Person usw.
+           * FR: Personne sortant d'un véhicule, en train de charger ou de 
+           *     réparer un véhicule, etc.
+           * IT: Collisione tra un veicolo e una persona che esce da un veicolo, 
+           *     che effettua un trasbordo o una riparazione, ecc.
+           */
+          t87,
+          /*
+           * DE: Anderer Fussgängerunfall
+           * FR: Autre cas d'accident impliquant des piétons
+           * IT: Altro incidente con pedoni
+           */
+          t89),
+        /*
+         * DE: Tierunfall
+         * FR: Accident impliquant des animaux
+         * IT: Incidente con animali
+         */
+        t9 (
+          /*
+           * DE: Kollision mit Haustier (H)
+           * FR: Collision avec un animal domestique (D)
+           * IT: Collisione con un animale domestico (D)
+           */
+          t90,
+          /*
+           * DE: Kollision mit Wild (W)
+           * FR: Collision avec du gibier (G)
+           * IT: Collisione con della selvaggina (S)
+           */
+          t91,
+          /*
+           * DE: Kollision mit Reiter (R)
+           * FR: Collision avec la monture d'un cavalier (C)
+           * IT: Collisione con un cavaliere (C)
+           */
+          t92,
+          /*
+           * DE: Anderer Tierunfall
+           * FR: Autre cas d'accident impliquant des animaux
+           * IT: Altro incidente con animali
+           */
+          t99),
+        /*
+         * DE: Andere
+         * FR: Autres
+         * IT: Altri
+         */
+        t00 (
+          /*
+           * DE: Anderer Unfalltyp
+           * FR: Autre cas
+           * IT: Altro tipo d'incidente
+           */
+          t000));
+
+ 
+      /*
+       * DE: Wochentag
+       * FR: Jour de la semaine
+       * IT: Giorno della settimana
+       */
+      WeekDay = (
+        /*
+         * DE: Montag
+         * FR: Lundi
+         * IT: Lunedì
+         */
+        f401,
+        /*
+         * DE: Dienstag
+         * FR: Mardi
+         * IT: Martedì
+         */
+        f402,
+        /*
+         * DE: Mittwoch
+         * FR: Mercredi
+         * IT: Martedì
+         */
+        f403,
+        /*
+         * DE: Donnerstag
+         * FR: Jeudi
+         * IT: Giovedì
+         */
+        f404,
+        /*
+         * DE: Freitag
+         * FR: Vendredi
+         * IT: Venerdì
+         */
+        f405,
+        /*
+         * DE: Samstag
+         * FR: Samedi
+         * IT: Sabato
+         */
+        f406,
+        /*
+         * DE: Sonntag
+         * FR: Dimanche
+         * IT: Domenica
+         */
+        f407);
+		
+      /*
+       * DE: Kanton
+       * FR: Canton
+       * IT: Cantone
+       */		
+      Canton = (
+        /*
+         * DE: Zürich
+         * FR: Zurich
+         * IT: Zurigo
+         */ 		
+        ZH,
+        /*
+         * DE: Bern
+         * FR: Berne
+         * IT: Berna
+         */ 	
+        BE,
+        /*
+         * DE: Luzern
+         * FR: Lucerne
+         * IT: Lucerna
+         */
+        LU,
+ 
+        /*
+         * DE: Uri
+         * FR: Uri
+         * IT: Uri
+         */
+        UR,
+        /*
+         * DE: Schwyz
+         * FR: Schwyz
+         * IT: Svitto
+         */
+        SZ,
+        /*
+         * DE: Obwalden
+         * FR: Obwald
+         * IT: Obvaldo
+         */
+        OW,
+        /*
+         * DE: Nidwalden
+         * FR: Nidwald
+         * IT: Nidvaldo
+         */
+        NW,
+        /*
+         * DE: Glarus
+         * FR: Glaris
+         * IT: Glarona
+         */
+        GL,
+        /*
+         * DE: Zug
+         * FR: Zoug
+         * IT: Zugo
+         */
+        ZG,
+        /*
+         * DE: Freiburg
+         * FR: Fribourg
+         * IT: Friburgo
+         */
+        FR,
+        /*
+         * DE: Solothurn
+         * FR: Soleure
+         * IT: Soletta
+         */
+        SO,
+        /*
+         * DE: Basel-Stadt
+         * FR: Bâle-Ville
+         * IT: Basilea Città
+         */
+        BS,
+        /*
+         * DE: Basel-Landschaft
+         * FR: Bâle-Campagne
+         * IT: Basilea Campagna
+         */
+        BL,
+        /*
+         * DE: Schaffhausen
+         * FR: Schaffhouse
+         * IT: Sciaffusa
+         */
+        SH,
+        /*
+         * DE: Appenzell A. Rh.
+         * FR: Appenzell R.-Ext.
+         * IT: Appenzello Esterno
+         */
+        AR,
+ 
+        /*
+         * DE: Appenzell I. Rh.
+         * FR: Appenzell R.-Int.
+         * IT: Appenzello Interno
+         */
+        AI,
+        /*
+         * DE: St. Gallen
+         * FR: Saint-Gall
+         * IT: San Gallo
+         */
+        SG,
+        /*
+         * DE: Graubünden
+         * FR: Grisons
+         * IT: Grigioni
+         */
+        GR,
+        /*
+         * DE: Aargau
+         * FR: Argovie
+         * IT: Argovia
+         */
+        AG,
+        /*
+         * DE: Thurgau
+         * FR: Thurgovie
+         * IT: Turgovia
+         */
+        TG,
+        /*
+         * DE: Tessin
+         * FR: Tessin
+         * IT: Ticino
+         */
+        TI,
+        /*
+         * DE: Waadt
+         * FR: Vaud
+         * IT: Vaud
+         */
+        VD,
+        /*
+         * DE: Wallis
+         * FR: Valais
+         * IT: Vallese
+         */
+        VS,
+        /*
+         * DE: Neuenburg
+         * FR: Neuchâtel
+         * IT: Neuchâtel
+         */
+        NE,
+        /*
+         * DE: Genf
+         * FR: Genève
+         * IT: Ginevra
+         */
+        GE,
+        /*
+         * DE: Jura
+         * FR: Jura
+         * IT: Giura
+         */
+        JU);
+ 
+      /*
+       * DE: Situation
+       * FR: Situation
+       * IT: Situazione
+       */
+      Situation = ( 	
+        /*
+         * DE: Innerorts
+         * FR: A l'intérieur d'une localité
+         * IT: All'interno della località
+         */
+        f410,	
+        /*
+         * DE: Ausserorts
+         * FR: A l'extérieur d'une localité
+         * IT: Fuori della località
+         */
+        f411);
+
+      /*
+       * DE: Strassenart
+       * FR: Genre de route
+       * IT: Genere di strada
+       */
+      RoadType = (
+        /*
+         * DE: Autobahn
+         * FR: Autoroute
+         * IT: Autostrada
+         */
+        f430,
+        /*
+         * DE: Autostrasse
+         * FR: Semi-autoroute
+         * IT: Semiautostrada
+         */
+        f431,
+        /*
+         * DE: Hauptstrasse
+         * FR: Route principale
+         * IT: Strada principale
+         */
+        f432,
+        /*
+         * DE: Nebenstrasse
+         * FR: Route secondaire
+         * IT: Strada secondaria
+         */
+        f433,
+        /*
+         * DE: Nebenanlage
+         * FR: Installation annexe
+         * IT: Impianto accessorio
+         */
+        f434,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f439);	
+ 
+      /*
+       * DE: Verkehrsbedingungen
+       * FR: Intensité du trafic
+       * IT: Intensità del traffico
+       */
+      TrafficIntensity = (
+        /*
+         * DE: Schwach
+         * FR: Faible
+         * IT: Debole
+         */
+        f450,
+        /*
+         * DE: Rege
+         * FR: Normale
+         * IT: Normale
+         */
+        f451,
+        /*
+         * DE: Stark
+         * FR: Forte
+         * IT: Forte
+         */
+        f452,
+        /*
+         * DE: Stockende Kolonne
+         * FR: File ralentie
+         * IT: Colonna rallentata
+         */
+        f453,
+        /*
+         * DE: Stehende Kolonne
+         * FR: File arrêtée
+         * IT: Colonna ferma
+         */
+        f454,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f459);
+
+      /*
+       * DE: Zonensignalisation
+       * FR: Signalisation par zone
+       * IT: Segnaletica per zone
+       */
+      ZoneSignalization = (
+        /*
+         * DE: Keine
+         * FR: Aucune
+         * IT: Nessuna
+         */
+        f460,
+        /*
+         * DE: Tempo-30-Zone
+         * FR: Zone 30
+         * IT: Zona 30
+         */	
+        f461,
+        /*
+         * DE: Begegnungs-Zone
+         * FR: Zone de rencontre
+         * IT: Zona d'incontro
+         */
+        f462,
+        /*
+         * DE: Fussgänger-Zone
+         * FR: Zone piétonne
+         * IT: Zona pedonale
+         */
+        f463,
+ 
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f469);	
+
+      /*
+       * DE: Unfallstelle
+       * FR: Emplacement de l'accident
+       * IT: Luogo dell'incidente
+       */
+      AccidentScene = (
+        /*
+         * DE: Gerade Strecke
+         * FR: Ligne droite
+         * IT: Tratto rettilineo
+         */
+        f480,
+        /*
+         * DE: Kurve
+         * FR: Virage
+         * IT: Curva
+         */
+        f481,
+        /*
+         * DE: Platz
+         * FR: Place
+         * IT: Piazza
+         */
+        f482,
+        /*
+         * DE: Parkplatz
+         * FR: Place de parc
+         * IT: Parcheggio
+         */
+        f483,
+        /*
+         * DE: Rastplatz
+         * FR: Aire de repos
+         * IT: Area di sosta
+         */
+        f484,
+        /*
+         * DE: Kreuzung
+         * FR: Intersection
+         * IT: Incrocio
+         */
+        f485,
+        /*
+         * DE: Kreisverkehrsplatz
+         * FR: Giratoire
+         * IT: Rotatoria
+         */
+        f486,
+        /*
+         * DE: Einmündung
+         * FR: Débouché
+         * IT: Sbocco
+         */
+        f487,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f489);
+ 
+      /*
+       * DE: Strassenzustand
+       * FR: Etat de la route
+       * IT: Stato della strada
+       */
+      RoadCondition = (
+        /*
+         * DE: Trocken
+         * FR: Sèche
+         * IT: Asciutto
+         */
+        f520,
+        /*
+         * DE: Feucht
+         * FR: Humide
+         * IT: Umido
+         */
+        f521,
+        /*
+         * DE: Nass
+         * FR: Mouillée
+         * IT: Bagnato
+         */
+        f522,
+        /*
+         * DE: Schneematsch
+         * FR: Neige fondante
+         * IT: Viscido per poltiglia di neve
+         */
+        f523,
+        /*
+         * DE: Verschneit
+         * FR: Enneigée
+         * IT: Coperto di neve
+         */
+        f524,
+        /*
+         * DE: Vereist
+         * FR: Verglacée
+         * IT: Gelato
+         */
+        f525,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f529);
+
+      /*
+       * DE: Strassenanlage
+       * FR: Tracé de la route
+       * IT: Tracciato della strada
+       */
+      Alignment = (
+        /*
+         * DE: Eben
+         * FR: Plat
+         * IT: Pianeggiante
+         */
+        f550,
+        /*
+         * DE: Gefälle
+         * FR: Descente
+         * IT: In discesa
+         */
+        f551,
+        /*
+         * DE: Steigung
+         * FR: Montée
+         * IT: In salita
+         */
+        f552,
+ 
+        /*
+         * DE: Kuppe
+         * FR: Dos-d'âne
+         * IT: Dossi
+         */
+        f553,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f559);
+
+      /*
+       * DE: Witterung
+       * FR: Conditions météorologiques
+       * IT: Condizioni meteorologiche
+       */
+      AtmosphericConditions = (
+        /*
+         * DE: Schön
+         * FR: Beau
+         * IT: Bello
+         */
+        f580,
+        /*
+         * DE: Bedeckt
+         * FR: Couvert
+         * IT: Coperto
+         */
+        f581,
+        /*
+         * DE: Regen
+         * FR: Pluie
+         * IT: Pioggia
+         */
+        f582,
+        /*
+         * DE: Schneefall
+         * FR: Chute de neige
+         * IT: Nevicata
+         */
+        f583,
+        /*
+         * DE: Vereisender Regen
+         * FR: Pluie givrante
+         * IT: Pioggia ghiacciata
+         */
+        f584,
+        /*
+         * DE: Hagel
+         * FR: Grêle
+         * IT: Grandine
+         */
+        f585,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f589);	
+
+      /*
+       * DE: Verkehrsregelung
+       * FR: Réglementation de la circulation
+       * IT: Regolazione del traffico
+       */
+      TrafficRegulation = (
+        /*
+         * DE: Keine
+         * FR: Aucune
+         * IT: Nessuna
+         */
+        f600,
+ 
+        /*
+         * DE: LSA in Betrieb
+         * FR: Feux en service
+         * IT: Segnali luminosi in funzione
+         */
+        f601,
+        /*
+         * DE: LSA gelbblinkend
+         * FR: Feux à l’orange clignotant
+         * IT: Segnali luminosi con luce gialla
+         */
+        f602,
+        /*
+         * DE: LSA nicht in Betrieb
+         * FR: Feux hors service
+         * IT: Segnali luminosi non in funzione
+         */
+        f603,
+        /*
+         * DE: Kreuzstich in Betrieb
+         * FR: Passage de croix en service
+         * IT: Corsie attivata
+         */
+        f604,
+        /*
+         * DE: Kreuzstich nicht in Betrieb
+         * FR: Passage de croix hors service
+         * IT: Corsie non attivata
+         */
+        f605,
+        /*
+         * DE: Handzeichengabe
+         * FR: Signe de la main
+         * IT: Segni con la mano
+         */
+        f606,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f609);
+
+      /*
+       * DE: Vortrittsregelung
+       * FR: Réglementation de la priorité
+       * IT: Regolamentazione della precedenza
+       */
+      RightOfWayRegulation = (
+        /*
+         * DE: Keine
+         * FR: Aucune
+         * IT: Nessuna
+         */
+        f490,
+        /*
+         * DE: Fussgängerstreifen
+         * FR: Passage pour piétons
+         * IT: Passaggio per pedoni
+         */
+        f491,
+        /*
+         * DE: Kein Vortritt signalisiert
+         * FR: Cédez le passage signalé
+         * IT: Cedere il passaggio, segnalato
+         */
+        f492,
+        /*
+         * DE: Rechtsvortritt
+         * FR: Priorité de droite
+         * IT: Precedenza da destra
+         */
+        f493,
+ 
+        /*
+         * DE: Stoppstrasse
+         * FR: Stop
+         * IT: Stop
+         */
+        f494,
+        /*
+         * DE: Tram-Vortritt
+         * FR: Priorité au tram
+         * IT: Precedenza al tram
+         */
+        f495,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f499);
+
+      /*
+       * DE: Bahnübergang
+       * FR: Passage à niveau
+       * IT: Passaggio a livello
+       */
+      LevelCrossing = (
+        /*
+         * DE: Keine
+         * FR: Aucune
+         * IT: Nessuna
+         */
+       f570,
+        /*
+         * DE: Unbewacht
+         * FR: Non gardé
+         * IT: Non sorvegliato
+         */
+        f571,
+        /*
+         * DE: Nur Blinklicht
+         * FR: Uniquement des feux clignotants
+         * IT: Con unicamente luci lampeggianti
+         */
+        f572,
+        /*
+         * DE: Blinklicht und Schranke
+         * FR: Feux clignotants et barrières
+         * IT: Con luci lampeggianti e barriere
+         */
+        f573,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f579);
+
+      /*
+       * DE: Lichtverhältnis
+       * FR: Conditions lumineuses
+       * IT: Condizioni di luce
+       */
+      LightConditions = (
+        /*
+         * DE: Tag
+         * FR: Jour
+         * IT: Giorno
+         */
+        f620,
+        /*
+         * DE: Dämmerung
+         * FR: Aurore / crépuscule
+         * IT: Alba / crepuscolo
+         */
+        f621,
+ 
+        /*
+         * DE: Nacht
+         * FR: Nuit
+         * IT: Notte
+         */
+        f622,
+        /*
+         * DE: Unbekannt
+         * FR: Inconnu
+         * IT: Sconosciuto
+         */
+        f623);
+      /*
+       * DE: Sicht
+       * FR: Visibilité
+       * IT: Visibilità
+       */
+      Visibility = (
+        /*
+         * DE: Keine Beeinträchtigung
+         * FR: Normale
+         * IT: Non compromessa
+         */
+        f630,
+        /*
+         * DE: Sichtbehinderung
+         * FR: Masquée
+         * IT: Ostacolata
+         */
+        f631,
+        /*
+         * DE: Unbekannt
+         * FR: Inconnu
+         * IT: Sconosciuto
+         */
+        f632);
+
+      /*
+       * DE: Strassenbeleuchtung
+       * FR: Eclairage artificiel
+       * IT: Illuminazione artificiale della strada
+       */
+      RoadLighting = (
+        /*
+         * DE: Keine
+         * FR: Aucun
+         * IT: Nessuna
+         */
+        f640,
+        /*
+         * DE: Ausser Betrieb
+         * FR: Hors service
+         * IT: Fuori servizio
+         */
+        f641,
+        /*
+         * DE: Punktuell
+         * FR: En certains points
+         * IT: In certi punti
+         */
+        f642,
+        /*
+         * DE: Durchgehend
+         * FR: Permanent
+         * IT: Continua
+         */
+        f643,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f649);
+ 
+      /*
+       * DE: Strassenartzusatz
+       * FR: Genre de route complément
+       * IT: Genere di strada aggiunta
+       */
+      RoadTypExt = (
+        /*
+         * DE: Einfahrt Autobahn / -strasse
+         * FR: Entrée (semi-) autoroute
+         * IT: Entrata autostrada / semiautostrada
+         */
+        f440,
+        /*
+         * DE: Ausfahrt Autobahn / -strasse
+         * FR: Sortie (semi-) autoroute
+         * IT: Uscita autostrada / semiautostrada
+         */
+        f441,
+        /*
+         * DE: Rampe in Verzweigung
+         * FR: Rampe d'un échangeur
+         * IT: Rampa di entrata / uscita
+         */	
+        f442,
+        /*
+         * DE: Einbahnstrasse
+         * FR: Sens unique 
+         * IT: Strada a senso unico
+         */
+        f443,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f449);
+
+      /*
+       * DE: Höchstgeschwindigkeitzusatz
+       * FR: Vitesse maximale complément
+       * IT: Velocità massima aggiunta
+       */
+      MaximumSpeedExt = (
+        /*
+         * DE: Temporär
+         * FR: Temporaire
+         * IT: Temporanea
+         */
+        f470,
+        /*
+         * DE: Wechselsignalisation
+         * FR: Signalisation variable
+         * IT: Segnaletica variabile
+         */
+        f471,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f479);
+ 
+      /*
+       * DE: Unfallstellezusatz
+       * FR: Emplacement de l'accident complément
+       * IT: Luogo dell'incidente aggiunta
+       */
+      AccidentSceneExt = (
+        /*
+         * DE: Ein- / Ausfahrt Parkplatz / Liegenschaft
+         * FR: Entrée / sortie parking / bien foncier
+         * IT: Entrata/uscita parcheggio o immobile
+         */
+        f500,
+        /*
+         * DE: Einmündung Feldweg
+         * FR: Débouché d'un chemin rural
+         * IT: Sbocco strada campestre
+         */
+        f501,
+        /*
+         * DE: Einmündung Fussweg
+         * FR: Débouché d'une voie piétonne
+         * IT: Sbocco strada pedonale
+         */
+        f502,
+        /*
+         * DE: Einmündung Radweg
+         * FR: Débouché d'une piste
+         * IT: Cyclable sbocco pista ciclabile
+         */
+        f503,
+        /*
+         * DE: Pannenstreifen
+         * FR: Bande d'arrêt d'urgence
+         * IT: Corsia di emergenza
+         */
+        f504,
+        /*
+         * DE: Streifen in der Fahrbahnmitte
+         * FR: Bandes au centre de la voie
+         * IT: Linea tratteggiata centrale
+         */
+        f505,
+        /*
+         * DE: Radweg
+         * FR: Piste cyclable
+         * IT: Pista ciclabile
+         */
+        f506,
+        /*
+         * DE: Radstreifen
+         * FR: Bande cyclable
+         * IT: Corsia ciclabile
+         */
+        f507,
+        /*
+         * DE: Trottoir
+         * FR: Trottoir
+         * IT: Marciapiede
+         */
+        f508,
+        /*
+         * DE: Parkfeld
+         * FR: Aire de stationnement
+         * IT: Posto di parcheggio
+         */
+        f509,
+        /*
+         * DE: Verkehrsberuhigung
+         * FR: Modération du trafic
+         * IT: Moderazione del traffico
+         */
+        f510,
+ 
+        /*
+         * DE: Schutzinsel
+         * FR: Ilot
+         * IT: Banchina
+         */
+        f511,
+        /*
+         * DE: Fussgängerstreifen
+         * FR: Passage pour piétons
+         * IT: Strisce pedonali
+         */
+        f512,
+        /*
+         * DE: Haltestelle
+         * FR: Arrêt
+         * IT: Fermata
+         */
+        f513,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f519);
+
+      /*
+       * DE: Strassenzustandszusatz
+       * FR: Etat de la route complément
+       * IT: Stato della strada aggiunta
+       */
+      RoadConditionExt = (
+        /*
+         * DE: Ölig, schmierig
+         * FR: Flaque d'huile, glissante
+         * IT: Oleoso, sdrucciolevole
+         */
+        f530,
+        /*
+         * DE: Verschmutzt
+         * FR: Salie par de la boue
+         * IT: Sporco
+         */
+        f531,
+        /*
+         * DE: Rollsplitt / Sand
+         * FR: Gravillons / sable
+         * IT: Ghiaia / sabbia
+         */
+        f532,
+        /*
+         * DE: Reduzierter Winterdienst
+         * FR: Entretien hivernal réduit
+         * IT: Servizio d’assistenza invernale ridotto
+         */
+        f533,
+        /*
+         * DE: Schlaglöcher
+         * FR: Nids de poule
+         * IT: Presenza di buche
+         */
+        f534,
+        /*
+         * DE: Spurrinnen
+         * FR: Ornières
+         * IT: Solchi
+         */
+        f535,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f539);
+ 
+      /*
+       * DE: Strassenanlagezusatz
+       * FR: Tracé de la route complément
+       * IT: Tracciato della strada aggiunta
+       */
+      AlignmentExt = (
+        /*
+         * DE: Brücke / Überführung
+         * FR: Pont / passage supérieur
+         * IT: Ponte / cavalcavia
+         */
+        f560,
+        /*
+         * DE: Tunnel
+         * FR: Tunnel
+         * IT: Galleria
+         */
+        f561,
+        /*
+         * DE: Unterführung
+         * FR: Passage inférieur
+         * IT: Sottopassaggio
+         */
+        f562,
+        /*
+         * DE: Baustelle
+         * FR: Chantier
+         * IT: Cantiere
+         */
+        f563,
+        /*
+         * DE: Umleitung
+         * FR: Déviation
+         * IT: Deviazione
+         */
+        f564,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f569);
+
+      /*
+       * DE: Witterungszusatz
+       * FR: Conditions météorologiques complément
+       * IT: Condizioni meteorologiche aggiunta
+       */
+      AtmosphericConditionsExt = (
+        /*
+         * DE: Starker Wind
+         * FR: Vent fort
+         * IT: Forte vento
+         */
+        f590,
+        /*
+         * DE: Nebel
+         * FR: Brouillard
+         * IT: Nebbia
+         */
+        f591,
+        /*
+         * DE: Sonnenblendung
+         * FR: Eblouissement du soleil
+         * IT: Sole accecante
+         */
+        f592);
+ 
+      /*
+       * DE: Verkehrsregelungszusatz
+       * FR: Réglementation de la circulation complément
+       * IT: Regolazione del traffico aggiunta
+       */
+      TrafficRegulationExt = (
+        /*
+         * DE: LSA auf Anmeldung
+         * FR: Feux à la demande
+         * IT: Segnali luminosi a richiesta
+         */
+        f610);
+
+      /*
+       * DE: Bahnübergangzusatz
+       * FR: Passage à niveau complément
+       * IT: Passaggio a livello aggiunta
+       */
+      LevelCrossingExt = (
+        /*
+         * DE: Blinklicht nicht in Betrieb
+         * FR: Feux clignotants hors service
+         * IT: Luci lampeggianti fuori servizio
+         */
+        f540,
+        /*
+         * DE: Schranke offen
+         * FR: Barrières ouvertes
+         * IT: Barriere aperte
+         */
+        f541,
+        /*
+         * DE: Andere
+         * FR: Autre
+         * IT: Altro
+         */
+        f549);
+
+    /*
+     * DE: Strassenverkehrsunfallorte
+     * FR: Lieux des accidents de la circulation routière
+     * IT: Ubicazioni degli incidenti stradali
+     */
+    CLASS AccidentLocation =
+      /*
+       * DE: Unfalltyp	
+       * FR: Type d'accident
+       * IT: Tipo d'incidente
+       */
+      AccidentTyp            : MANDATORY  AccidentTyp;
+      /*
+       * DE: Unfalldatum
+       * FR: Date de l'accident
+       * IT: Data dell'incidente
+       */
+      AccidentDate    : MANDATORY  INTERLIS.XMLDate;
+      /*
+       * DE: Unfallzeit
+       * FR: Heure de l'accident
+       * IT: Ora dell'incidente
+       */
+      AccidentTime    : INTERLIS.XMLTime;
+      /*
+       * DE: Wochentag
+       * FR: Jour de la semaine
+       * IT: Giorno della settimana
+       */
+      WeekDay                : MANDATORY WeekDay;
+      /*
+       * DE: Sachschaden (in CHF)
+       * FR: Dommages matériels (en CHF)
+       * IT: Danni materiali (in CHF)
+       */
+      MaterialDamage         :            0 .. 9999999;
+ 
+      /*
+       * DE: Anzahl Objekte
+       * FR: Objets
+       * IT: Oggetti
+       */
+      TotalObjects          : MANDATORY 0 .. 999;
+      /*
+       * DE: Total Personen
+       * FR: Total des personnes
+       * IT: Totale persone coinvolte
+       */
+      TotalPersons          : MANDATORY 0 .. 999;
+      /*
+       * DE: Getötete
+       * FR: Tués
+       * IT: Persone decedute
+       */
+      TotalDeaths           : MANDATORY 0 .. 999;
+      /*
+       * DE: Schwerverletzte
+       * FR: Blessés graves
+       * IT: Feriti gravi
+       */
+      TotalSeverelyInjured  : MANDATORY 0 .. 999;
+      /*
+       * DE: Leichtverletzte
+       * FR: Blessés légers
+       * IT: Feriti leggeri
+       */
+      TotalSlightlyInjured  : MANDATORY 0 .. 999;
+      /*
+       * DE: Kanton
+       * FR: Canton
+       * IT: Cantone
+       */
+      Canton                : MANDATORY Canton;
+      /*
+       * DE: BFS-Gemeinde-Nr.
+       * FR: No OFS de la commune
+       * IT: N. UST Comune
+       */
+      FSOCommuneCode        : MANDATORY 1..9999;
+      /*
+       * DE: Situation
+       * FR: Situation
+       * IT: Situazione
+       */
+      Situation             : MANDATORY Situation;
+      /*
+       * DE: Koordinaten
+       * FR: Coordonnées
+       * IT: Coordinata
+       */
+      Coordinate            : MANDATORY Coord3;
+      /*
+       * DE: Achse
+       * FR: Axe
+       * IT: Asse
+       */
+      Axis                  :            TEXT*77;
+      /*
+       * DE: Sektor (Bezugspunkt)
+       * FR: Secteur (Point de repère)
+       * IT: Settore (Punto di riferimento)
+       */
+      Sector                :            TEXT*64;
+      /*
+       * DE: Distanz (u)
+       * FR: Distance (u)
+       * IT: Distanza (u)
+       */
+      U                      :            0.000 .. 9999999.999;
+ 
+      /*
+       * DE: Abstand (v)
+       * FR: Ecart (v)
+       * IT: Scarto (v)
+       */
+      V                      :            -9999999.999 .. 9999999.999;
+      /*
+       * DE: Höhe (w)
+       * FR: Hauteur (w)
+       * IT: Altezza (w)
+       */
+      W                      :            -999999.999 .. 999999.999;
+      /*
+       * DE: Achs-Datum
+       * FR: Date de l'axe
+       * IT: Data dell'asse
+       */
+      AxisDate              :            INTERLIS.XMLDate;
+      /*
+       * DE: Identifikator des Linearpunktes
+       * FR: Identifiant du point linéaire
+       * IT: Identificatore del punto lineare
+       */
+      LinearpointId          :            INTERLIS.UUIDOID;
+      /*
+       * DE: Strassenart
+       * FR: Genre de route
+       * IT: Genere di strada
+       */
+      RoadType              : MANDATORY RoadType;
+      /*
+       * DE: Verkehrsbedingungen
+       * FR: Intensité du trafic
+       * IT: Intensità del traffico
+       */
+      TrafficIntensity      : MANDATORY TrafficIntensity;
+      /*
+       * DE: Zonensignalisation
+       * FR: Signalisation par zone
+       * IT: Segnaletica per zone
+       */
+      ZoneSignalization      : MANDATORY ZoneSignalization;
+      /*
+       * DE: Höchstgeschwindigkeit
+       * FR: Vitesse maximale
+       * IT: Velocità massima
+       */
+      MaximumSpeed          : 0 .. 999;
+      /*
+       * DE: Unfallstelle
+       * FR: Emplacement de l'accident
+       * IT: Luogo dell'incidente
+       */
+      AccidentScene          : MANDATORY AccidentScene;
+      /*
+       * DE: Strassenzustand
+       * FR: Etat de la route
+       * IT: Stato della strada
+       */
+      RoadCondition          : MANDATORY RoadCondition;
+      /*
+       * DE: Strassenanlage
+       * FR: Tracé de la route
+       * IT: Tracciato della strada
+       */
+      Alignment              : MANDATORY Alignment;
+      /*
+       * DE: Witterung
+       * FR: Conditions météorologiques
+       * IT: Condizioni meteorologiche
+       */
+      AtmosphericConditions  : MANDATORY AtmosphericConditions;
+ 
+      /*
+       * DE: Verkehrsregelung
+       * FR: Réglementation de la circulation
+       * IT: Regolazione del traffico
+       */
+      TrafficRegulation      : MANDATORY TrafficRegulation;
+      /*
+       * DE: Vortrittsregelung
+       * FR: Réglementation de la priorité
+       * IT: Regolamentazione della precedenza
+       */
+      RightOfWayRegulation  : MANDATORY RightOfWayRegulation;
+      /*
+       * DE: Bahnübergang
+       * FR: Passage à niveau
+       * IT: Passaggio a livello
+       */
+      LevelCrossing          : MANDATORY LevelCrossing;
+      /*
+       * DE: Lichtverhältnis
+       * FR: Conditions lumineuses
+       * IT: Condizioni di luce
+       */
+      LightConditions        : MANDATORY LightConditions;
+      /*
+       * DE: Sicht
+       * FR: Visibilité
+       * IT: Visibilità
+       */
+      Visibility            : MANDATORY Visibility;
+      /*
+       * DE: Strassenbeleuchtung
+       * FR: Eclairage artificiel
+       * IT: Illuminazione artificiale della strada
+       */
+      RoadLighting          : MANDATORY RoadLighting;
+    END AccidentLocation;
+
+    /*
+     * DE: Strassenartzusatz (Mehrfachnennung)
+     * FR: Genre de route complément (mentions multiples)
+     * IT: Tipo di strada supplementare (scelta multipla) 
+     */
+    CLASS RoadTypeExtMultiResp =
+      /*
+       * DE: Strassenartzusatz
+       * FR: Genre de route complément
+       * IT: Genere di strada aggiunta
+       */
+      RoadType: MANDATORY RoadTypExt;
+    END RoadTypeExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zur 
+     *     Strassenart haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner
+     *     d’informations additionnelles sur le type de route
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni 
+     *     supplementari sul tipo di strada
+     */
+    ASSOCIATION AccidentLocation_RoadTypeExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rRoadTypeExtMultiResp -- {0..*} RoadTypeExtMultiResp;
+    END AccidentLocation_RoadTypeExtMultiResp;
+ 
+    /*
+     * DE: Höchstgeschwindigkeitszusatz (Mehrfachnennung)
+     * FR: Vitesse maximale complément (mentions multiples)
+     * IT: Velocità massima supplementare (scelta multipla)
+     */
+    CLASS MaximumSpeedExtMultiResp =
+      /*
+       * DE: Signalisation
+       * FR: Signalisation
+       * IT: Segnaletica
+       */		
+      MaximumSpeed: MANDATORY MaximumSpeedExt;
+    END MaximumSpeedExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zur 
+     *     Höchstgewschwindigkeit haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur la vitesse maximale
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sulla velocità massima
+     */
+    ASSOCIATION AccidentLocation_MaximumSpeedExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rMaximumSpeedExtMultiResp -- {0..*} MaximumSpeedExtMultiResp;
+    END AccidentLocation_MaximumSpeedExtMultiResp;
+
+    /*
+     * DE: Unfallstellezusatz (Mehrfachnennung)
+     * FR: Emplacement de l'accident complément (mentions multiples)
+     * IT: Luogo dell'incidente supplementare (scelta multipla)
+     */
+    CLASS AccidentSceneExtMultiResp =
+      /*
+       * DE: Unfallstellezusatz
+       * FR: Emplacement de l'accident complément
+       * IT: Luogo dell'incidente aggiunta
+       */
+      AccidentScene: MANDATORY AccidentSceneExt;
+    END AccidentSceneExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zur 
+     *     Unfallstelle haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur l’emplacement de l’accident
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sul luogo dell’incidente
+     */
+    ASSOCIATION AccidentLocation_AccidentSceneExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rAccidentSceneExtMultiResp -- {0..*} AccidentSceneExtMultiResp;
+    END AccidentLocation_AccidentSceneExtMultiResp;
+
+    /*
+     * DE: Strassenzustandszusatz (Mehrfachnennung)
+     * FR: Etat de la route complément (mentions multiples)
+     * IT: Stato della strada supplementare (scelta multipla)
+     */
+    CLASS RoadConditionExtMultiResp =
+      /*
+       * DE: Strassenzustandszusatz
+       * FR: Etat de la route complément	
+       * IT: Stato della strada aggiunta
+       */
+      RoadCondition: MANDATORY RoadConditionExt;
+    END RoadConditionExtMultiResp;
+ 
+
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zum 
+     *     Strassenzustand haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur l’état de la route
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sullo stato della strada
+     */
+    ASSOCIATION AccidentLocation_RoadConditionExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rRoadConditionExtMultiResp -- {0..*} RoadConditionExtMultiResp;
+    END AccidentLocation_RoadConditionExtMultiResp;
+
+    /*
+     * DE: Strassenanlagezusatz (Mehrfachnennung)
+     * FR: Tracé de la route complément (mentions multiples)
+     * IT: Tracciato della strada supplementare (scelta multipla)
+     */
+    CLASS AlignmentExtMultiResp =
+      /*
+       * DE: Strassenanlagezusatz
+       * FR: Tracé de la route complément
+       * IT: Tracciato della strada aggiunta
+       */
+      Alignment: MANDATORY AlignmentExt;
+    END AlignmentExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zur 
+     *     Strassenanlage haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur le tracé de la route
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sul tracciato della strada
+     */
+    ASSOCIATION AccidentLocation_AlignmentExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rAlignmentExtMultiResp -- {0..*} AlignmentExtMultiResp;
+    END AccidentLocation_AlignmentExtMultiResp;
+
+    /*
+     * DE: Witterungszusatz (Mehrfachnennung)
+     * FR: Conditions météorologiques complément (mentions multiples)
+     * IT: Condizioni meteorologiche supplementare (scelta multipla)
+     */
+    CLASS AtmosphericConditionsExtMultiResp =
+      /*
+       * DE: Witterungszusatz
+       * FR: Conditions météorologiques complément
+       * IT: Condizioni meteorologiche aggiunta
+       */
+      AtmosphericConditions: MANDATORY AtmosphericConditionsExt;
+    END AtmosphericConditionsExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zur Witterung haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur les conditions météorologiques
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sulle condizioni atmosferiche
+     */
+    ASSOCIATION AccidentLocation_AtmosphericConditionsExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rAtmosphericConditionsExtMultiResp -- 
+                               {0..*} AtmosphericConditionsExtMultiResp;
+    END AccidentLocation_AtmosphericConditionsExtMultiResp;
+ 
+    /*
+     * DE: Verkehrsregelungszusatz (Mehrfachnennung)
+     * FR: Réglementation de la circulation complément (mentions multiples)
+     * IT: Regolazione del traffico supplementare (scelta multipla)
+     */
+    CLASS TrafficRegulationExtMultiResp =
+      /*
+       * DE: Verkehrsregelungszusatz
+       * FR: Réglementation de la circulation complément
+       * IT: Regolazione del traffico aggiunta
+       */
+      TrafficRegulation: MANDATORY TrafficRegulationExt;
+    END TrafficRegulationExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen 
+     *     zur Verkehrsregelung haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur la réglementation du trafic
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari 
+     *     sulla regolazione del traffico
+     */
+    ASSOCIATION AccidentLocation_TrafficRegulationExtMultiResp =
+      rAccidentLocation -- {1} AccidentLocation;
+      rTrafficRegulationExtMultiResp -- {0..*} TrafficRegulationExtMultiResp;
+    END AccidentLocation_TrafficRegulationExtMultiResp;
+
+    /*
+     * DE: Bahnübergangzusatz (Mehrfachnennung)
+     * FR: Passage à niveau complément (mentions multiples)
+     * IT: Passaggio a livello supplementare (scelta multipla)
+     */
+    CLASS LevelCrossingExtMultiResp =
+      /*
+       * DE: Bahnübergangzusatz
+       * FR: Passage à niveau complément
+       * IT: Passaggio a livello aggiunta
+       */
+      RailwayCrossing: MANDATORY LevelCrossingExt;
+    END LevelCrossingExtMultiResp;
+    /*
+     * DE: Strassenverkehrsunfallorte können zusätzliche Informationen zum 
+     *     Bahnübergang haben
+     * FR: Les lieux des accidents de la circulation routière peuvent s’accompagner 
+     *     d’informations additionnelles sur les passages à niveau
+     * IT: Le ubicazioni degli incidenti stradali possono contenere informazioni supplementari
+     *     sui passaggi a livello
+     */
+    ASSOCIATION AccidentLocation_LevelCrossingExtMultiResp =
+      rAccidentLocation -- {1}    AccidentLocation;
+      rLevelCrossingExtMultiResp -- {0..*}  LevelCrossingExtMultiResp;
+    END AccidentLocation_LevelCrossingExtMultiResp;
+
+  END RoadTrafficAccidentLocation;                                                !! end topic
+
+END RoadTrafficAccidentLocation_V1.                                                  !! end model
+

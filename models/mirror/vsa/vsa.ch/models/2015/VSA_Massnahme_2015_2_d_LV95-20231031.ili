@@ -1,0 +1,94 @@
+!! VSA_Massnahme_2015_2_d_LV95-20231031.ili
+!! Erweitert VSA-DSS um die "Massnahmen" (VSA-Massnahme)
+
+INTERLIS 2.3;
+
+MODEL VSA_MASSNAHME_2015_LV95 (de) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  IMPORTS Units;
+  IMPORTS Base_LV95;
+  IMPORTS SIA405_Base_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Verband Schweizer Abwasser- und Gewässerschutzfachleute (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Freigegeben für öffentlichen Gebrauch und kommerzielle Anwendung"
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = "Geprüft mit Compiler Version 5.3.3 (03.08.2023)"
+
+!! 3.5.2016 MODEL neu VSA_MASSNAHME_2015 statt VSA_MASSNAHME
+!! 14.5.2021 Version _LV95 ergänzt
+
+!! 31.10.2023 Lizenzbestimmungen angepasst
+!! 31.10.2023 LV03 Version aufgehoben und entfernt, nur noch LV95
+
+
+UNIT
+!! Definition Datentypen nach INTERLIS 2.3
+
+TOPIC Massnahmenplan =
+
+
+DOMAIN
+
+
+CLASS Massnahme EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Massnahmen die im Rahmen des GEP erarbeitet wurden und Stand ihrer Umsetzung.
+  ATTRIBUTE
+    Bemerkung: TEXT*80;  !! Bemerkungen des Projektverfassers oder der Aufsichtsbehörde
+    Beschreibung: TEXT*100;
+    Bezeichnung: MANDATORY TEXT*20;
+    Datum_Eingang: INTERLIS_1_DATE;  !! Datum, an welchem die Massnahme in die Massnahmenliste aufgenommen wurde
+    Gesamtkosten: 0.00 .. 99999999.99 [Units.CHF];  !! Summe der Eigenleistung und Kosten Dritter. Allenfalls können diese zusätzlich auch separat ausgewiesen werden
+    Handlungsbedarf: MTEXT*255;  !! Kurzbeschreibung des Handlungsbedarfs
+    Jahr_Umsetzung_effektiv: SIA405_Base_LV95.Jahr;  !! Jahr, in dem die Massnahme effektiv umgesetzt wurde
+    Jahr_Umsetzung_geplant: SIA405_Base_LV95.Jahr;  !! Jahr bis die Massnahme umgesetzt sein soll
+    Kategorie: (          !! Massnahmenkategorie (obligatorisch)
+      administrative_Massnahme,
+      andere,
+      Aufhebung,
+      Bachrenaturierung,
+      Bachsanierung,
+      Datenmanagement,
+      Einstellung_anpassen_hydraulisch,
+      Fremdwasserreduktion,
+      GEP_Bearbeitung,
+      GEP_Vorbereitungsarbeiten,
+      Kontrolle_und_Ueberwachung,
+      Leitungsersatz_diverse_Gruende,
+      Leitungsersatz_hydraulisch,
+      Leitungsersatz_Zustand,
+      Netzerweiterung,
+      Sanierung_Kanal_Sonderbauwerke,
+      unbekannt
+    );
+    Perimeter:Base_LV95.Surface;  !! Für Visualisierung und Darstellung des räumlichen Bezugs (OPTIONAL);
+    Prioritaet: (          !! Priorität der Massnahme
+      M0,  !! Die Massnahme ist sehr dringend und kurzfristig auszuführen. Zeithorizont <= 2 Jahre
+      M1,  !! Die Massnahme ist dringend auszuführen. Zeithorizont 3-4 Jahre
+      M2,  !! Die Massnahme ist mittelfristig erforderlich. Zeithorizont 5-7 Jahre
+      M3,  !! Die Massnahme kann längerfristig geplant werden. Zeithorizont 7-10 Jahre
+      M4,  !! Die Massnahme kann bis zur nächsten GEP-Überarbeitung warten. Zeithorizont >= 10 Jahre
+      unbekannt
+    );
+    Status: (          !! Status der Massnahme
+      erledigt,
+      in_Bearbeitung,
+      pendent,
+      sistiert,
+      unbekannt
+    );
+    SymbolPos:Base_LV95.LKoord;  !! Für die Visualisierung (ohne räumlichen Bezug);
+    Traegerschaft: SIA405_Base_LV95.OrganisationBezeichnung;  !! Bezeichnung der Trägerschaft der Massnahme (Name, Gemeindenummer, ARANr, ...);
+    Verantwortlich_Ausloesung: SIA405_Base_LV95.OrganisationBezeichnung;  !! Verantwortliche Stelle für die Auslösung
+    Verweis: MTEXT*255;  !! Verweis auf andere Massnahmen (Bezeichnung)  oder Arbeiten, Hinweis auf Grundlagen in denen die Massnahmen näher erläutert werden, wie z.B. auf die entsprechenden GEP-Teilprojekte
+UNIQUE 
+    Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013)
+END Massnahme;
+
+
+END Massnahmenplan;   !! Ende des Topics / Fin du topic
+END VSA_MASSNAHME_2015_LV95.   !! Ende des Modells / Fin du modèle
+

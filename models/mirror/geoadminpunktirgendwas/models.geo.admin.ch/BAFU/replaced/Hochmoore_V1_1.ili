@@ -1,0 +1,202 @@
+INTERLIS 2.3;
+
+!! Version    | Who  | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-12-04 | BAFU | Korrektur in LV95: Attribut HM_TO gelöscht
+
+!!@ IDGeoIV=20.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Hochmoore_Codelisten_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-05-09"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /* Modell für externe Codelisten, die anschliessend importiert werden in die Modelle *_LV03* und *_LV95" */
+  TOPIC Codelisten =
+
+    CLASS HM_KE_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*7;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_KE_Catalogue;
+
+    CLASS Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Typ_Catalogue;
+
+    STRUCTURE HM_KE_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) HM_KE_Catalogue;
+    END HM_KE_CatRef;
+
+    STRUCTURE Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Typ_Catalogue;
+    END Typ_CatRef;
+
+  END Codelisten;
+
+END Hochmoore_Codelisten_V1_1.
+
+!!@ IDGeoIV=20.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Hochmoore_LV03_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-05-09"  =
+  IMPORTS GeometryCHLV03_V1,Hochmoore_Codelisten_V1_1;
+
+  TOPIC Hochmoore =
+    DEPENDS ON Hochmoore_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    /* Klasse für Hochmoor-Geometrieobjekt */
+    CLASS Hochmoor_Geometrie =
+      HM_KE : MANDATORY Hochmoore_Codelisten_V1_1.Codelisten.HM_KE_CatRef;
+      Typ : MANDATORY Hochmoore_Codelisten_V1_1.Codelisten.Typ_CatRef;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+      Einheit : MANDATORY 0..99;
+    END Hochmoor_Geometrie;
+
+    /* Klasse für Hochmoor-Teilobjekt */
+    CLASS Hochmoor_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+    END Hochmoor_Teilobjekt;
+
+    /* Klasse für gesamtes Hochmoor-Objekt */
+    CLASS Hochmoor =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END Hochmoor;
+
+    /* Klassenübergreifender Constraint für Eindeutigkeit */
+    VIEW vHM
+      JOIN OF Hochmoor_Teilobjekt,Hochmoor,Hochmoor_Geometrie; =
+      ATTRIBUTE
+        ALL OF Hochmoor_Teilobjekt;
+        ALL OF Hochmoor;
+		ALL OF Hochmoor_Geometrie;
+      UNIQUE ObjNummer,TeilObjNummer,Einheit;
+   END vHM;
+
+    ASSOCIATION AssociationDef194 =
+      Hochmoor_Geometrie -- {1..*} Hochmoor_Geometrie;
+      Hochmoor_Teilobjekt -<#> {1} Hochmoor_Teilobjekt;
+    END AssociationDef194;
+
+    ASSOCIATION AssociationDef180 =
+      Hochmoor_Teilobjekt -- {1..*} Hochmoor_Teilobjekt;
+      Hochmoor -<#> {1} Hochmoor;
+    END AssociationDef180;
+
+  END Hochmoore;
+
+END Hochmoore_LV03_V1_1.
+
+!!@ IDGeoIV=20.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Hochmoore_LV95_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-12-04"  =
+  IMPORTS GeometryCHLV95_V1,Hochmoore_Codelisten_V1_1;
+
+  TOPIC Hochmoore =
+    DEPENDS ON Hochmoore_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    /* Klasse für Hochmoor-Geometrieobjekt */
+    CLASS Hochmoor_Geometrie =
+      HM_KE : MANDATORY Hochmoore_Codelisten_V1_1.Codelisten.HM_KE_CatRef;
+      Typ : MANDATORY Hochmoore_Codelisten_V1_1.Codelisten.Typ_CatRef;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Einheit : MANDATORY 0..99;
+    END Hochmoor_Geometrie;
+
+    /* Klasse für Hochmoor-Teilobjekt */
+    CLASS Hochmoor_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+    END Hochmoor_Teilobjekt;
+
+    /* Klasse für gesamtes Hochmoor-Objekt */
+    CLASS Hochmoor =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END Hochmoor;
+
+    /* Klassenübergreifender Constraint für Eindeutigkeit */
+    VIEW vHM
+      JOIN OF Hochmoor_Teilobjekt,Hochmoor,Hochmoor_Geometrie; =
+      ATTRIBUTE
+        ALL OF Hochmoor_Teilobjekt;
+        ALL OF Hochmoor;
+		ALL OF Hochmoor_Geometrie;
+      UNIQUE ObjNummer,TeilObjNummer,Einheit;
+   END vHM;
+
+   ASSOCIATION AssociationDef194 =
+      Hochmoor_Geometrie -- {1..*} Hochmoor_Geometrie;
+      Hochmoor_Teilobjekt -<#> {1} Hochmoor_Teilobjekt;
+    END AssociationDef194;
+
+    ASSOCIATION AssociationDef180 =
+      Hochmoor_Teilobjekt -- {1..*} Hochmoor_Teilobjekt;
+      Hochmoor -<#> {1} Hochmoor;
+    END AssociationDef180;
+
+  END Hochmoore;
+
+END Hochmoore_LV95_V1_1.

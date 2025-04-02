@@ -1,0 +1,98 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Version    | Who   | Modification
+!! -----------------------------------------------------------------------------
+!! 2022-01-04 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!! 2020-10-21 | KOGIS | Extension of the abstract class NonVector_Base_LV95_V3_1.NonVector.Clipping (classes HomeAndServicesClipping and IndustryClipping added)
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL DistrictHeating_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2022-01-04"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,NonVector_Base_LV95_V3_1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Numeric = 0.00 .. 1000000000.00;
+    Text = TEXT*255;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC HeatDemandHomeAndServices
+  EXTENDS NonVector_Base_LV95_V3_1.NonVector =
+    OID AS INTERLIS.ANYOID;
+
+    CLASS HomeAndServicesClipping
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.Clipping =
+    END HomeAndServicesClipping;
+
+    CLASS HomeAndServicesDataset
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.NonVector_Dataset =
+      HomeAndServicesDescription : LocalisationCH_V1.MultilingualText;
+    END HomeAndServicesDataset;
+
+    CLASS HomeAndServicesGeoTIFF
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.ImageGraphicRasterObject =
+    END HomeAndServicesGeoTIFF;
+
+  END HeatDemandHomeAndServices;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC HeatDemandIndustry
+  EXTENDS NonVector_Base_LV95_V3_1.NonVector =
+    OID AS INTERLIS.ANYOID;
+
+    CLASS IndustryClipping
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.Clipping =
+    END IndustryClipping;
+
+    CLASS IndustryDataset
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.NonVector_Dataset =
+      IndustryDescription : LocalisationCH_V1.MultilingualText;
+    END IndustryDataset;
+
+    CLASS IndustryGeoTIFF
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.ImageGraphicRasterObject =
+    END IndustryGeoTIFF;
+
+  END HeatDemandIndustry;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC HeatSupplierCategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS HeatSupplierCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      HeatSupplierCategory : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HeatSupplierCategory;
+
+    STRUCTURE HeatSupplierCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HeatSupplierCategory;
+    END HeatSupplierCategoryRef;
+
+  END HeatSupplierCategoryCatalogue;
+
+  TOPIC HeatSupplier =
+    DEPENDS ON DistrictHeating_V1.HeatSupplierCategoryCatalogue;
+
+    CLASS HeatSupplier =
+      Name : DistrictHeating_V1.Text;
+      HeatPotential : DistrictHeating_V1.Numeric;
+      Position : MANDATORY GeometryCHLV95_V1.Coord2;
+      HeatSupplierCategory : MANDATORY DistrictHeating_V1.HeatSupplierCategoryCatalogue.HeatSupplierCategoryRef;
+    END HeatSupplier;
+
+  END HeatSupplier;
+
+END DistrictHeating_V1.

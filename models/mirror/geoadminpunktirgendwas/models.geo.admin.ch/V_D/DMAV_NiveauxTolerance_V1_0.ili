@@ -1,0 +1,64 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.11
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_NiveauxTolerance_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-09-20"
+  TRANSLATION OF DMAV_Toleranzstufen_V1_0 ["2024-09-20"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  TOPIC NiveauxTolerance =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS MiseAJourNT =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH110101: IdentDN, Identification;
+    END MiseAJourNT;
+
+    CLASS NiveauTolerance =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : TEXT*12;
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      NiveauTolerance : MANDATORY (
+        NT1,
+        NT2,
+        NT3,
+        NT4,
+        NT5
+      );
+      Fictif : MANDATORY BOOLEAN;
+    END NiveauTolerance;
+
+    ASSOCIATION Origine_NiveauTolerance =
+      Origine -- {1} MiseAJourNT;
+      NiveauTolerance_bientotcree -- {0..*} NiveauTolerance;
+    END Origine_NiveauTolerance;
+
+    ASSOCIATION Caducite_NiveauTolerance =
+      Caducite  -- {0..1} MiseAJourNT;
+      NiveauTolerance_bientotcaduc -- {0..*} NiveauTolerance;
+    END Caducite_NiveauTolerance;
+
+    VIEW NiveauTolerance_Valable
+      PROJECTION OF NT~NiveauTolerance;
+      WHERE
+        DEFINED(NT->Origine) AND NOT (DEFINED(NT->Caducite));
+      =
+      ALL OF NT;
+      SET CONSTRAINT CH110501:
+        INTERLIS.areAreas(ALL, UNDEFINED, >>Geometrie);
+    END NiveauTolerance_Valable;
+
+  END NiveauxTolerance;
+
+END DMAV_NiveauxTolerance_V1_0.

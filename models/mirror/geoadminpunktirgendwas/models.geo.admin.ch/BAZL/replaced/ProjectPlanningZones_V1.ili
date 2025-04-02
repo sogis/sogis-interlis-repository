@@ -1,0 +1,128 @@
+INTERLIS 2.3;
+
+/** ####################################################
+ * # DE: Minimales Geodatenmodell "Projektierungszonen"#
+ * # FR: Modèle de géodonnées minimal "Zones réservées"#
+ * #####################################################
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 64)
+!! 2016-04-15 | KOGIS | Geometry definition adapted (line 71)
+
+!!@ technicalContact = mailto:gis@bazl.admin.ch
+!!@ IDGeoIV = "103.1"
+!!@ furtherInformation = http://www.bazl.admin.ch/geoinformation
+MODEL ProjectPlanningZones_V1 (en)
+AT "http://www.bazl.admin.ch" VERSION "2016-04-15"  =
+
+  IMPORTS UNQUALIFIED INTERLIS; 
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;  !! Part   I of CHBase
+  IMPORTS LocalisationCH_V1;              !! Part  II of CHBase
+  IMPORTS CatalogueObjects_V1;            !! Part III of CHBase
+  IMPORTS WithLatestModification_V1;      !! Part   V of CHBase
+
+  /** DE: Thema mit Definition des Katalogs für Projektierungszonenarten
+   * FR: Thème avec définition du catalogue des genres de zones réservées
+   */
+  TOPIC Catalogue_ProjectPlanningZones
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Projektierungszonenarten
+     * FR: Catalogue des genres de zones réservées
+     */
+    CLASS ZoneKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator der Projektierungszonenart (Format: IDGeoIV + "-" + zweistellige Laufnummer)
+       * FR: Identificateur du genre de zone réservée (Format: IDGeoIV + "-" + numéro d'ordre à deux chiffres)
+       */
+      KindID : MANDATORY TEXT*6;
+      /** DE: Sprachspezifischer Katalogeintrag (de, fr, it, rm, en)
+       * FR: Entrée du catalogue dans une langue spécifique (de, fr, it, rm, en)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ZoneKind;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Projektierungszonenarten
+     * FR: Structure de référencement du catalogue des genres de zones réservées
+     */
+    STRUCTURE ZoneKind_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** DE: Referenz zum Katalog der Projektierungszonenarten
+       * FR: Référence au catalogue des genres de zones réservées
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) ZoneKind;
+    END ZoneKind_CatalogueReference;
+
+  END Catalogue_ProjectPlanningZones;
+
+  /** DE: Thema mit Definition von Projektierungszonen
+   * FR: Thème avec définition des zones réservées
+   */
+  TOPIC ProjectPlanningZones_WithLatestModification =
+    DEPENDS ON ProjectPlanningZones_V1.Catalogue_ProjectPlanningZones,CatalogueObjects_V1.Catalogues;
+
+    DOMAIN
+
+      /** DE: Einzelflächen aus Geraden und Kreisbögen mit zulässiger Selbstschnitt-Pfeilhöhe von 0.050m
+       * FR: Surfaces indépendantes formées de segments de droite ou d'arcs de cercle et dont le recoupement admissible est de 0,05 m
+       */
+      SurfaceWithOverlaps5cm = SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.050;
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Projektierungszonen zur vorsorglichen Freihaltung des Raumes für künftige Anlagen
+     * FR: Zones réservées en vue d’assurer la libre disposition des terrains nécessaires à l'aménagement futur d'installations
+     */
+    CLASS ProjectPlanningZone =
+      /** DE: Globaler Identifikator der Projektierungszone
+       * FR: Identification globale de zone réservée
+       */
+      Identifier : MANDATORY TEXT*40;
+      /** DE: Mehrsprachige Bezeichnung einer Projektierungszone
+       * FR: Désignation multilinguale d'une zone réservée
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Flächengeometrie der Projektierungszone
+       * FR: Géométrie surfacique de la zone réservée
+       */
+      Perimeter : MANDATORY SurfaceWithOverlaps5cm;
+      /** DE: Projektierungszonenart
+       * FR: Genre de zone réservée
+       */
+      Kind : MANDATORY ProjectPlanningZones_V1.Catalogue_ProjectPlanningZones.ZoneKind_CatalogueReference;
+      /** DE: Name des Gesuchstellers (z.B. Anlagebetreiber, Behörde)
+       * FR: Nom du requérant (p. ex. exploitant de l'installation, autorité)
+       */
+      Applicant : MANDATORY TEXT*60;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Modification : MANDATORY ModificationInfo;
+      /** DE: Festgelegte Dauer der öffentlich-rechtlichen Eigentumsbeschränkung (ÖREB)
+       * FR: Durée établie de restriction de droit public à la propriété foncière (cadastre RDPPF)
+       */
+      DurationOfEffect : MANDATORY 1 .. 8;
+      /** DE: Weblink auf die zugehörige Rechtsvorschrift (Verfügung)
+       * FR: Lien Internet vers la prescritpion légale associée (décision)
+       */
+      LegalRegulationLink : MANDATORY URI;
+      /** DE: Sprachspezifische bzw. mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans une ou plusieurs langues spécifiques (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für Zonenidentifikator
+       * FR: Condition d'unicité de l'identification des zones
+       */
+      UNIQUE Identifier;
+    END ProjectPlanningZone;
+
+  END ProjectPlanningZones_WithLatestModification;
+
+END ProjectPlanningZones_V1.

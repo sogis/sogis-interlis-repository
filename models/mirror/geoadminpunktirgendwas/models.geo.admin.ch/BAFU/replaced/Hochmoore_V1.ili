@@ -1,0 +1,101 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (line 43),
+!!                      Property EXTERNAL added (line 32, 37)
+
+!!@ IDGeoIV=20.1
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Hochmoore_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-05-26"  =
+  IMPORTS GeometryCHLV03_V1,Units,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS HM_KE_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_KE_Catalogue;
+
+    CLASS HM_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_Typ_Catalogue;
+
+    STRUCTURE HM_KE_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) HM_KE_Catalogue;
+    END HM_KE_CatRef;
+
+    STRUCTURE HM_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) HM_Typ_Catalogue;
+    END HM_Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC Hochmoore =
+    DEPENDS ON Hochmoore_V1.Codelisten;
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    CLASS Hochmoor_Geometrie =
+      HM_KE : MANDATORY Hochmoore_V1.Codelisten.HM_KE_CatRef;
+      HM_Typ : MANDATORY Hochmoore_V1.Codelisten.HM_Typ_CatRef;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+    END Hochmoor_Geometrie;
+
+    CLASS Hochmoor_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT;
+      HM_TO : MANDATORY 0 .. 999999;
+    END Hochmoor_Teilobjekt;
+
+    CLASS Hochmoor =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+    END Hochmoor;
+
+    ASSOCIATION AssociationDef194 =
+      Hochmoor_Geometrie -- {1..*} Hochmoor_Geometrie;
+      Hochmoor_Teilobjekt -<#> {1} Hochmoor_Teilobjekt;
+    END AssociationDef194;
+
+    ASSOCIATION AssociationDef180 =
+      Hochmoor_Teilobjekt -- {1..*} Hochmoor_Teilobjekt;
+      Hochmoor -<#> {1} Hochmoor;
+    END AssociationDef180;
+
+  END Hochmoore;
+
+END Hochmoore_V1.

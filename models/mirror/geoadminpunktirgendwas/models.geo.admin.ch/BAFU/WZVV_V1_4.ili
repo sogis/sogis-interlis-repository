@@ -1,0 +1,115 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU  | Attribute DesignatType und IUCNCategory in Klasse WZVV_Teilobjekt verschoben, Constraints in Klasse WZVV_Teilobjekt definiert,
+!!                    | Attribut Schutzebene in Klasse WZVV ergänzt, UNIQUE-Constraint (klassenübergreifend) für ObjNummer und TeilObjNummer eingfügt,
+!!                    | Datentyp der Attribute TeilObjNummer, ObjNummer und Name angepasst, LV03 gelöscht
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=171.1
+MODEL WZVV_V1_4 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-06-02"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Schutzkategorie_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*18;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schutzkategorie_Catalogue;
+
+    STRUCTURE Schutzkategorie_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Schutzkategorie_Catalogue;
+    END Schutzkategorie_CatRef;
+
+    CLASS Schutzebene_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schutzebene_Catalogue;
+
+    STRUCTURE Schutzebene_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Schutzebene_Catalogue;
+    END Schutzebene_CatRef;
+
+  END Codelisten;
+
+  TOPIC WZVV =
+    DEPENDS ON WZVV_V1_4.Codelisten;
+
+    DOMAIN
+
+      /** Aufzählungslisten */
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /** Klasse für die Schutzgebiet-Teilobjekte */
+    CLASS WZVV_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      Schutzkategorie : MANDATORY WZVV_V1_4.Codelisten.Schutzkategorie_CatRef;
+      DesignatType : DesignationType;
+      IUCNCategory : IUCNCategory;
+      Teilgebiet : MANDATORY TEXT*4;
+      Geo_Obj : MANDATORY MultiPolygon;
+    /** Für Gebiete im Schutzperimeter ist die Angabe obligatorisch mit Ausnahme der Gebiete mit Schutzkategorie «Wildschadenperimeter» (= 50), sie erhalten keinen Eintrag */
+    MANDATORY CONSTRAINT NOT (Schutzkategorie->Reference->Code != "Schutzkategorie50") OR DEFINED (DesignatType);
+    MANDATORY CONSTRAINT NOT (Schutzkategorie->Reference->Code != "Schutzkategorie50") OR DEFINED (IUCNCategory);
+    END WZVV_Teilobjekt;
+
+    /** Klasse für das gesamte Wasser- und Zugvogelreservat */
+    CLASS WZVV =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      Schutzebene : MANDATORY WZVV_V1_4.Codelisten.Schutzebene_CatRef;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+    END WZVV;
+
+    ASSOCIATION WZVV_TeilobjektWZVV =
+      WZVV_Teilobjekt -- {1..*} WZVV_Teilobjekt;
+      WZVV -<#> {1} WZVV;
+    END WZVV_TeilobjektWZVV;
+
+    /** Klassenübergreifender Constraint für Eindeutigkeit */
+    CONSTRAINTS OF WZVV_Teilobjekt =
+      UNIQUE TeilObjNummer, WZVV->ObjNummer;
+    END;
+
+  END WZVV;
+
+END WZVV_V1_4.
