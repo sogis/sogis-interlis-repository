@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id "ch.so.agi.interlis-repository-creator" version "1.4.39"
+    id "ch.so.agi.interlis-repository-creator" version "2.0.55"
 }
 
 /*
@@ -50,10 +50,11 @@ Application-name: sogis-interlis-repository
 tasks.register('createIliModelsXml', ModelRepositoryCreator) {
     group = GROUP
     description = "Create ilimodels.xml file."
-    modelsDir = file("models/")
-    dataFile = "ilimodels.xml"
+    modelsDirectory = file("models/")
+    dataFile = file("ilimodels.xml")
     ilismeta = true
-    modelRepos = "models-ext/;https://models.geo.admin.ch;https://models.kgk-cgc.ch/;https://vsa.ch/models;https://405.sia.ch/models" // https://models.interlis.ch/;
+    modelRepos = "models-ext/;https://models.geo.admin.ch;https://models.kgk-cgc.ch/;https://vsa.ch/models;https://405.sia.ch/models"
+    ignoredDirectories = "mirror"
 }
 createIliModelsXml.configure { finalizedBy versionTxt }
 
@@ -92,8 +93,8 @@ tasks.register('createIliModelsHtml', JavaExec) {
 tasks.register('createConfigDataXml', ConfigDataRepositoryCreator) {
     group = GROUP
     description = "Create ilivalidator config ilidata.xml file."
-    configDir = file("models/")
-    dataFile = "ilidata.xml"
+    configDirectory = file("models/")
+    dataFile = file("ilidata.xml")
     owner = 'mailto:agi@bd.so.ch'
 }
 
@@ -190,3 +191,20 @@ task checkInterlisRepository() {
     }
 }
 */
+
+// syntax
+def repos = ["interlis.ch":"https://models.interlis.ch", "kgk":"https://models.kgk-cgc.ch"]
+repos.each { k, v ->
+    tasks.register("cloneRepo_${k}", JavaExec) {
+        classpath = buildscript.configurations.classpath
+        main = 'ch.interlis.ili2c.Main'
+        args  "--out", "mysupermirror/${k}", "--clone-repos", "${v}"
+    }
+}
+
+tasks.register('cloneRepos') {
+    dependsOn {
+        tasks.findAll { task -> task.name.startsWith('cloneRepo_') }
+    }
+}
+
