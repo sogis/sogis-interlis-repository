@@ -1,0 +1,2366 @@
+INTERLIS 2.3;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Datenmodell 2001 der Amtlichen Vermessung "Bund" (DM.01-AV-CH)
+!! beschrieben in INTERLIS Version 2.3 (SN 612031)
+!!
+!! Bundesamt fuer Landestopographie (L+T)
+!! Eidg. Vermessungsdirektion (V+D)
+!! CH-3084 Wabern
+!!
+!! Version: 01 deutsch (basierend auf DM.01-AV-CH Version 24D)
+!! Dateiname: DM.01-AV-CH_LV03_24d_ili2.ili
+!!
+!! Das vorliegende Datenmodell gilt fuer den Bezugsrahmen "Landesvermessung 1903
+!! (LV03)". Fuer den Bezugsrahmen "Landesvermessung 1995 (LV95)" existiert ein
+!! Datenmodell DM.01-AV-CH-LV95, das sich von vorliegenden Datenmodell einzig in
+!! der DOMAIN (Koordinatenbereich) unterscheidet.
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2018-02-16 | KOGIS | WITHOUT OVERLAPS corrected (TOPIC PLZOrtschaft and TOPIC Gebaeudeadressen)
+!! 2020-04-28 | KOGIS | Constraint in ASSOCIATION EingangLokalisationBez corrected (#keineNummern)
+
+!!@ technicalContact = mailto:infovd@swisstopo.ch
+!!@ furtherInformation = https://www.cadastre.ch/de/manual-av/method/modell.html
+CONTRACTED MODEL DM01AVCH24D_ili2 (de) AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2020-04-28" =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+  OBJECTS OF GeoCartesian2D : CHLV03
+  OBJECTS OF GeoHeight : SwissOrthometricAlt;
+
+
+  DOMAIN
+
+    LKoord = COORD
+      480000.000 .. 850000.000 [m] {CHLV03[1]},
+       70000.000 .. 310000.000 [m] {CHLV03[2]},
+      ROTATION 2 -> 1;
+
+    HKoord = COORD
+      480000.000 .. 850000.000 [m] {CHLV03[1]},
+       70000.000 .. 310000.000 [m] {CHLV03[2]},
+        -200.000 ..   5000.000 [m] {SwissOrthometricAlt[1]},
+      ROTATION 2 -> 1;
+
+    NameTyp = TEXT*30;
+
+    NummerTyp = TEXT*12;
+    NBNummer = TEXT*12;
+
+    Zuverlaessigkeit = BOOLEAN;
+      !! True = genuegend
+      !! False = ungenuegend
+
+    Status = (
+      projektiert,
+      gueltig:FINAL);
+
+    Hoehe = -200.000 .. 5000.000 [m];
+
+    Genauigkeit = 0.0 .. 700.0 [Units.cm];
+
+    Rotation = 0.0 .. 399.9 [Units.Gon];
+
+    Qualitaetsstandard = (
+      AV93,
+      PV74,
+      PN,
+      PEP, !! Provisorischen Ersatzprodukte
+      weitere:FINAL);
+
+    Versicherungsart = (
+      Stein,
+      Kunststoffzeichen,
+      Bolzen,
+      Rohr,
+      Pfahl,
+      Kreuz,
+      unversichert,
+      weitere:FINAL);
+
+    Status_GA = ( !! Fuer Gebaeudeadressen, siehe SN 612040
+      projektiert,    !! neues Objekt, in Bearbeitung
+                      !! Zustand zufaellig
+      real,           !! Objekt existiert real
+      vergangen:FINAL);     !! Objekt existiert nicht mehr
+
+    Sprachtyp = ( !! Fuer Gebaeudeadressen, siehe SN 612040
+      de,  !! deutsch
+      fr,  !! francais
+      it,  !! italiano
+      rm,  !! rumantsch
+      en:FINAL);  !! english
+
+    Schriftgroesse = (
+      klein,
+      mittel,
+      gross:FINAL);
+
+    Schriftstil = (
+      normal,
+      gesperrt,
+      weitere:FINAL);
+
+    UUIDOID = OID TEXT*36;  !! gemäss ISO 11578
+
+!! Die OIDs kennzeichnen ein Objekt innerhalb der Transfergemeinschaft
+!! eindeutig und zeitunabhängig. Die OID eines gelöschten Objektes darf
+!! nicht mehr verwendet werden. Der OID kennzeichnet das Datenobjekt und
+!! nicht das Realweltobjekt, d.h. dasselbe Realweltobjekt kann mehrfach
+!! erfasst werden (zum selben Datenmodell), es entstehen somit mehrere
+!! Datenobjekte mit je unterschiedlicher OID.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! FUNCTION
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  FUNCTION CoordIn
+             (Punkt: LKoord;
+              Flaeche: SURFACE): BOOLEAN
+     // Gibt true zurueck, falls Punkt vollständig innerhalb Flaeche liegt //;
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!!                TOPIC
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  TOPIC FixpunkteKategorie1 =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS LFP1Nachfuehrung=
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END LFP1Nachfuehrung;
+
+    !! Ist der LFP1 auch Hoheitsgrenzpunkt, so muss Punktzeichen
+    !! angegeben werden, da dieser Punkt in
+    !! Gemeindegrenzen.Hoheitsgrenzpunkt kopiert wird.
+    CLASS LFP1 =
+      NBIdent: MANDATORY NBNummer; !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer: MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom: Hoehe;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      HoeheGen : Genauigkeit;
+      HoeheZuv : Zuverlaessigkeit;
+      Begehbarkeit : MANDATORY (
+          begehbar,
+          nicht_begehbar:FINAL);
+      Punktzeichen: Versicherungsart; !! Nur unversichert nicht zugelassen
+      MANDATORY CONSTRAINT ((NOT (DEFINED (Punktzeichen)) OR Punktzeichen <> #unversichert));
+    UNIQUE NBIdent, Nummer;
+    END LFP1;
+
+    ASSOCIATION LFP1Bez =
+      Entstehung -- {1} LFP1Nachfuehrung;
+      Von_Punkte -- {0..*} LFP1;
+    END LFP1Bez;
+
+    CLASS LFP1Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END LFP1Pos;
+
+    ASSOCIATION LFP1PosBez =
+      LFP1Pos_von -<#> {1} LFP1;
+      Pos -- {1} LFP1Pos;
+    END LFP1PosBez;
+
+    CLASS LFP1Symbol =
+      Ori: Rotation; !! undefiniert = 0.0
+    END LFP1Symbol;
+
+    ASSOCIATION LFP1SymbolBez =
+      LFP1Symbol_von -<#> {1} LFP1;
+      Symbol-- {0..1} LFP1Symbol;
+    END LFP1SymbolBez;
+
+    CLASS HFP1Nachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END HFP1Nachfuehrung;
+
+    CLASS HFP1 =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer : MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom : MANDATORY Hoehe;
+      LageGen: Genauigkeit;
+      LageZuv: Zuverlaessigkeit;
+      HoeheGen : MANDATORY Genauigkeit;
+      HoeheZuv : MANDATORY Zuverlaessigkeit;
+    UNIQUE NBIdent, Nummer;
+    UNIQUE Geometrie;
+    END HFP1;
+
+    ASSOCIATION HFP1Bez =
+      Entstehung -- {1} HFP1Nachfuehrung;
+      Von_Punkte -- {0..*} HFP1;
+    END HFP1Bez;
+
+    CLASS HFP1Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END HFP1Pos;
+
+    ASSOCIATION HFP1PosBez =
+      HFP1Pos_von -<#> {1} HFP1;
+      Pos -- {1} HFP1Pos;
+    END HFP1PosBez;
+
+  END FixpunkteKategorie1;
+
+
+
+  TOPIC FixpunkteKategorie2 =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS LFP2Nachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END LFP2Nachfuehrung;
+
+    !! Ist der LFP2 auch Hoheitsgrenzpunkt, so muss Punktzeichen
+    !! angegeben werden, da dieser Punkt in
+    !! Gemeindegrenzen.Hoheitsgrenzpunkt kopiert wird.
+    CLASS LFP2 =
+      NBIdent: MANDATORY NBNummer; !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer: MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom: Hoehe;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      HoeheGen : Genauigkeit;
+      HoeheZuv : Zuverlaessigkeit;
+      Begehbarkeit : MANDATORY (
+          begehbar,
+          nicht_begehbar:FINAL);
+      Punktzeichen: Versicherungsart;
+      MANDATORY CONSTRAINT ((NOT (DEFINED (Punktzeichen)) OR Punktzeichen <> #unversichert));
+    UNIQUE NBIdent, Nummer;
+    END LFP2;
+
+    ASSOCIATION LFP2Bez =
+      Entstehung -- {1} LFP2Nachfuehrung;
+      Von_Punkte -- {0..*} LFP2;
+    END LFP2Bez;
+
+    CLASS LFP2Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END LFP2Pos;
+
+    ASSOCIATION LFP2PosBez =
+      LFP2Pos_von -<#> {1} LFP2;
+      Pos -- {1} LFP2Pos;
+    END LFP2PosBez;
+
+    CLASS LFP2Symbol=
+      Ori: Rotation; !! undefiniert = 0.0
+    END LFP2Symbol;
+
+    ASSOCIATION LFP2SymbolBez =
+      LFP2Symbol_von -<#> {1} LFP2;
+      Symbol-- {0..1} LFP2Symbol;
+    END LFP2SymbolBez;
+
+    CLASS HFP2Nachfuehrung=
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END HFP2Nachfuehrung;
+
+    CLASS HFP2 =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer : MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom : MANDATORY Hoehe;
+      LageGen: Genauigkeit;
+      LageZuv: Zuverlaessigkeit;
+      HoeheGen : MANDATORY Genauigkeit;
+      HoeheZuv : MANDATORY Zuverlaessigkeit;
+    UNIQUE NBIdent, Nummer;
+    UNIQUE Geometrie;
+    END HFP2;
+
+    ASSOCIATION HFP2Bez =
+      Entstehung -- {1} HFP2Nachfuehrung;
+      Von_Punkte -- {0..*} HFP2;
+    END HFP2Bez;
+
+    CLASS HFP2Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END HFP2Pos;
+
+    ASSOCIATION HFP2PosBez =
+      HFP2Pos_von -<#> {1} HFP2;
+      Pos -- {1} HFP2Pos;
+    END HFP2PosBez;
+
+  END FixpunkteKategorie2;
+
+
+
+  TOPIC FixpunkteKategorie3 =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS LFP3Nachfuehrung=
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END LFP3Nachfuehrung;
+
+    CLASS LFP3=
+      NBIdent: MANDATORY NBNummer; !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer: MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom: Hoehe;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      HoeheGen : Genauigkeit;
+      HoeheZuv : Zuverlaessigkeit;
+      Punktzeichen: MANDATORY Versicherungsart;
+      Protokoll: MANDATORY BOOLEAN;
+      MANDATORY CONSTRAINT Punktzeichen != #unversichert;
+    UNIQUE NBIdent, Nummer;
+    UNIQUE Geometrie;
+    END LFP3;
+
+    ASSOCIATION LFP3Bez =
+      Entstehung -- {1} LFP3Nachfuehrung;
+      Von_Punkte -- {0..*} LFP3;
+    END LFP3Bez;
+
+    CLASS LFP3Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END LFP3Pos;
+
+    ASSOCIATION LFP3PosBez =
+      LFP3Pos_von -<#> {1} LFP3;
+      Pos -- {1} LFP3Pos;
+    END LFP3PosBez;
+
+    CLASS LFP3Symbol =
+      Ori: Rotation; !! undefiniert = 0.0
+    END LFP3Symbol;
+
+    ASSOCIATION LFP3SymbolBez =
+      LFP3Symbol_von -<#> {1} LFP3;
+      Symbol-- {0..1} LFP3Symbol;
+    END LFP3SymbolBez;
+
+    CLASS HFP3Nachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END HFP3Nachfuehrung;
+
+    CLASS HFP3 =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer : MANDATORY NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      HoeheGeom : MANDATORY Hoehe;
+      LageGen: Genauigkeit;
+      LageZuv: Zuverlaessigkeit;
+      HoeheGen : MANDATORY Genauigkeit;
+      HoeheZuv : MANDATORY Zuverlaessigkeit;
+    UNIQUE NBIdent, Nummer;
+    UNIQUE Geometrie;
+    END HFP3;
+
+    ASSOCIATION HFP3Bez =
+      Entstehung -- {1} HFP3Nachfuehrung;
+      Von_Punkte -- {0..*} HFP3;
+    END HFP3Bez;
+
+    CLASS HFP3Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END HFP3Pos;
+
+    ASSOCIATION HFP3PosBez =
+      HFP3Pos_von -<#> {1} HFP3;
+      Pos -- {1} HFP3Pos;
+    END HFP3PosBez;
+
+  END FixpunkteKategorie3;
+
+
+
+  TOPIC Bodenbedeckung =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      BBArt = (
+        Gebaeude,
+        befestigt (
+          Strasse_Weg,
+          Trottoir,
+          Verkehrsinsel,
+          Bahn,
+          Flugplatz,
+          Wasserbecken,
+          uebrige_befestigte:FINAL),
+        humusiert (
+          Acker_Wiese_Weide,
+          Intensivkultur (
+            Reben,
+            uebrige_Intensivkultur:FINAL),
+          Gartenanlage,
+          Hoch_Flachmoor,
+          uebrige_humusierte:FINAL),
+        Gewaesser (
+          stehendes,
+          fliessendes,
+          Schilfguertel:FINAL),
+        bestockt (
+          geschlossener_Wald,
+          Wytweide (  !! Wytweide = bestockte Weide, Erklaerungen Kap. 3.4
+            Wytweide_dicht,
+            Wytweide_offen:FINAL),
+          uebrige_bestockte:FINAL),
+        vegetationslos (
+          Fels,
+          Gletscher_Firn,
+          Geroell_Sand,
+          Abbau_Deponie,
+          uebrige_vegetationslose:FINAL):FINAL);
+
+    CLASS BBNachfuehrung=
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.050;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END BBNachfuehrung;
+
+    CLASS ProjBoFlaeche =
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.050;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art: MANDATORY BBArt;
+    END ProjBoFlaeche;
+
+    ASSOCIATION ProjBoFlaecheBez =
+        Entstehung -- {1} BBNachfuehrung;
+        Von_ProjBoFlaeche -- {0..*} ProjBoFlaeche;
+      MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #projektiert;
+    END ProjBoFlaecheBez;
+
+    CLASS ProjGebaeudenummer =
+        Nummer: MANDATORY NummerTyp;  !! Vergabe durch Kanton (bzw. Gemeinde)
+        !! GWR_EGID falls die Definition der Gebaeude mit jener des
+        !! BFS uebereinstimmt
+        GWR_EGID: 1 .. 999999999;
+    END ProjGebaeudenummer;
+
+    ASSOCIATION ProjGebaeudenummerBez =
+        ProjGebaeudenummer_von -<#> {1} ProjBoFlaeche;
+        Nummer -- {0..*} ProjGebaeudenummer;
+      MANDATORY CONSTRAINT ProjGebaeudenummer_von->Art == #Gebaeude;
+    END ProjGebaeudenummerBez;
+
+    CLASS ProjGebaeudenummerPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ProjGebaeudenummerPos;
+
+    ASSOCIATION ProjGebaeudenummerPosBez =
+        ProjGebaeudenummerPos_von -<#> {1} ProjGebaeudenummer;
+        Pos -- {0..*} ProjGebaeudenummerPos;
+    END ProjGebaeudenummerPosBez;
+
+    CLASS ProjObjektname =
+        Name: MANDATORY NameTyp;
+    END ProjObjektname;
+
+    ASSOCIATION ProjObjektnameBez =
+        ProjObjektname_von -<#> {1} ProjBoFlaeche;
+        Name -- {0..*} ProjObjektname;
+    END ProjObjektnameBez;
+
+    CLASS ProjObjektnamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet Name :
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ProjObjektnamePos;
+
+    ASSOCIATION ProjObjektnamePosBez =
+        ProjObjektnamePos_von -<#> {1} ProjObjektname;
+        Pos -- {0..*} ProjObjektnamePos;
+    END ProjObjektnamePosBez;
+
+    CLASS ProjBoFlaecheSymbol =
+      !! siehe auch Bemerkungen zu BoFlaecheSymbol
+        Pos: MANDATORY LKoord;
+        Ori: Rotation; !! undefiniert = 0.0
+    END ProjBoFlaecheSymbol;
+
+    ASSOCIATION ProjBoFlaecheSymbolBez =
+        ProjBoFlaecheSymbol_von -<#> {1} ProjBoFlaeche;
+        Symbol -- {0..*} ProjBoFlaecheSymbol;
+      MANDATORY CONSTRAINT CoordIn(Symbol->Pos, ProjBoFlaecheSymbol_von->Geometrie);
+    END ProjBoFlaecheSymbolBez;
+
+    CLASS BoFlaeche =
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.050;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art: MANDATORY BBArt;
+    END BoFlaeche;
+
+    ASSOCIATION BoFlaecheBez =
+        Entstehung -- {1} BBNachfuehrung;
+        Von_BoFlaeche -- {0..*} BoFlaeche;
+      MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #gueltig;
+    END BoFlaecheBez;
+
+    CLASS Gebaeudenummer =
+        Nummer: MANDATORY NummerTyp;
+        !! GWR_EGID falls die Definition der Gebaeude mit jener des
+        !! BFS uebereinstimmt
+        GWR_EGID: 1 .. 999999999;
+    END Gebaeudenummer;
+
+    ASSOCIATION GebaeudenummerBez =
+        Gebaeudenummer_von -<#> {1} BoFlaeche;
+        Nummer -- {0..*} Gebaeudenummer;
+      MANDATORY CONSTRAINT Gebaeudenummer_von->Art == #Gebaeude;
+    END GebaeudenummerBez;
+
+    CLASS GebaeudenummerPos=
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END GebaeudenummerPos;
+
+    ASSOCIATION GebaeudenummerPosBez =
+        GebaeudenummerPos_von -<#> {1} Gebaeudenummer;
+        Pos -- {0..*} GebaeudenummerPos;
+    END GebaeudenummerPosBez;
+
+    CLASS Objektname =
+        Name: MANDATORY NameTyp;
+    END Objektname;
+
+    ASSOCIATION ObjektnameBez =
+        Objektname_von -<#> {1} BoFlaeche;
+        Name -- {0..*} Objektname;
+    END ObjektnameBez;
+
+    CLASS ObjektnamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet Name :
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ObjektnamePos;
+
+    ASSOCIATION ObjektnamePosBez =
+        ObjektnamePos_von -<#> {1} Objektname;
+        Pos -- {0..*} ObjektnamePos;
+    END ObjektnamePosBez;
+
+    !! Im Plan fuer das Grundbuch werden Bodenbedeckungsflaechen
+    !! entweder gerastert oder mit Symbolen gefuellt. Dabei sind in
+    !! Abhaengigkeit von Art nur folgende Symbole sinnvoll:
+    !! befestigt.Wasserbecken, Reben, Hoch_Flachmoor
+    !! (Symbol Moor), Gewaesser.stehendes (Symbol Wasserbecken),
+    !! Gewaesser.fliessendes (Symbol Fliessrichtung),
+    !! Gewaesser.Schilfguertel (Symbol Schilfguertel).
+    CLASS BoFlaecheSymbol =
+        Pos: MANDATORY LKoord;
+        Ori: Rotation; !! undefiniert = 0.0
+    END BoFlaecheSymbol;
+
+    ASSOCIATION BoFlaecheSymbolBez =
+        BoFlaecheSymbol_von -<#> {1} BoFlaeche;
+        Symbol -- {0..*} BoFlaecheSymbol;
+      MANDATORY CONSTRAINT CoordIn(Symbol->Pos, BoFlaecheSymbol_von->Geometrie);
+    END BoFlaecheSymbolBez;
+
+    CLASS Einzelpunkt =
+      !! Identifikator nicht zugleich LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      Identifikator: NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      ExaktDefiniert: MANDATORY BOOLEAN;  !! Toleranzvorschriften gemäss TVAV beachten
+    UNIQUE Geometrie;
+    END Einzelpunkt;
+
+    ASSOCIATION EinzelpunktBez =
+        Entstehung -- {0..1} BBNachfuehrung;
+        Von_Einzelpunkt -- {0..*} Einzelpunkt;
+    END EinzelpunktBez;
+
+    CLASS EinzelpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Identifikator :
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END EinzelpunktPos;
+
+    ASSOCIATION EinzelpunktPosBez =
+        EinzelpunktPos_von -<#> {1} Einzelpunkt;
+        Pos -- {0..1} EinzelpunktPos;
+    END EinzelpunktPosBez;
+
+  END Bodenbedeckung;
+
+
+
+  TOPIC Einzelobjekte =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      EOArt = (
+        Mauer,
+        unterirdisches_Gebaeude,
+        uebriger_Gebaeudeteil,
+        eingedoltes_oeffentliches_Gewaesser,
+        wichtige_Treppe,
+        Tunnel_Unterfuehrung_Galerie,
+        Bruecke_Passerelle,
+        Bahnsteig,
+        Brunnen,
+        Reservoir,
+        Pfeiler,
+        Unterstand,
+        Silo_Turm_Gasometer,
+        Hochkamin,
+        Denkmal,
+        Mast_Antenne,
+        Aussichtsturm,
+        Uferverbauung,
+        Schwelle,
+        Lawinenverbauung,
+        massiver_Sockel,
+        Ruine_archaeologisches_Objekt,
+        Landungssteg,
+        einzelner_Fels,
+        schmale_bestockte_Flaeche,
+        Rinnsal,
+        schmaler_Weg,
+        Hochspannungsfreileitung,
+        Druckleitung,
+        Bahngeleise,
+        Luftseilbahn,
+        Gondelbahn_Sesselbahn,
+        Materialseilbahn,
+        Skilift,
+        Faehre,
+        Grotte_Hoehleneingang,
+        Achse,
+        wichtiger_Einzelbaum,
+        Bildstock_Kruzifix,
+        Quelle,
+        Bezugspunkt,
+        weitere:FINAL);
+
+
+    CLASS EONachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.050;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END EONachfuehrung;
+
+    CLASS Einzelobjekt =
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art: MANDATORY EOArt;
+    END Einzelobjekt;
+
+    ASSOCIATION EinzelobjektBez =
+        Entstehung -- {1} EONachfuehrung;
+        Von_Einzelobjekt -- {0..*} Einzelobjekt;
+    END EinzelobjektBez;
+
+    CLASS Flaechenelement =
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.050;
+    END Flaechenelement;
+
+    ASSOCIATION FlaechenelementBez =
+        Flaechenelement_von -<#> {1} Einzelobjekt;
+        Element -- {0..*} Flaechenelement;
+    END FlaechenelementBez;
+
+    CLASS FlaechenelementSymbol =  !! z.B. Fliessrichtung bei Rinnsal
+        Pos: MANDATORY LKoord;
+        Ori: Rotation; !! undefiniert = 0.0
+    END FlaechenelementSymbol;
+
+    ASSOCIATION FlaechenelementSymbolBez =
+        FlaechenelementSymbol_von -<#> {1} Flaechenelement;
+        Symbol -- {0..*} FlaechenelementSymbol;
+    END FlaechenelementSymbolBez;
+
+    CLASS Linienelement =
+        Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+    END Linienelement;
+
+    ASSOCIATION LinienelementBez =
+        Linienelement_von -<#> {1} Einzelobjekt;
+        LinienElemente -- {0..*} Linienelement;
+    END LinienelementBez;
+
+    CLASS LinienelementSymbol =  !! z.B. Faehre
+        Pos: MANDATORY LKoord;
+        Ori: MANDATORY Rotation;
+    END LinienelementSymbol;
+
+    ASSOCIATION LinienelementSymbolBez =
+        LinienelementSymbol_von -<#> {1} Linienelement;
+        Symbol -- {0..*} LinienelementSymbol;
+    END LinienelementSymbolBez;
+
+    CLASS Punktelement =
+        Geometrie: MANDATORY LKoord;
+        Ori: MANDATORY Rotation;
+    END Punktelement;
+
+    ASSOCIATION PunktelementBez =
+        Punktelement_von -<#> {1} Einzelobjekt;
+        PunkteElemente -- {0..*} Punktelement;
+    END PunktelementBez;
+
+    CLASS Objektname =
+        Name: MANDATORY NameTyp;
+    END Objektname;
+
+    ASSOCIATION ObjektnameBez =
+        Objektname_von -<#> {1} Einzelobjekt;
+        Name -- {0..*} Objektname;
+    END ObjektnameBez;
+
+    CLASS ObjektnamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet Name
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ObjektnamePos;
+
+    ASSOCIATION ObjektnamePosBez =
+        ObjektnamePos_von -<#> {1} Objektname;
+        Pos -- {0..*} ObjektnamePos;
+    END ObjektnamePosBez;
+
+    CLASS Objektnummer =
+        Nummer: MANDATORY NummerTyp;
+        !! GWR_EGID falls die Definition der Gebaeude mit jener des
+        !! BFS uebereinstimmt
+        GWR_EGID: 1 .. 999999999;
+    END Objektnummer;
+
+    ASSOCIATION ObjektnummerBez =
+        Objektnummer_von -<#> {1} Einzelobjekt;
+        Nummer -- {0..*} Objektnummer;
+    END ObjektnummerBez;
+
+    CLASS ObjektnummerPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer
+      Ori: MANDATORY Rotation;
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ObjektnummerPos;
+
+    ASSOCIATION ObjektnummerPosBez =
+        ObjektnummerPos_von -<#> {1} Objektnummer;
+        Pos -- {0..*} ObjektnummerPos;
+    END ObjektnummerPosBez;
+
+    CLASS Einzelpunkt =
+      !! Identifikator nicht zugleich LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      Identifikator: NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      ExaktDefiniert: MANDATORY BOOLEAN;  !! Toleranzvorschriften gemäss TVAV beachten
+    UNIQUE Geometrie;
+    END Einzelpunkt;
+
+    ASSOCIATION EinzelpunktBez =
+        Entstehung -- {0..1} EONachfuehrung;
+        Von_Einzelpunkt -- {0..*} Einzelpunkt;
+    END EinzelpunktBez;
+
+    CLASS EinzelpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Identifikator
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END EinzelpunktPos;
+
+    ASSOCIATION EinzelpunktPosBez =
+        EinzelpunktPos_von -<#> {1} Einzelpunkt;
+        Pos -- {0..1} EinzelpunktPos;
+    END EinzelpunktPosBez;
+
+  END Einzelobjekte;
+
+
+
+  TOPIC Hoehen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS HONachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END HONachfuehrung;
+
+    CLASS Hoehenpunkt =  !! gueltig oder projektiert
+        Geometrie: MANDATORY HKoord;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+    UNIQUE Geometrie;
+    END Hoehenpunkt;
+
+    ASSOCIATION HoehenpunktBez =
+        Entstehung -- {1} HONachfuehrung;
+        Von_Hoehenpunkt -- {0..*} Hoehenpunkt;
+    END HoehenpunktBez;
+
+    CLASS HoehenpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Geometrie (Hoehe)
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END HoehenpunktPos;
+
+    ASSOCIATION HoehenpunktPosBez =
+        HoehenpunktPos_von -<#> {1} Hoehenpunkt;
+        Pos -- {0..1} HoehenpunktPos;
+    END HoehenpunktPosBez;
+
+    CLASS Gelaendekante =
+        Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX HKoord;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art : MANDATORY (
+          Bruchkante,
+          Strukturlinie,
+          weitere:FINAL);
+    END Gelaendekante;
+
+    ASSOCIATION GelaendekanteBez =
+        Entstehung -- {1} HONachfuehrung;
+        Von_Gelaendekante -- {0..*} Gelaendekante;
+    END GelaendekanteBez;
+
+    CLASS Aussparung =
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.200;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art : MANDATORY (
+          ToteFlaeche,
+          weitere:FINAL);
+    END Aussparung;
+
+    ASSOCIATION AussparungBez =
+        Entstehung -- {1} HONachfuehrung;
+        Von_Aussparung -- {0..*} Aussparung;
+    END AussparungBez;
+
+  END Hoehen;
+
+
+
+  TOPIC Nomenklatur =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS NKNachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.200;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END NKNachfuehrung;
+
+    CLASS Flurname =
+        Name: MANDATORY TEXT*40;
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.200;
+    END Flurname;
+
+    ASSOCIATION FlurnameBez =
+        Entstehung -- {1} NKNachfuehrung;
+        Von_Flurname -- {0..*} Flurname;
+    END FlurnameBez;
+
+    CLASS FlurnamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet name
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+      Stil: Schriftstil; !! undefiniert = normal;
+    END FlurnamePos;
+
+    ASSOCIATION FlurnamePosBez =
+        FlurnamePos_von -<#> {1} Flurname;
+        Pos -- {0..*} FlurnamePos;
+    END FlurnamePosBez;
+
+    CLASS Ortsname =
+        Name: MANDATORY TEXT*40;
+        Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.200;
+        Typ: NameTyp;  !! Vergabe durch Kanton
+    END Ortsname;
+
+    ASSOCIATION OrtsnameBez =
+        Entstehung -- {1} NKNachfuehrung;
+        Von_Ortsname -- {0..*} Ortsname;
+    END OrtsnameBez;
+
+    CLASS OrtsnamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet Name
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+      Stil: Schriftstil; !! undefiniert = normal;
+    END OrtsnamePos;
+
+    ASSOCIATION OrtsnamePosBez =
+        OrtsnamePos_von -<#> {1} Ortsname;
+        Pos -- {0..*} OrtsnamePos;
+    END OrtsnamePosBez;
+
+    CLASS Gelaendename =
+        Name: MANDATORY TEXT*40;
+    END Gelaendename;
+
+    ASSOCIATION GelaendenameBez =
+        Entstehung -- {1} NKNachfuehrung;
+        Von_Gelaendename -- {0..*} Gelaendename;
+    END GelaendenameBez;
+
+    CLASS GelaendenamePos =
+      Pos: MANDATORY LKoord; !! Beschriftet Name
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+      Stil: Schriftstil; !! undefiniert = normal;
+    END GelaendenamePos;
+
+    ASSOCIATION GelaendenamePosBez =
+        GelaendenamePos_von -<#> {1} Gelaendename;
+        Pos -- {1..*} GelaendenamePos;
+    END GelaendenamePosBez;
+
+  END Nomenklatur;
+
+
+
+  TOPIC Liegenschaften =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Grundstuecksart = (
+        Liegenschaft,
+        SelbstRecht (
+          Baurecht,
+          Quellenrecht,
+          Konzessionsrecht,
+          weitere:FINAL),
+        Bergwerk:FINAL);
+
+      Gueltigkeit = (
+        rechtskraeftig,
+        streitig:FINAL);
+
+      Vollstaendigkeit = (
+          Vollstaendig,
+          unvollstaendig:FINAL);
+
+    STRUCTURE LinienGrenze =
+        Linienart : (
+          !! undefiniert bedeutet vollstaendig
+          streitig,
+          unvollstaendig:FINAL);
+    END LinienGrenze;
+
+    CLASS LSNachfuehrung=
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.050;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen sind die Attribute GueltigerEintrag und
+      !! GBEintrag zu erfassen. Datum1 und Datum2 betreffen die alten
+      !! Nachfuehrungen und werden nicht mehr angewendet. In der naechsten Revision
+      !! des Datenmodells werden die Attribute Datum1 und Datum2 geloescht und die
+      !! Attribute GueltigerEintrag und GBEintrag werden obligatorisch.
+      GueltigerEintrag: XMLDate;
+      GBEintrag: XMLDate;
+      Datum1: XMLDate;
+      Datum2: XMLDate;  !! Vergabe durch Kanton
+    UNIQUE NBIdent, Identifikator;
+    END LSNachfuehrung;
+
+    !! Umfasst alle Grenzpunkte einer Liegenschaft, ausgenommen Stuetzpunkte
+    !! der Liegenschaftsgrenze, die in Hoheitsgrenzpunkt und/oder LageFixpunkt
+    !! enthalten sind.
+    !! Siehe auch Bemerkungen zu Hoheitsgrenzpunkt (Topic Gemeindegrenzen).
+   CLASS Grenzpunkt =
+      Identifikator: NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      Punktzeichen: MANDATORY Versicherungsart;
+      ExaktDefiniert: MANDATORY BOOLEAN;  !! Toleranzvorschriften gemäss TVAV beachten
+      !! Wenn ein "huebscher" alter Hoheitsgrenzstein heruntergestuft wurde
+      !! und lediglich die Funktion eines Grenzpunkts hat (siehe auch
+      !! Erlaeuterungen Kap. 3.8)
+      HoheitsgrenzsteinAlt: MANDATORY BOOLEAN; !! Materialangabe
+    UNIQUE Geometrie;
+    END Grenzpunkt;
+
+    ASSOCIATION GrenzpunktBez =
+        Entstehung -- {1} LSNachfuehrung;
+        Von_Grenzpunkt -- {0..*} Grenzpunkt;
+    END GrenzpunktBez;
+
+    CLASS GrenzpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Identifikator
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END GrenzpunktPos;
+
+    ASSOCIATION GrenzpunktPosBez =
+        GrenzpunktPos_von -<#> {1} Grenzpunkt;
+        Pos -- {0..1} GrenzpunktPos;
+    END GrenzpunktPosBez;
+
+    CLASS GrenzpunktSymbol =
+      Ori: Rotation; !! undefiniert = 0.0
+    END GrenzpunktSymbol;
+
+    ASSOCIATION GrenzpunktSymbolBez =
+        GrenzpunktSymbol_von -<#> {1} Grenzpunkt;
+        Symbol -- {0..1} GrenzpunktSymbol;
+    END GrenzpunktSymbolBez;
+
+    CLASS ProjGrundstueck =
+        NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+        Nummer: MANDATORY NummerTyp;
+        !! Elektronisches Grundstueckinformationssystem
+        EGRIS_EGRID: TEXT*14;
+        !! abgeleitetes Attribut: muss streitig sein, falls ProjLiegenschaft,
+        !! ProjSelbstRecht oder ProjBergwerk streitig;
+        Gueltigkeit: MANDATORY Gueltigkeit;
+        !! unvollstaendig, falls z.B. das ProjGrundstueck
+        !! teilweise ausserhalb des Perimeters liegt.
+        Vollstaendigkeit: MANDATORY Vollstaendigkeit;
+        Art: MANDATORY Grundstuecksart;
+       !! GesamteFlaechenmass wird nur benutzt, falls TeilGrundstueke existieren.
+       !! Das heisst mehrere Objekte ProjLiegenschaft, ProjSelbstRecht
+       !! oder ProjBergwerk werden zu einem Objekt ProjGrundstueck.
+       GesamteFlaechenmass: 1 .. 999999999 [Units.m2];
+    UNIQUE NBIdent, Nummer;
+    END ProjGrundstueck;
+
+    ASSOCIATION ProjGrundstueckBez =
+        Entstehung -- {1} LSNachfuehrung;
+        Von_ProjGrundstueck -- {0..*} ProjGrundstueck;
+    UNIQUE Entstehung, Von_ProjGrundstueck->NBIdent, Von_ProjGrundstueck->Nummer;
+    MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #projektiert;
+    END ProjGrundstueckBez;
+
+    CLASS ProjGrundstueckPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+      Hilfslinie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      !! Hinweisstriche fuer Grundstuecknummer
+    END ProjGrundstueckPos;
+
+    ASSOCIATION ProjGrundstueckPosBez =
+        ProjGrundstueckPos_von -<#> {1} ProjGrundstueck;
+        Pos -- {1..*} ProjGrundstueckPos;
+    END ProjGrundstueckPosBez;
+
+    CLASS ProjLiegenschaft =
+      !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END ProjLiegenschaft;
+
+    ASSOCIATION ProjLiegenschaftGrundstueckBez =
+        ProjLiegenschaft_von -<#> {1} ProjGrundstueck;
+        Liegenschaft -- {0..*} ProjLiegenschaft;
+      MANDATORY CONSTRAINT ProjLiegenschaft_von->Art == #Liegenschaft;
+    END ProjLiegenschaftGrundstueckBez;
+
+    !! Falls bei SelbstRecht keine Flaeche vorhanden ist, existiert hier
+    !! auch kein Objekt. Eine Beschriftung und Lokalisierung in GrundstueckPos
+    !! ist trotzdem moeglich.
+    CLASS ProjSelbstRecht =
+       !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END ProjSelbstRecht;
+
+    ASSOCIATION ProjSelbstRechtBez =
+        ProjSelbstRecht_von -<#> {1} ProjGrundstueck;
+        SelbstRecht-- {0..*} ProjSelbstRecht;
+      MANDATORY CONSTRAINT (ProjSelbstRecht_von->Art == #SelbstRecht.Baurecht) OR
+                           (ProjSelbstRecht_von->Art == #SelbstRecht.Quellenrecht) OR
+                           (ProjSelbstRecht_von->Art == #SelbstRecht.Konzessionsrecht) OR
+                           (ProjSelbstRecht_von->Art == #SelbstRecht.weitere);
+    END ProjSelbstRechtBez;
+
+    !! Falls bei Bergwerk keine Flaeche vorhanden ist, existiert hier
+    !! auch kein Objekt. Eine Beschriftung und Lokalisierung in GrundstueckPos
+    !! ist trotzdem moeglich.
+    CLASS ProjBergwerk =
+      !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END ProjBergwerk;
+
+    ASSOCIATION ProjBergwerkBez =
+        ProjBergwerk_von -<#> {1} ProjGrundstueck;
+        Bergwerk -- {0..*} ProjBergwerk;
+      MANDATORY CONSTRAINT ProjBergwerk_von->Art == #Bergwerk;
+    END ProjBergwerkBez;
+
+    CLASS Grundstueck =
+        NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+        Nummer: MANDATORY NummerTyp;
+        !! Elektronisches Grundstueckinformationssystem
+        EGRIS_EGRID: TEXT*14;
+        !! abgeleitetes Attribut: muss streitig sein, falls ProjLiegenschaft,
+        !! ProjSelbstRecht oder ProjBergwerk streitig;
+        Gueltigkeit: MANDATORY Gueltigkeit;
+        !! unvollstaendig, falls z.B. das ProjGrundstueck
+        !! teilweise ausserhalb des Perimeters liegt.
+        Vollstaendigkeit: MANDATORY Vollstaendigkeit;
+        Art: MANDATORY Grundstuecksart;
+       !! GesamteFlaechenmass wird nur benutzt, falls TeilGrundstueke existieren.
+       !! Das heisst mehrere Objekte ProjLiegenschaft, ProjSelbstRecht
+       !! oder ProjBergwerk werden zu einem Objekt ProjGrundstueck.
+       GesamteFlaechenmass: 1 .. 999999999 [Units.m2];
+    UNIQUE NBIdent, Nummer;
+    END Grundstueck;
+
+    ASSOCIATION GrundstueckBez =
+        Entstehung -- {1} LSNachfuehrung;
+        Von_Grundstueck -- {0..*} Grundstueck;
+      MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #gueltig;
+    END GrundstueckBez;
+
+    CLASS GrundstueckPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer :
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+      Hilfslinie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord; !! Hinweisstriche fuer Grundstuecksnummer
+    END GrundstueckPos;
+
+    ASSOCIATION GrundstueckPosBez =
+        GrundstueckPos_von -<#> {1} Grundstueck;
+        Pos -- {1..*} GrundstueckPos;
+    END GrundstueckPosBez;
+
+    CLASS Liegenschaft =
+      !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END Liegenschaft;
+
+    ASSOCIATION LiegenschaftGrundstueckBez =
+        Liegenschaft_von -<#> {1} Grundstueck;
+        Liegenschaefte -- {0..*} Liegenschaft;
+      MANDATORY CONSTRAINT Liegenschaft_von->Art == #Liegenschaft;
+    END LiegenschaftGrundstueckBez;
+
+    !! Falls bei SelbstRecht keine Flaeche vorhanden ist, existiert hier
+    !! auch kein Objekt. Eine Beschriftung und Lokalisierung in GrundstueckPos
+    !! ist trotzdem moeglich.
+    CLASS SelbstRecht =
+      !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END SelbstRecht;
+
+    ASSOCIATION SelbstRechtBez =
+      SelbstRecht_von -<#> {1} Grundstueck;
+      SelbstRechte-- {0..*} SelbstRecht;
+      MANDATORY CONSTRAINT (SelbstRecht_von->Art == #SelbstRecht.Baurecht) OR
+                           (SelbstRecht_von->Art == #SelbstRecht.Quellenrecht) OR
+                           (SelbstRecht_von->Art == #SelbstRecht.Konzessionsrecht) OR
+                           (SelbstRecht_von->Art == #SelbstRecht.weitere);
+    END SelbstRechtBez;
+
+    !! Falls bei Bergwerk keine Flaeche vorhanden ist, existiert hier
+    !! auch kein Objekt. Eine Beschriftung und Lokalisierung in GrundstueckPos
+    !! ist trotzdem moeglich.
+    CLASS Bergwerk =
+      !! Geometrie nur LFP1, LFP2, LFP3, Grenzpunkt oder Hoheitsgrenzpunkt
+      NummerTeilGrundstueck: TEXT*12;
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES LinienGrenze;
+      Flaechenmass: MANDATORY 1 .. 999999999 [Units.m2];
+    END Bergwerk;
+
+    ASSOCIATION BergwerkBez =
+        Bergwerk_von -<#> {1} Grundstueck;
+        Bergwerke -- {0..*} Bergwerk;
+      MANDATORY CONSTRAINT Bergwerk_von->Art == #Bergwerk;
+    END BergwerkBez;
+
+  END Liegenschaften;
+
+
+
+  TOPIC Rohrleitungen =  !! gemaess Bundesgesetz ueber Rohrleitungsanlagen zur Befoerderung
+                         !! fluessiger oder gasfoermiger Brenn- oder Treibstoffe
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Medium = (
+        Oel,
+        Gas,
+        weitere:FINAL);
+
+    STRUCTURE FlaecheElementGrenze =
+        !! Linienart-Werte sollen grundsaetzlich als undefiniert
+        !! ausgegeben werden, ausgenommen Wert sichtbar.;
+        Linienart : (
+            sichtbar:FINAL);
+    END FlaecheElementGrenze;
+
+
+    CLASS RLNachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.050;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END RLNachfuehrung;
+
+    CLASS Leitungsobjekt =
+        Betreiber: MANDATORY NameTyp;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art: MANDATORY Medium;
+    END Leitungsobjekt;
+
+    ASSOCIATION LeitungsobjektBez =
+        Entstehung -- {1} RLNachfuehrung;
+        Von_Leitungsobjekt -- {0..*} Leitungsobjekt;
+    END LeitungsobjektBez;
+
+    CLASS LeitungsobjektPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Betreiber
+      Ori:  MANDATORY Rotation;
+      HAli: MANDATORY HALIGNMENT;
+      VAli: MANDATORY VALIGNMENT;
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END LeitungsobjektPos;
+
+    ASSOCIATION LeitungsobjektPosBez =
+        LeitungsobjektPos_von -<#> {1} Leitungsobjekt;
+        Pos -- {0..*} LeitungsobjektPos;
+    END LeitungsobjektPosBez;
+
+    CLASS Flaechenelement =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES FlaecheElementGrenze;
+    END Flaechenelement;
+
+    ASSOCIATION FlaechenelementBez =
+        Flaechenelement_von -<#> {1} Leitungsobjekt;
+        Flaechenelemente -- {0..*} Flaechenelement;
+    END FlaechenelementBez;
+
+    CLASS Linienelement =
+        Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+        !! Linienart-Werte sollen grundsaetzlich als undefiniert
+        !! ausgegeben werden, ausgenommen Wert sichtbar.
+        Linienart: (
+          sichtbar:FINAL);
+    END Linienelement;
+
+    ASSOCIATION LinienelementBez =
+        Linienelement_von -<#> {1} Leitungsobjekt;
+        Linienelemente -- {0..*} Linienelement;
+    END LinienelementBez;
+
+    CLASS Punktelement =
+        Geometrie: MANDATORY LKoord;
+        HoeheGeom: Hoehe;
+        Ori: MANDATORY Rotation;
+    END Punktelement;
+
+    ASSOCIATION PunktelementBez =
+        Punktelement_von -<#> {1} Leitungsobjekt;
+        Punktelemente -- {0..*} Punktelement;
+    END PunktelementBez;
+
+    CLASS Signalpunkt =
+        Nummer: MANDATORY NummerTyp;
+        Betreiber: MANDATORY NameTyp;
+        Geometrie: MANDATORY LKoord;
+        Qualitaet: MANDATORY Qualitaetsstandard;
+        Art: MANDATORY Medium;
+        Punktart: MANDATORY (
+          Signal,
+          Tafel_Stein,
+          weitere:FINAL);
+    END Signalpunkt;
+
+    ASSOCIATION SignalpunktBez =
+        Entstehung -- {1} RLNachfuehrung;
+        Von_Signalpunkt -- {0..*} Signalpunkt;
+    END SignalpunktBez;
+
+    CLASS SignalpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END SignalpunktPos;
+
+    ASSOCIATION SignalpunktPosBez =
+        SignalpunktPos_von -<#> {1} Signalpunkt;
+        Pos -- {0..1} SignalpunktPos;
+    END SignalpunktPosBez;
+
+    CLASS Einzelpunkt =
+      Identifikator: NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      ExaktDefiniert: MANDATORY BOOLEAN;  !! Toleranzvorschriften gemäss TVAV beachten
+    UNIQUE Geometrie;
+    END Einzelpunkt;
+
+    ASSOCIATION EinzelpunktBez =
+        Entstehung -- {0..1} RLNachfuehrung;
+        Von_Einzelpunkt -- {0..*} Einzelpunkt;
+    END EinzelpunktBez;
+
+    CLASS EinzelpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Identifikator
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END EinzelpunktPos;
+
+    ASSOCIATION EinzelpunktPosBez =
+        EinzelpunktPos_von -<#> {1} Einzelpunkt;
+        Pos -- {0..1} EinzelpunktPos;
+    END EinzelpunktPosBez;
+
+  END Rohrleitungen;
+
+
+
+  TOPIC Nummerierungsbereiche =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+      Kantonskuerzel (FINAL) = (  !! BFS-Ordnung, ergaenzt mit FL und CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! Der hier definierte Benutzerschluessel und die zugeordnete
+    !! Flaeche koennen einem Gemeindegebiet entsprechen, einem Teil
+    !! oder einer Aggregation mehrerer Gemeindegebiete; dazu
+    !! kommen evtl. der Kanton und/oder die Schweiz (bzw. FL)
+    !! als Ganzes (siehe Dokument Erlaeuterungen)
+    CLASS Nummerierungsbereich =
+      Kt: MANDATORY Kantonskuerzel;    !! Eindeutig ueber die Schweiz (inkl. FL)
+      NBNummer: MANDATORY TEXT*10;
+      TechDossier: MANDATORY NummerTyp;
+      GueltigerEintrag: XMLDate;
+    UNIQUE Kt, NBNummer;  !! ergibt Benutzerschluessel NBIdent
+    END Nummerierungsbereich;
+
+    !! Die Geometrien der Nummerierungsbereiche, die das Territorium gemaess der
+    !! gleichen logischen Einheit zerlegen (z.B.: Perimeter der Gemeinden),
+    !! muessen untereinander eine Gebietsaufteilung (AREA) bilden.
+    !! Innerhalb eines Nummerierungsbereichs muss die
+    !! Geometrie ueberlappungsfrei (d.h. wie AREA) sein.
+    CLASS NBGeometrie =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050;
+    END NBGeometrie;
+
+    ASSOCIATION NBGeometrieBez =
+        NBGeometrie_von -<#> {1} Nummerierungsbereich;
+        Geometrie -- {1..*} NBGeometrie;
+    END NBGeometrieBez;
+
+    CLASS NummerierungsbereichPos =
+      Pos: MANDATORY LKoord; !! Beschriftet NBNummer
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END NummerierungsbereichPos;
+
+    ASSOCIATION NummerierungsbereichPosBez =
+        NummerierungsbereichPos_von -<#> {1} Nummerierungsbereich;
+        Pos -- {0..*} NummerierungsbereichPos;
+    END NummerierungsbereichPosBez;
+
+  END Nummerierungsbereiche;
+
+
+
+  TOPIC Gemeindegrenzen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    STRUCTURE Gemeindegrenzattribute =
+        Linienart : MANDATORY (
+          rechtskraeftig, !! exakte Grenze aus Amtl. Vermessung
+          streitig,       !! streitige Grenze
+          provisorisch,   !! definierte Grenze, aber qualitativ ungenuegend
+          undefiniert:FINAL);   !! z.B. unbekannter Seeabschluss
+    END Gemeindegrenzattribute;
+
+
+    CLASS GEMNachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.050;
+      Gueltigkeit: MANDATORY Status;
+      !! Fuer zukuenftige Nachfuehrungen ist das Attribut GueltigerEintrag zu
+      !! erfassen. Datum1 betrifft die alten Nachfuehrungen und wird nicht mehr
+      !! angewendet. In der naechsten Revision des Datenmodells wird das Attribut
+      !! Datum1 geloescht und das Attribut GueltigerEintrag wird obligatorisch.
+      GueltigerEintrag: XMLDate;
+      Datum1: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END GEMNachfuehrung;
+
+    !! Enthaelt alle Stuetzpunkte, die in ihrer Funktion eine
+    !! Hoheitsgrenze (Landesgrenze, Kantonsgrenze, Bezirksgrenze
+    !! oder Gemeindegrenze) definieren, mit
+    !! folgenden zusaetzlichen Regelungen:
+    !! - LFP1, LFP2 und LFP3, die an einer Hoheitsgrenze beteiligt sind,
+    !!   sind hier ebenfalls enthalten; bei einer Uebernahme aus
+    !!   dem Topic Fixpunkte bleiben die Attribute unveraendert;
+    !! - Hoheitsgrenzsteine sind spezielle Steine (siehe Erklaerungen
+    !!   Kap. 3.11); sie erhalten Hoheitsgrenzstein = ja;
+    CLASS Hoheitsgrenzpunkt =
+      Identifikator: NummerTyp;
+      Geometrie: MANDATORY LKoord;
+      LageGen: MANDATORY Genauigkeit;
+      LageZuv: MANDATORY Zuverlaessigkeit;
+      Punktzeichen: MANDATORY Versicherungsart;
+      Hoheitsgrenzstein: MANDATORY BOOLEAN;  !! Materialangabe
+      ExaktDefiniert: MANDATORY BOOLEAN;  !! Toleranzvorschriften gemäss TVAV beachten
+     UNIQUE Geometrie;
+    END Hoheitsgrenzpunkt;
+
+    ASSOCIATION HoheitsgrenzpunktBez =
+        Entstehung -- {1} GEMNachfuehrung;
+        Von_Hoheitsgrenzpunkt -- {0..*} Hoheitsgrenzpunkt;
+    END HoheitsgrenzpunktBez;
+
+    CLASS HoheitsgrenzpunktPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Identifikator
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Left
+      VAli: VALIGNMENT; !!  VAli undefiniert = Bottom
+    END HoheitsgrenzpunktPos;
+
+    ASSOCIATION HoheitsgrenzpunktPosBez =
+        HoheitsgrenzpunktPos_von -<#> {1} Hoheitsgrenzpunkt;
+        Pos -- {0..1} HoheitsgrenzpunktPos;
+    END HoheitsgrenzpunktPosBez;
+
+    CLASS HoheitsgrenzpunktSymbol =
+      Ori: Rotation; !! undefiniert = 0.0
+    END HoheitsgrenzpunktSymbol;
+
+    ASSOCIATION HoheitsgrenzpunktSymbolBez =
+        HoheitsgrenzpunktSymbol_von -<#> {1} Hoheitsgrenzpunkt;
+        Symbol -- {0..1} HoheitsgrenzpunktSymbol;
+    END HoheitsgrenzpunktSymbolBez;
+
+    CLASS Gemeinde =
+        Name: MANDATORY NameTyp;
+        BFSNr: MANDATORY 1 .. 9999;
+    UNIQUE BFSNr;
+    END Gemeinde;
+
+    CLASS ProjGemeindegrenze =
+        Geometrie : MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+           WITHOUT OVERLAPS > 0.050; !! Geometrie nur Hoheitsgrenzpunkt
+    END ProjGemeindegrenze;
+
+    ASSOCIATION ProjGemeindegrenzeBez =
+        Entstehung -- {1} GEMNachfuehrung;
+        Von_ProjGemeindegrenze -- {0..*} ProjGemeindegrenze;
+      MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #projektiert;
+    END ProjGemeindegrenzeBez;
+
+    ASSOCIATION ProjGemeindegrenzeGemeindeBez =
+        ProjGemeindegrenze_von -- {1} Gemeinde;
+        Grenzen -- {0..*} ProjGemeindegrenze;
+    END ProjGemeindegrenzeGemeindeBez;
+
+    CLASS Gemeindegrenze =  !! auch als Exklave moeglich
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.050 LINE ATTRIBUTES Gemeindegrenzattribute;
+          !! Geometrie nur Hoheitsgrenzpunkt
+          !! wenn Linienart = rechtskraeftig oder streitig
+    END Gemeindegrenze;
+
+    ASSOCIATION GemeindegrenzeBez =
+      Entstehung -- {1} GEMNachfuehrung;
+      Von_Gemeindegrenze -- {0..*} Gemeindegrenze;
+      MANDATORY CONSTRAINT Entstehung->Gueltigkeit == #gueltig;
+    END GemeindegrenzeBez;
+
+    ASSOCIATION GemeindegrenzeGemeindeBez =
+      Gemeindegrenze_von -- {1} Gemeinde;
+      GemeindeGrenzen -- {1..*} Gemeindegrenze;
+    END GemeindegrenzeGemeindeBez;
+
+  END Gemeindegrenzen;
+
+
+
+  TOPIC Bezirksgrenzen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Bezirksgrenzabschnitt =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+      !! Geometrie nur Hoheitsgrenzpunkt
+      Gueltigkeit : MANDATORY (
+        rechtskraeftig, !! exakte Grenze aus Amtl. Vermessung
+        streitig,       !! streitige Grenze
+        provisorisch,   !! definierte Grenze, aber qualitativ ungenuegend
+        undefiniert:FINAL);   !! z.B. unbekannter Seeabschluss
+    END Bezirksgrenzabschnitt;
+
+  END Bezirksgrenzen;
+
+
+
+  TOPIC Kantonsgrenzen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Kantonsgrenzabschnitt =
+      Geometrie:  MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+      !! Geometrie nur Hoheitsgrenzpunkt
+      Gueltigkeit : MANDATORY (
+        rechtskraeftig, !! exakte Grenze aus Amtl. Vermessung
+        streitig,       !! streitige Grenze
+        provisorisch,   !! definierte Grenze, aber qualitativ ungenuegend
+        undefiniert:FINAL);   !! z.B. unbekannter Seeabschluss
+    END Kantonsgrenzabschnitt;
+
+  END Kantonsgrenzen;
+
+
+
+  TOPIC Landesgrenzen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Landesgrenzabschnitt =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+      !! Geometrie nur Hoheitsgrenzpunkt
+      Gueltigkeit : MANDATORY (
+        rechtskraeftig, !! exakte Grenze aus Amtl. Vermessung
+        streitig,       !! streitige Grenze
+        provisorisch,   !! definierte Grenze, aber qualitativ ungenuegend
+        undefiniert:FINAL);   !! z.B. unbekannter Seeabschluss
+    END Landesgrenzabschnitt;
+
+  END Landesgrenzen;
+
+
+
+  TOPIC Planeinteilungen =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Plan =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Nummer: MANDATORY NummerTyp;
+      TechDossier: MANDATORY NummerTyp;
+      GueltigerEintrag: XMLDate;
+    UNIQUE NBIdent, Nummer;
+    END Plan;
+
+    CLASS Plangeometrie =
+        Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+          WITHOUT OVERLAPS > 0.050;
+    END Plangeometrie;
+
+    ASSOCIATION PlangeometrieBez =
+      Plangeometrie_von -<#> {1} Plan;
+      Geometrie -- {1..*} Plangeometrie;
+    END PlangeometrieBez;
+
+    CLASS PlanPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Nummer
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END PlanPos;
+
+    ASSOCIATION PlanPosBez =
+      PlanPos_von -<#> {1} Plan;
+      Pos -- {0..*} PlanPos;
+    END PlanPosBez;
+
+  END Planeinteilungen;
+
+
+
+  TOPIC TSEinteilung =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Toleranzstufe =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;  !! Nummer des technischen Dossiers
+      Geometrie: MANDATORY AREA WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.200;
+      GueltigerEintrag: XMLDate;
+      Art (FINAL): MANDATORY (
+        TS1,
+        TS2,
+        TS3,
+        TS4,
+        TS5);
+    UNIQUE NBIdent, Identifikator;
+    END Toleranzstufe;
+
+    CLASS ToleranzstufePos =
+      Pos: MANDATORY LKoord; !! Beschriftet art
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END ToleranzstufePos;
+
+    ASSOCIATION ToleranzstufePosBez =
+      ToleranzstufePos_von -<#> {1} Toleranzstufe;
+      Pos -- {0..*} ToleranzstufePos;
+      MANDATORY CONSTRAINT CoordIn(Pos->Pos, ToleranzstufePos_von->Geometrie);
+    END ToleranzstufePosBez;
+
+  END TSEinteilung;
+
+
+
+  TOPIC Rutschgebiete =
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS Rutschung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;  !! Nummer des technischen Dossiers
+      Name: NameTyp;  !! eigener Name
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.200;
+      GueltigerEintrag: XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END Rutschung;
+
+    CLASS RutschungPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Pos
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = Half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END RutschungPos;
+
+    ASSOCIATION RutschungPosBez =
+        RutschungPos_von -<#> {1} Rutschung;
+        Pos -- {0..*} RutschungPos;
+      MANDATORY CONSTRAINT CoordIn(Pos->Pos, RutschungPos_von->Geometrie);
+    END RutschungPosBez;
+
+  END Rutschgebiete;
+
+
+
+  TOPIC PLZOrtschaft = !! siehe SN 612040;
+                       !! Verantwortung der Kantone fuer Ortschaften
+                       !! Verantwortung der Post fuer PLZ
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    CLASS OSNachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.500;
+      Gueltigkeit: MANDATORY Status;
+      GueltigerEintrag:  MANDATORY XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END OSNachfuehrung;
+
+    CLASS OrtschaftsVerbund =
+      Leer: TEXT*1;
+    END OrtschaftsVerbund;
+
+    CLASS OrtschaftsVerbundText=
+      Text: MANDATORY TEXT*200;
+      Sprache: MANDATORY Sprachtyp;
+    END OrtschaftsVerbundText;
+
+    ASSOCIATION OrtschaftsVerbund_OrtschaftsVerbundTextBez =
+      OrtschaftsVerbund_von -<#> {1} OrtschaftsVerbund;
+      Von_OrtschaftsVerbundText -- {1..*} OrtschaftsVerbundText;
+      UNIQUE OrtschaftsVerbund_von, Von_OrtschaftsVerbundText->Sprache;
+    END OrtschaftsVerbund_OrtschaftsVerbundTextBez;
+
+    !! Die realen Ortschaften bilden AREA
+    CLASS Ortschaft=
+      Status: MANDATORY Status_GA;
+      InAenderung: MANDATORY BOOLEAN;
+      Flaeche: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500;
+    END Ortschaft;
+
+    ASSOCIATION OrtschaftNachfBez =
+      Entstehung -- {1} OSNachfuehrung;
+      Von_Ortschaft -- {0..*} Ortschaft;
+    END OrtschaftNachfBez;
+
+    ASSOCIATION VerbundZugehoerigkeitBez =
+      Verzeichnis -- {0..1} OrtschaftsVerbund;
+      BeteiligteOrtschaft -- {1..*} Ortschaft;
+    END VerbundZugehoerigkeitBez;
+
+    !! Beispiel fuer Text, KurzText und IndexText:
+    !! Text (Vollstaendiger Name): La Chaux-de-Fonds
+    !! KurzText (Schreibweise in der Postadresse): La Chx-de-Fds
+    !! IndexText (Fuer Index): Chaux-de-Fonds
+   CLASS OrtschaftsName =
+      Text: MANDATORY TEXT*40;
+      KurzText: TEXT*18;
+      IndexText: TEXT*16;
+      Sprache: MANDATORY Sprachtyp;
+    END OrtschaftsName;
+
+    ASSOCIATION Ortschafts_OrtschaftsNameBez =
+      Von_Ortschaft -<#> {1} Ortschaft;
+      Namen -- {1..*} OrtschaftsName;
+      UNIQUE Von_Ortschaft, Namen->Sprache;
+    END Ortschafts_OrtschaftsNameBez;
+
+    CLASS OrtschaftsName_Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Text
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse; !! undefiniert = mittel
+    END OrtschaftsName_Pos;
+
+    ASSOCIATION OrtschaftsName_PosBez =
+        Ortschafts_von -<#> {1} Ortschaft;
+        NamenPos -- {0..*} OrtschaftsName_Pos;
+    END OrtschaftsName_PosBez;
+
+    CLASS PLZ6Nachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.500;
+      Gueltigkeit: MANDATORY Status;
+      GueltigerEintrag:  MANDATORY XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END PLZ6Nachfuehrung ;
+
+    !! Eine reale PLZ6 auf eine nicht reale Ortschaft ist zu vermeiden
+    CLASS PLZ6=
+      !! Sind einer Ortschaft mehrere sechsstellige Postleitzahlen zugeordnet,
+      !! muss fuer jede derselben eine Flaeche definiert sein, und alle diese
+      !! Flaechen muessen innerhalb der Flaeche der Ortschaft liegen.
+      !! Die realen PLZ6 sind vom Typ AREA.
+      Flaeche: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500;
+      Status: MANDATORY Status_GA;
+      InAenderung: MANDATORY BOOLEAN;
+      PLZ: MANDATORY 1000..9999;
+      Zusatzziffern: MANDATORY 00..99;
+    UNIQUE PLZ, Zusatzziffern;
+    END PLZ6;
+
+    ASSOCIATION PostleitzahlBez =
+      OrtschaftZuPLZ -- {1} Ortschaft;
+      PLZ -- {*} PLZ6;
+    END PostleitzahlBez;
+
+    ASSOCIATION PLZ6NachfBez =
+      Entstehung -- {1} PLZ6Nachfuehrung;
+      Von_PLZ6 -- {0..*} PLZ6;
+    END PLZ6NachfBez;
+
+  END PLZOrtschaft;
+
+
+
+  TOPIC Gebaeudeadressen =  !! siehe SN 612040;
+                            !! Verantwortung der Gemeinden
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    !! Geometrische Beziehung zwischen Gebaeudeeingang und PLZ
+    !! Geometrische Beziehung zwischen Lokalisation und LokalisationnenVerz
+    !! Geometrische Beziehung zwischen Gebaeudeeingang und BennantesGebiet
+
+    CLASS GEBADRNachfuehrung =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY NummerTyp;
+      Beschreibung: MANDATORY NameTyp;
+      Perimeter: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+         WITHOUT OVERLAPS > 0.500;
+      Gueltigkeit: MANDATORY Status;
+      GueltigerEintrag:  MANDATORY XMLDate;
+    UNIQUE NBIdent, Identifikator;
+    END GEBADRNachfuehrung;
+
+    CLASS Lokalisation =
+      Nummerierungsprinzip: MANDATORY (
+        keineNummern,
+        beliebig,
+        aufsteigend,
+        ungeradelinks,
+        geradelinks:FINAL);
+      LokalisationNummer: TEXT*12;
+      AttributeProvisorisch: MANDATORY BOOLEAN;
+      IstOffizielleBezeichnung: MANDATORY BOOLEAN;
+      Status: MANDATORY Status_GA;
+      InAenderung: MANDATORY BOOLEAN;
+      Art: MANDATORY (
+          BenanntesGebiet,
+          Strasse,
+          Platz:FINAL);
+    END Lokalisation;
+
+    ASSOCIATION LokalisationNachfBez = !! DM01: zusaetzlich zur SN
+      Entstehung -- {1} GEBADRNachfuehrung;
+      Von_Lokalisation -- {0..*} Lokalisation;
+    END LokalisationNachfBez;
+
+    !! Beispiel fuer Text, KurzText und IndexText:
+    !! Text (Vollstaendiger Name): Conrad-Ferdinand-Meyer-Strasse
+    !! KurzText (Schreibweise in der Postadresse): CF Meyer Str
+    !! IndexText (Fuer Index): Meyer CF Str
+    CLASS LokalisationsName =
+      Text: MANDATORY TEXT*60;
+      KurzText: TEXT*24;
+      IndexText: TEXT*16;
+      Sprache: MANDATORY Sprachtyp;
+    END LokalisationsName;
+
+    ASSOCIATION Lokalisation_LokalisationsNameBez =
+      Benannte -<#> {1} Lokalisation;
+      Von_Lokalisation -- {1..*} LokalisationsName;
+      UNIQUE Benannte, Von_Lokalisation->Sprache;
+    END Lokalisation_LokalisationsNameBez;
+
+    CLASS LokalisationsName_Pos =
+      AnfIndex: 1 .. 60; !! undefiniert = 1
+      EndIndex: 1 .. 60; !! undefiniert = letztes Zeichen
+      Pos: MANDATORY LKoord; !! Beschriftet Text
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse; !! undefiniert = mittel
+      Hilfslinie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    END LokalisationsName_Pos;
+
+    ASSOCIATION LokalisationsName_PosBez =
+      Name_Pos_von -<#> {1} LokalisationsName;
+      Von_Pos -- {0..*} LokalisationsName_Pos;
+    END LokalisationsName_PosBez;
+
+    CLASS BenanntesGebiet =
+      Flaeche: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500;
+    END BenanntesGebiet;
+
+    ASSOCIATION BenanntesGebiet_LokalisationBez =
+      Von_Lokalisation -<#> {1} Lokalisation;
+      Von_BenanntesGebiet -- {0..*} BenanntesGebiet;
+      MANDATORY CONSTRAINT
+      Von_Lokalisation -> Art==#BenanntesGebiet;
+    END BenanntesGebiet_LokalisationBez;
+
+    !! Die Geometrie entspricht der Strassenachse,
+    !! siehe die Erklaerungen, Kapitel 3.18.2
+    !! Hauptstrassenabschnitt. Die privaten Zugangsabschnitte
+    !! werden nicht im Bundesmodell erfasst
+    CLASS Strassenstueck =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+      Anfangspunkt: LKoord; !! DM01: zusaetzlich zur SN
+      Ordnung: MANDATORY 1 .. 999;  !! Reihenfolge der Strassenstuecke
+      istAchse: MANDATORY BOOLEAN;
+    END Strassenstueck;
+
+    ASSOCIATION Strassenstueck_LokalisationBez =
+      Von_Lokalisation -<#> {1} Lokalisation;
+      Von_Strassenstueck -- {0..*} Strassenstueck;
+      MANDATORY CONSTRAINT
+      Von_Lokalisation -> Art==#Strasse OR Von_Lokalisation -> Art==#Platz;
+    END Strassenstueck_LokalisationBez;
+
+    CLASS GebaeudeEingang =
+      Status: MANDATORY Status_GA;
+      InAenderung: MANDATORY BOOLEAN;
+      AttributeProvisorisch: MANDATORY BOOLEAN;
+      IstOffizielleBezeichnung: MANDATORY BOOLEAN;
+      Lage: MANDATORY LKoord;
+      !! HoehenLage ist nuetzlich wenn mehrere Eingaenge auf mehreren Niveaux
+      !! Ungefaehre Hoehe ueber gewachsenem Terrain
+      Hoehenlage: -99 .. 99 [m]; !! Ungefähre Höhe über gewachsenem Terrain
+      !! Die Hausnummer besteht aus einer Nummer,
+      !! welche mit einem Zusatz (Buchstaben a,b,c)
+      !! ergaenzt werden kann. Zwischen Nummer und Zusatz
+      !! keine Leerschlaege oder Trennzeichen.
+      !! Wenn die Hausnummer definiert ist, dann muss fuer Lokalisation und
+      !! Gebaeudeeingang gelten:
+      !! - Lokalisation und Hausnummer muessen fuer Status = real
+      !!   zusammen eindeutig sein;
+      !! - Nummerierungsprinzip darf nicht den Wert keines haben.
+      Hausnummer: TEXT*12;
+      !! Im_Gebaeude ist nuetzlich, um zu definieren, ob die Nummer mit einem
+      !! Objekt der BB oder mit einem Objekt der EO verknuepft ist.
+      Im_Gebaeude (FINAL): MANDATORY (BB, EO); !! DM01: zusaetzlich zur SN
+      !! Eidg. Gebaeude-Identifikator wenn verfuegbar,
+      !! siehe Erklaerung Kapitel 3.18.2
+      GWR_EGID: 1 .. 999999999;
+      !! Eidg. Eingang-Identifikator wenn verfuegbar,
+      !! siehe Erklaerung Kapitel 3.18.2
+      GWR_EDID: 0 .. 99 ; !! DM01: zusaetzlich zur SN
+    END GebaeudeEingang;
+
+    ASSOCIATION GebaeudeEingangNachfBez = !! DM01: zusaetzlich zur SN
+      Entstehung -- {1} GEBADRNachfuehrung;
+      Eingang -- {0..*} GebaeudeEingang;
+    END GebaeudeEingangNachfBez;
+
+    ASSOCIATION EingangLokalisationBez =
+      GebaeudeEingang_von -<> {0..1} Lokalisation;
+      GebaeudeEingaenge -- {0..*} GebaeudeEingang;
+    MANDATORY CONSTRAINT
+      ((GebaeudeEingang_von->Nummerierungsprinzip != #keineNummern) ==
+      (DEFINED(GebaeudeEingaenge->Hausnummer)));
+    END EingangLokalisationBez;
+
+    CLASS Hausnummer_Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Hausnummer
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse; !! undefiniert = mittel
+    END Hausnummer_Pos;
+
+    ASSOCIATION GebaeudeEingang_PosBez =
+        Von_GebaeudeEingang -<#> {1} GebaeudeEingang;
+        PosNummer -- {0..*} Hausnummer_Pos;
+    END GebaeudeEingang_PosBez;
+
+    CLASS GebaeudeName =
+      Text: MANDATORY TEXT*40;
+      KurzText : TEXT*24;
+      IndexText: TEXT*16;
+      Sprache: MANDATORY Sprachtyp;
+    END GebaeudeName;
+
+    ASSOCIATION GebaeudeName_GebaeudeEingangBez =
+        Von_GebaeudeEingang -<#> {1} GebaeudeEingang;
+        Hat_GebaeudeName -- {0..*} GebaeudeName;
+        UNIQUE Von_GebaeudeEingang, Hat_GebaeudeName->Sprache;
+    END GebaeudeName_GebaeudeEingangBez;
+
+    CLASS GebaeudeName_Pos =
+      Pos: MANDATORY LKoord; !! Beschriftet Text
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse; !! undefiniert = mittel
+      Hilfslinie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    END GebaeudeName_Pos;
+
+    ASSOCIATION GebaeudeName_PosBez =
+      Von_GebaeudeName -<#> {1} GebaeudeName;
+      Pos -- {0..*} GebaeudeName_Pos;
+    END GebaeudeName_PosBez;
+
+    CLASS GebaeudeBeschreibung =
+      Text: MANDATORY TEXT*100;
+      Sprache: MANDATORY Sprachtyp;
+    END GebaeudeBeschreibung;
+
+    ASSOCIATION GebaeudeBeschreibung_GebaeudeEingangBez =
+        Von_GebaeudeEingang -<#> {1} GebaeudeEingang;
+        Hat_GebaeudeBeschreibung -- {0..*} GebaeudeBeschreibung;
+        UNIQUE Von_GebaeudeEingang, Hat_GebaeudeBeschreibung->Sprache;
+    END GebaeudeBeschreibung_GebaeudeEingangBez;
+
+  END Gebaeudeadressen;
+
+
+
+  TOPIC Planrahmen =
+  !! Die in der Technischen Verordnung ueber die AV erwaehnten Objekte muessen
+  !! verwaltet werden.
+
+    BASKET OID AS UUIDOID;
+    OID AS UUIDOID;
+
+    DOMAIN
+
+
+      Massstabstyp = 1 .. 1000000;
+
+      Beschriftungsart  = (
+        Nachbarn,              !! Gemeinde, Bezirk, Kanton oder Land
+        Nachbarplan,           !! Nachbarplaene in der Situation
+        UebersichtNachbarn,    !! Nachbarplaene, Gemeinde, Bezirk,
+                               !! Kanton oder Land im Uebersichtsfenster
+        Strassenrichtung,
+        LK_Nr,
+        BFSNr,
+        weitere:FINAL);              !! nur fuer definierte Erweiterungen
+
+      Linientyp = (
+        standard,
+        weitere:FINAL);
+
+      Symbolart = (
+        Nordpfeil,
+        weitere:FINAL);
+
+      Kreuzart = (
+        Koord_Kreuz,
+        Netzkreuz,
+        Netzmarkierung,
+        weitere:FINAL);
+
+
+    CLASS PlanLayout =
+      NBIdent: MANDATORY NBNummer;  !! Beziehung 1-m zu Nummerierungsbereich
+      Identifikator: MANDATORY TEXT*32;
+      Layouttyp: MANDATORY TEXT*20;  !! Definition des verwendeten Planspiegels
+      Plannummer: MANDATORY NummerTyp;
+      Gemeindename: MANDATORY NameTyp;
+      Geometername: NameTyp;
+      Erstellungsdatum: MANDATORY XMLDate;
+      NachfuehrungsGeometername: NameTyp;
+      Nachfuehrungsdatum: XMLDate;
+      Massstabszahl: MANDATORY Massstabstyp;
+      Plannullpunkt: MANDATORY LKoord;
+      E_Azimut: MANDATORY Rotation;  !! Azimut 100 ist E
+      UebersichtMassstabszahl: Massstabstyp;
+      UebersichtPlannullpunkt: LKoord;
+      Mit_Koordinatennetz: MANDATORY BOOLEAN;
+        !! True    mitgeliefert
+        !! False  zu generieren
+    UNIQUE NBIdent, Identifikator;
+    END PlanLayout;
+
+    CLASS Planbeschriftung =
+      Beschriftung: MANDATORY NameTyp;
+      Art: MANDATORY Beschriftungsart;
+    END Planbeschriftung;
+
+    ASSOCIATION PlanbeschriftungPlanLayoutBez =
+      Planbeschriftung_von -<#> {1} PlanLayout;
+      Beschriftung -- {0..*} Planbeschriftung;
+    END PlanbeschriftungPlanLayoutBez;
+
+    CLASS PlanbeschriftungPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Beschriftung
+      Ori:  Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END PlanbeschriftungPos;
+
+    ASSOCIATION PlanbeschriftungPosBez =
+      PlanbeschriftungPos_von -<#> {1} Planbeschriftung;
+      Pos -- {1..*} PlanbeschriftungPos;
+    END PlanbeschriftungPosBez;
+
+    CLASS Koordinatenanschrift =
+      Beschriftung: MANDATORY NameTyp;
+    END Koordinatenanschrift;
+
+    ASSOCIATION KoordinatenanschriftBez =
+      Koordinatenanschrift_von -<#> {1} PlanLayout;
+      Anschrift -- {0..*} Koordinatenanschrift;
+    END KoordinatenanschriftBez;
+
+    CLASS KoordinatenanschriftPos =
+      Pos: MANDATORY LKoord; !! Beschriftet Beschriftung
+      Ori: Rotation; !! undefiniert = 100.0
+      HAli: HALIGNMENT; !!  HAli undefiniert = Center
+      VAli: VALIGNMENT; !!  VAli undefiniert = half
+      Groesse: Schriftgroesse;  !! undefiniert = mittel
+    END KoordinatenanschriftPos;
+
+    ASSOCIATION KoordinatenanschriftPosBez =
+      KoordinatenanschriftPos_von -<#> {1} Koordinatenanschrift;
+      Position -- {1..*} KoordinatenanschriftPos;
+      UNIQUE KoordinatenanschriftPos_von, Position->Pos;
+    END KoordinatenanschriftPosBez;
+
+    CLASS Linienobjekt =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS, ARCS) VERTEX LKoord;
+      Art: MANDATORY Linientyp;
+    END Linienobjekt;
+
+    ASSOCIATION LinienobjektBez =
+      Linienobjekt_von -<#> {1} PlanLayout;
+      Linienobjekte -- {0..*} Linienobjekt;
+    END LinienobjektBez;
+
+    CLASS KoordinatenLinie =
+      Geometrie: MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    END KoordinatenLinie;
+
+    ASSOCIATION KoordinatenLinieBez =
+      KoordinatenLinie_von -<#> {1} PlanLayout;
+      KoordinatenLinien -- {0..*} KoordinatenLinie;
+    END KoordinatenLinieBez;
+
+    CLASS Darstellungsflaeche =
+      Geometrie: MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050;
+      Auswahlart: MANDATORY (
+        vollstaendig,
+        teilweise:FINAL);
+    END Darstellungsflaeche;
+
+    ASSOCIATION DarstellungsflaecheBez =
+      Darstellungsflaeche_von -<#> {1} PlanLayout;
+      Darstellungsflaechen -- {0..*} Darstellungsflaeche;
+    END DarstellungsflaecheBez;
+
+    CLASS PlanLayoutSymbol =
+      Pos: MANDATORY LKoord;
+      Ori: Rotation;    !! undefiniert = 0.0
+      Art: MANDATORY Symbolart;
+    END PlanLayoutSymbol;
+
+    ASSOCIATION PlanLayoutSymbolBez =
+      PlanLayoutSymbol_von -<#> {1} PlanLayout;
+      Symbol -- {0..*} PlanLayoutSymbol;
+    END PlanLayoutSymbolBez;
+
+    CLASS Netzkreuz =
+      Pos: MANDATORY LKoord;
+      Ori: Rotation;    !! undefiniert = 0.0
+      Art: MANDATORY Kreuzart;
+    END Netzkreuz;
+
+    ASSOCIATION NetzkreuzBez =
+      Netzkreuz_von -<#> {1} PlanLayout;
+      Netzkreuze -- {0..*} Netzkreuz;
+    UNIQUE Netzkreuz_von, Netzkreuze->Pos;
+    END NetzkreuzBez;
+
+  END Planrahmen;
+
+END DM01AVCH24D_ili2.
+

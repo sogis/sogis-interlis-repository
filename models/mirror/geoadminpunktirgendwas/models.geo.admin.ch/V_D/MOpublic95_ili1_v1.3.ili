@@ -1,0 +1,540 @@
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! MOpublic Model for LV95
+!! Datamodel of cadastral surveying, Federal level
+!! written in INTERLIS version 1 (SN 612030).
+!!
+!! Swiss Federal Office of Topography swisstopo
+!! Federal Directorate of Cadastral Surveying
+!! CH-3084 Wabern
+!! www.cadastre.ch and www.interlis.ch
+!!
+!! Version: 1.3 english
+!! File name: MOpublic95_ili1_v1.3.ili
+!! Date: 01.02.2013
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+MODEL MOpublic95_ili1_v13
+
+  DOMAIN
+
+    CoordP = COORD2
+      2460000.000 1045000.000
+      2870000.000 1310000.000;
+
+    CoordA = COORD3
+      2460000.000 1045000.000 -200.000
+      2870000.000 1310000.000  5000.000;
+
+    Altitude = DIM1 -200.000 5000.000;
+
+    Rotation = GRADS 0.0 399.9;
+
+    Accuracy = [0.0 .. 700.0];
+
+	TOPIC Metadata =
+    	!! This topic is not generated from the Datamodel of cadastral surveying
+    	!! It is defined for each generation of MOpublic by the data provider
+    	     
+      TABLE Metadata =
+      	Generated_from : TEXT*100; !! Who has generated or extract this MOpublic dataset
+      	Generated_based_model : TEXT*30; !! For example “MD01MOCH24F” or “DM01AVBE11D”
+      	Generated_date : DATE; !! When was generated or extracted this MOpublic dataset
+      	Other_metadata_information : TEXT*30 ; !! It must be  "http://www.geometa.ch"
+      NO IDENT
+			END Metadata;
+			    	
+   END Metadata.
+  
+  
+  TOPIC Control_points =
+
+    TABLE Control_point =
+      Category : [0 .. 5]; !! Designation under LookUp.Lookup_tables.Control_point_Category
+      IdentND : TEXT*12;
+      Number : TEXT*12;
+      Geometry : CoordP;
+      Plan_accuracy : OPTIONAL Accuracy;
+      Geom_alt : OPTIONAL Altitude;
+      Alt_accuracy : OPTIONAL Accuracy;
+      Mark : [0 .. 8]; !! If the Mark is not defined, indicate Code 8 = undefined
+                       !! Designation under LookUp.Lookup_tables.Mark_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    IDENT IdentND, Number;
+    END Control_point;
+
+  END Control_points.
+
+
+  TOPIC Land_cover =
+
+    TABLE LCSurface =
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Quality : [0 .. 4]; !! Designation under LookUp.Lookup_tables.QualityStandard_type
+      Type : [0 .. 25]; !! Designation under LookUp.Lookup_tables.LCS_type
+      RegBL_EGID : OPTIONAL [1 .. 999999999];
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END LCSurface;
+
+    TABLE LCSurface_PosText =
+      PosText_of : ->LCSurface; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*30;
+      Pos : OPTIONAL CoordP;
+      Ori : OPTIONAL Rotation;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END LCSurface_PosText;
+
+    TABLE LCSurfaceProj =
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Quality : [0 .. 4]; !! Designation under LookUp.Lookup_tables.QualityStandard_type
+      Type : [0 .. 25]; !! Designation under LookUp.Lookup_tables.LCS_type
+      RegBL_EGID : OPTIONAL [1 .. 999999999];
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END LCSurfaceProj;
+
+    TABLE LCSurfaceProj_PosText =
+      PosText_of : ->LCSurfaceProj; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*30;
+      Pos : OPTIONAL CoordP;
+      Ori : OPTIONAL Rotation;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END LCSurfaceProj_PosText;
+
+  END Land_cover.
+
+
+  TOPIC Single_objects =
+
+    TABLE Surface_element =
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      Type : [0 .. 41]; !! Designation under LookUp.Lookup_tables.SO_type
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+      Quality : [0 .. 4]; !! Designation under LookUp.Lookup_tables.QualityStandard_type
+      RegBL_EGID : OPTIONAL [1 .. 999999999];
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Surface_element;
+
+    TABLE Surface_element_PosText =
+      PosText_of : ->Surface_element; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*30;
+      Pos : OPTIONAL CoordP;
+      Ori : OPTIONAL Rotation;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Surface_element_PosText;
+
+    TABLE Linear_element =
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      Type : [0 .. 41]; !! Designation under LookUp.Lookup_tables.SO_type
+      Geometry : POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Quality : [0 .. 4]; !! Designation under LookUp.Lookup_tables.QualityStandard_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Linear_element;
+
+    TABLE Linear_element_PosText =
+      PosText_of : ->Linear_element; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*30;
+      Pos : OPTIONAL CoordP;
+      Ori : OPTIONAL Rotation;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Linear_element_PosText;
+
+    TABLE Point_element =
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      Type : [0 .. 41]; !! Designation under LookUp.Lookup_tables.SO_type
+      Geometry : CoordP;
+      Quality : [0 .. 4]; !! Designation under LookUp.Lookup_tables.QualityStandard_type
+      Ori : Rotation;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Point_element;
+
+    TABLE Point_element_PosText =
+      PosText_of : ->Point_element; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*30;
+      Pos : OPTIONAL CoordP;
+      Ori : OPTIONAL Rotation;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Point_element_PosText;
+
+  END Single_objects.
+
+
+  TOPIC Heights =
+
+    TABLE Individual_point =
+      Geometry : CoordA;
+      State_of : OPTIONAL DATE;
+    IDENT Geometry;
+    END Individual_point;
+
+    TABLE Terrain_edge =
+      Geometry : POLYLINE WITH (STRAIGHTS) VERTEX CoordA;
+      Type : [0 .. 2];  !! Designation under LookUp.Lookup_tables.Terrain_edge_type
+      State_of : OPTIONAL DATE;
+    NO IDENT
+    END Terrain_edge;
+
+    TABLE Cut_out_surface =
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Type : [0 .. 1];  !! Designation under LookUp.Lookup_tables.Cut_out_surface_type
+      State_of : OPTIONAL DATE;
+    NO IDENT
+    END Cut_out_surface;
+
+    TABLE Contour_line =
+      Geometry : POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordA;
+      Altitude : Altitude;
+      State_of : OPTIONAL DATE;
+    NO IDENT
+    END Contour_line;
+
+  END Heights.
+
+
+  TOPIC Local_names =
+
+    TABLE Names =
+      Category : [0 .. 1];  !! Designation under LookUp.Lookup_tables.Local_names_type #0 or #1
+      Name : TEXT*40;
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.200;
+      Type : OPTIONAL TEXT*30;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Names;
+
+    TABLE Names_PosName =
+      PosName_of : OPTIONAL ->Names; !! Relation c-mc
+      Category : [0 .. 2]; !! Designation under LookUp.Lookup_tables.Local_names_type #0, #1 or #2
+      Name : TEXT*40;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Names_PosName;
+
+  END Local_names.
+
+
+  TOPIC Ownership =
+
+    TABLE Boundary_point =
+      Geometry : CoordP;
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      Plan_accuracy : Accuracy;
+      Plan_reliability : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Reliability_type
+      Mark : [0 .. 7]; !! Designation under LookUp.Lookup_tables.Mark_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Boundary_point;
+
+    TABLE RealEstate =
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      EGRIS_EGRID : OPTIONAL TEXT*14;
+      Completeness : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Completeness_type
+      Area : DIM2 1 999999999;  !! SquareMeters [m2]
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    IDENT IdentND, Number;
+    END RealEstate;
+
+    TABLE RealEstate_PosNumber =
+      PosNumber_of : ->RealEstate; !! Relation 1-m
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END RealEstate_PosNumber;
+
+    TABLE DPR_Mine =
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      EGRIS_EGRID : OPTIONAL TEXT*14;
+      Completeness : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Completeness_type
+      RealEstate_Type : [0 .. 4]; !! Designation under LookUp.Lookup_tables.RealEstate_type
+      Area : DIM2 1 999999999;  !! SquareMeters [m2]
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    IDENT IdentND, Number;
+    END DPR_Mine;
+
+    TABLE DPR_Mine_PosNumber =
+      PosNumber_of : ->DPR_Mine; !! Relation 1-m
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END DPR_Mine_PosNumber;
+
+    TABLE RealEstateProj =
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      EGRIS_EGRID : OPTIONAL TEXT*14;
+      Completeness : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Completeness_type
+      Area : DIM2 1 999999999;  !! SquareMeters [m2]
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END RealEstateProj;
+
+    TABLE RealEstateProj_PosNumber =
+      PosNumber_of : ->RealEstateProj; !! Relation 1-m
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END RealEstateProj_PosNumber;
+
+    TABLE DPR_MineProj =
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      EGRIS_EGRID : OPTIONAL TEXT*14;
+      Completeness : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Completeness_type
+      RealEstate_Type : [0 .. 4]; !! Designation under LookUp.Lookup_tables.RealEstate_type
+      Area : DIM2 1 999999999;  !! SquareMeters [m2]
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END DPR_MineProj;
+
+    TABLE DPR_MineProj_PosNumber =
+      PosNumber_of : ->DPR_MineProj; !! Relation 1-m
+      IdentND : TEXT*12;
+      Number : TEXT*15;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END DPR_MineProj_PosNumber;
+
+  END Ownership.
+
+
+  TOPIC Pipelines =
+
+    TABLE Surface_element =
+      Operating_company : TEXT*30;
+      Fluid : [0 .. 2]; !! Designation under LookUp.Lookup_tables.Fluid_type
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Surface_element;
+
+    TABLE Surface_element_PosName =
+      PosName_of : ->Surface_element; !! Relation 1-mc
+      Operating_company : TEXT*30;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Surface_element_PosName;
+
+    TABLE Linear_element =
+      Operating_company : TEXT*30;
+      Fluid : [0 .. 2]; !! Designation under LookUp.Lookup_tables.Fluid_type
+      Geometry : POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Linear_element;
+
+    TABLE Linear_element_PosName =
+      PosName_of : ->Linear_element; !! Relation 1-mc
+      Operating_company : TEXT*30;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Linear_element_PosName;
+
+    TABLE Point_element =
+      Operating_company : TEXT*30;
+      Fluid : [0 .. 2]; !! Designation under LookUp.Lookup_tables.Fluid_type
+      Geometry : CoordP;
+      Geom_alt : OPTIONAL Altitude;
+      Ori : Rotation;
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Point_element;
+
+  END Pipelines.
+
+
+  TOPIC Territorial_boundaries =
+
+    TABLE Boundary_terr_point =
+      Geometry : CoordP;
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type
+      Plan_accuracy : Accuracy;
+      Plan_reliability : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Reliability_type
+      Mark : [0 .. 7]; !! Designation under LookUp.Lookup_tables.Mark_type
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Boundary_terr_point;
+
+    TABLE Municipal_boundary =
+      Name : TEXT*30;
+      Geometry : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050
+          LINEATTR = Code : [0 .. 3]; !! Designation under LookUp.Lookup_tables.Territorial_bound_Line_type
+        END;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Municipal_boundary;
+
+    TABLE Municipal_boundProj =
+      Name : TEXT*30;
+      Geometry : POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+          WITHOUT OVERLAPS > 0.050;
+      State_of : OPTIONAL DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Municipal_boundProj;
+
+    TABLE Other_territ_boundary =
+      Type : [0 .. 2]; !! Designation under LookUp.Lookup_tables.Other_territorial_bound_type
+      Geometry : POLYLINE WITH (STRAIGHTS, ARCS) VERTEX CoordP;
+      Bound_validity_Type : [0 .. 3]; !! Designation under LookUp.Lookup_tables.Bound_validity_type
+    NO IDENT
+    END Other_territ_boundary;
+
+  END Territorial_boundaries.
+
+
+  TOPIC Building_addresses =
+
+    TABLE Street_name =
+      Street_name : TEXT*60;
+      Is_official_designation : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Boolean_type
+      State_of : DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Street_name;
+
+    TABLE Street_name_Pos =
+      Street_name_of : ->Street_name; !! Relation 1-mc
+      Street_name : TEXT*60;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Street_name_Pos;
+
+    TABLE Building_entrance =
+      Street_of : ->Street_name; !! Relation c-mc
+      Validity : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Validity_type, only planned or valid object
+      Pos : CoordP;
+      Is_official_designation : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Boolean_type
+      Level : OPTIONAL [-99 .. 99];
+      House_number : OPTIONAL TEXT*12;
+      Name_of_house : OPTIONAL TEXT*40;
+      RegBL_EGID : OPTIONAL [1 .. 999999999];
+      RegBL_EDID : OPTIONAL [0 .. 99];
+      Street_name : OPTIONAL TEXT*60;
+      PostalCode : [1000 .. 9999];
+      Additional_number : [0 .. 99];
+      City : TEXT*40;
+      State_of : DATE;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Building_entrance;
+
+    TABLE Building_entrance_Pos =
+      Pos_of : ->Building_entrance; !! Relation 1-mc
+      Type : [0 .. 1]; !! Designation under LookUp.Lookup_tables.Text_type
+      Number_Name : TEXT*40;
+      Pos : CoordP;
+      Ori : Rotation;
+      HAli: HALIGNMENT;
+      VAli: VALIGNMENT;
+      FOSNr : OPTIONAL [0 .. 9999];
+    NO IDENT
+    END Building_entrance_Pos;
+
+  END Building_addresses.
+
+END MOpublic95_ili1_v13.
+
+FORMAT FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

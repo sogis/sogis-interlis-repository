@@ -1,0 +1,532 @@
+/* DATENMODELL GEFAHRENKARTIERUNG
+  
+   Dieses Datenmodell enthält einen minimalen Teil gemäss Geoinformationsgesetz
+   und einen erweiterten Teil.
+   Die Zuordnung hierzu ist bei den jeweiligen Topics als Kommentar angegeben.
+
+   Dieses Modell ruft verschiedene Untermodelle auf:
+   -- aus http://models.interlis.ch/
+   -- CONTRACTED TYPE MODEL Units (en)
+   -- aus http://models.geo.admin.ch/CH/
+   -- MODEL GeometryCHLV03_V1;  !! Part   I of CHBase
+   -- MODEL CHAdminCodes_V1;    !! Part   IV of CHBase
+   -- MODEL WithOneState_V1;    !! Part   V of CHBase
+
+   Das eigentliche Datenmodell ist:
+   -- MODEL Gefahrenkartierung_V1 (de_CH) */
+
+
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | WITHOUT OVERLAPS added
+!! 2015-08-12 | KOGIS | EnumElement commented
+!! 2016-04-15 | KOGIS | Geometry definition adapted
+!! 2021-01-13 | BAFU  | Korrekturen: TOPIC Erhebungsstand als ABSTRACT definiert, dritte Konsistenzbedingung in Klasse Intensitaet_ProProzessquelle korrigert
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "166.1"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+CONTRACTED MODEL Gefahrenkartierung_V1 (de_CH)
+    AT "http://models.geo.admin.ch/BAFU" VERSION "2021-01-13" =
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;  !! Part   I of CHBase
+  IMPORTS CHAdminCodes_V1;                !! Part   IV of CHBase
+  IMPORTS WithOneState_V1;                !! Part   V of CHBase
+
+  DOMAIN
+    GK_OID = OID TEXT*120; !! <OID gemäss Kanton>.<Kantonskürzel>.ch
+
+    SurfaceWithoutArcs = SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.001;
+    SurfaceWithoutArcsWithOverlaps2mm =
+      SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.002;
+    /* SurfaceWithoutArcsWithOverlaps2mm ist der Datentyp für alle
+       Flächenattribute im Datenmodell. Kreisbögen sind nicht erlaubt.
+       Die Selbstschnittpfeilhöhe beträgt 2 mm. */
+
+  FUNCTION areFuzzyAreas (Objects: OBJECTS OF ANYCLASS;
+                          SurfaceBag: ATTRIBUTE OF @ Objects
+                            RESTRICTION (BAG OF ANYSTRUCTURE);
+                          SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                            RESTRICTION (SURFACE);
+                          Tolerance: NUMERIC): BOOLEAN;
+  /* Diese Funktion liefert true, wenn die angegebenen Flächen
+     abgesehen von Unstimmigkeiten innerhalb der angegebenen Toleranz
+     ein Flächennetz ergeben */
+
+  FUNCTION isEnumExactVal(Val: ENUMTREEVAL; NodeVal: ENUMTREEVAL): BOOLEAN;
+  /* Diese Funktion liefert true, wenn Val exakt mit NodeVal übereinstimmt.
+     (Unteraufzählwerte liefern also false). */
+
+
+  TOPIC Gefahrenkartierung_Basis_WithOneState (ABSTRACT) =
+    OID AS GK_OID;
+
+    /* _WithOneState bezieht sich auf das Nachführungsprinzip gemäss
+       Basismodell des Bundes. In der Gefahrenkartierung werden
+       keinerlei Nachführungsinformationen eingesetzt, sondern nur der
+       Zustand für einen bestimmten Zeitpunkt (OneState) beschrieben.
+       Die Struktur ModInfo ist darum leer. */
+
+    STRUCTURE ModInfo EXTENDS WithOneState_V1.ModInfo =
+    END ModInfo;
+
+    DOMAIN            !! Prozesseinteilung
+      Hauptprozess = (
+        Wasser,
+        Rutschung,
+        Sturz,
+        Lawine
+      );
+
+      Hinweisprozess EXTENDS Hauptprozess = (
+        Wasser(
+          Ueberschwemmung,     !! beinhaltet auch Übersarung
+          Uebermurung),
+        Rutschung(
+          permanente_Rutschung,
+          ploetzlicher_Rutschprozess)
+!!      Sturz,
+!!      Lawine
+      );
+
+      ProzessBez_Hinweis = ALL OF Hinweisprozess;
+
+      Prozess_detailliert EXTENDS Hinweisprozess = (
+        Wasser(
+!!        Ueberschwemmung,
+!!        Uebermurung,
+          Ufererosion),
+        Rutschung(
+!!        permanente_Rutschung,
+          ploetzlicher_Rutschprozess(
+            spontane_Rutschung,
+            Hangmure)),
+        Sturz(
+          Stein_Block_Schlag,
+          Fels_Berg_Sturz,
+          Eisschlag),       !! beinhaltet auch Eissturz
+        Einsturz_Absenkung(
+          Einsturz,
+          Absenkung),
+        Lawine(
+          Fliesslawine,
+          Staublawine,
+          Schneerutsch)     !! beinhaltet auch Schneegleiten
+        );
+
+      ProzessBez_detailliert = ALL OF Prozess_detailliert;
+
+      SpeziellerHinweisprozess = (
+            Oberflaechenabfluss,
+            Grundwasseraufstoss);
+
+    FUNCTION areFuzzyAreasProHauptprozess
+                           (Objects: OBJECTS OF ANYCLASS;
+                            Hauptprozess: ATTRIBUTE OF @ Objects
+                              RESTRICTION (Hauptprozess);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* wie areFuzzyAreas aber mit der Zusatz, dass
+      pro Hauptprozess ein Flächennetz gefordert ist. */
+
+    FUNCTION areFuzzyAreasProProzesshinweis
+                           (Objects: OBJECTS OF ANYCLASS;
+                            Hinweisprozess: ATTRIBUTE OF @ Objects
+                              RESTRICTION (ProzessBez_Hinweis);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* wie areFuzzyAreas aber mit der Zusatz, dass
+      pro Hinweisprozess ein Flächennetz gefordert ist. */
+
+    FUNCTION areFuzzyAreasProSpezialprozess
+                           (Objects: OBJECTS OF ANYCLASS;
+                            SpeziellerHinweisprozess: ATTRIBUTE OF @ Objects
+                              RESTRICTION (SpeziellerHinweisprozess);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* wie areFuzzyAreas aber mit der Zusatz, dass
+      pro SpeziellerHinweisprozess ein Flächennetz gefordert ist. */
+
+    DOMAIN            !! Beurteilungskriterien
+      Beurteilung_Typ = MANDATORY (
+        nicht_beurteilt,
+        Beurteilung_nicht_noetig,
+        beurteilt);
+
+      Vollstaendigkeit_Typ = (
+        vollstaendig,
+        nicht_vollstaendig,
+        nicht_bestimmbar,
+        in_Abklaerung);
+
+    STRUCTURE Prozessbeurteilung =
+      Beurteilungsstatus: Beurteilung_Typ;
+      QuellenInTeilproz_vollstdg: Vollstaendigkeit_Typ;
+      MANDATORY CONSTRAINT
+      /* Nur wenn die Vollständigkeit (Attribut siehe "Vollstaendigkeit_Typ")
+         abgeklärt ist, darf beim Beurteilungsstatus der Attributswert
+         "beurteilt" vergeben werden. */
+        (Beurteilungsstatus == #beurteilt) ==
+                      DEFINED (QuellenInTeilproz_vollstdg);
+    END Prozessbeurteilung;
+
+    STRUCTURE Teilprozesse =
+      !! Wasser
+      Ueberschwemmung: Prozessbeurteilung;      !! beinhaltet auch Übersarung
+      Uebermurung: Prozessbeurteilung;
+      Ufererosion: Prozessbeurteilung;
+      !! Rutschungen
+      permanente_Rutschung: Prozessbeurteilung;
+      spontane_Rutschung: Prozessbeurteilung;
+      Hangmure: Prozessbeurteilung;
+      !! Sturz
+      Stein_Block_Schlag: Prozessbeurteilung;
+      Fels_Berg_Sturz: Prozessbeurteilung;
+      Eisschlag: Beurteilung_Typ;     !! keine Angabe der Vollständigkeit,
+                                      !!   beinhaltet auch Eissturz
+      !! Einsturz/Absenkung
+      Einsturz: Beurteilung_Typ;      !! keine Angabe der Vollständigkeit
+      Absenkung: Beurteilung_Typ;     !! keine Angabe der Vollständigkeit
+      !! Lawine
+      Fliesslawine: Prozessbeurteilung;
+      Staublawine: Prozessbeurteilung;
+      Schneerutsch: Prozessbeurteilung;     !! beinhaltet auch Schneegleiten
+    END Teilprozesse;
+
+    FUNCTION beurteilterTeilprozess(P: Prozess_detailliert;
+                                    TPe: Teilprozesse): BOOLEAN;
+    /* überprüft, ob der Teilprozess gemäss P in den Teilprozessen
+       als beurteilt markiert ist.
+       Bei Eisschlag (kommt in der Struktur Teilprozesse nicht vor)
+       liefert die Funktion immer true. */
+
+    DOMAIN            !! Jährlichkeiten
+      Jaehrlichkeit_Typ = 1..99999;
+      /* Bemerkungen:
+         Der Wertebereich ist mit CONSTRAINTS eingeschränkt auf:
+         1..10000, 99999
+         (99999 bezeichnet ein Extremszenario)
+         
+         Jährlichkeit ist bei den meisten Teilprozessen obligatorisch, ausser
+         - permanente_Rutschung: immer undefiniert, da sie keinen Sinn macht
+         - Schneerutsch, Eisschlag: optional
+         - Einsturz_Absenkung: wenn nur auf Stufe Hinweis beurteilt.
+         
+         In der Regel wird - abgesehen vom Extremereignis - eine Jährlichkeit
+         zwischen 1 und 300 vergeben.
+         Das massgebliche Extremereignis wird in jedem Fall mit einer
+         Jährlichkeit von 99999 gekennzeichnet, gleichgültig, ob ihm eine
+         bestimmte Jährlichkeit zugrunde liegt oder nicht.
+         Falls diesem massgeblichen Extremereignis eine bestimmte Jährlichkeit
+         zugrunde liegt, wird ausserdem ein Wert zwischen 301 und 10000
+         vergeben. In diesem Fall wird das Objekt doppelt geführt: einmal als
+         Extremszenario mit bekannter Jährlichkeit und einmal mit 99999.
+         Zusätzliche Ereignisse geringer Wahrscheinlichkeit zwischen 301 und
+         10000, die nicht das massgebliche Extremereignis darstellen, sind
+         ebenfalls möglich. */
+
+    DOMAIN            !! Wahrscheinlichkeiten
+      Wahrscheinlichkeit_Typ = 0.00..1.00;
+
+    DOMAIN            !! Gefahrenstufen
+      Gefahrenstufe_Typ = (
+        nicht_gefaehrdet,
+        Restgefaehrdung,
+        gering,
+        mittel,
+        erheblich);
+
+    CLASS Basis_Objekt (ABSTRACT) =
+      Modification: MANDATORY ModInfo;
+      Datenherr: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Einwirkungsraum: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      Kommentar: MTEXT;
+    END Basis_Objekt;
+
+  END Gefahrenkartierung_Basis_WithOneState;
+
+
+  TOPIC Kennwerte EXTENDS Gefahrenkartierung_Basis_WithOneState =
+    !! Teil des erweiterten Datenmodells
+
+    DOMAIN            !! für Kennwert
+      Bestimmungsmethode_Typ = (
+        nicht_rekonstruierbar,
+        Modellauswertung,
+        Gutachten);
+
+    CLASS Kennwert (ABSTRACT) EXTENDS Basis_Objekt =
+      Jaehrlichkeit: MANDATORY Jaehrlichkeit_Typ;
+      Teilszenario_Wahrscheinlichkeit: MANDATORY Wahrscheinlichkeit_Typ;
+      /* wenn die Teilszenario_Wahrscheinlichkeit = 1.00 ist,
+         handelt es sich um ein Gesamtszenario,
+         andernfalls um ein Teilszenario. */
+      Szenario_Beschreibung: MTEXT;
+      ProzQuelle: MANDATORY TEXT;
+      Bestimmungsmethode: Bestimmungsmethode_Typ;
+      ProzessBez_Kanton: TEXT;
+      MANDATORY CONSTRAINT
+        !! Für Teilszenarien ist die Szenario_Beschreibung obligatorisch.
+        (Teilszenario_Wahrscheinlichkeit == 1.00) OR
+        DEFINED (Szenario_Beschreibung);
+    END Kennwert;
+
+    /* Zur Systematik von Kennwerten:
+       - Jährlichkeit: siehe oben
+       - Die Werte werden jeweils durch eine Untergrenze (_UG) und
+         eine Obergrenze (_OG) beschreiben.
+       - Liegt in einem untersuchten Gebiet auf einer Teilfläche keine
+         Einwirkung durch den entsprechenden Prozess und die Prozessquelle vor,
+         werden die Werte _UG==0 und _OG ==0 vergeben.
+       - Kennwerte gibt es nur zu den Teilprozessen Überschwemmung und
+         Übermurung. */
+
+    DOMAIN
+      UE_Tiefe_Typ = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS KW_Ueberschwemmung_Tiefe EXTENDS Kennwert =
+      UE_Tiefe_UG: MANDATORY UE_Tiefe_Typ;
+      UE_Tiefe_OG: MANDATORY UE_Tiefe_Typ;
+      MANDATORY CONSTRAINT
+        UE_Tiefe_UG <= UE_Tiefe_OG;
+    END KW_Ueberschwemmung_Tiefe;
+
+    DOMAIN
+      UE_Fliessgeschwindigkeit_Typ = MANDATORY 0.00 .. 30.00 [Units.ms]; !! m/s
+
+    CLASS KW_Ueberschwemmung_Geschwindigkeit EXTENDS Kennwert =
+      UE_Fliessgeschwindigkeit_UG: MANDATORY UE_Fliessgeschwindigkeit_Typ;
+      UE_Fliessgeschwindigkeit_OG: MANDATORY UE_Fliessgeschwindigkeit_Typ;
+      MANDATORY CONSTRAINT
+        UE_Fliessgeschwindigkeit_UG <= UE_Fliessgeschwindigkeit_OG;
+    END KW_Ueberschwemmung_Geschwindigkeit;
+
+    UNIT
+      v_mal_h [m2s];
+
+    DOMAIN
+      UE_v_mal_h_Typ = MANDATORY 0.00 .. 50.00 [m2s]; !! m^2/s
+
+    CLASS KW_Ueberschwemmung_v_mal_h EXTENDS Kennwert =
+      UE_v_mal_h_UG: MANDATORY UE_v_mal_h_Typ;
+      UE_v_mal_h_OG: MANDATORY UE_v_mal_h_Typ;
+      MANDATORY CONSTRAINT
+        UE_v_mal_h_UG <= UE_v_mal_h_OG;
+    END KW_Ueberschwemmung_v_mal_h;
+
+    DOMAIN
+      M_Hoehe_Typ = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS KW_Uebermurung_Hoehe EXTENDS Kennwert =
+      M_Hoehe_UG: MANDATORY M_Hoehe_Typ;
+      M_Hoehe_OG: MANDATORY M_Hoehe_Typ;
+      MANDATORY CONSTRAINT
+        M_Hoehe_UG <= M_Hoehe_OG;
+    END KW_Uebermurung_Hoehe;
+
+    DOMAIN
+      M_Geschwindigkeit_Typ = MANDATORY 0.00 .. 10.00 [Units.ms]; !! m/s
+
+    CLASS KW_Uebermurung_Geschwindigkeit EXTENDS Kennwert =
+      M_Geschwindigkeit_UG: MANDATORY M_Geschwindigkeit_Typ;
+      M_Geschwindigkeit_OG: MANDATORY M_Geschwindigkeit_Typ;
+      MANDATORY CONSTRAINT
+        M_Geschwindigkeit_UG <= M_Geschwindigkeit_OG;
+    END KW_Uebermurung_Geschwindigkeit;
+
+  END Kennwerte;
+
+
+  TOPIC Erhebungsstand (ABSTRACT) EXTENDS Gefahrenkartierung_Basis_WithOneState =
+    !! Teil des minimalen Datenmodells
+
+    CLASS Erhebungsgebiet =
+      Modification: MANDATORY ModInfo;
+      Datenherr: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Flaeche: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      Prozess_Umfang: MANDATORY Teilprozesse;
+      Kommentar: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas(ALL, UNDEFINED, >> Flaeche, 0.002);
+    END Erhebungsgebiet;
+
+  END Erhebungsstand;
+
+
+  TOPIC Intensitaeten (ABSTRACT) EXTENDS Gefahrenkartierung_Basis_WithOneState =
+
+    DOMAIN            !! Intensitäten
+      Intensitaetsbeschreibung = (
+        keine_Einwirkung,
+        Einwirkung_vorhanden(
+          schwach,
+          mittel,
+          stark)) ORDERED;
+
+      Intensitaet_Typ = ALL OF Intensitaetsbeschreibung;
+      !! Einwirkung_vorhanden (ohne Angabe der Stärke) zulässig
+
+    CLASS Intensitaet (ABSTRACT) EXTENDS Basis_Objekt =
+      Jaehrlichkeit: Jaehrlichkeit_Typ;
+      Intensitaetsklasse: MANDATORY Intensitaet_Typ;
+      ProzessBez_Kanton: MANDATORY TEXT;
+      MANDATORY CONSTRAINT
+      /* Falls eine Jährlichkeit zwischen 1 und einschliesslich 300 angegeben
+         ist, müssen die Intensitäten detailliert angegeben werden.
+         (--> "keine Einwirkung", "schwach", "mittel", "stark" -> entspricht dem
+         Attributstyp "Intensitaetsbeschreibung" -> d. h. der Wert
+         "Einwirkung_vorhanden darf in diesem Fall nicht vergeben werden.) */
+        (Jaehrlichkeit > 300) OR
+          NOT (isEnumExactVal(Intensitaetsklasse,#Einwirkung_vorhanden));
+    END Intensitaet;
+
+  END Intensitaeten;
+
+
+  TOPIC Intensitaeten_ProProzessquelle EXTENDS Intensitaeten =
+    !! Teil des erweiterten Datenmodells
+
+    CLASS Intensitaet_ProProzessquelle EXTENDS Intensitaet =
+      ProzQuelle: MANDATORY TEXT;
+      Teilprozess: MANDATORY Prozess_detailliert;
+      /* wenn die Teilszenario_Wahrscheinlichkeit = 1.00 ist,
+         handelt es sich um ein Gesamtszenario,
+         andernfalls um ein Teilszenario. */
+      Teilszenario_Wahrscheinlichkeit: MANDATORY Wahrscheinlichkeit_Typ;
+      Szenario_Beschreibung: MTEXT;
+      MANDATORY CONSTRAINT
+        !! Für Teilszenarien ist die Szenario_Beschreibung obligatorisch
+        (Teilszenario_Wahrscheinlichkeit == 1.00) OR
+        DEFINED(Szenario_Beschreibung);
+      MANDATORY CONSTRAINT
+        /* Für den Teilprozess "permanente_Rutschung" darf keine Jährlichkeit
+           angegeben werden. */
+        (Teilprozess != #Rutschung.permanente_Rutschung) OR
+        NOT (DEFINED (Jaehrlichkeit));
+      MANDATORY CONSTRAINT
+        /* Für alle Teilprozesse mit Ausnahme von "Eisschlag",
+           "Einsturz", "Absenkung", "Schneerutsch" und "permanente_Rutschung" muss
+           eine Jährlichkeit angegeben werden.
+           (Beim Teilprozess "Einsturz_Absenkung" steht diese Option für
+           diejenigen Fälle zur Verfügung, in denen eine Beurteilung nur auf
+           Hinweisstufe erfolgt.) */
+        (Teilprozess == #Sturz.Eisschlag) OR
+        (Teilprozess == #Einsturz_Absenkung.Einsturz) OR
+        (Teilprozess == #Einsturz_Absenkung.Absenkung) OR
+        (Teilprozess == #Lawine.Schneerutsch) OR
+        (Teilprozess == #Rutschung.permanente_Rutschung) OR
+        DEFINED (Jaehrlichkeit);
+    END Intensitaet_ProProzessquelle;
+
+  END Intensitaeten_ProProzessquelle;
+
+
+  TOPIC Synoptische_Intensitaeten EXTENDS Intensitaeten =
+    !! Teil des minimalen Datenmodells
+
+    CLASS Synoptische_Intensitaet EXTENDS Intensitaet =
+      Teilprozess: MANDATORY ProzessBez_detailliert;
+      QuellenInTeilproz_vollstdg: MANDATORY Vollstaendigkeit_Typ;
+      MANDATORY CONSTRAINT
+        /* Für den Teilprozess "permanente_Rutschung" darf keine Jährlichkeit
+           angegeben werden. */
+        (Teilprozess != #Rutschung.permanente_Rutschung) OR
+        NOT (DEFINED (Jaehrlichkeit));
+      MANDATORY CONSTRAINT
+        /* Für alle Teilprozesse mit Ausnahme von "Eisschlag",
+           "Einsturz_Absenkung", "Schneerutsch" und "permanente_Rutschung" muss
+           eine Jährlichkeit angegeben werden.
+           (Beim Teilprozess "Einsturz_Absenkung" steht diese Option für
+           diejenigen Fälle zur Verfügung, in denen eine Beurteilung nur auf
+           Hinweisstufe erfolgt.) */
+        (Teilprozess == #Sturz.Eisschlag) OR
+        (Teilprozess == #Einsturz_Absenkung) OR
+        (Teilprozess == #Lawine.Schneerutsch) OR
+        (Teilprozess == #Rutschung.permanente_Rutschung) OR
+        DEFINED (Jaehrlichkeit);
+    END Synoptische_Intensitaet;
+
+  END Synoptische_Intensitaeten;
+
+
+  TOPIC Gefahrengebiete EXTENDS Gefahrenkartierung_Basis_WithOneState =
+    !! Teil des minimalen Datenmodells
+
+    CLASS Gefahrengebiet EXTENDS Basis_Objekt =
+      Prozess_Gefahrengebiete: MANDATORY Hauptprozess;
+      Gefahrenstufe: MANDATORY Gefahrenstufe_Typ;
+      Teilprozesse_vollstdg: MANDATORY Vollstaendigkeit_Typ;
+      ProzQuellen_vollstdg: MANDATORY Vollstaendigkeit_Typ;
+      SET CONSTRAINT
+        areFuzzyAreasProHauptprozess
+                     (ALL, Prozess_Gefahrengebiete,
+                      UNDEFINED, >> Einwirkungsraum, 0.100);
+    END Gefahrengebiet;
+
+  END Gefahrengebiete;
+
+
+  TOPIC GefahrenSynoptik EXTENDS Gefahrenkartierung_Basis_WithOneState =
+    !! Teil des erweiterten Datenmodells
+
+    !! für synoptische Gefahrenkarten
+
+    CLASS Synoptisches_Gefahrengebiet EXTENDS Basis_Objekt =
+      Beurteilung_vollstdg: MANDATORY Vollstaendigkeit_Typ;
+      !! bezogen auf Teilprozesse UND Prozessquellen
+      Wasser: Gefahrenstufe_Typ;
+      Rutschung: Gefahrenstufe_Typ;
+      Sturz: Gefahrenstufe_Typ;
+      Lawine: Gefahrenstufe_Typ;
+      /* Die Gefahrenstufe für die einzelnen Hauptprozesse soll
+         entweder für alle oder für gar keinen Hauptprozess angegeben
+         werden. */
+      MaxGefahr: MANDATORY Gefahrenstufe_Typ;
+      SET CONSTRAINT
+        areFuzzyAreas (ALL, UNDEFINED, >> Einwirkungsraum, 0.100);
+    END Synoptisches_Gefahrengebiet;
+
+  END GefahrenSynoptik;
+
+
+  TOPIC Gefahrenhinweisgebiete EXTENDS Gefahrenkartierung_Basis_WithOneState =
+    !! Teil des erweiterten Datenmodells
+
+    CLASS Gefahrenhinweisgebiet EXTENDS Basis_Objekt =
+      Prozess_Hinweis: MANDATORY ProzessBez_Hinweis;
+      Gefaehrdungshinweis: MANDATORY BOOLEAN;
+      Methode: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreasProProzesshinweis
+                     (ALL, Prozess_Hinweis,
+                      UNDEFINED, >> Einwirkungsraum, 0.100);
+    END Gefahrenhinweisgebiet;
+
+    CLASS Spezielles_Gefahrenhinweisgebiet EXTENDS Basis_Objekt =
+      SpezialProzess: MANDATORY SpeziellerHinweisprozess;
+      Gefaehrdungshinweis: MANDATORY BOOLEAN;
+      Methode: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreasProSpezialprozess
+             (ALL, SpezialProzess,
+              UNDEFINED, >> Einwirkungsraum, 0.100);
+    END Spezielles_Gefahrenhinweisgebiet;
+
+  END Gefahrenhinweisgebiete;
+
+
+
+END Gefahrenkartierung_V1.

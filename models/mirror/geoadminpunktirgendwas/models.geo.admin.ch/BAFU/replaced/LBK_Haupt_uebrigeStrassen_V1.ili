@@ -1,0 +1,271 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependencies added (line 109, 204),
+!!                      Property EXTERNAL added (line 32, 37, 48, 59, 70, 81, 92, 103)
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=144.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL LBK_Haupt_uebrigeStrassen_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-05-26"  =
+  IMPORTS CatalogueObjects_V1,GeometryCHLV03_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS exposure_limit_value_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END exposure_limit_value_Catalogue;
+
+    CLASS operation_status_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END operation_status_Catalogue;
+
+    STRUCTURE exposure_limit_value_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) exposure_limit_value_Catalogue;
+    END exposure_limit_value_CatRef;
+
+    STRUCTURE operation_status_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) operation_status_Catalogue;
+    END operation_status_CatRef;
+
+    CLASS emodel_street_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END emodel_street_Catalogue;
+
+    STRUCTURE emodel_street_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) emodel_street_Catalogue;
+    END emodel_street_CatRef;
+
+    CLASS pointofdetermination_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END pointofdetermination_Catalogue;
+
+    STRUCTURE pointofdetermination_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) pointofdetermination_Catalogue;
+    END pointofdetermination_CatRef;
+
+    CLASS used_roadspeed_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END used_roadspeed_Catalogue;
+
+    STRUCTURE used_roadspeed_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) used_roadspeed_Catalogue;
+    END used_roadspeed_CatRef;
+
+    CLASS noisebarriertype_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END noisebarriertype_Catalogue;
+
+    STRUCTURE noisebarriertype_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) noisebarriertype_Catalogue;
+    END noisebarriertype_CatRef;
+
+    CLASS tram_noise_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END tram_noise_Catalogue;
+
+    STRUCTURE tram_noise_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) tram_noise_Catalogue;
+    END tram_noise_CatRef;
+
+    CLASS trafficcollection_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END trafficcollection_Catalogue;
+
+    STRUCTURE trafficcollection_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) trafficcollection_Catalogue;
+    END trafficcollection_CatRef;
+
+  END Codelisten;
+
+  TOPIC Emission_Strasse =
+    DEPENDS ON LBK_Haupt_uebrigeStrassen_V1.Codelisten;
+
+    DOMAIN
+
+      PolylineZ = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3;
+
+    CLASS inputdata_Estreet =
+      inputdata_remark : MTEXT;
+      aDTF : MANDATORY 0.0 .. 999999.9;
+      Nt : MANDATORY 0.0 .. 999999.9;
+      Nn : MANDATORY 0.0 .. 999999.9;
+      P_Nt2 : MANDATORY 0.0 .. 100.0;
+      P_Nn2 : MANDATORY 0.0 .. 100.0;
+      gradient : MANDATORY -99.9 .. 99.9;
+      trafficcol_remark : MTEXT;
+      refyear_trafficcol : MANDATORY 1900 .. 2100;
+      SCS : 0.00 .. 99.99;
+      track_number : 0 .. 99;
+      direction_seperate : BOOLEAN;
+      roadsurface_correction : MANDATORY -99.9 .. 99.9;
+      modelcorrection_day : -99.9 .. 99.9;
+      modelcorrection_night : -99.9 .. 99.9;
+      modelcorrection_remark : MTEXT;
+      refyear_modcal_str : 1900 .. 2100;
+      trafficcollection : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.trafficcollection_CatRef;
+      used_roadspeed : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.used_roadspeed_CatRef;
+    END inputdata_Estreet;
+
+    CLASS inputdata_EsonROAD
+    EXTENDS inputdata_Estreet =
+      Vt1_str : MANDATORY 0 .. 200;
+      Vt2_str : MANDATORY 0 .. 200;
+      Vn1_str : MANDATORY 0 .. 200;
+      Vn2_str : MANDATORY 0 .. 200;
+      rollingnoise_correction : MANDATORY -99.9 .. 99.9;
+    END inputdata_EsonROAD;
+
+    CLASS inputdata_EStl86
+    EXTENDS inputdata_Estreet =
+      Vt_str : MANDATORY 0 .. 200;
+      Vn_str : MANDATORY 0 .. 200;
+    END inputdata_EStl86;
+
+    CLASS inputdata_tram =
+      Ntb_tram : MANDATORY 0.0 .. 999.9;
+      Nnb_tram : MANDATORY 0.0 .. 999.9;
+      LqD_tram : MANDATORY -5.0 .. 0.0;
+      LqN_tram : MANDATORY -5.0 .. 0.0;
+      mcd_tram : -99.9 .. 99.9;
+      mcn_tram : -99.9 .. 99.9;
+      emissionmodel_tram : MANDATORY TEXT;
+      refyear_modcal_tram : 1900 .. 2100;
+      LrEday_tram : 0.0 .. 120.0;
+      LrEnight_tram : 0.0 .. 120.0;
+      trafficcollection_tram : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.trafficcollection_CatRef;
+    END inputdata_tram;
+
+    CLASS streetemission =
+      geometry_E : MANDATORY PolylineZ;
+      level_aquisition : MANDATORY BOOLEAN;
+      id_E : MANDATORY TEXT;
+      street_name : TEXT;
+      route_id : TEXT;
+      section_from : TEXT;
+      section_to : TEXT;
+      geometry_acqusition : GeometryCHLV03_V1.Method;
+      position_accuracy : GeometryCHLV03_V1.Accuracy;
+      streetE_remark : MTEXT;
+      lrEday : MANDATORY 0.0 .. 120.0;
+      lrEnight : MANDATORY 0.0 .. 120.0;
+      emodel_street : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.emodel_street_CatRef;
+      lrE_remark : MTEXT;
+      tunnel : MANDATORY BOOLEAN;
+      bridge : BOOLEAN;
+      tram_noise : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.tram_noise_CatRef;
+    END streetemission;
+
+    ASSOCIATION inputdata_EsonROAD2streetemission =
+      streetemission -<#> {1} streetemission;
+      inputdata_EsonROAD -- {0..1} inputdata_EsonROAD;
+    END inputdata_EsonROAD2streetemission;
+
+    ASSOCIATION streetemission2inputdata_EStl86 =
+      streetemission -<#> {1} streetemission;
+      inputdata_EStl86 -- {0..1} inputdata_EStl86;
+    END streetemission2inputdata_EStl86;
+
+    ASSOCIATION streetemission2inputdata_tram =
+      streetemission -<#> {1} streetemission;
+      inputdata_tram -- {0..1} inputdata_tram;
+    END streetemission2inputdata_tram;
+
+  END Emission_Strasse;
+
+  TOPIC Immission_Strasse =
+    DEPENDS ON LBK_Haupt_uebrigeStrassen_V1.Codelisten;
+
+    CLASS dispersion_calculation =
+      dispcal_remark : MTEXT;
+      dispersionmodel : MANDATORY TEXT;
+      dispersionapplication : MANDATORY TEXT;
+      versionnr_dispapp : TEXT;
+      meterologydata : TEXT;
+      heightmodel : TEXT;
+      building_database : TEXT;
+      noisebarrier_geodata : TEXT;
+      emissiondata : TEXT;
+      refyear_register : MANDATORY 1900 .. 2100;
+      NPR_name : MANDATORY TEXT;
+      I_measurement : BOOLEAN;
+    END dispersion_calculation;
+
+    CLASS noisebarrier =
+      geometry_nb : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Emission_Strasse.PolylineZ;
+      noisebarrierheight : 0.00 .. 99.99;
+      reflexionloss_left : 0.0 .. 99.9;
+      reflexionloss_right : 0.0 .. 99.9;
+      ID_NB : MANDATORY TEXT;
+      noisebarrier_remark : MTEXT;
+      noisebarriertyp : LBK_Haupt_uebrigeStrassen_V1.Codelisten.noisebarriertype_CatRef;
+    END noisebarrier;
+
+    CLASS affected_analysis =
+      BFSNr : MANDATORY TEXT;
+      affected_analysis_remark : MTEXT;
+      PV_day : MANDATORY 0.0 .. 99999999.9;
+      PV_night : MANDATORY 0.0 .. 99999999.9;
+      ALV_day : MANDATORY 0.0 .. 99999999.9;
+      ALV_night : MANDATORY 0.0 .. 99999999.9;
+      AV_day : MANDATORY 0.0 .. 99999999.9;
+      AV_night : MANDATORY 0.0 .. 99999999.9;
+      sum_people : MANDATORY 0.0 .. 99999999.9;
+      withoutsensitivitylevel : MANDATORY 0.0 .. 99999999.9;
+      GemN : MANDATORY TEXT;
+      analysis_year : MANDATORY 1900 .. 2100;
+    END affected_analysis;
+
+    CLASS pointofdetermination =
+      determination_remark : MTEXT;
+      Lr_day : MANDATORY 0.0 .. 120.0;
+      Lr_night : MANDATORY 0.0 .. 120.0;
+      mcd_street : 0.0 .. 99.9;
+      mcn_street : 0.0 .. 99.9;
+      geometry_pod : MANDATORY GeometryCHLV03_V1.Coord3;
+      ID_pod : MANDATORY TEXT;
+      EGID : 0 .. 9999999999;
+      EDID : 0 .. 9999999999;
+      address_pod : TEXT;
+      exposure_limit_date : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      operation_status : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.operation_status_CatRef;
+      pointofdetermination_t : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.pointofdetermination_CatRef;
+      exposure_limit_value_d : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.exposure_limit_value_CatRef;
+      exposure_limit_value_n : MANDATORY LBK_Haupt_uebrigeStrassen_V1.Codelisten.exposure_limit_value_CatRef;
+    END pointofdetermination;
+
+    ASSOCIATION dispersion_calculation2pointofdetermination =
+      dispersion_calculation -- {1} dispersion_calculation;
+      pointofdetermination -- {1..*} pointofdetermination;
+    END dispersion_calculation2pointofdetermination;
+
+  END Immission_Strasse;
+
+END LBK_Haupt_uebrigeStrassen_V1.

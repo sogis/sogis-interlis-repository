@@ -1,0 +1,344 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimale
+ *  Piani di utilizzazione (cantonali / communali)
+ *  Geodati di base No 73
+ */
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=73
+MODEL PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1 (it)
+AT "http://models.geo.admin.ch/ARE"
+VERSION "2019-08-09"
+TRANSLATION OF Nutzungsplanung_Hauptnutzung_V1_1 ["2018-12-17"] =
+
+  DOMAIN
+
+    TipoID = OID TEXT*60;
+
+  TOPIC UtilizzazionePrincipale_CH =
+
+    CLASS UtilizzazionePrincipale_CH (FINAL) =
+      OID AS TipoID;
+      Codice : MANDATORY 11 .. 99;
+      Designazione : MANDATORY TEXT*80;
+    END UtilizzazionePrincipale_CH;
+
+  END UtilizzazionePrincipale_CH;
+
+END PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=73
+MODEL PianiDiUtilizzazione_MN03_V1_1 (it)
+AT "http://models.geo.admin.ch/ARE"
+VERSION "2019-08-09"
+TRANSLATION OF Nutzungsplanung_LV03_V1_1 ["2019-08-09"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,InternationalCodes_V1,PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1;
+
+  DOMAIN
+
+    SuperficieIndividuale = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    PartizioneComprensorio = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF PianiDiUtilizzazione_MN03_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY PianiDiUtilizzazione_MN03_V1_1.StatoGiuridico;
+      TestoNelWeb : PianiDiUtilizzazione_MN03_V1_1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON PianiDiUtilizzazione_MN03_V1_1.PrescrizioniLegali,PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1.UtilizzazionePrincipale_CH;
+
+    CLASS Geometria (ABSTRACT) =
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY PianiDiUtilizzazione_MN03_V1_1.StatoGiuridico;
+      Osservazioni : MTEXT;
+    END Geometria;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      ForzaVincolante : MANDATORY PianiDiUtilizzazione_MN03_V1_1.ForzaVincolante;
+      IncideSfruttamento : 0.00 .. 9.00;
+      IndiceSfruttamentoTipo : TEXT*40;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+    END Tipo;
+
+    CLASS Tipo_Ct =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      Osservazioni : MTEXT;
+    END Tipo_Ct;
+
+    CLASS UtilizzazioneDiBase_SuperficieDiZoni
+    EXTENDS Geometria =
+      Geometria : MANDATORY PianiDiUtilizzazione_MN03_V1_1.PartizioneComprensorio;
+    END UtilizzazioneDiBase_SuperficieDiZoni;
+
+    CLASS ContenutoLineare
+    EXTENDS Geometria =
+      Geometria : MANDATORY GeometryCHLV03_V1.Line;
+    END ContenutoLineare;
+
+    CLASS ContenutoPuntuale
+    EXTENDS Geometria =
+      Geometria : MANDATORY GeometryCHLV03_V1.Coord2;
+    END ContenutoPuntuale;
+
+    CLASS ZonaSovrapposta
+    EXTENDS Geometria =
+      Geometria : MANDATORY PianiDiUtilizzazione_MN03_V1_1.SuperficieIndividuale;
+    END ZonaSovrapposta;
+
+    ASSOCIATION Tipo_Documento =
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+      Prescizioni (EXTERNAL) -- {0..*} PianiDiUtilizzazione_MN03_V1_1.PrescrizioniLegali.Documento;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} Geometria;
+      Tipo -<> {1} Tipo;
+    END Tipo_Geometria;
+
+    ASSOCIATION Tipo_Tipo_Ct =
+      Tipo -- {0..*} Tipo;
+      Tipo_Ct (EXTERNAL) -<> {1} Tipo_Ct;
+    END Tipo_Tipo_Ct;
+
+    ASSOCIATION TipoCt_UtilPrCH =
+      Tipo_Ct -- {0..*} Tipo_Ct;
+      UtilizzazionePrincipale_CH (EXTERNAL) -- {1} PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1.UtilizzazionePrincipale_CH.UtilizzazionePrincipale_CH;
+    END TipoCt_UtilPrCH;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON PianiDiUtilizzazione_MN03_V1_1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : PianiDiUtilizzazione_MN03_V1_1.MultilingualUri;
+      IDI : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END PianiDiUtilizzazione_MN03_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=73
+MODEL PianiDiUtilizzazione_MN95_V1_1 (it)
+AT "http://models.geo.admin.ch/ARE"
+VERSION "2019-08-09"
+TRANSLATION OF Nutzungsplanung_LV95_V1_1 ["2019-08-09"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,InternationalCodes_V1,PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1;
+
+  DOMAIN
+
+    SuperficieIndividuale = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    PartizioneComprensorio = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF PianiDiUtilizzazione_MN95_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY PianiDiUtilizzazione_MN95_V1_1.StatoGiuridico;
+      TestoNelWeb : PianiDiUtilizzazione_MN95_V1_1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON PianiDiUtilizzazione_MN95_V1_1.PrescrizioniLegali,PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1.UtilizzazionePrincipale_CH;
+
+    CLASS Geometria (ABSTRACT) =
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY PianiDiUtilizzazione_MN95_V1_1.StatoGiuridico;
+      Osservazioni : MTEXT;
+    END Geometria;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      ForzaVincolante : MANDATORY PianiDiUtilizzazione_MN95_V1_1.ForzaVincolante;
+      IncideSfruttamento : 0.00 .. 9.00;
+      IndiceSfruttamentoTipo : TEXT*40;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+    END Tipo;
+
+    CLASS Tipo_Ct =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      Osservazioni : MTEXT;
+    END Tipo_Ct;
+
+    CLASS UtilizzazioneDiBase_SuperficieDiZoni
+    EXTENDS Geometria =
+      Geometria : MANDATORY PianiDiUtilizzazione_MN95_V1_1.PartizioneComprensorio;
+    END UtilizzazioneDiBase_SuperficieDiZoni;
+
+    CLASS ContenutoLineare
+    EXTENDS Geometria =
+      Geometria : MANDATORY GeometryCHLV95_V1.Line;
+    END ContenutoLineare;
+
+    CLASS ContenutoPuntuale
+    EXTENDS Geometria =
+      Geometria : MANDATORY GeometryCHLV95_V1.Coord2;
+    END ContenutoPuntuale;
+
+    CLASS ZonaSovrapposta
+    EXTENDS Geometria =
+      Geometria : MANDATORY PianiDiUtilizzazione_MN95_V1_1.SuperficieIndividuale;
+    END ZonaSovrapposta;
+
+    ASSOCIATION Tipo_Documento =
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+      Prescizioni (EXTERNAL) -- {0..*} PianiDiUtilizzazione_MN95_V1_1.PrescrizioniLegali.Documento;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} Geometria;
+      Tipo -<> {1} Tipo;
+    END Tipo_Geometria;
+
+    ASSOCIATION Tipo_Tipo_Ct =
+      Tipo -- {0..*} Tipo;
+      Tipo_Ct (EXTERNAL) -<> {1} Tipo_Ct;
+    END Tipo_Tipo_Ct;
+
+    ASSOCIATION TipoCt_UtilPrCH =
+      Tipo_Ct -- {0..*} Tipo_Ct;
+      UtilizzazionePrincipale_CH (EXTERNAL) -- {1} PianiDiUtilizzazione_UtilizzazionePrincipale_V1_1.UtilizzazionePrincipale_CH.UtilizzazionePrincipale_CH;
+    END TipoCt_UtilPrCH;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON PianiDiUtilizzazione_MN95_V1_1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : PianiDiUtilizzazione_MN95_V1_1.MultilingualUri;
+      IDI : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END PianiDiUtilizzazione_MN95_V1_1.

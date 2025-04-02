@@ -1,0 +1,58 @@
+INTERLIS 2.3;
+
+!!@ IDGeoIV=21.1
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Flachmoore_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2012-11-06"  =
+  IMPORTS LocalisationCH_V1,Units,GeometryCHLV03_V1;
+
+  TOPIC Flachmoore =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+    CLASS Flachmoor_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+    END Flachmoor_Teilobjekt;
+
+    CLASS Flachmoor =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : MANDATORY DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsgrund_Text : MANDATORY LocalisationCH_V1.MultilingualMText;
+    END Flachmoor;
+
+    ASSOCIATION Flachmoor_TeilobjektFlachmoor =
+      Flachmoor_Teilobjekt -- {1..*} Flachmoor_Teilobjekt;
+      Flachmoor -<#> {1} Flachmoor;
+    END Flachmoor_TeilobjektFlachmoor;
+
+  END Flachmoore;
+
+END Flachmoore_V1.

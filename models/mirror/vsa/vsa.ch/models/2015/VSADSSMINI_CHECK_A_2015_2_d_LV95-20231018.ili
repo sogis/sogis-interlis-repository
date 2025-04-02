@@ -1,0 +1,3295 @@
+!!@ comment_de = "Constraints für Abwasserverband und Kantone A"
+
+!!@ comment_fr = "Constraints pour Association pour l'épuration des eaux usées et cantons A"
+
+INTERLIS 2.3;
+
+CONTRACTED MODEL VSADSSMINI_2015_CHECK_A_LV95 (de) AT "http://www.vsa.ch/models" 
+   VERSION "18.10.2023" = 
+
+   IMPORTS UNQUALIFIED INTERLIS;
+   IMPORTS VSADSSMINI_2015_LV95;
+
+!!@ comment_de = "Copyright 2002 - 2023"
+!!@ comment_de = "Verband Schweizer Abwasser- und Gewässerschutzfachleute (VSA), Zürich"
+!!@ comment_de = "www.vsa.ch"
+
+!! Die Nutzung dieser INTERLIS-Datei ist lizenzpflichtig!
+!! Die Weitergabe der Originaldatei (als Ganzes oder Teile davon) ist nur 
+!! zusammen mit dem Erwerb einer Lizenz beim VSA durch den Empfänger erlaubt. 
+
+!! Freigegeben für öffentlichen Gebrauch und kommerzielle Anwendung mit Lizenz.
+!!@ comment_de = "Geprüft mit Compiler Version 5.3.2 (30.12.2022)"
+!!@ comment_de = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+
+!! 7.7.2023 Anpassung Knoten.Deckelkote - nicht mehr bei allen Bauwerken zwingend, da nicht überall Deckel vorhanden.
+!! 7.7.2023 Anpassung Knoten.Finanzierung - bei Leitungsknoten nicht mehr zwingend - da kein Bauwerk vorhanden
+!! 8.7.2023 Neu MANDATORY Knoten.ARA_Nr
+!! Bezeichnung immer zwingend - MANDATORY schon im Modell
+!! 10.7.2023 neu MANDATORY neu Teileinzugsgebiet.Abflussbegrenzung_Ist
+!! 10.7.2023 neu MANDATORY neu Direkteinleitung_in_Gewaesser_geplant
+!! 10.7.2023 neu MANDATORY neu Direkteinleitung_in_Gewaesser_Ist
+!! 10.7.2023 neu MANDATORY neu Entwaesserungssystem_geplant
+!! 10.7.2023 neu MANDATORY neu Entwaesserungssystem_Ist
+!! 10.7.2023 neu MANDATORY neu Retention_geplant
+!! 10.7.2023 neu MANDATORY neu Retention_Ist
+!! 10.7.2023 neu MANDATORY neu Versickerung_geplant
+!! 10.7.2023 neu MANDATORY neu Versickerung_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Einleitstelle.Biol_oekol_Gesamtbeurteilung_Bemerkung
+!! 7.7.2023 Aufhebung MANDATORY SK_Einleitstelle.Q347
+!! 7.7.2023 Aufhebung MANDATORY SK_Einleitstelle.relevantes_Gefaelle
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlauf.Flaeche_bef_geplant und Flaeche_bef_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlauf.Flaeche_red_geplant und Flaeche_red_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlaufbecken.Flaeche_bef_Dim_geplant und Flaeche_bef_Dim_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlaufbecken.Flaeche_bef_geplant und Flaeche_bef_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlaufbecken.Flaeche_red_Dim_geplant und Flaeche_red_Dim_Ist
+!! 7.7.2023 Aufhebung MANDATORY SK_Regenueberlaufbecken.Nutzinhalt_Fangteil, da nicht immer vorhanden
+!! 7.7.2023 Aufhebung MANDATORY Kennlinie_Stuetzpunkt.Hoehe, Zufluss, da abhängig von Kennlinien_Typ (HQ oder QQ)
+!! 10.7.2023 Aufhebung MANDATORY SK_*.Akten
+!! 10.7.2023 Notation angepasst auf
+                                                 !! OR
+                                                 !! FunktionHierarchisch != #PAA;
+!! statt wie bisher 
+                                                 !! OR
+                                                 !! isEnumSubVal(FunktionHierarchisch, "#SAA");
+!! ausser bei Leitung.Betreiber / Eigentümer
+
+!! 18.10.2023 MANDATORY constraint for Knoten.Nutzungsart_Ist und geplant (Abgleich mit Release 2020)
+!! 18.10.2023 Ausnahme Status = ausser_Betrieb für Knoten.Nutzungsart_geplant, Nutzungsart_Ist und Leitung.FunktionHierarchisch, Nutzungsart_geplant, Nutzungsart_Ist, Wiederbeschaffungswert
+
+
+   TOPIC Verbands_GEP (ABSTRACT) EXTENDS VSADSSMINI_2015_LV95.VSADSSMini =
+
+      CONSTRAINTS OF Knoten =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6001_01
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP)"
+         !!@ cid=A_ALL_6001_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Bezeichnung"
+         !!@ cmsg_fr="MANDATORY DESIGNATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Bezeichnung);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung, Funktion"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote)
+                                                 /* OR
+                                                 Funktion == #Abflusslose_Toilette */
+                                                 OR
+                                                 Funktion == #andere
+                                                 /* OR
+                                                 Funktion == #ARABauwerk */
+                                                 OR
+                                                 Funktion == #Einleitstelle_gewaesserrelevant
+                                                 OR
+                                                 Funktion == #Einleitstelle_nicht_gewaesserrelevant
+                                                 OR
+                                                 Funktion == #Leitungsknoten
+                                                 OR
+                                                 Funktion == #seitlicherZugang
+                                                 OR
+                                                 Funktion == #Spuelschacht
+                                                 OR
+                                                 Funktion == #Wirbelfallschacht
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP)"
+         !!@ cid=A_ALL_6001_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Finanzierung"
+         !!@ cmsg_fr="MANDATORY FINANCEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung, Funktion"
+         MANDATORY CONSTRAINT DEFINED (Finanzierung)
+                                                 OR
+                                                 Funktion == #Leitungsknoten
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Funktion"
+         !!@ cmsg_fr="MANDATORY FONCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Funktion)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6001_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY FunktionHierarchisch"
+         !!@ cmsg_fr="MANDATORY FONCTION_HIERARCHIQUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (FunktionHierarchisch);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+/*          !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzungsart_geplant"
+         !!@ cmsg_fr="MANDATORY GENRE_UTILISATION_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzungsart_geplant)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb )
+                                                 OR
+                                                 FunktionHierarchisch != #PAA; */
+
+/*          !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzungsart_Ist"
+         !!@ cmsg_fr="MANDATORY GENRE_UTILISATION_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzungsart_Ist)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb )
+                                                 OR
+                                                 FunktionHierarchisch != #PAA; */
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6001_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status)
+                                                 OR
+                                                 FunktionHierarchisch != #PAA;
+
+      END; !! of Knoten
+
+
+      CONSTRAINTS OF Leitung =
+
+         !! Topologie Check: PAA Leitungen müssen Knoten_vonRef und Knoten_nachRef haben
+         !!@ cid=A_PAA_6000_01
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="TOPOLOGY PAA Leitungen müssen Knoten_von und Knoten_nach Attribut haben"
+         !!@ cmsg_fr="TOPOLOGY Conduites OAP à besoin CONDUITE.DE_NOEUD et CONDUITE.VERS_NOEUD attributs"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT (DEFINED(Knoten_vonRef) AND DEFINED(Knoten_nachRef))
+              OR
+              isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !! Topologie Check: PAA Leitungen dürfen keine Leitung_nachRef haben
+         !!@ cid=A_PAA_6000_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="TOPOLOGY PAA Leitungen dürfen kein Leitung_nach Attribut haben"
+         !!@ cmsg_fr="TOPOLOGY Conduites OAP sont démuni d'un attribut CONDUITE.VERS_CONDUITE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+          MANDATORY CONSTRAINT NOT ( DEFINED (Leitung_nachRef))
+              OR
+              isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP)"
+         !!@ cid=A_ALL_6000_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch, "#SAA");
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6000_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Bezeichnung"
+         !!@ cmsg_fr="MANDATORY DESIGNATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Bezeichnung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP)"
+         !!@ cid=A_ALL_6001_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch, "#SAA");
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Finanzierung"
+         !!@ cmsg_fr="MANDATORY FINANCEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Finanzierung)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6000_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY FunktionHierarchisch"
+         !!@ cmsg_fr="MANDATORY FONCTION_HIERARCHIQUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (FunktionHierarchisch)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb );
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY FunktionHydraulisch"
+         !!@ cmsg_fr="MANDATORY FONCTION_HYDRAULIQUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (FunktionHydraulisch)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kote_nach"
+         !!@ cmsg_fr="MANDATORY COTE_VERS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kote_nach)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kote_von"
+         !!@ cmsg_fr="MANDATORY COTE_DE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kote_von)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY LaengeEffektiv"
+         !!@ cmsg_fr="MANDATORY L_EFFECTIVE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (LaengeEffektiv)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lichte_Breite"
+         !!@ cmsg_fr="MANDATORY LARGEUR_MAX_PROFIL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lichte_Breite)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lichte_Hoehe"
+         !!@ cmsg_fr="MANDATORY HAUTEUR_MAX_PROFIL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lichte_Hoehe)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_20
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzungsart_geplant"
+         !!@ cmsg_fr="MANDATORY GENRE_UTILISATION_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzungsart_geplant)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb )
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzungsart_Ist"
+         !!@ cmsg_fr="MANDATORY GENRE_UTILISATION_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzungsart_Ist)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb )
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Profiltyp"
+         !!@ cmsg_fr="MANDATORY TYPE_PROFIL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Profiltyp)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_27
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_28
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Verlauf"
+         !!@ cmsg_fr="MANDATORY TRACE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Verlauf)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wandrauhigkeit"
+         !!@ cmsg_fr="MANDATORY K_COLEBROOK"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Wandrauhigkeit)
+                                                 !! OR
+                                                 !! isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_30
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_32
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Bauart"
+         !!@ cmsg_fr="MANDATORY VR_TYPE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Bauart)
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6000_33
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert)
+                                                 OR
+                                                 ( DEFINED(Status) AND Status == #ausser_Betrieb )
+                                                 OR
+                                                 isEnumSubVal(FunktionHierarchisch,#SAA);
+
+      END; !! of Leitung
+
+
+      CONSTRAINTS OF Ueberlauf_Foerderaggregat =
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6002_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Art"
+         !!@ cmsg_fr="MANDATORY GENRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Art);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6002_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Bezeichnung"
+         !!@ cmsg_fr="MANDATORY DESIGNATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Bezeichnung);
+
+      END; !! of Ueberlauf_Foerderaggregat
+
+
+      CONSTRAINTS OF Teileinzugsgebiet =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_01
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Abflussbegrenzung_geplant"
+         !!@ cmsg_fr="MANDATORY RESTRICTION_DEBIT_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Abflussbegrenzung_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Abflussbegrenzung_Ist"
+         !!@ cmsg_fr="MANDATORY RESTRICTION_DEBIT_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Abflussbegrenzung_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Bezeichnung"
+         !!@ cmsg_fr="MANDATORY DESIGNATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Bezeichnung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Direkteinleitung_in_Gewaesser_geplant"
+         !!@ cmsg_fr="MANDATORY REJET_DIRECT_DANS_COURS_D_EAU_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Direkteinleitung_in_Gewaesser_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Direkteinleitung_in_Gewaesser_Ist"
+         !!@ cmsg_fr="MANDATORY REJET_DIRECT_DANS_COURS_D_EAU_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Direkteinleitung_in_Gewaesser_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Entwaesserungssystem_geplant"
+         !!@ cmsg_fr="MANDATORY SYSTEME_EVACUATION_EAUX_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Entwaesserungssystem_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Entwaesserungssystem_Ist"
+         !!@ cmsg_fr="MANDATORY SYSTEME_EVACUATION_EAUX_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Entwaesserungssystem_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Flaeche"
+         !!@ cmsg_fr="MANDATORY SUPERFICIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Flaeche);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Perimeter"
+         !!@ cmsg_fr="MANDATORY PERIMETRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Perimeter);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Retention_geplant"
+         !!@ cmsg_fr="MANDATORY RETENTION_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Retention_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Retention_Ist"
+         !!@ cmsg_fr="MANDATORY RETENTION_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Retention_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Versickerung_geplant"
+         !!@ cmsg_fr="MANDATORY INFILTRATION_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Versickerung_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6003_21
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Versickerung_Ist"
+         !!@ cmsg_fr="MANDATORY INFILTRATION_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Versickerung_Ist);
+
+      END; !! of Teileinzugsgebiet
+
+
+      CONSTRAINTS OF SK =
+      !! in Release 2015 in Subclasses
+      END; !! of SK
+
+
+      CONSTRAINTS OF SK_Autonome_Messstelle =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6012_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6012_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Autonome_Messstelle
+
+
+      CONSTRAINTS OF SK_Duekeroberhaupt =
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6017_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6017_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_PAA_6013_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_PAA_6013_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6017_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6017_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6017_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6017_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6017_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6017_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Duekeroberhaupt
+
+
+      CONSTRAINTS OF SK_Einleitstelle =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Aeusserer_Aspekt_Einleitung"
+         !!@ cmsg_fr="MANDATORY ASPECT_VISUEL_EXUTOIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Aeusserer_Aspekt_Einleitung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Aeusserer_Aspekt_oberhalb"
+         !!@ cmsg_fr="MANDATORY ASPECT_VISUEL_EN_AMONT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Aeusserer_Aspekt_oberhalb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Aeusserer_Aspekt_unterhalb"
+         !!@ cmsg_fr="MANDATORY ASPECT_VISUEL_EN_AVAL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Aeusserer_Aspekt_unterhalb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ausfuehrende_Firma"
+         !!@ cmsg_fr="MANDATORY BUREAU_EXECUTANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ausfuehrende_Firma);
+
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ausfuehrender"
+         !!@ cmsg_fr="MANDATORY EXECUTANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ausfuehrender);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_66018_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_66018_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Datum_Untersuchung"
+         !!@ cmsg_fr="MANDATORY DATE_EXAMEN"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Datum_Untersuchung);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_20
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Gesamtbeeintraechtigung"
+         !!@ cmsg_fr="MANDATORY ATTEINTE_GLOBALE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Gesamtbeeintraechtigung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Gewaesserart"
+         !!@ cmsg_fr="MANDATORY GENRE_COURS_D_EAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Gewaesserart);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Handlungsbedarf"
+         !!@ cmsg_fr="MANDATORY BESOIN_D_INTERVENTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Handlungsbedarf);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_26
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Immissionsorientierte_Berechnung"
+         !!@ cmsg_fr="MANDATORY CALCUL_PERFORMANCE_IMMISSION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Immissionsorientierte_Berechnung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_28
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_30
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Oberflaechengewaesser"
+         !!@ cmsg_fr="MANDATORY EAUX_SUPERFICIELLES"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Oberflaechengewaesser);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_32
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Pflanzlicher_Bewuchs_Einleitung"
+         !!@ cmsg_fr="MANDATORY COUVERTURE_VEGETALE_EXUTOIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Pflanzlicher_Bewuchs_Einleitung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_34
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Pflanzlicher_Bewuchs_oberhalb"
+         !!@ cmsg_fr="MANDATORY COUVERTURE_VEGETALE_EN_AMONT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Pflanzlicher_Bewuchs_oberhalb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_36
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Pflanzlicher_Bewuchs_unterhalb"
+         !!@ cmsg_fr="MANDATORY COUVERTURE_VEGETALE_EN_AVAL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Pflanzlicher_Bewuchs_unterhalb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_40
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Relevanzmatrix"
+         !!@ cmsg_fr="MANDATORY MATRICE_D_EVALUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Relevanzmatrix);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_41
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_42
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_43
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_44
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_46
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Vergleich_letzte_Untersuchung"
+         !!@ cmsg_fr="MANDATORY VARIATION_DERNIERE_EXAMEN"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Vergleich_letzte_Untersuchung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_47
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wasserspiegel_Hydraulik"
+         !!@ cmsg_fr="MANDATORY NIVEAU_EAU_HYDRAULIQUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wasserspiegel_Hydraulik);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_49
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wasserwirbellose_Einleitung"
+         !!@ cmsg_fr="MANDATORY Wasserwirbellose_Einleitung"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wasserwirbellose_Einleitung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_51
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wasserwirbellose_oberhalb"
+         !!@ cmsg_fr="MANDATORY Wasserwirbellose_oberhalb"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wasserwirbellose_oberhalb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6018_53
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wasserwirbellose_unterhalb"
+         !!@ cmsg_fr="MANDATORY Wasserwirbellose_unterhalb"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wasserwirbellose_unterhalb);
+
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_54
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6018_55
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Einleitstelle
+
+
+      CONSTRAINTS OF SK_Pumpwerk =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_01
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Aggregatezahl"
+         !!@ cmsg_fr="MANDATORY NOMBRE_INSTALLATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Aggregatezahl);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_geplant"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_Ist"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Foerderaggregat_Nutzungsart_Ist"
+         !!@ cmsg_fr="MANDATORY INSTALLATION_REFOULEMENT_GENRE_UTILISATION_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Foerderaggregat_Nutzungsart_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Foerderhoehe_geodaetisch"
+         !!@ cmsg_fr="MANDATORY HAUTEUR_REF_GEOM"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Foerderhoehe_geodaetisch);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY FoerderstromMax"
+         !!@ cmsg_fr="MANDATORY DEBIT_REF_MAX"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (FoerderstromMax);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY FoerderstromMin"
+         !!@ cmsg_fr="MANDATORY DEBIT_REF_MIN"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (FoerderstromMin);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Pumpenregime"
+         !!@ cmsg_fr="MANDATORY REGIME_POMPE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Pumpenregime);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_23
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_Ist);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_20
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_21
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_23
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Stauraum"
+         !!@ cmsg_fr="MANDATORY VOLUME_DE_STOCKAGE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Stauraum);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6016_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Volumen_Pumpensumpf"
+         !!@ cmsg_fr="MANDATORY VOLUME_PUISARD"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Volumen_Pumpensumpf);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_25
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6016_26
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Pumpwerk
+
+
+      CONSTRAINTS OF SK_Regenueberlauf =
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_66011_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_geplant"
+         !!@ cmsg_fr="MANDATORY HABITANTS_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Ist"
+         !!@ cmsg_fr="MANDATORY HABITANTS_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Flaeche_geplant"
+         !!@ cmsg_fr="MANDATORY SURFACE_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Flaeche_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Flaeche_Ist"
+         !!@ cmsg_fr="MANDATORY SURFACE_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Flaeche_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_21
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_geplant"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_23
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_25
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_26
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_27
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_geplant"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_28
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_30
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_geplant"
+         !!@ cmsg_fr="MANDATORY QDEV_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_31
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_32
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_33
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_34
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_35
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_Ist);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_36
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_38
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Springt_an"
+         !!@ cmsg_fr="MANDATORY DEVERSE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Springt_an);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_39
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_40
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_41
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Stauraum"
+         !!@ cmsg_fr="MANDATORY VOLUME_DE_STOCKAGE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Stauraum);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_42
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_geplant"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_43
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_Ist"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_44
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_45
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_geplant"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_46
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_Ist"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_47
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_48
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_geplant"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_49
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_Ist"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_50
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_Ist_optimiert);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_51
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6011_53
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wehr_Art"
+         !!@ cmsg_fr="MANDATORY GENRE_DEVERSOIR"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wehr_Art);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6011_54
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Regenueberlauf
+
+
+      CONSTRAINTS OF SK_Regenueberlaufbecken =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Beckentyp"
+         !!@ cmsg_fr="MANDATORY GENRE_BASSIN"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Beckentyp);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_geplant"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_Ist"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_geplant"
+         !!@ cmsg_fr="MANDATORY HABITANTS_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Ist"
+         !!@ cmsg_fr="MANDATORY HABITANTS_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Einwohner_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Flaeche_geplant"
+         !!@ cmsg_fr="MANDATORY SURFACE_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Flaeche_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Flaeche_Ist"
+         !!@ cmsg_fr="MANDATORY SURFACE_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Flaeche_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_25
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_27
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_geplant"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_31
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_33
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_34
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_35
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_geplant"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_36
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_37
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_39
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzinhalt_Klaerteil"
+         !!@ cmsg_fr="MANDATORY VOLUME_UTILE_CLARIFICATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzinhalt_Klaerteil);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_40
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_geplant"
+         !!@ cmsg_fr="MANDATORY QDEV_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_41
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_42
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_42
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Regenbecken_Anordnung"
+         !!@ cmsg_fr="MANDATORY BEP_DISPOSITION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Regenbecken_Anordnung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_45
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_46
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_47
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_Ist);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_48
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_49
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_50
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_51
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Stauraum"
+         !!@ cmsg_fr="MANDATORY VOLUME_DE_STOCKAGE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Stauraum);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_52
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_geplant"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_53
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_Ist"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_54
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufdauer_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY DUREE_DEVERSEMENT_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufdauer_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_55
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_geplant"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_56
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_Ist"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_57
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufhaeufigkeit_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY FREQUENCE_DEVERSEMENT_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufhaeufigkeit_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_58
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_geplant"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_59
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_Ist"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6014_60
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Ueberlaufmenge_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY VOLUME_DEVERSE_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Ueberlaufmenge_Ist_optimiert);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_61
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6014_62
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Regenueberlaufbecken
+
+
+      CONSTRAINTS OF SK_Regenrueckhaltebecken_kanal =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Beckentyp"
+         !!@ cmsg_fr="MANDATORY GENRE_BASSIN"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Beckentyp);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_geplant"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Einwohner_Dim_Ist"
+         !!@ cmsg_fr="MANDATORY HABITANTS_DIM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Einwohner_Dim_Ist);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Fremdwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY APPORT_ECP_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Fremdwasseranfall_Ist);
+
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_geplant"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_20
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Notueberlauf"
+         !!@ cmsg_fr="MANDATORY TROP_PLEIN_DE_SECOURS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Notueberlauf);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_21
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Nutzinhalt"
+         !!@ cmsg_fr="MANDATORY VOLUME_UTILE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Nutzinhalt);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qab_geplant"
+         !!@ cmsg_fr="MANDATORY QDIM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qab_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_23
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qab_Ist"
+         !!@ cmsg_fr="MANDATORY QDIM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qab_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qab_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY QDIM_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qab_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_26
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Regenbecken_Anordnung"
+         !!@ cmsg_fr="MANDATORY BEP_DISPOSITION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Regenbecken_Anordnung);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_27
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_28
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_geplant"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_geplant);
+
+         !! erst mit VSA-DSS-MINI 2020
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_25
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Schmutzabwasseranfall_Ist"
+         !!@ cmsg_fr="MANDATORY DEBIT_EAUX_USEES_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         !! MANDATORY CONSTRAINT DEFINED (Schmutzabwasseranfall_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_30
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6013_31
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Stauraum"
+         !!@ cmsg_fr="MANDATORY VOLUME_DE_STOCKAGE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Stauraum);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_32
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6013_33
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Regenrueckhaltebecken_kanal
+
+
+      CONSTRAINTS OF SK_Trennbauwerk =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Art"
+         !!@ cmsg_fr="MANDATORY GENRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Art);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_PAA_6015_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_09
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_geplant"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Kennlinie_digital_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Kennlinie_digital_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_18
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_19
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_geplant"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_PREVUE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_20
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_21
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Mehrbelastung_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY SURCHARGE_ACTUELLE_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Mehrbelastung_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_22
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Primaerrichtung_Knoten"
+         !!@ cmsg_fr="MANDATORY NOEUD_DIRECTION_PRINCIPALE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Primaerrichtung_Knoten);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_23
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_geplant"
+         !!@ cmsg_fr="MANDATORY QDEV_PREVU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_geplant);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_24
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_25
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Qan_Ist_optimiert"
+         !!@ cmsg_fr="MANDATORY QDEV_EFF_OPT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Qan_Ist_optimiert);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_26
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_27
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_28
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6015_29
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_66015_30
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Stauraum"
+         !!@ cmsg_fr="MANDATORY VOLUME_DE_STOCKAGE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Stauraum);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_31
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6015_32
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Trennbauwerk
+
+
+      CONSTRAINTS OF SK_Uebrige =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY ARA_Nr"
+         !!@ cmsg_fr="MANDATORY NO_STEP"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (ARA_Nr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Baujahr"
+         !!@ cmsg_fr="MANDATORY ANNEE_DE_CONSTRUCTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Baujahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_04
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Beschrieb"
+         !!@ cmsg_fr="MANDATORY DESCRIPTION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Beschrieb);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_PALL_6019_05
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Betreiber"
+         !!@ cmsg_fr="MANDATORY EXPLOITANT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Betreiber);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_06
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Buero"
+         !!@ cmsg_fr="MANDATORY BUREAU"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Buero);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_07
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Deckelkote"
+         !!@ cmsg_fr="MANDATORY COTE_COUVERCLE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Deckelkote);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_08
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Eigentuemer"
+         !!@ cmsg_fr="MANDATORY PROPRIETAIRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Eigentuemer);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_10
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Informationsquelle"
+         !!@ cmsg_fr="MANDATORY SOURCE_DES_INFORMATIONS"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Informationsquelle);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_11
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Lage"
+         !!@ cmsg_fr="MANDATORY SITUATION"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Lage);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_12
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sachbearbeiter"
+         !!@ cmsg_fr="MANDATORY RESPONSABLE_SAISIE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sachbearbeiter);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_13
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Sohlenkote"
+         !!@ cmsg_fr="MANDATORY COTE_RADIER"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Sohlenkote);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_14
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Standortname"
+         !!@ cmsg_fr="MANDATORY LIEU_DIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Standortname);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6019_15
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_16
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY WBW_Basisjahr"
+         !!@ cmsg_fr="MANDATORY VR_ANNEE_REFERENCE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (WBW_Basisjahr);
+
+         !!@ comment_de = "PAA Constraint (gilt nur für PAA)"
+         !!@ comment_fr = "Constraint OAP (valable seulement pour OAP)"
+         !!@ cid=A_PAA_6019_17
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Wiederbeschaffungswert"
+         !!@ cmsg_fr="MANDATORY VALEUR_REMPLACEMENT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Wiederbeschaffungswert);
+
+      END; !! of SK_Uebrige
+
+
+      CONSTRAINTS OF Kennlinie_Stuetzpunkt =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6020_01
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Abfluss"
+         !!@ cmsg_fr="MANDATORY DEBIT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Abfluss);
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6020_03
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Status"
+         !!@ cmsg_fr="MANDATORY ETAT"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Status);
+
+      END; !! of Kennlinie_Stuetzpunkt
+
+
+      CONSTRAINTS OF Bauwerkskomponente =
+
+         !!@ comment_de = "Allgemeiner Constraint (gilt für PAA und SAA)"
+         !!@ comment_fr = "Constraint général (valable pour OAP et OAS)"
+         !!@ cid=A_ALL_6010_02
+         !!@ ccat=error
+         !!@ cprof=a
+         !!@ cmsg_de="MANDATORY Art"
+         !!@ cmsg_fr="MANDATORY GENRE"
+         !!@ cattr = "Metaattribute.Datenherr, Bezeichnung"
+         MANDATORY CONSTRAINT DEFINED (Art);
+
+      END; !! of Bauwerkskomponente
+
+
+   !!@ comment_de = "Ende des Topics"
+   !!@ comment_fr = "Fin du topic"
+   END Verbands_GEP;
+   !!@ comment_de = "Ende des Modells"
+   !!@ comment_fr = "Fin du modèle"
+END VSADSSMINI_2015_CHECK_A_LV95.
+

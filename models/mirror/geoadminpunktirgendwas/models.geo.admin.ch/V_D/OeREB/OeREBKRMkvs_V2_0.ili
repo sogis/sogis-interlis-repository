@@ -1,0 +1,220 @@
+INTERLIS 2.3;
+
+/** Zusatzstrukturen zur Verwendung innerhalb der für den Kataster verantwortlichen Stelle des Kantons
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2021-10-21 | KOGIS | Role Thema of the association ThemaGesetz adapted (external)
+
+!!@ furtherInformation=https://www.cadastre.ch/oereb-public
+!!@ technicalContact=mailto:vermessung@swisstopo.ch
+MODEL OeREBKRMkvs_V2_0 (de)
+AT "https://models.geo.admin.ch/V_D/OeREB/"
+VERSION "2021-10-21"  =
+  IMPORTS OeREBKRM_V2_0,LocalisationCH_V1,CHAdminCodes_V1;
+
+  /** Das Teilmodell «Konfiguration» ist eine Empfehlung für die für den Kataster verantwortliche Stelle des Kantons und dient der Konfiguration des Web-Service für den Bezug eines Auszugs oder Teile davon (z.B. einzelne Textbausteine oder die in einer Gemeinde freigeschalteten Themen)
+   */
+  TOPIC Konfiguration =
+
+    /** Anzeigetexte für die Aufzählung DokumentTyp
+     */
+    CLASS DokumentTypTxt =
+      /** Code gemäss Aufzählung
+       */
+      Code : MANDATORY OeREBKRM_V2_0.DokumentTyp;
+      /** Anzeigetext
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+    END DokumentTypTxt;
+
+    /** Daten zu einer aufgeschalteten Gemeinde
+     */
+    CLASS GemeindeMitOeREBK =
+      /** Gemeindenummer gemäss amtlichem Gemeindeverzeichnis, z.B. «942»
+       */
+      Gemeinde : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** In der Gemeinde freigeschaltete ÖREB-Themen
+       */
+      Themen : BAG {0..*} OF OeREBKRM_V2_0.ThemaRef;
+      /** Stand der Grundlagedaten (AV)
+       */
+      GrundlagedatenStand : INTERLIS.XMLDateTime;
+      /** Verweis auf Metadaten der Grundlagedaten
+       */
+      GrundlagedatenMetadaten : URI;
+      /** Lokal übliche Bezeichnung der Untereinheit des Grundbuchs z.B. «Grundbuchkreis», «Sektion», «Fraktion» etc.
+       */
+      BezeichnungUntereinheitGrundbuch : TEXT*80;
+      UNIQUE Gemeinde;
+    END GemeindeMitOeREBK;
+
+    /** Eintrag im Verzeichnis Begriffe und Abkürzungen (Glossar)
+     */
+    CLASS Glossar =
+      /** Begriff oder Abkürzung
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Erklärung des Begriffs oder der Abkürzung
+       */
+      Inhalt : MANDATORY LocalisationCH_V1.MultilingualMText;
+    END Glossar;
+
+    /** Definition der (Unter-)Einheiten des Grundbuchs
+     */
+    CLASS GrundbuchKreis =
+      /** Kanton
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Gemeindenummer gemäss amtlichem Gemeindeverzeichnis, z.B. «942»
+       */
+      Gemeinde : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      /** NBIdent gemäss AV-Daten
+       */
+      NBIdent : MANDATORY TEXT*12;
+      /** Name des Grundbuchkreises oder der Untereinheit (z.B. Innere Stadt)
+       */
+      Name : MANDATORY TEXT*60;
+      /** SubKreis gemäss GB-Daten (eGRISDM/GBDBS)
+       */
+      eGRIS_SubKreis : TEXT*15;
+      /** Los gemäss GB-Daten (eGRISDM/GBDBS)
+       */
+      eGRIS_Los : TEXT*15;
+    END GrundbuchKreis;
+
+    /** Anzeigetexte für die Aufzählung GrundstuecksArt
+     */
+    CLASS GrundstuecksArtTxt =
+      /** Code gemäss Aufzählung
+       */
+      Code : MANDATORY OeREBKRM_V2_0.GrundstuecksArt;
+      /** Anzeigetext
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+    END GrundstuecksArtTxt;
+
+    /** Text für Haftungshinweise im statischen Auszug («Eigentumsbeschränkungen im Grundbuch» und «Haftungsausschluss Kataster der belasteten Standorte (KbS)»)
+     */
+    CLASS Haftungshinweis =
+      /** Titel für den Haftungshinweis
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Text für den Haftungshinweis
+       */
+      Inhalt : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Ordnungszahl für die Sortierung im Auszug
+       */
+      AuszugIndex : MANDATORY -1000 .. 1000;
+    END Haftungshinweis;
+
+    /** Text für «Allgemeine Informationen» im statischen Auszug
+     */
+    CLASS Information =
+      /** Titel für die Information
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Allgemeine Informationen, Eigentumsbeschränkungen im Grundbuch
+       */
+      Inhalt : MANDATORY LocalisationCH_V1.MultilingualMText;
+      /** Ordnungszahl für die Sortierung im Auszug
+       */
+      AuszugIndex : MANDATORY -1000 .. 1000;
+    END Information;
+
+    /** Logos für den statischen Auszug
+     */
+    CLASS Logo =
+      /** ch.plr, ch, ch.{kanton} oder ch.{bfsnr}
+       */
+      Code : MANDATORY TEXT*60;
+      /** Bild
+       */
+      Bild : MANDATORY OeREBKRM_V2_0.MultilingualBlob;
+      UNIQUE Code;
+    END Logo;
+
+    /** Definiert die Schichtung der Darstellungsdienste (Karten)
+     */
+    CLASS MapLayering =
+      /** Darstellungsdienst
+       */
+      VerweisWMS : MANDATORY URI;
+      /** Ordnungszahl für die Schichtung der einzelnen Darstellungsdienste zu einem Thema
+       */
+      LayerIndex : MANDATORY -1000 .. 1000;
+      /** Deckkraft eines Darstellungsdienstes
+       */
+      LayerDeckkraft : MANDATORY 0.000 .. 1.000;
+    END MapLayering;
+
+    /** Anzeigetexte für die Aufzählung RechtsStatus
+     */
+    CLASS RechtsStatusTxt =
+      /** Code gemäss Aufzählung
+       */
+      Code : MANDATORY OeREBKRM_V2_0.RechtsStatus;
+      /** Anzeigetext
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END RechtsStatusTxt;
+
+  END Konfiguration;
+
+  /** Dieses Teilmodell definiert die Metadaten, die zum Zweck der Nachvollziehbarkeit innerhalb der für den Kataster verantwortlichen Stelle des Kantons geführt werden müssen
+   */
+  TOPIC MetadatenKVS
+  EXTENDS OeREBKRM_V2_0.Amt =
+
+    /** Angaben zur Datenlieferung an die für den Kataster verantwortlichen Stelle des Kantons
+     */
+    CLASS DatenAufnahme =
+      /** Zeitpunkt der Aufnahme oder der letzten Änderung der Daten
+       */
+      Datum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2050-12-31";
+      /** BasketId oder Dateiname oder vollständiger WFS-Request
+       */
+      DatensatzIdentifikation : MANDATORY TEXT*8000;
+    END DatenAufnahme;
+
+  END MetadatenKVS;
+
+  /** Dieses Teilmodell definiert die im Kataster aufzuführenden ÖREB-Themen (z.B. Nutzungsplanung), ordnet diesen die gesetzlichen Grundlagen (z.B. Bundesgesetz über die Raumplanung) und die zuständige Stelle (z.B. Bundeskanzlei) zu
+   */
+  TOPIC Thema =
+    DEPENDS ON OeREBKRM_V2_0.Dokumente;
+
+    /** Daten zu einem ÖREB-Thema oder Subthema
+     */
+    CLASS Thema =
+      /** Code des ÖREB-Themas, z.B. «ch.Nutzungsplanung»
+       */
+      Code : MANDATORY OeREBKRM_V2_0.Thema;
+      /** Falls es ein Subthema ist: Code des Subthemas, z.B. «ch.SO.Baulinien»
+       */
+      SubCode : OeREBKRM_V2_0.Thema;
+      /** Anzeigetext des (Sub-)Themas
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Ordnungszahl für die Sortierung im Auszug, bei Subthemen definiert die Ordnungszahl die Reihenfolge innerhalb des Themas
+       */
+      AuszugIndex : MANDATORY -1000 .. 1000;
+      UNIQUE WHERE NOT(DEFINED(SubCode)): Code;
+      UNIQUE WHERE DEFINED(SubCode): Code,SubCode;
+    END Thema;
+
+    /** Beziehungsklasse um den ÖREB-Themen die gesetzlichen Grundlagen zuzuordnen
+     */
+    ASSOCIATION ThemaGesetz =
+      Thema (EXTERNAL) -- {0..*} Thema;
+      Gesetz (EXTERNAL) -- {0..*} OeREBKRM_V2_0.Dokumente.Dokument;
+      /** Hinweis auf spezifische Artikel der gesetzlichen Grundlage
+       */
+      ArtikelNr : BAG {0..*} OF OeREBKRM_V2_0.ArtikelNummer_;
+    END ThemaGesetz;
+
+  END Thema;
+
+END OeREBKRMkvs_V2_0.

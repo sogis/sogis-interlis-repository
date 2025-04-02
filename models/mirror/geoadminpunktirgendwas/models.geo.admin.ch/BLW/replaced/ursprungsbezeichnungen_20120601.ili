@@ -1,0 +1,82 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------------
+!! 2019-02-01 | KOGIS | Meta-attribute technicalContact and AT-Statement adapted (line 7 and 13)
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "150.1"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+/** Minimales Geodatenmodell Register Ursprungsbezeichnungen
+ */
+MODEL Register_Ursprungsbezeichnungen_V1 (de)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2019-02-01"  =
+  IMPORTS Units,CoordSys,CatalogueObjects_V1,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge =
+    DEPENDS ON CatalogueObjects_V1.Catalogues;
+
+    CLASS Produktkategorien
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : 1 .. 99;
+      MTextBezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Produktkategorien;
+
+    STRUCTURE ProduktkategorienRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Produktkategorien;
+    END ProduktkategorienRef;
+
+    CLASS Schutz
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Code gemäss BLW
+       */
+      Code : MANDATORY 1 .. 10;
+      MTextAbkuerzung : LocalisationCH_V1.MultilingualText;
+      MTextBezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schutz;
+
+    STRUCTURE SchutzRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Schutz;
+    END SchutzRef;
+
+    CLASS Verarbeitung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Code gemäss BLW
+       */
+      Code : MANDATORY 1 .. 99;
+      MTextBezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Verarbeitung;
+
+    STRUCTURE VerarbeitungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Verarbeitung;
+    END VerarbeitungRef;
+
+  END Kataloge;
+
+  TOPIC Gebiete =
+    DEPENDS ON Register_Ursprungsbezeichnungen_V1.Kataloge;
+
+    CLASS Produkt =
+      /** Code gemäss BLW. Der Code ist 3-stellig, wobei die erste Ziffer auf die Produktkategorie hinweist (Käse = 1 ? Emmentaler = 101).
+       */
+      Code : MANDATORY 100 .. 999;
+      /** Datum der Aufnahme ins Register
+       */
+      Datum_Eintritt : MANDATORY INTERLIS.XMLDate;
+      /** Datum der letzten Änderung
+       */
+      Datum_Mutation : INTERLIS.XMLDate;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      MTextBezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Produktkategorie : MANDATORY Register_Ursprungsbezeichnungen_V1.Kataloge.ProduktkategorienRef;
+      Schutz : MANDATORY Register_Ursprungsbezeichnungen_V1.Kataloge.SchutzRef;
+      Verarbeitung : MANDATORY Register_Ursprungsbezeichnungen_V1.Kataloge.VerarbeitungRef;
+    END Produkt;
+
+  END Gebiete;
+
+END Register_Ursprungsbezeichnungen_V1.

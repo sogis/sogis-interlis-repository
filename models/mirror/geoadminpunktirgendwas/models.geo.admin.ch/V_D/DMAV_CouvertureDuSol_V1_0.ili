@@ -1,0 +1,145 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.8
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_CouvertureDuSol_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2025-02-01"
+  TRANSLATION OF DMAV_Bodenbedeckung_V1_0 ["2025-02-01"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_ModinfoFR_V1_0;
+  IMPORTS DMAVTYM_Qualite_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC CouvertureSol =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      GenreCouvertureSol = (
+        batiment,
+        revetement_dur (
+          route_chemin,
+          trottoir,
+          ilot,
+          chemin_de_fer,
+          place_aviation,
+          bassin,
+          autre_revetement_dur
+        ),
+        verte (
+          champ_pre_paturage,
+          culture_intensive (
+            vigne,
+            autre_culture_intensive
+          ),
+          jardin,
+          tourbiere,
+          autre_verte
+        ),
+        eau (
+          eau_stagnante,
+          cours_eau,
+          roseliere
+        ),
+        boisee (
+          foret_dense,
+          paturage_boise (
+            paturage_boise_dense,
+            paturage_boise_ouvert
+          ),
+          autre_boisee
+        ),
+        sans_vegetation (
+          rocher,
+          glacier_neve,
+          eboulis_sable,
+          graviere_decharge,
+          autre_sans_vegetation
+        )
+      );
+
+    CLASS MiseAJourCS =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH080101: IdentDN, Identification;
+    END MiseAJourCS;
+
+    STRUCTURE NumeroObjet =
+      Numero : MANDATORY TEXT*12;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NumeroObjet;
+
+    STRUCTURE NomObjet =
+      Nom : MANDATORY TEXT*60;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomObjet;
+
+    CLASS CouvertureSol =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      StandardQualite : MANDATORY DMAVTYM_Qualite_V1_0.StandardQualite;
+      GenreCouvertureSol : GenreCouvertureSol;
+      Fictif : MANDATORY BOOLEAN;
+      StatutObjet : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      NumeroObjet : BAG {0..*} OF NumeroObjet;
+      NomObjet : BAG {0..*} OF NomObjet;
+      EGID : 1 .. 900000000;
+      PositionSymbole : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionSymbole;
+      MANDATORY CONSTRAINT CH080401: (GenreCouvertureSol <> #revetement_dur.bassin AND GenreCouvertureSol <> #eau.eau_stagnante AND GenreCouvertureSol <> #eau.cours_eau) OR INTERLIS.elementCount(PositionSymbole) > 0;
+      MANDATORY CONSTRAINT CH080402: Fictif <> DEFINED(GenreCouvertureSol);
+    END CouvertureSol;
+
+    ASSOCIATION Origine_CouvertureSol =
+      Origine -- {1} MiseAJourCS;
+      SurfaceCS_bientotcreee -- {0..*} CouvertureSol;
+    END Origine_CouvertureSol;
+
+    ASSOCIATION Caducite_CouvertureSol =
+      Caducite  -- {0..1} MiseAJourCS;
+      SurfaceCS_bientotcaduque -- {0..*} CouvertureSol;
+    END Caducite_CouvertureSol;
+
+    ASSOCIATION Predecesseur_Successeur_CouvertureSol =
+      Predecesseur -- {0..1} CouvertureSol;
+      Successeur -- {0..*} CouvertureSol;
+    END Predecesseur_Successeur_CouvertureSol;
+
+    VIEW CouvertureSol_Valable 
+      PROJECTION OF CouvertureSol~CouvertureSol;
+      WHERE
+        DEFINED(CouvertureSol->Origine) AND NOT (DEFINED(CouvertureSol->Caducite ));
+      =
+      ALL OF CouvertureSol;
+      SET CONSTRAINT CH080801: WHERE StatutObjet == #reel:
+        INTERLIS.areAreas(ALL, UNDEFINED, >>Geometrie);
+    END CouvertureSol_Valable ;
+
+    CLASS PointMesure =
+      Numero : TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : DMAVTYM_Qualite_V1_0.Fiabilite;
+      EstDefiniExactement : MANDATORY BOOLEAN;
+      MANDATORY CONSTRAINT CH080901: DEFINED(GeometrieAltitude) == DEFINED(PrecisionAltimetrie);
+      MANDATORY CONSTRAINT CH080902: DEFINED(GeometrieAltitude) == DEFINED(EstFiableAltimetrie);
+    END PointMesure;
+
+    ASSOCIATION Origine_PointMesure =
+      Origine -- {0..1} MiseAJourCS;
+      PointMesure_bientotcree -- {0..*} PointMesure;
+    END Origine_PointMesure;
+
+  END CouvertureSol;
+
+END DMAV_CouvertureDuSol_V1_0.

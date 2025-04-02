@@ -1,0 +1,158 @@
+INTERLIS 2.3;
+
+!!@ IDGeoIV=18.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+MODEL BLN_LV03_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-04-11"  =
+  IMPORTS GeometryCHLV03_V1;
+
+  TOPIC BLN =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+  /* Flächen ohne Kreisbogen */
+  Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+  /* Definition von Multipolygonen, analog CHBase Geometry */
+  STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+  STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+  /* Klasse für die BLN-Teilflaechen */
+    CLASS BLN_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      TeilObjName : TEXT*200;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END BLN_Teilobjekt;
+
+    /* Klasse für die gesamte BLN-Flaeche */
+    CLASS BLN =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END BLN;
+
+    /* Klassenübergreifender Constraint für Eindeutigkeit */
+    VIEW vBLN
+      JOIN OF BLN_Teilobjekt,BLN; =
+      ATTRIBUTE
+        ALL OF BLN_Teilobjekt;
+        ALL OF BLN;
+      UNIQUE ObjNummer,TeilObjNummer;
+   END vBLN;
+
+    ASSOCIATION BLN_TeilobjektBLN =
+      BLN_Teilobjekt -- {1..*} BLN_Teilobjekt;
+      BLN -<#> {1} BLN;
+    END BLN_TeilobjektBLN;
+
+  END BLN;
+
+END BLN_LV03_V1_1.
+
+!!@ IDGeoIV=18.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+MODEL BLN_LV95_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-04-11"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC BLN =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+  /* Flächen ohne Kreisbogen */
+  Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+  /* Definition von Multipolygonen, analog CHBase Geometry */
+  STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+  STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+  /* Klasse für die BLN-Teilflaechen */
+    CLASS BLN_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      TeilObjName : TEXT*200;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END BLN_Teilobjekt;
+
+    /* Klasse für die gesamte BLN-Flaeche */
+    CLASS BLN =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END BLN;
+
+    /* Klassenübergreifender Constraint für Eindeutigkeit */
+    VIEW vBLN
+      JOIN OF BLN_Teilobjekt,BLN; =
+      ATTRIBUTE
+        ALL OF BLN_Teilobjekt;
+        ALL OF BLN;
+      UNIQUE ObjNummer,TeilObjNummer;
+   END vBLN;
+
+    ASSOCIATION BLN_TeilobjektBLN =
+      BLN_Teilobjekt -- {1..*} BLN_Teilobjekt;
+      BLN -<#> {1} BLN;
+    END BLN_TeilobjektBLN;
+
+  END BLN;
+
+END BLN_LV95_V1_1.

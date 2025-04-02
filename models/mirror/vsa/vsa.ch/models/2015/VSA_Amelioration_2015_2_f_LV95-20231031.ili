@@ -1,0 +1,71 @@
+!! VSA_Amelioration_2015_2_f_LV95-20231031.ili
+
+INTERLIS 2.3;
+
+MODEL VSA_AMELIORATION_2015_LV95 (fr) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" TRANSLATION OF VSA_MELIORATION_2015_LV95 [ "31.10.2023" ] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  IMPORTS Units;
+  IMPORTS Base_f_LV95;
+  IMPORTS SIA405_Base_f_LV95;
+  IMPORTS SIA405_EAUX_USEES_2015_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Association suisse des professionnels de la protection des eaux (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Libéré pour utilisation publique et application commerciale avec la licence."
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = " Fichier modèle INTERLIS examiné avec Compiler INTERLIS Version 5.3.3 (03.08.2023)"
+
+!! 14.5.2021 Version _LV95 ajouté
+
+!! 31.10.2023 Dispositions de licence adaptées
+!! 31.10.2023 Version MN03 annulée et supprimée, uniquement MN95
+
+
+UNIT
+  Kilogramm_par_annee [kga] = (kg/Units.a);
+  Habitants_par_hectare [EWha] = (Units.CountedObjects/Units.ha);
+  Litre_par_seconde_hectare [lsha] = (SIA405_Base_f_LV95.ls/Units.ha);
+
+TOPIC Amelioration EXTENDS SIA405_EAUX_USEES_2015_LV95.SIA405_Eaux_usees =
+
+
+DOMAIN
+
+
+CLASS CANALISATION (EXTENDED)  =  
+!! Canal ouvert ou fermé pour amener les eaux à évacuer d'un ouvrage du réseau d'évacuation à un autre
+!! Erweitert die Basisklasse für Erweiterung Melioration
+  ATTRIBUTE
+    FONCTION_AMELIORATION_FONCIERE: (          !! Afin de distinguer la fonction d’une conduite d’améliorations foncières (drainage)
+      collecteur_principal,  !! Pas de confluences latérales. Pas perforé. Seulement transport
+      collecteur,  !! Si perforé, fendu ou jointé fonction_hydraulique = conduite_de_drainage - si fermé fonction_hydraulique = conduite_de_transport_pour_le_drainage. Avec confluence latérale fonction drainage et transport
+      drains,  !! Fonction de drainage, avec tuyaux percés ou à fentes, normalement sans ouverture latérale
+      inconnu
+    );
+    MATERIAU_INFILTRATION: (          !! Description du matériau de remplissage
+      autres,
+      copeaux_bois,
+      gravier,
+      inconnue
+    );
+END CANALISATION;
+
+CLASS INSTALLATION_INFILTRATION (EXTENDED)  =  
+!! Installation permettant le passage d'eaux propres ou d'eaux pluviales légèrement polluées dans le sous-sol
+!! Erweitert die Basisklasse für Erweiterung Melioration
+  ATTRIBUTE
+    MATERIAU_REMPLISSAGE: (          !! Description du matériau de remplissage sur les fentes d'infiltration. Les fentes d'infiltration de sont pas modélisées par des tronçons, mais par des installations d'infiltration (voyez commentaires en couverture)
+      autres,
+      copeaux_bois,
+      gravier,
+      inconnue
+    );
+END INSTALLATION_INFILTRATION;
+
+
+END Amelioration;   !! Ende des Topics / Fin du topic
+END VSA_AMELIORATION_2015_LV95.   !! Ende des Modells / Fin du modèle
+

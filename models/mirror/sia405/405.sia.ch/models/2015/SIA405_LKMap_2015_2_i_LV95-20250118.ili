@@ -1,0 +1,299 @@
+INTERLIS 2.3;
+
+/** Traduzione in italiano del modello di geodati LKMap secondo la norma SIA 405.
+ */
+
+!! lista modifiche
+!! versione | data       | autore     | tipo      | descrizione
+!! ------------------------------------------------------------------------------------
+!! 1.0      | 2023-10-27 | mlanini    | draft     | primo draft
+!!          | 2023-12-01 | mlanini    | update    | migliorie varie
+!!          | 2023-12-12 | ccgeo      | v&v       | verificazione e validazione
+!!          | 2024-04-05 | sbu      | v&v       | verificazione e validazione par sia, harmonizatione di terme
+!!          | 2024-05-13 | sbu      | v&v       | verificazione e validazione par sia, harmonizatione di terme
+!!          | 2025-01-10 | sbu      | v&v       | verificazione e validazione par sia, harmonizatione di terme - _di_ Versionen übernommen
+!!          | 2025-01-18 | sbu      | v&v       | Model name adapted to be equivalent to French naming: SIA405_LKMap_2015_i_LV95 instead of SIA405_LKMap_i_2015_LV95
+!!-------------------------------------------------------------------------------------
+
+!!@ FurtherInformation=http://405.sia.ch/
+!!@ TechnicalContact=mailto:ccgeo@ti.ch
+!!@ Compiler-Version="5.6.2"
+
+!! Copyright 2011 - 2025
+!! SIA, Zürich -  www.sia.ch
+
+!! I fichiers modèles originaux e le versioni 
+!! modificate a partire da questi non possono essere riutilizzate.
+
+!! Rilasciato per uso pubblico.
+!! Verificato con compilatore versione 5.6.2 (4.12.2024)
+!! Impiegato: Stefan Burckhardt / Sepp Dorfschmied / Commissione SIA 405
+
+
+MODEL SIA405_LKMap_2015_i_LV95 (it) AT "https://405.sia.ch/" VERSION "18.01.2025" TRANSLATION OF SIA405_LKMap_2015_LV95 ["27.04.2018"] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;  
+  IMPORTS Base_i_LV95;
+  IMPORTS SIA405_Base_i_LV95;
+
+UNIT
+
+DOMAIN
+
+!! Definizione dei tipi di dati secondo INTERLIS 2.3
+
+  TOPIC SIA405_LKMap_i =
+
+    STRUCTURE proprieta =
+    !! Ulteriori attributi per l'oggetto LKO in base ad accordi bilaterali e specifici per i media, che vanno oltre la rappresentazione dell'area occupata.
+      denominazione        : MANDATORY TEXT*80;  !! Denominazione dell'attributo aggiuntivo per l'LKObject (nome dell'attributo)
+      valore               : MANDATORY TEXT*80;  !! Valore dell'attributo aggiuntivo per l'oggetto LKO come testo
+    END proprieta;
+
+    CLASS oggetto_cc (ABSTRACT) EXTENDS SIA405_Base_i_LV95.SIA405_BaseClass = 
+      proprieta            :           BAG OF proprieta;  !! Ulteriori attributi per l'oggetto LKO in base ad accordi bilaterali e specifici per i media, che vanno oltre la rappresentazione dell'area occupata.
+      proprietario: MANDATORY SIA405_Base_i_LV95.Organizzazione_denominazione;
+      precisione : MANDATORY SIA405_Base_i_LV95.Precisione_di_posizionamento;
+      stato: SIA405_Base_i_LV95.Stato;  !! Stato di funzionamento e di pianificazione. È possibile fornire solo i record di dati di determinati valori di stato.
+    END oggetto_cc;
+
+    CLASS superficie_cc EXTENDS oggetto_cc =
+    !! Oggetto piatto cc
+      superficie: MANDATORY Base_i_LV95.Superficie;  !!  Geometria dettagliata, soprattutto per strutture speciali. Lavorare con dimensioni per strutture standardizzate -> LKPunkt
+      oggetto_tipo: MANDATORY (  !! Vengono elencati tutti gli oggetti che vengono visualizzati in base all'ambito LK.
+        acque_di_scarico (  !! Solo se è disponibile una geometria dettagliata, altrimenti puntocc. Per i chiusini standard solo in casi eccezionali
+          punto_di_immissione,  !! statt punto_di_scarico
+          struttura_speciale (  !! gemäss VSA-DSS ok
+            separatore_olii_separatore_materiali_galleggianti, !! statt separatore_olio__separatore_galleggiante, 
+            stazione_di_pompaggio,
+            bacino_acque_piovane,
+            altro !! für weitere - gleiche Übersetzung in italienisch wie andere
+          ),
+          sconosciuto, 
+          impianto_infiltrazione  !! statt sistema_infiltrazione 
+        ),  !! Ende von Abwasser
+        elettricita ( 
+          struttura_speciale (  !! flächenhafte Spezialschächte (Kabine, Station, Oeffentlicher_Verbraucher, Schacht mit Geometrie), sonst als LKPunkt abbilden
+            cabina,  !!  LKPunkt Objekt Symbol S. 65 oder LKFlaeche -> dann als Elektrizitaet.Spezialbauwerk abbilden 
+            pozzo,  !!  LKFlaeche Symbol S. 65 Darstellung als Fläche massstäblich
+            stazione,  !!  LKPunkt Objekt Symbol S. 65 oder oder LKFlaeche -> dann als Elektrizitaet.Spezialbauwerk abbilden 
+            consumatore_pubblico  !! LKPunkt Objekt Symbol S.65 oder LKFlaeche -> dann als Elektrizitaet.Spezialbauwerk abbilden
+          ), 
+          struttura,  !!  LKPunkt Objekt oder LKFlaeche Objekt (bei grosser Fläche, z.B. Gittermast), Symbol S. 65. Tragwerke werden in der Regela als Symbol dargestellt. Bei Tragwerken mit grosser Fläche (z.B. Gittermast kann optional auch die Fläche dargestellt werden
+          tracciato,  !! Darstellung S. 65, Korrigiert 25.9.2013 (kein Subwert unterirdisch mehr, Unterscheidung macht nur Sinn wenn auch oberirdisch. Flaechen sind eigentlich immer unterirdisch.
+          sconosciuto 
+        ),  !! Fine dell'elettricità
+        teleriscaldamento ( 
+          struttura ( 
+            camera, 
+            struttura_speciale, 
+            stazione 
+          ), 
+          tracciato,  !! Darstellung S. 136 2.6.5, Korrigiert 25.9.2013 (kein Subwert unterirdisch mehr, Unterscheidung macht nur Sinn wenn auch oberirdisch. Flaechen sind eigentlich immer unterirdisch.
+          sconosciuto 
+        ),  !! Ende von Fernwaerme
+        gas (
+          corridoio_di_sicurezza,  !! Die Rohrleitungsverordnung (RLV) schreibt im Abschnitt 5, Art. 26 vor, dass alle Bauvorhaben innerhalb eines waagrecht gemessenen Abstandes von 10 m von der Rohrleitung bewilligungspflichtig sind. Diese Information wird aus den Basisdaten der amtlichen Vermessung (TOPIC Rohrleitungen, Medium Gas) generiert. (eigener Datenlieferant)
+          struttura_speciale,  !! LKFlaeche, alle Subwerte von Spezialbauwerk.Art
+          sconosciuto 
+        ), 
+        telecomunicazione (  !! Zusammenschluss von Tele- und Kabelkommmunikation
+          struttura,  !! Schacht.Typ.Spezialbauwerk, LKFlaeche
+          pozzetto, 
+          struttura_di_supporto,  !! LKPunkt Objekt oder LKFlaeche Objekt (bei grosser Fläche, z.B. Gittermast), Symbol S. 75
+          tracciato, 
+          sconosciuto 
+        ),  !! Ende von Kommunikation
+        acqua ( 
+          struttura_speciale,  !! LKFlaeche, alle Subwerte von Spezialbauwerk.Art
+          sconosciuto 
+        ), 
+        altri_media ( 
+          corridoio_di_sicurezza,  !! Die Rohrleitungsverordnung (RLV) schreibt im Abschnitt 5, Art. 26 vor, dass alle Bauvorhaben innerhalb eines waagrecht gemessenen Abstandes von 10 m von der Rohrleitung bewilligungspflichtig sind. Diese Information wird aus den Basisdaten der amtlichen Vermessung (TOPIC Rohrleitungen, alle Medien ausser Gas) generiert. (eigener Datenlieferant)
+          struttura_speciale, 
+          sconosciuto 
+        )  !! Ende von weitereMedien
+      );  !! Fine del oggetto_tipo 
+    END superficie_cc;
+
+
+    CLASS linea_cc EXTENDS oggetto_cc =
+    !! Linienförmiges LKObjekt
+      ATTRIBUTE
+      larghezza: SIA405_Base_i_LV95.Larghezza;  !! Breite eines Objektes [mm], Doppellinie >= 300 mm (Massstab 1:200) bzw. >= 600 mm (Mst. 1:500) für alle Medien. Falls die Breite kleiner ist wird nur ein Strich konstanter Breite gezeichnet.
+    !! Breite aus folgenden Attributen bestimmen:
+    !! Abwasser: Rohrprofil.Hoehenbreitenverhaeltnis, Haltung.Lichte_Hoehe -> Lichte_Breite = Lichte_Hoehe / Hoehenbreitenverhaeltnis
+    !! Wasser: Abhängig von Leitung.Material: bei Kunststoffrohren -> Leitung.DurchmesserAussen (mm), bei Metallrohren -> Leitung.Durchmesser (mm)
+    !! Gas: Abhängig von Leitung.Material: bei Kunststoffrohren -> Leitung.DurchmesserAussen (mm), bei Metallrohren -> Leitung.Durchmesser (mm)
+    !! Fernwärme: Trasseabschnitt.Trassebreite (mm)
+    !! Elektrizität: Trasseabschnitt.Breite (mm)
+    !! Kommunikation: Trasseabschnitt.Breite (mm)
+      linea: MANDATORY Base_i_LV95.Polilinea; !! Reihenfolge von Punkten die den Verlauf eines linienförmigen Elementes beschreibt. 
+      oggetto_tipo: MANDATORY (  !! Es werden alle Objekte aufgelistet, die gemäss WI Modell dargestellt werden. Typ / Funktion / Art werden direkt übernommen und nicht zusammengefasst unter anderen Namen -> sonst braucht es wieder eine Matchinganweisung
+        acque_di_scarico (
+          cablaggio_controllo_a_distanza,  !! to check
+          tratta_canalizzazione,  !! statt canale_collettore, !! LKLinie Objekt: Pro Haltung wird ein Objekt erzeugt. Falls mehrere Haltungen pro Kanal gibt es auch mehrere Lininenobjekte, da z.B. Lichte_Hoehe oder Gefälle ändern kann.
+          tubo_protettivo  !! to check
+        ),  !! Ende von Abwasser
+        elettricita (
+          puntone_di_ancoraggio,  !! LKLinie Objekt, Darstellung S. 65
+          tracciato (
+            in_superficie,  !! LKLinie Objekt, Darstellung S. 65
+            sotterraneo  !! (LKFlaeche Objekt oder) LKLinie Objekt, Symbol S. 65
+          )
+        ),  !! Ende von Elektrizitaet
+        teleriscaldamento (
+          cablaggio_controllo_a_distanza,  !! LKLinie Objekt (oder LKFlaeche Objekt)
+          tracciato ( 
+            in_superficie,  !! neu 22.8.2013 Matching: Trassetyp = Freileitung
+            sotterraneo  !! neu 22.8.2013  Matching alle anderen Werte von Trassetyp inkl. unbekannt
+          ),
+          tubo_protettivo
+        ),  !! Ende von Fernwaerme
+        gas (
+          cablaggio_controllo_a_distanza,
+          condotta,  !! LKLinie Objekt (Subwerte mit Art andere, Anschlussleitung etc. gehört eigentlich nicht hinein, sonst müsste man auch bei Abwasser machen). Falls gewünscht in BAG of Eigenschaft mitgeben
+          tubo_protettivo
+        ), 
+        telecomunicazione (
+          tracciato ( 
+            in_superficie,  !! LKLinie Objekt, Darstellung S. 69
+            sotterraneo  !! LKLinie Objekt, Darstellung S. 69
+          )
+        ),  !! Ende von Kommunikation
+        acqua (
+          cablaggio_controllo_a_distanza, 
+          condotta,  !! LKLinie Objekt, Subwerte falls gewünscht in BAG of Eigenschaft mitgeben
+          tubo_protettivo
+        ), 
+        altri_media (
+          cablaggio_controllo_a_distanza,
+          condotta,
+          tubo_protettivo
+        )  !! Ende von weitereMedien
+      ); !! Fine del oggetto_tipo 
+      profilo: (  !! Erweiterung 2D (für Beschriftung Leitung) und 3D - Typ des Profils, Zuordnung Werte siehe jeweiliges Medium (bis dato nur in Abwasser vorhanden
+        ovale,
+        circolare,
+        rettangolare,
+        sconosciuto,
+        altro  !! Zusammenfassung von andere, Maulprofil, offenes_Profil, Spezialprofil. In 3D Darstellung als genähertes Rechteck.
+      );
+    END linea_cc;
+
+
+    CLASS punto_cc EXTENDS oggetto_cc =
+      dimensione1: SIA405_Base_i_LV95.Dimensioni;  !! grösseres (Innen-)Mass eines Objektes (z. B. Länge/Durchmesser)
+      dimensione2: SIA405_Base_i_LV95.Dimensioni;  !! kleineres (Innen-)Mass eines Objektes (z. B. Breite/Durchmesser
+      oggetto_tipo: MANDATORY (  !! Es werden alle Objekte aufgelistet, die gemäss WI Modell dargestellt werden. Typ / Funktion / Art werden direkt übernommen und nicht zusammengefasst unter anderen Namen -> sonst braucht es wieder eine Matchinganweisung
+        acque_di_scaricoscarico (
+          chiusino,  !! LKPunkt Objekt. Abnehmbare Abdeckung eines Schachtbauwerkes
+          punto_di_immissione,  !! statt punto_di_scarico 
+          punto_cablaggio ( 
+            pozzetto_cablaggio,
+            cabina
+          ),
+          cambio_calibro, 
+          inizio_di_canale,
+          pozzetto_standard (  !! statt pozzetto_a_norma
+            pozzetto_di_griglia,  !! statt pozzetto_di_ingresso
+            pozzetto_del_binario,  !! statt pozzetto_binario
+            pozzetto_di_ispezione,
+            separatore_olii_separatore_materiali_galleggianti, !! statt separatore_olio__separatore_galleggiante, 
+            pozzetto_decantazione,  !! statt collettore_fanghi
+            altro !! für weitere - gleiche Übersetzung in italienisch wie andere
+          ),
+          sconosciuto, 
+          impianto_infiltrazione  !! statt sistema_infiltrazione 
+        ), 
+        elettricita (
+          cabina,  !!  LKPunkt Objekt, Symbol S. 65
+          consumatore_pubblico, 
+          pozzetto ( 
+            rettangolare, 
+            rotondo 
+          ),
+          stazione,  !!  LKPunkt Objekt, Symbol S. 65
+          struttura_di_supporto,  !! LKPunkt Objekt oder LKFlaeche Objekt (bei grosser Fläche, z.B. Gittermast), Symbol S. 65.
+          sconosciuto 
+        ), 
+        teleriscaldamento (
+          punto_cablaggio (
+            pozzetto_cablaggio,
+            cabina
+          ),
+          punto_tracciato (
+            sostegno_appoggio,  !! kein Symbol
+            ventilazione,  !! Symbol S. 56
+            drenaggio,  !! Symbol S. 56
+            punto_fisso,  !! Symbol S. 56
+            punto_geometrico,  !! kein Symbol
+            apertura_pozzetto_entrata 
+          ),
+          sconosciuto 
+        ),  !! Ende von Fernwaerme
+        gas (
+          dispositivo_di_intercettazione,
+          lanterna,  !!  Symbol siehe SIA MB 2015 (2005) Seite 31 / 35
+          punto_cablaggio ( 
+            pozzetto_cablaggio,
+            cabina
+          ),
+          sezione_condotta ( 
+            curva_orizzontale,
+            curva_verticale
+          ),
+          chiusino,  !! kein Symbol vorhanden. In INTERLIS LK vorhanden. Vorschlag Symbol wie Messstation aber ohne MS
+          sifone,
+          sconosciuto
+        ), 
+        telecomunicazione (  
+          struttura,  !! Zusammenfassung alle Subklassenelemente (Baugruppenelement, Kabine, Konsole, TechnikCenter, Baugruppenelement,  Darstellung S. 69, falls keine Flaechengeometrie
+          pozzetto (
+            rettangolare,  !! LKPunkt Objekt, Darstellung S. 69 / 74
+            rotondo  !! LKPunkt Objekt, Darstellung S. 69 / 74, Sonderbauwerk als LKFlaeche Objekt abbilden
+          ), 
+          struttura_portante, 
+          sconosciuto  !! Attribut Schacht.Typ. LKPunkt Objekt, Darstellung S. 69 / 74
+        ),  !! Ende von Kommunikation
+        acqua (
+          dispositivo_intercettazione, 
+          idrante_da_giardino,  !! Symbol siehe SIA MB 2015 (2005) Seite 49
+          punto_cablaggio ( 
+            pozzetto_cablaggio,
+            cabina
+          ),
+          idrante_in_superficie,  !! Symbol siehe SIA MB 2015 (2005) Seite 49
+          sezione_condotta ( 
+            curva_orizzontale,
+            curva_verticale
+          ),
+          chiusino,
+          sconosciuto, 
+          idrante_sotterraneo  !! Symbol siehe SIA MB 2015 (2005) Seite 49
+        ),  !! Ende von Wasser
+        altri_media (
+          punto_cablaggio ( 
+            pozzetto_cablaggio,
+            cabina
+          ),
+          punto_condotta 
+        )  !! Ende von weitereMedien
+      );  !! Fine del oggetto_tipo
+      simbolopos: MANDATORY Base_i_LV95.CoordNaz;  !! statt geometria, !!  Landeskoordinate Ost/Nord, 2D Koordinaten
+      simboloori: Base_i_LV95.Orientazione;  !! statt orientazione, Default: 90 Grad
+    END punto_cc;
+
+    CLASS oggetto_cc_testo EXTENDS SIA405_Base_i_LV95.SIA405_TestoPos =
+    END oggetto_cc_testo;
+
+    ASSOCIATION oggetto_cc__oggetto_cc_testo = 
+      fk_oggetto_cc -<#> {1} oggetto_cc; 
+      fk_etichetta -- {0..*} oggetto_cc_testo; 
+    END oggetto_cc__oggetto_cc_testo;
+
+  END SIA405_LKMap_i;  !! Fine del tema (topic)
+
+END SIA405_LKMap_2015_i_LV95.  !! Fine del modello
+

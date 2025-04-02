@@ -1,0 +1,107 @@
+INTERLIS 2.4;
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Datenmodell der Fixpunkte LFP1, HFP1 (Landesvermessung) beschrieben in INTERLIS Version 2.4
+!!
+!! Bundesamt fuer Landestopographie (swisstopo)
+!! Fachstelle Eidgenoessische Vermessungsdirektion (V+D)
+!! CH-3084 Wabern
+!! www.cadastre.ch und www.interlis.ch
+!!
+!! Version: 1 deutsch
+!! Dateiname: FixpunkteLV_V1_0.ili
+!!
+!! Das vorliegende Datenmodell gilt fuer den Bezugsrahmen "Landesvermessung 1903+
+!! (LV95)".
+!! Das Modell beinhaltet den physikalischen Bezug zum geodätischen Bezugsrahmen (gemäss IDGeoIV 34) 
+!! und  soll alle Informationen, welche über geo.admin.ch angeboten werden, abdecken. 
+!! Ausnahmen sind der Pfad zum Protokoll (proto_url), nbident, 
+!! bgdi_created (systemattribut), label (systemattribut)
+!! Punktzeichen und Kennzeichnung werden als Synonym verwendet.
+!!
+!! Anpassungen werden 
+!! nachfolgend beschrieben:
+!! - IMPORTS DMAVTYM_Vermarkung_V1_0 entfernt
+!! - LFP1 Punktname hinzugefügt
+!! - LFP1 Status hinzugefügt
+!! - LFP1 Zugang hinzugefügt
+!! - LFP1 Ordnung hinzugefügt
+!! - HFP1 Zugang hinzugefügt
+!! - HFP1 Ordnung hinzugefügt
+!! - HFP1 H95Ell hinzugefügt
+!! - HFP1 ZustHaupt hinzugefügt
+!! - HFP1 Zustaendig hinzugefügt
+!! - HFP1 Punktzeichen hinzugefügt
+!! - HFP1 Begehbar hinzugefügt
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!!@ technicalContact = mailto:vermessung@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/schweizerische-bezugssysteme
+!!@ IDGeoIV = "34.1,34.2,34.3,53.1,53.2"
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+MODEL FixpunkteLV_V1_0 (de)
+  AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2024-02-13" =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_Geometrie_V1_0;
+  IMPORTS DMAVTYM_Qualitaet_V1_0;
+
+  TOPIC FixpunkteLV =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS LFP1 =
+      NBIDENT: MANDATORY TEXT*12;
+    Nummer: MANDATORY TEXT*12;
+      Geometrie: MANDATORY GeometryCHLV95_V2.Coord2;
+      Hoehengeometrie: DMAVTYM_Geometrie_V1_0.Hoehe;
+      Lagegenauigkeit: MANDATORY DMAVTYM_Qualitaet_V1_0.Genauigkeit;
+      IstLagezuverlaessig: MANDATORY DMAVTYM_Qualitaet_V1_0.Zuverlaessigkeit;
+      Hoehengenauigkeit: DMAVTYM_Qualitaet_V1_0.Genauigkeit;
+      IstHoehenzuverlaessig: DMAVTYM_Qualitaet_V1_0.Zuverlaessigkeit; 
+      Begehbar: MANDATORY BOOLEAN;
+      Punktzeichen: TEXT*50;
+    Punktname: TEXT*30;
+    Status: (Aktiv, Deklassiert, Geloescht, Ersetzt, Zerstoert);
+    Zugang: TEXT*255;
+    Ordnung: (LFP1_1_Ordnung, LFP1_2_Ordnung, LFP1_3_Ordnung, LV95_Hauptpunkt, LV95_Verdichtungspunkt);
+      MANDATORY CONSTRAINT DEFINED(Hoehengeometrie)==DEFINED(Hoehengenauigkeit);
+      MANDATORY CONSTRAINT DEFINED(Hoehengeometrie)==DEFINED(IstHoehenzuverlaessig);
+    END LFP1;
+
+    CLASS HFP1 =
+      NBIDENT: MANDATORY TEXT*12;
+    Nummer: MANDATORY TEXT*12;
+      Geometrie: MANDATORY GeometryCHLV95_V2.Coord2;
+      Hoehengeometrie: MANDATORY DMAVTYM_Geometrie_V1_0.Hoehe;
+      Lagegenauigkeit: MANDATORY DMAVTYM_Qualitaet_V1_0.Genauigkeit;
+      IstLagezuverlaessig: MANDATORY DMAVTYM_Qualitaet_V1_0.Zuverlaessigkeit;
+      Hoehengenauigkeit: MANDATORY DMAVTYM_Qualitaet_V1_0.Genauigkeit;
+      IstHoehenzuverlaessig: MANDATORY DMAVTYM_Qualitaet_V1_0.Zuverlaessigkeit; 
+    Zugang: TEXT*255;
+    Ordnung: (HFP1);
+    Punktname: TEXT*30;
+    H95Ell: DMAVTYM_Geometrie_V1_0.Hoehe;
+    ZustHaupt: (CH);
+    Zustaendig: (CH);
+    Punktzeichen: TEXT*50;
+    Begehbar: BOOLEAN;
+    END HFP1;
+
+    CLASS LSN =
+      Nummer: MANDATORY TEXT*12;
+      Geometrie: MANDATORY GeometryCHLV95_V2.Coord2;
+      Hoehengeometrie: MANDATORY DMAVTYM_Geometrie_V1_0.Hoehe;
+      LatEtrs: 45.00000000000 .. 49.00000000000;
+    LonEtrs: 5.00000000000 .. 11.00000000000;
+    VertGrad: -0.0300 .. 0.9999;
+    Gravity: 979000.000 .. 982000.000;
+    RMS: 0.000 .. 0.999;
+    Punktname: TEXT*30;
+    Ordnung: (Absolutstation, Ordnung1, Ordnung2, Ordnung3, Exzenter_Absolutstation);
+    END LSN;
+
+
+  END FixpunkteLV;
+ 
+END FixpunkteLV_V1_0.

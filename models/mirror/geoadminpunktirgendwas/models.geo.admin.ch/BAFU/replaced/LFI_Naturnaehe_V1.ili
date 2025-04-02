@@ -1,0 +1,59 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=164.16
+MODEL LFI_Naturnaehe_V1 (de) 
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2011-08-13"  =
+
+  /** Importieren aus der CH-BASE rsp. dem ili-Repository
+  */
+  IMPORTS UNQUALIFIED NonVector_Base_V2;
+
+  TOPIC Naturnaehe EXTENDS NonVector =
+
+    STRUCTURE Farbklasse =
+      /** z.B. "000255000" fuer Lime oder "000000000" fuer Black oder "222222222" für NoData
+      */
+      FarbklasseRGBDecNotation: MANDATORY TEXT*9;
+      /** Bedeutung der entsprechenden Farbe deutsch
+      */
+      FarbklasseBedeutung_de: MANDATORY TEXT*1024;
+      /** Bedeutung der entsprechenden Farbe franzoesisch
+      */
+      FarbklasseBedeutung_fr: MANDATORY TEXT*1024;
+      /** Bedeutung der entsprechenden Farbe italienisch
+      */
+      FarbklasseBedeutung_it: MANDATORY TEXT*1024;
+      /** Datenwert (als Basis der Farbwahl), welcher für die
+          Berechnung des Punktwertes in den 2-D Raum benutzt wurde
+      */
+      FarbklasseQuellenWert: MANDATORY -1 .. 999;
+    END Farbklasse;
+
+    CLASS NaturnaeheInfo EXTENDS NonVector_Dataset =
+      BemerkungBerechnung: MANDATORY TEXT*2048;
+    END NaturnaeheInfo;
+    
+    CLASS NaturnaeheData EXTENDS ImageGraphicRasterObject =
+      /** z.B. "400dpi"
+      */
+      Aufloesung: MANDATORY TEXT*30;
+      /** z.B. "24 Bit True Color"
+      */
+      BitTiefe: MANDATORY TEXT*30;
+      Farbraum: MANDATORY (CMYK,RGB,Graustufen,indiziert,binaer);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+      /** im Rasterbild vorkommende Farbklassen
+      */
+      PixelFarbklasse: LIST {1..*} OF Farbklasse;
+    END NaturnaeheData;
+    
+    CLASS Ausschnitt EXTENDS Clipping =
+    END Ausschnitt;
+  
+  END Naturnaehe;
+  
+END LFI_Naturnaehe_V1.

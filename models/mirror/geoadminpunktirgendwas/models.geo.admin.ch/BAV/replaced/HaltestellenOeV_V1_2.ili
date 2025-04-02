@@ -1,0 +1,154 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Haltestelle
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 98
+!! Bezeichnung GeoIV                         : Haltestellen des öffentlichen Verkehrs
+!! Sammlung-Nr.                : 98.2
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAV)
+!! Zugangsberechtigungsstufe                 : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 0.90    | 2012-10-18 | LS    | Draft
+!! 0.92    | 2012-11-16 | LS    | Draft  Verweise auf TU als Strukturattribut
+!! 1.00    | 2014-06-02 | EMS   | Draft (release candidate)
+!! 1.00    | 2014-06-20 | LS    | Anpassungen Rückmeldung KOGIS
+!! 1.00    | 2014-07-24 | EMS   | Anpassungen Rückmeldung KOGIS
+!! 1.1     | 2015-01-27 | EMS   | Ergänzung der Domain Verkehrsmittel um Werte 'Zug_Tram' und 'Schiff_Zahnradbahn'
+!! 1.1     | 2015-06-25 | EMS   | Korrektur des Links unter furtherInformation
+!! 1.2     | 2015-11-16 | EMS   | Ergänzung der Domain Verkehrsmittel um weitere Werte 'Bus_Luftseilbahn', 'Bus_Metro, 'Bus_Schiff',
+!!                                'Bus_Standseilbahn_Tram', 'Bus_Tram_Zug', 'Bus_Zug', 'Metro_Zug','Tram_Bus_Zahnradbahn' und 'Schiff_Tram'
+!!                                Änderung von 'Lift' zu 'Aufzug'
+!! 1.2     | 2020-04-28 | KOGIS | Constraint in Klasse Betriebspunkt korrigiert (#Haltestelle und #Haltestelle_und_Bedienpunkt)
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = http://www.bav.admin.ch/dokumentation/04523/04524/04543/index.html
+
+MODEL HaltestellenOeV_V1_2 (de)
+ AT "http://models.geo.admin.ch/BAV/" VERSION "2020-04-28" =
+
+ IMPORTS Units;
+ IMPORTS GeometryCHLV03_V1;
+
+  TOPIC HaltestellenOeV =
+
+    DOMAIN
+      Meereshoehe = 0 .. 5000 [INTERLIS.m];
+
+      Betriebspunkttyp   = (
+               Haltestelle,
+               Haltestelle_und_Bedienpunkt,
+               Bedienpunkt,
+               Anschlusspunkt,
+               reiner_Betriebspunkt );
+
+      Verkehrsmittel   = (
+               Bus,
+               Bus_Tram,
+               Tram,
+               Metro,
+               Zug,
+               Zahnradbahn,
+               Schiff,
+               Luftseilbahn,
+               Luftseilbahn_Zug,
+               Standseilbahn,
+               Standseilbahn_Bus,
+               Standseilbahn_Luftseilbahn,
+               Standseilbahn_Zug,
+               Aufzug,
+               Zug_Tram,
+               Schiff_Zahnradbahn,
+               Bus_Luftseilbahn,
+               Bus_Metro,
+               Bus_Schiff,
+               Bus_Standseilbahn_Tram,
+               Bus_Tram_Zug,
+               Bus_Zug,
+               Metro_Zug,
+               Tram_Bus_Zahnradbahn,
+               Schiff_Tram);
+
+    STRUCTURE TU =
+      TUNummer:   MANDATORY TEXT*6;
+      TUAbkuerzung :        TEXT*10;  !!redundant zu TUNummer
+
+      !!TUNummer muss in TU-Verzeichnis BAV definiert sein. TU-Verzeichnis ist nicht als MGDM definiert, so dass keine formale Prüfung via INTERLIS-Constraint möglich ist
+      !!EXISTENCE CONSTRAINT TUNummer REQUIRED IN TU.TU.Unternehmen.TUNummer;
+      !!EXISTENCE CONSTRAINT TUAbkuerzung REQUIRED IN TU.TU.Unternehmen.TUAbkuerzung;
+
+    END TU;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit : MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit :             INTERLIS.XMLDate;
+      BearbeitungsDatum : MANDATORY INTERLIS.XMLDate;
+      Stand :             MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+    STRUCTURE Gemeinde =
+      GdeNummer : MANDATORY 0 .. 9999;
+      GdeName :             TEXT*24;
+    END Gemeinde;
+
+
+    CLASS Betriebspunkt =
+      Nummer :               MANDATORY 0 .. 9999999;
+      Name :                 MANDATORY TEXT*50;
+      Abkuerzung :                     TEXT*6;
+      DatenherrAbkuerzung :            TEXT*10;
+      Transportunternehmen : MANDATORY TU;
+      Betriebspunkttyp :     MANDATORY Betriebspunkttyp;
+      Verkehrsmittel :                 Verkehrsmittel;
+      Geometrie :            MANDATORY GeometryCHLV03_V1.Coord2;
+      Hoehe :                MANDATORY Meereshoehe;
+      Standortgemeinde :     MANDATORY Gemeinde;
+      Gueltigkeit :          MANDATORY Gueltigkeit;
+
+      !!Dienststellennummer mit Landeskennung muss eindeutig sein
+      UNIQUE Nummer;
+      UNIQUE Name;
+      UNIQUE Abkuerzung, DatenherrAbkuerzung;
+
+      !! Verkehrsmittel ist für Haltestellen obligatorisch
+      MANDATORY CONSTRAINT
+        NOT ( Betriebspunkttyp == #Haltestelle OR Betriebspunkttyp == #Haltestelle_und_Bedienpunkt)
+        OR
+        DEFINED (Verkehrsmittel);
+
+    END Betriebspunkt;
+
+    CLASS Haltekante =
+      Nummer :    MANDATORY TEXT*10;
+      Name :                TEXT*50;
+      Laenge :              0..999 [INTERLIS.m];
+      Kantenhoehe :         0 .. 100 [Units.cm];
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+    END Haltekante;
+
+    ASSOCIATION Betriebspunkt_BetriebspunktAssoc =
+      rUebergeordneteHaltestelle -- {0..1} Betriebspunkt;
+      rUntergeordneteHaltestelle -- {0..*} Betriebspunkt;
+    END Betriebspunkt_BetriebspunktAssoc;
+
+    ASSOCIATION Betriebspunkt_HaltekanteAssoc =
+      rHaltestelle -- {1} Betriebspunkt;
+      rHaltekante -- {0..*} Haltekante;
+    END Betriebspunkt_HaltekanteAssoc;
+
+    CONSTRAINTS OF Haltekante =
+      !!Bezeichnung muss eindeutig je Haltestelle sein
+      UNIQUE rHaltestelle, Nummer;
+    END;
+
+  END HaltestellenOeV ;
+
+END HaltestellenOeV_V1_2 .

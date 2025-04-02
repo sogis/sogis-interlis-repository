@@ -1,0 +1,288 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell
+ *  Lärmempfindlichkeitsstufen (in Nutzungszonen)
+ *  Geobasisdatensatz Nr. 145
+ *  TRANSLATION OF-Modelle: DegreDeSensibiliteAuBruit_V1_1.ili, GradiDiSensibilitaAlRumore_V1_1.ili
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-09 | KOGIS | Association Typ_Dokument adapted (both roles defined as EXTERNAL)
+!!------------------------------------------------------------------------------
+!! 2018-02-16 | KOGIS | MultilingualUri: BAG {1..*} OF added
+!!------------------------------------------------------------------------------
+!! 2017-02-16 | ARE   | Version 1.1
+!!                    | (Folge des geänderten ÖREB-Rahmenmodells V1.1 vom 20.08.2016)
+!!                    | - MODEL Laermempfindlichkeitsstufen_LV03_V1_1: Bezugsrahmen LV03
+!!                    | - MODEL Laermempfindlichkeitsstufen_LV95_V1_1: Bezugsrahmen LV95
+!!                    | - STRUCTURE LocalisedUri: neue Struktur für mehrsprachige URI
+!!                    | - STRUCTURE MultilingualUri: neue Struktur für mehrsprachige URI
+!!                    | - CLASS Dokument: Attribut TextImWeb neu vom Typ MultilingualUri
+!!                    | - CLASS Typ: neues Attribut Symbol
+!!                    | - CLASS Typ: Korrektur eines fehlerhaften CONSTRAINT
+!!                    | - CLASS Amt: neues Attribut UID
+!!                    | - CLASS Amt: Attribut TextImWeb neu vom Typ MultilingualUri
+!!                    | - CLASS Datenbestand: neues Attribut BasketID
+!!------------------------------------------------------------------------------
+!! 2016-04-15 | KOGIS | Geometriedefinition angepasst
+!!                    | - DOMAIN Gebietseinteilung
+!!------------------------------------------------------------------------------
+!! 2011-12-12 | ARE   | Version 1.0
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL Laermempfindlichkeitsstufen_LV03_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"  =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    ES = (
+      Keine_ES,
+      ES_I,
+      ES_II,
+      ES_III,
+      ES_IV
+    );
+
+    Gebietseinteilung = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderungen
+    );
+
+    Verbindlichkeit = (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Laermempfindlichkeitsstufen_LV03_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Laermempfindlichkeitsstufen_LV03_V1_1.Rechtsstatus;
+      TextImWeb : Laermempfindlichkeitsstufen_LV03_V1_1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweisWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Laermempfindlichkeitsstufen_LV03_V1_1.Rechtsvorschriften;
+
+    CLASS Laermempfindlichkeit_Zonenflaeche =
+      Geometrie : MANDATORY Laermempfindlichkeitsstufen_LV03_V1_1.Gebietseinteilung;
+      Rechtsstatus : MANDATORY Laermempfindlichkeitsstufen_LV03_V1_1.Rechtsstatus;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Laermempfindlichkeit_Zonenflaeche;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*10;
+      Empfindlichkeitsstufe : MANDATORY Laermempfindlichkeitsstufen_LV03_V1_1.ES;
+      Aufgestuft : BOOLEAN;
+      Verbindlichkeit : MANDATORY Laermempfindlichkeitsstufen_LV03_V1_1.Verbindlichkeit;
+      Bemerkungen : MTEXT;
+      Symbol : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+      NOT (Aufgestuft == #true) OR (Empfindlichkeitsstufe == #ES_II OR Empfindlichkeitsstufe == #ES_III);
+    END Typ;
+
+    ASSOCIATION Typ_Dokument =
+      Vorschrift (EXTERNAL) -- {0..*} Laermempfindlichkeitsstufen_LV03_V1_1.Rechtsvorschriften.Dokument;
+      Typ (EXTERNAL) -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Laermempfindlichkeit_Zonenflaeche;
+      ES -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Laermempfindlichkeitsstufen_LV03_V1_1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Laermempfindlichkeitsstufen_LV03_V1_1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION Datenbestand_zustStelle =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END Datenbestand_zustStelle;
+
+  END TransferMetadaten;
+
+END Laermempfindlichkeitsstufen_LV03_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL Laermempfindlichkeitsstufen_LV95_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    ES = (
+      Keine_ES,
+      ES_I,
+      ES_II,
+      ES_III,
+      ES_IV
+    );
+
+    Gebietseinteilung = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderungen
+    );
+
+    Verbindlichkeit = (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Laermempfindlichkeitsstufen_LV95_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Laermempfindlichkeitsstufen_LV95_V1_1.Rechtsstatus;
+      TextImWeb : Laermempfindlichkeitsstufen_LV95_V1_1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweisWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Laermempfindlichkeitsstufen_LV95_V1_1.Rechtsvorschriften;
+
+    CLASS Laermempfindlichkeit_Zonenflaeche =
+      Geometrie : MANDATORY Laermempfindlichkeitsstufen_LV95_V1_1.Gebietseinteilung;
+      Rechtsstatus : MANDATORY Laermempfindlichkeitsstufen_LV95_V1_1.Rechtsstatus;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Laermempfindlichkeit_Zonenflaeche;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*10;
+      Empfindlichkeitsstufe : MANDATORY Laermempfindlichkeitsstufen_LV95_V1_1.ES;
+      Aufgestuft : BOOLEAN;
+      Verbindlichkeit : MANDATORY Laermempfindlichkeitsstufen_LV95_V1_1.Verbindlichkeit;
+      Bemerkungen : MTEXT;
+      Symbol : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+      NOT (Aufgestuft == #true) OR (Empfindlichkeitsstufe == #ES_II OR Empfindlichkeitsstufe == #ES_III);
+    END Typ;
+
+    ASSOCIATION Typ_Dokument =
+      Vorschrift (EXTERNAL) -- {0..*} Laermempfindlichkeitsstufen_LV95_V1_1.Rechtsvorschriften.Dokument;
+      Typ (EXTERNAL) -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Laermempfindlichkeit_Zonenflaeche;
+      ES -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Laermempfindlichkeitsstufen_LV95_V1_1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Laermempfindlichkeitsstufen_LV95_V1_1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION Datenbestand_zustStelle =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END Datenbestand_zustStelle;
+
+  END TransferMetadaten;
+
+END Laermempfindlichkeitsstufen_LV95_V1_1.

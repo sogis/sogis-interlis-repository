@@ -1,0 +1,146 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! öV-Haltestellen
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 98
+!! Bezeichnung GeoIV                         : Haltestellen des öffentlichen Verkehrs
+!! Sammlung-Nr.                              : 98.2
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAV)
+!! Zugangsberechtigungsstufe                 : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 1.3     | 2017-06-08 | ems   | Ergänzung Datenmodell für Bezugsrahmen LV95 und entsprechende Anpassung der MODEL-Namen;
+!!                                Aktivierung von bisher auskommentierten Existence Constraints in Bezug auf das Datenmodell TU;
+!!                                Modellierung des Wertebereichs Verkehrsmittel als externe Codeliste
+!! 1.3     | 2017-07-21 | ems   | Minimale Anpassungen nach Rückmeldung KOGIS
+!! 1.3     | 2017-10-30 | ems   | Korrex Wertebereich TUAbkuerzung und DatenherrAbkuerzung
+!! 1.3     | 2018-07-25 | ems   | Anpassung furtherInformation
+!! 1.3     | 2020-04-27 | KOGIS | Constraint in Klasse Betriebspunkt korrigiert (#Haltestelle und #Haltestelle_und_Bedienpunkt)
+!! 2.0     | 2020-10-19 | ems   | • Modellierung Wertebereich Betriebspunkttyp als externer Katalog
+!!                                • wegen der Auslagerung der Betriebspunkttypen in externen Katalog, wird der Constraint entfernt, dass Betriebspunkte vom Typ Haltestelle
+!!                                  bzw. Haltestelle_und_Bedienpunkt zwingend ein Verkehrsmittel haben müssen (diese Bedingung wird bereits im Quellsystem sichergestellt)
+!!                                • Anpassung Wertebereich "Verkehrsmittel.Code", "Gemeinde.Name", "Betriebspunkt.Geometrie", "Haltekante.Nummer", "Haltekante.Laenge", "Haltekante.Kantenhoehe"
+!!                                • Entfernung der Attribute "Betriebspunkt.DatenherrAbkuerzung", "Betriebspunkt.Hoehe", "Gueltigkeit.Bearbeitungsdatum"
+!!                                • Anpassung Attributname "Haltekante.Name" zu "Haltekante.Bezeichnung" und Anpassung Wertebereich
+!!                                • Ergänzung Attribute "Haltekante.BetrieblicheBezeichnung" und "Haltekante.Gueltigkeit"
+!!                                • Entfernung LV03-Modell und Integration Katalog-Modell in LV95-Modell
+!! 2.0     | 2024-03-20 | daf   | • Anpassung Attribut "BetrieblicheBezeichnung": nicht mehr mandatory
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/themen-a-z/geoinformation/geobasisdaten/haltestellen-des-oeffentlichen-verkehrs.html
+
+MODEL HaltestellenOeV_V2_0 (de)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2024-03-20" =
+
+  IMPORTS CatalogueObjects_V1;
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS TransportunternehmenOeV_V1;
+
+  TOPIC Kataloge =
+
+    CLASS Verkehrsmittel
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code :        MANDATORY TEXT*10;
+      Bezeichnung : MANDATORY TEXT*100;
+      UNIQUE Code;
+    END Verkehrsmittel;
+
+    STRUCTURE Verkehrsmittel_KatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Verkehrsmittel;
+    END Verkehrsmittel_KatRef;
+
+    CLASS Betriebspunkttyp
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code :        MANDATORY TEXT*10;
+      Bezeichnung : MANDATORY TEXT*100;
+      UNIQUE Code;
+    END Betriebspunkttyp;
+
+    STRUCTURE Betriebspunkttyp_KatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Betriebspunkttyp;
+    END Betriebspunkttyp_KatRef;
+
+  END Kataloge;
+
+  TOPIC HaltestellenOeV =
+    DEPENDS ON TransportunternehmenOeV_V1.TU,
+               HaltestellenOeV_V2_0.Kataloge;
+
+    STRUCTURE Transportunternehmen =
+      Nummer:   MANDATORY TEXT*6;
+      Abkuerzung :        TEXT*15;
+
+      !!TU muss in TU-Verzeichnis BAV definiert sein.
+      EXISTENCE CONSTRAINT Nummer REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Nummer;
+      EXISTENCE CONSTRAINT Abkuerzung REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Abkuerzung;
+
+    END Transportunternehmen;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit : MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit :             INTERLIS.XMLDate;
+      Stand :             MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+    STRUCTURE Gemeinde =
+      Nummer : MANDATORY 0 .. 9999;
+      Name :             TEXT*40;
+    END Gemeinde;
+
+    CLASS Betriebspunkt =
+      Nummer :               MANDATORY 0 .. 9999999;
+      Name :                 MANDATORY TEXT*50;
+      Abkuerzung :                     TEXT*6;
+      Transportunternehmen : MANDATORY Transportunternehmen;
+      Betriebspunkttyp :     MANDATORY HaltestellenOeV_V2_0.Kataloge.Betriebspunkttyp_KatRef;
+      Verkehrsmittel :                 HaltestellenOeV_V2_0.Kataloge.Verkehrsmittel_KatRef;
+      Geometrie :            MANDATORY GeometryCHLV95_V1.Coord3;
+      Gemeinde :             MANDATORY Gemeinde;
+      Gueltigkeit :          MANDATORY Gueltigkeit;
+
+      UNIQUE Nummer;
+      UNIQUE Name;
+      UNIQUE Abkuerzung;
+
+    END Betriebspunkt;
+
+    CLASS Haltekante =
+      Nummer :                  MANDATORY TEXT*254;
+      Bezeichnung :                       TEXT*40;
+      BetrieblicheBezeichnung :           TEXT*20;
+      Laenge :                            0.00 .. 9999.99 [INTERLIS.m];
+      Kantenhoehe :                       0.00 .. 999.99 [Units.cm];
+      Geometrie :               MANDATORY GeometryCHLV95_V1.Coord3;
+      Gueltigkeit :             MANDATORY Gueltigkeit;
+    END Haltekante;
+
+    ASSOCIATION Betriebspunkt_BetriebspunktAssoc =
+      rUebergeordneteHaltestelle -- {0..1} Betriebspunkt;
+      rUntergeordneteHaltestelle -- {0..*} Betriebspunkt;
+    END Betriebspunkt_BetriebspunktAssoc;
+
+    ASSOCIATION Betriebspunkt_HaltekanteAssoc =
+      rHaltestelle -- {1} Betriebspunkt;
+      rHaltekante -- {0..*} Haltekante;
+    END Betriebspunkt_HaltekanteAssoc;
+
+    CONSTRAINTS OF Haltekante =
+      !!Nummer muss eindeutig je Haltestelle sein
+      UNIQUE rHaltestelle, Nummer;
+    END;
+
+  END HaltestellenOeV ;
+
+END HaltestellenOeV_V2_0 .
+

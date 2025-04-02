@@ -1,0 +1,161 @@
+!!==============================================================================
+!! Schienennetz
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 98
+!! Bezeichnung GeoIV                         : Schienennetz
+!! Sammlung-Nr.                : 98.1
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAV)
+!! Zugangsberechtigungsstufe                 : A
+!! 
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date     | Who | Modification
+!!------------------------------------------------------------------------------
+!! 0.90   | 2012-09-11 | LS  | Draft 
+!! 0.92   | 2012-11-16 | LS  | Draft  Verweise auf TU und Dst als Strukturattribut
+!! 0.95   | 2013-11-27 | LS  | Draft (release candidate): Anpassung nach Anhörung
+!! 1.00   | 2014-06-02 | EMS | Draft (release candidate)
+!! 1.00   | 2014-06-20 | LS  | Anpassungen Rückmeldung KOGIS
+!! 1.00   | 2014-07-24 | EMS | Anpassungen Rückmeldung KOGIS
+!! 1.1    | 2015-06-15 | EMS | Erweiterung der Wertebereiche von Elektrifizierung, AnzahlStreckengleise, KmAnfang, KmEnde; Entfernung von INTERLIS-Views
+!! 1.1    | 2015-06-25 | EMS | Korrektur des Links unter furtherInformation
+!! 1.11   | 2015-08-14 | EMS | Anpassung von Unique-Constraint der Netzknoten zur Struktur Betriebspunkt und der Netzsegmente und KmLinien zur Struktur TU (nach Änderung des KOGIS INTERLIS Compilers)
+
+INTERLIS 2.3;
+!!@ IDGeoIV = "98.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = http://www.bav.admin.ch/dokumentation/04523/04524/04542/index.html
+
+
+MODEL Schienennetz_V1_1 (de) 
+ AT "http://models.geo.admin.ch/BAV/" VERSION "2015-06-15" =
+
+ IMPORTS GeometryCHLV03_V1;
+ IMPORTS HaltestellenOeV_V1_1;
+
+  TOPIC Schienennetz = 
+    DEPENDS ON HaltestellenOeV_V1_1.HaltestellenOeV;
+
+
+  !!
+  !! fachspezifische Definitionen Schienennetz
+  !!
+
+    DOMAIN
+      Spurweite   = ( 
+            mm600,
+            mm750, 
+            mm800,  
+            mm1000, 
+            mm1200, 
+            mm1435, 
+            mm1000_1435,
+            andere);
+
+      Elektrifizierung   = ( 
+            Gleichstrom, 
+            Wechselstrom_50Hz, 
+            Wechselstrom_16_7Hz, 
+            Drehstrom,
+            nicht_elektrifiziert,
+            Wechselstrom_16_7Hz_50Hz,
+            Wechselstrom_16_7Hz_Gleichstrom);
+            
+      Linie     = POLYLINE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2;
+  
+    STRUCTURE Betriebspunkt =
+      Nummer :    MANDATORY 0 .. 9999999;
+      Name :                TEXT*50;    !! redundant zu Nummer
+      Abkuerzung :          TEXT*6;     !! redundant zu Nummer
+      DatenherrAbkuerzung : TEXT*10;
+    
+      !!Betriebspunkt muss in MGDM HaltestellenOeV definiert sein (muss in DIDOK-Liste definiert sein)
+      EXISTENCE CONSTRAINT Nummer REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Nummer;
+      EXISTENCE CONSTRAINT Name  REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Name;
+      EXISTENCE CONSTRAINT Abkuerzung REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Abkuerzung;
+      EXISTENCE CONSTRAINT DatenherrAbkuerzung REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:DatenherrAbkuerzung;
+
+    END Betriebspunkt;
+
+    STRUCTURE TU =
+      TUNummer :  MANDATORY TEXT*6;
+      TUAbkuerzung :        TEXT*10;    !! redundant zu TUNummer
+
+      !!TUNummer muss in TU-Verzeichnis BAV definiert sein. TU-Verzeichnis (noch) nicht als MGDM definiert, so dass keine formale Prüfung via INTERLIS-Constraint möglich ist
+      !!EXISTENCE CONSTRAINT TUNummer REQUIRED IN TU.TU.Unternehmen.TUNummer;  
+      !!EXISTENCE CONSTRAINT TUAbkuerzung REQUIRED IN TU.TU.Unternehmen.TUAbkuerzung;  
+
+    END TU;
+
+    STRUCTURE Gueltigkeit =
+        BeginnGueltigkeit :  MANDATORY INTERLIS.XMLDate;
+        EndeGueltigkeit :              INTERLIS.XMLDate;
+        BearbeitungsDatum :  MANDATORY INTERLIS.XMLDate;
+        Stand :              MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+  
+    CLASS KmLinie =
+      Datenherr :   MANDATORY TU;
+      Nummer :      MANDATORY TEXT*4;
+      Name :                  TEXT*40;
+      Gueltigkeit : MANDATORY Gueltigkeit;
+    
+      UNIQUE Datenherr->TUNummer, Nummer;
+    
+    END KmLinie;
+
+    CLASS Netzknoten =
+      Betriebspunkt: MANDATORY Betriebspunkt;
+      Geometrie :    MANDATORY GeometryCHLV03_V1.Coord2;
+      Gueltigkeit :  MANDATORY Gueltigkeit;
+
+      UNIQUE Betriebspunkt->Nummer;
+    
+    END Netzknoten;
+
+    CLASS Netzsegment =
+      Name :                   MANDATORY TEXT*16;
+      KmAnfang :               MANDATORY -9999.999 .. 9999.999;
+      KmEnde :                 MANDATORY -9999.999 .. 9999.999;
+      Geometrie :              MANDATORY Linie;
+      Infrastrukturbetreiber : MANDATORY TU;
+      AnzahlStreckengleise:    MANDATORY 1 .. 20;
+      Spurweite :              MANDATORY Spurweite;
+      Elektrifizierung:        MANDATORY Elektrifizierung;
+      Gueltigkeit :            MANDATORY Gueltigkeit;    
+    
+    END Netzsegment;
+
+
+    ASSOCIATION Netzknoten_NetzknotenAssoc =
+      rUebergeordnet -- {0..1} Netzknoten;
+      rUntergeordnet -- {0..*} Netzknoten;
+    END Netzknoten_NetzknotenAssoc;  
+  
+    ASSOCIATION KmLinie_NetzsegmentAssoc =
+      rKmLinie -- {1} KmLinie;
+      rNetzsegmente -- {0..*} Netzsegment;
+    END KmLinie_NetzsegmentAssoc;
+
+    ASSOCIATION NetzknotenAnfang_NetzsegmentAssoc =
+      rAnfangsknoten -- {1} Netzknoten;
+      rAnfangssegmente -- {0..*} Netzsegment;
+    END NetzknotenAnfang_NetzsegmentAssoc;
+
+    ASSOCIATION NetzknotenEnde_NetzsegmentAssoc =
+      rEndknoten -- {1} Netzknoten;
+      rEndsegmente -- {0..*} Netzsegment;
+    END NetzknotenEnde_NetzsegmentAssoc;
+
+    
+    CONSTRAINTS OF Netzsegment =
+      UNIQUE rKmLinie->Datenherr->TUNummer, Name;
+    END;
+
+  END Schienennetz ;   !! TOPIC
+ 
+END Schienennetz_V1_1 .

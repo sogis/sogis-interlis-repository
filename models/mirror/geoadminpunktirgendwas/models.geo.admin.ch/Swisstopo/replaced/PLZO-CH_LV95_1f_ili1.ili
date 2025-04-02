@@ -1,0 +1,219 @@
+
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Modele de donnees des NPALocalite "Confederation"
+!! (NPAL-CH-MN03) decrit en INTERLIS version 1 (SN 612030).
+!! IDGeoIV = "181.1"
+!! 
+!! Office federal de topographie (swisstopo)
+!! Direction federale des mensurations cadastrales (D+M)
+!! CH-3084 Wabern
+!! www.cadastre.ch/plz
+!!
+!! Version: 1 francaise
+!! Nom du fichier: PLZO-CH_LV95_1f_ili1.ili (date: 27 aout 2012)
+!!
+!! Le present modele de donnees est valable dans le cadre de reference
+!! "Mensuration Nationale 1903+ (MN95)".
+!!
+!! Ce modele de donnees est base sur le modele MD.01-MO-CH-24f, mais contient
+!! uniquement le TOPIC NPALocalite. L'identifiant "IDENT NPA, Chiffres_supplementaires"
+!! de la table NPA6 a ete supprime, a cause de la presence d'aires de codes postaux 
+!! a plusieurs geometrie. Ce qui rend la condition IDENT impossible a remplir.
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+MODEL NPALCH1MN95F
+
+  DOMAIN
+
+    CoordP = COORD2    2480000.000     1070000.000
+                       2850000.000    1310000.000;
+
+    Statut = (
+      projete,
+      valable);
+
+    Rotation = GRADS 0.0 399.9;
+
+    GrandeurEcriture = (
+      petite,
+      moyenne,
+      grande);
+
+    Statut_mise_a_jour_AB = (   !! Pour adresses_batiment, voir SN 612040
+        projete,   !! nouvel objet en travail
+                   !! Etat provisoire ou non reconnu
+        reel,      !! L'objet existe vraiment
+        caduc);    !! L'objet n'existe plus
+
+    TypeLangue = ( !! Pour adresses_batiment, voir SN 612040
+          de,      !! deutsch
+          fr,      !! francais
+          it,      !! italiano
+          rm,      !! rumantsch
+          en);     !! english
+
+
+
+ 
+  TOPIC Domaines_numerotation =
+
+    DOMAIN
+      Abreviation_cantonale = ( !! ordre de l'OFS, completee avec FL et CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! La cle utilisateur definie ici et les surfaces associees peuvent correpondre
+    !! a une commune, a une partie ou a une aggregation de plusieurs communes et
+    !! encore event. au canton et/ou a la Suisse (resp. au FL) dans leur ensemble 
+    !! (se referer au document explications).
+    TABLE Domaine_numerotation =
+      Ct: Abreviation_cantonale; !! univoque pour la Suisse (inclus le FL)
+      NumeroDN: TEXT*10;
+      DossierTech: TEXT*12;
+      En_vigueur: OPTIONAL DATE;
+    IDENT Ct, NumeroDN; !! constitue la cle utilisateur IdentDN
+    END Domaine_numerotation;
+
+    !! Les geometries, des domaines de numerotation decoupant le territoire
+    !! selon la meme unite logique (par ex: perimetre des communes), doivent
+    !! creer entre elles une partition du territoire (AREA).
+    TABLE GeometrieDN =
+      GeometrieDN_de: -> Domaine_numerotation; !! relation 1-m
+      Geometrie: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END GeometrieDN;
+
+    TABLE PosDomaine_numerotation =
+     PosDomaine_numerotation_de: -> Domaine_numerotation; !! relation 1-mc;
+                            !! inscription de NumeroDN
+      Pos: CoordP // position dans GeometrieDN //;
+      Ori: OPTIONAL Rotation // indefini = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      Grandeur: OPTIONAL GrandeurEcriture // indefini = moyenne //;
+    NO IDENT
+    END PosDomaine_numerotation;
+
+  END Domaines_numerotation.
+
+
+
+ 
+  TOPIC NPA_Localite = !! voir norme SN 612040;
+                       !! Localites sous la responsabilite des cantons
+                       !! NPA sous la responsabilite de la Poste
+
+    TABLE Mise_a_jourLoc = !! Norme SN = ChoseActualisable
+      IdentDN: TEXT*12; !! relation 1-m avec Domaine_numerotation
+                        !! MD01: en plus de SN
+      Identification: TEXT*12;  !! par ex. numero du dossier technique
+                                !! MD01: en plus de SN
+      Description: TEXT*30;
+      Perimetre: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050; !! MD01: en plus de SN
+      Validite: Statut;
+      En_vigueur: DATE;
+    IDENT IdentDN, Identification;
+    END Mise_a_jourLoc;
+
+    TABLE Groupement_de_Localite = !! Norme SN 612040: GroupementLocalite
+      Vide: OPTIONAL TEXT*1; !! Cet attribut est neceessaire uniquement 
+                             !! pour respecter les regles syntaxiques d'INTERLIS 1
+    NO IDENT
+    END Groupement_de_Localite;
+
+    TABLE Texte_Groupement_de_Localite =
+        Texte_Groupement_de_Localite_de: -> Groupement_de_Localite;!! relation 1-m
+        Texte: TEXT*200;
+        Langue: TypeLangue; 
+    IDENT Texte_Groupement_de_Localite_de, Langue;
+    END Texte_Groupement_de_Localite;
+
+    !! Les localites reelles forment une AREA
+    TABLE Localite =
+      Origine: -> Mise_a_jourLoc;  !! relation 1-mc
+      Localite_de: OPTIONAL -> Groupement_de_Localite; !!relation c-m
+      Validite: Statut_mise_a_jour_AB;
+      En_cours_modification: (oui, non);
+      Geometrie: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+    NO IDENT
+    END Localite;
+
+    !! Exemple pour Texte, Texte_abrege et Texte_index:
+    !! Texte (Nom complet): La Chaux-de-Fonds
+    !! Texte_abrege (ecriture presente sur une adresse postale): La Chx-de-Fds
+    !! Texte_index (pour index): Chaux-de-Fonds
+    TABLE Nom_localite =
+        Nom_localite_de: -> Localite; !! relation 1-m 
+        Texte: TEXT*40;
+        Texte_abrege: OPTIONAL TEXT*18;
+        Texte_index: OPTIONAL TEXT*16;
+        Langue: TypeLangue; 
+    IDENT Nom_localite_de, Langue;
+    END Nom_localite;
+
+    TABLE PosNom_localite =  !! MD01: en plus de SN
+      PosNom_localite_de: -> Nom_localite;  !! relation 1-mc; inscription de Texte
+      Pos: CoordP;
+      Ori: OPTIONAL Rotation // indefini = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // indefini = Center //;
+      VAli: OPTIONAL VALIGNMENT // indefini = Half //;
+      Grandeur: OPTIONAL GrandeurEcriture // indefini = moyenne //;
+    NO IDENT
+    END PosNom_localite;
+
+    TABLE Mise_a_jourNPA6 = !! Norme SN = ChoseActualisable
+      IdentDN: TEXT*12; !! relation 1-m avec Domaine_numerotation
+                        !! MD01: en plus de SN
+      Identification: TEXT*12;  !! par ex. numero du dossier technique
+                                !! MD01: en plus de SN
+      Description: TEXT*30;
+      Perimetre: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050; !! MD01: en plus de SN
+      Validite: Statut;
+      En_vigueur: DATE;
+    IDENT IdentDN, Identification;
+    END Mise_a_jourNPA6;
+
+    !! Il faut eviter d'avoir un NPA6 avec Validite=reel sur une localite avec
+    !! une Validite<>reel.
+    TABLE NPA6 =
+      Origine: -> Mise_a_jourNPA6;  !! relation 1-mc
+      NPA6_de: -> Localite;  !! relation 1-m
+      !! Si plusieurs codes postaux a six chiffres sont affectes a une meme
+      !! localite, une surface doit etre affectee a chacun d'entre eux et
+      !! doit etre incluse en totalite dans les limites de la surface de 
+      !! la localite.
+      !! Les NPA6 reels sont de type AREA
+      Geometrie: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+            WITHOUT OVERLAPS > 0.500;
+      Validite: Statut_mise_a_jour_AB;
+      En_cours_modification: (oui, non);
+      NPA: [1000 .. 9999];
+      Chiffres_supplementaires: [0 .. 99];
+    NO IDENT
+    END NPA6;
+    
+END NPA_Localite.
+ 
+END NPALCH1MN95F.
+
+
+
+FORMAT FREE;  
+!! FORMAT FIX WITH LINESIZE = 107, TIDSIZE = 16; 
+
+
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+

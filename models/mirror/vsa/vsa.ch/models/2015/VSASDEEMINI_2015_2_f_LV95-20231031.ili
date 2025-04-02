@@ -1,0 +1,1244 @@
+!! VSASDEEMINI_2015_2_f_LV95-20231031.ili
+
+INTERLIS 2.3;
+
+MODEL VSASDEEMINI_2015_LV95 (fr) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" TRANSLATION OF VSADSSMINI_2015_LV95 [ "31.10.2023" ] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  !! IMPORTS UNQUALIFIED IGSFunction;
+  !! IMPORTS UNQUALIFIED MINIFunction;
+  IMPORTS Units;
+  IMPORTS Base_f_LV95;
+  IMPORTS SIA405_Base_f_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Association suisse des professionnels de la protection des eaux (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Libéré pour utilisation publique et application commerciale avec la licence."
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = " Fichier modèle INTERLIS examiné avec Compiler INTERLIS Version 5.3.3 (03.08.2023)"
+
+
+!! 18.11.2019 Correction - addition de UNIQUE DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)chez NOEUD, CONDUITE, DEVERSOIR_REFOULEMENT et SOUS_BASSIN_VERSANT
+
+!! 31.10.2023 Dispositions de licence adaptées
+!! 31.10.2023 Version MN03 annulée et supprimée, uniquement MN95
+!! 31.10.2023 missing TRANSLATION OF VSADSSMINI_2015_LV95 [ "31.10.2023" ] =  added
+
+
+UNIT
+  Habitants_par_hectare [EWha] = (Units.CountedObjects/Units.ha);
+  Litre_par_seconde_hectare [lsha] = (SIA405_Base_f_LV95.ls/Units.ha);
+
+TOPIC VSASDEEMini =
+
+
+DOMAIN
+
+
+EtatValeurs EXTENDS SIA405_Base_f_LV95.Etat = (  !! Etat de fonctionnement et de planification de l’ouvrage. 
+!! 1.2.2013 Adaptation à la nouvelle version de SIA405_Base_f_LV95.Etat – Extension des valeurs de base du fluide, modélisation hiérarchique et adaption compiler 4.5.13
+      !! 17.7.2015 hors_service, !! comporte hors_service et les valeurs suivantes
+         !!  reserve  !! n'existe pas en eaux_usées
+      en_service (  !! comporte en_service et les valeurs suivantes 
+         !! 17.7.2015 en_service,
+         provisoire,
+         sera_supprime
+      ),
+      abandonne (  !! comporte abandonne et les valeurs suivantes
+          !!  abandonne,   !! n'existe pas en eaux usées
+         supprime_non_demoli,
+         supprime_inconnu,
+         demoli
+      ),
+      !! 17.7.2015 inconnu,
+      autre ( !! comporte les valeurs suivantes
+         variante_de_calcul,
+         planifie,
+         projet
+      )
+    );   
+    !! nouveau 17.7.2015  
+    Etat = ALL OF EtatValeurs;    !! extension valeurs SIA405 Etat
+
+
+Densite_Population = 0 .. 10000 [EWha];    !! habitants par hectare [habitants/ha]
+
+
+EH = 0 .. 300000 [Units.CountedObjects];    !! Equivalent habitants [EH]
+
+
+NoSTEP = 1 .. 999999 [Units.CountedObjects];    !! 
+
+
+Frequence_deversement = 0.0 .. 999.9;    !! nombre de déversements par année[nombre/annee]
+
+
+Nombre_installations = 1 .. 9  [Units.CountedObjects];    !! 
+
+
+Hauteur_max_profile = 0 .. 99999 [Units.mm];    !! milimètre [mm]
+
+
+Hauteur_ref = 0.00 .. 30000.00 [m];    !! mètres [m], 2 décimals
+
+
+!! Copyright 2002 - 2015
+!! Association suisse des professionnels de la protection des eaux (VSA), Zürich
+!! www.vsa.ch
+!! L'utilisation de ce fichier modèle INTERLIS a besoin une licence!
+!! Des changements et compléments sont permis pour l'utilisation personnelle. 
+!! Ceux-ci doivent être documentés visiblement, afin de repérer les modifications 
+!! apportées (insérer des commentaires INTERLIS). 
+!! Les fichiers modèles originaux  et les versions 
+!! modifiées à partir de ceux-ci ne peuvent pas être revendus.
+!! La distribution du fichier original (comme tout ou une partie de celui-ci) 
+!! n'est permise qu'avec l'achat d'une licence du VSA par le destinataire.
+CLASS NOEUD EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Lieu (point) dans le réseau d’évacuation des eaux avec une fonction constructive et/ou hydraulique
+  ATTRIBUTE
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    ETAT_CONSTRUCTIF: (          !! Classes d'état. Description de l'état constructif selon la directive VSA "Maintien des canalisations" (2007/2009). Ne pas confondre avec les degrés de remise en état (attribut NECESSITE_ASSAINIR)
+      inconnu,
+      Z0,  !! Plus en état de fonctionner: L'ouvrage d'assainissement n’est déjà plus parcourable ou ne le sera plus dans peu de temps: Ouvrage d'assainissement écroulé, totalement bouché par des racines ou par d’autres obstacles à l’écoulement. L'ouvrage d'assainissement perd de l’eau (exfiltration / pollution probable de l’eau souterraine)
+      Z1,  !! Graves défauts: Dommages structurels ne garantissant plus la sécurité statique, l’hydraulique ou l’étanchéité: cassures, déformations, entrées ou sorties visibles d’eau, trous dans la paroi, forte saillie des raccords latéraux, fort développement des racines, paroi  fortement érodée par lavage. Matériau  inapproprié
+      Z2,  !! Défauts moyens: Défauts structurels affectant la statique, l’hydraulique ou l’étanchéité: joints avec canalisation renflés, entrées non nettoyées, fissures, légers obstacles à l’écoulement (entartrages, saillie des raccords latéraux, légers dommages à la paroi, développement localisé des racines, paroi érodée par lavage, etc.)
+      Z3,  !! Défauts légers: Défauts ou événements structurels ayant une influence insignifiante sur l’étanchéité, l’hydraulique ou la statique de l'ouvrage d'assainissement: joints avec canalisations renflées, raccords latéraux mal nettoyés, légères déformations sur matériaux plastiques, légères érosions dues au lavage, etc
+      Z4  !! Aucun défaut
+    );
+    REMARQUE: TEXT*80;  !! Remarques générales
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données
+    DESIGNATION: MANDATORY TEXT*20;  !! Désignation unique pour chaque maître des données
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    GEOMETRIE_DETAILLEE: Base_f_LV95.Surface;  !! Géométrie détaillée particulièrement pour un OUVRAGE_SPECIAL. Pour l’attribut CHAMBRE_STANDARD utilisez Dimension1 et 2, de même pour une INSTALLATION_INFILTRATION normée.  Les canalisations n’ont en général pas de géométrie détaillée.
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données
+    FINANCEMENT: (          !! Type de financement (financement selon LEaux Art. 60a)
+      public,  !! L’intégralité des ouvrages d’assainissement qui sont financés selon l’art. 60a de la loi sur la protection des eaux (LEaux).
+      prive,  !! L’intégralité des conduites souterraines et ouvrages construits à l’intérieur et à l’extérieur des immeuble dans le domaine d’application de la SN 592 000, qui ne sont pas financés par les taxes d’épuration selon l’art. 60a de la loi sur la protection des eaux (LEaux)
+      inconnu
+    );
+    FONCTION: (          !! L’attribut « fonction » détermine si un nœud est un ouvrage spécial et quelle fiche technique doit être saisie. Il est très important d’attribuer la fonction correctement
+      fosse_etanche,  !! Fosse étanche
+      ouvrage_de_chute,  !! Ouvrage spécial dans le réseau de canalisations servant à relier des différences d'altitude sur une petite distance, en brisant l'énergie de l'écoulement.
+      fosse_digestive,  !! Fosse digestive: 3 compartiments
+      autres,  !! Uniquement à utiliser si aucune autre valeur correspond. Décrire la fonction de l'ouvrage à l'attribut REMARQUE
+      aeration,  !! Installation permettant une aération dans un ouvrage d'assainissement
+      chambre_recolte_eaux_toitures,  !! Chambre se trouvant entre l'évacuation des eaux des bien-fonds et du réseau des canalisations, à l'arrivée d'un tuyau de descente. Souvent de taille inférieure que des chambres avec grille d'entrée
+      chambre_avec_siphon_inverse,  !! Ouvrage spécial servant à purger le siphon inverse au point le plus bas.
+      entree_siphon,  !! Ouvrage d’entrée d'un siphon inversé pour répartir le débit sur plusieurs tuyaux.
+      chambre_avec_grille_d_entree,  !! chambre avec grille d'entrée (sans retenue de boues) selon SN 640 356
+      exutoire_pertinent_pour_milieu_recepteur,  !! Rejet d’une canalisation dans une eau de surface sans ou avec un ouvrage servant d’exutoire, qui perturbe l’état ou les conditions du cours d’eau. Outre les exutoires des réseaux primaires, par définition pertinents pour les cours d’eau, des exutoires des réseaux secondaires peuvent également être pertinents pour les cours d’eau
+      exutoire_insignifiant_pour_milieu_recepteur,  !! Rejet d’une canalisation secondaire dans un cours d’eau sans ou avec un ouvrage servant d’exutoire, qui ne perturbe que peu l’état ou les conditions du cours d’eau
+      rigole_de_drainage,  !! Ouvrage rectiligne à fentes, servant à récolter les eaux pluviales ruisselées
+      fosse_septique_deux_chambres,  !! Fosse septique: 2 compartiments
+      depression_de_terrain,  !! Dépression de terrain artificielle ou naturelle ayant une fonction de rétention
+      evacuation_des_eaux_des_voies_ferrees,  !! Chambre standard servant à évacuer les eaux d'installation ferroviaires
+      depotoir_pour_alluvions,  !! Ouvrage spécial dans un cours d'eau ouvert, servant à récolter les matériaux transportés. Se trouve souvent à l'entrée des tronçons mis sous terre
+      fosse_a_purin,  !! fosse à purin
+      fosse_septique,  !! Appareil destiné à la collecte, à la liquéfaction partielle des matières polluantes contenues dans les eaux usées et à la rétention des matières solides et des déchets flottants. Il est souvent utilisé pour des bâtiments qui ne sont pas raccordés à un réseau d’égouts aboutissant à un traitement
+      regard_de_visite,  !! Ouvrage d'accès au réseau par lequel le personnel d'entretien pénètre pour assurer le service et la surveillance du réseau
+      noeud_de_conduite,  !! Les nœuds de conduite représentent des nœuds topologiques spéciaux qui ne se réfèrent pas à un ouvrage du réseau d’assainissement particulier. Les nœuds de conduite sont à saisir pour : a) la réunion de plusieurs conduites primaires ou plusieurs conduites secondaires sans chambre, b) le changement de pente, diamètre, matériau ou année de construction sans chambre, c) début de conduite sans chambre ou d) début de conduite de la partie déversante des ouvrages spéciaux ayant des sorties hydrauliquement séparées, par exemple déversoir d’orage, BEP ou ouvrage de répartition
+      station_mesure,  !! La fonction « station_mesure » n’est que attribuée à des nœuds qui n’ont aucune autre fonction d’ouvrage spécial (chambres de mesure unique). Par exemple un déversoir avec une mesure de débit aura la fonction « deversoir_d_orage » et non la fonction « station_mesure ». L’appareil de mesure est donc saisie comme composante d’ouvrage à la fiche technique
+      separateur_d_hydrocarbures,  !! Ouvrage spécial servant à séparer des fluides légers de l'eau. Il évite que des hydrocarbures pénètrent dans les milieux récepteur.
+      station_de_pompage,  !! Installation destinée à élever les eaux d'un niveau à un autre, soit pour le franchissement d'un obstacle, soit pour modifier des tracés devenus économiquement inacceptables en réseau gravitaire
+      BEP_decantation,  !! Ouvrage de réseau d’eaux mixtes pour la décantation de matières solides et le stockage d’eaux mixtes (fonction secondaire, pour le stockage de volumes d’eau pluviale minimes)
+      BEP_retention,  !! Bassin d'eau pluviale ayant comme fonction la rétention du premier flot d’orage (first flush)
+      BEP_canal_retention,  !! Canalisation de rétention avec déversement en amont dans un cours d'eau.
+      BEP_clarification,  !! Bassin d’eaux pluviales de décantation dans un système séparatif
+      BEP_accumulation,  !! Bassin d'accumulation de débits de pointe dans un réseau d’eaux mixtes ou pluviales. Sa fonction est de décharger le réseau lors d’orages et n’a, contrairement au déversoir d’orage aucun déversement, mise à part un trop-plein vers un exutoire en milieu récepteur
+      BEP_canal_accumulation,  !! Canalisation de stockage avec mode de fonctionnement identique que la bassin d'accumulation.
+      BEP_canal_stockage,  !! Canalisation de stockage avec déversement en aval dans un cours d'eau
+      BEP_combine,  !! Bassin d'eau pluviale réunissant la rétention et la clarification
+      deversoir_d_orage,  !! Ouvrage spécial, séparant les eaux mixtes en y rejetant une partie directement dans un cours d’eau
+      depotoir,  !! Ouvrage d’entrée servant à récolter les eaux de surface composé d’une chambre avec un dépotoir et un cône composé d’un cadre et d’une grille d’entrée
+      separateur_materiaux_flottants,  !! Dépotoir contenant un siphon prolongé ou une paroi plongeante. Tient le rôle de prétraitement sur une installation d'infiltration
+      acces_lateral,  !! Accès à un ouvrage sans descente ou montée
+      chambre_de_chasse,  !! Chambre servant d'accès spécifiquement pour le rinçage
+      ouvrage_de_repartition,  !! Ouvrage, qui répartie les eaux dans le système sans les déverser. Une ou plusieurs entrées, deux à plusieurs sorties
+      inconnu,
+      installation_infiltration,  !! Ouvrage en surface ou souterrain, ayant comme objectif l’infiltration artificielle des eaux pluviales. Sont également considérées des installations d’infiltration, des surfaces au sol réservées, où une accumulation de polluants est pris en compte. Ceci est en général le cas, lorsque le rapport entre la surface à évacuer et la surface d’infiltration est supérieur à 5
+      chambre_de_chute_a_vortex  !! Ouvrage permettant l'évacuation des eaux sans dégâts sur une hauteur donnée. L'ouvrage est composé de: chambre à formation de vortex, tuyau de chute, puits dissipateur et un tuyau d'aération
+    );
+    FONCTION_HIERARCHIQUE: (          !! Attribut déduit – Règle de composition: Tous les nœuds qui sont connectés par une conduite OAP (arrivée ou départ) font partie du réseau des OAP. Cet attribut a la fonction d’un examen technique et simplifié, car beaucoup de principes techniques dépendent du fait d’être des ouvrages d’assainissement primaires ou secondaires.
+      OAP,  !! Ouvrages du réseau d’assainissement primaire
+      OAS  !! ouvrages du réseau d’assainissement secondaire
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    DETERMINATION_PLANIMETRIQUE: (          !! Plage de précision des coordonnées planimétriques du couvercle.
+      plusque_50cm,
+      plus_moins_10cm,
+      plus_moins_3cm,
+      plus_moins_50cm,
+      inconnue
+    );
+    OBJ_ID_OUVRAGE_RESEAU_AS: TEXT*16;  !! OBJ_ID de l’OUVRAGE_RESEAU_AS appartenant de la VSA-SDEE, seulement pour transfers des modèles
+    OBJ_ID_COUVERCLE: TEXT*16;  !! OBJ_ID du couvercle principal (important quand il y en a plusieurs);
+    NECESSITE_ASSAINIR: (          !! 	Degrés d’urgence et délai de réalisation des mesures constructives selon la directive VSA "Maintien des canalisations"
+      urgente,  !! Les mesures doivent être réalisées d’urgence. Des mesures immédiates doivent être envisagées comme pour le degré a_court_terme. Délai 3-4 ans
+      aucune,  !! Aucune mesure n’est nécessaire jusqu’au prochain relevé et à la prochaine évaluation de l’état. Délai >= 10 ans
+      a_court_terme,  !! Les mesures doivent être réalisées de façon très urgente et à court terme. A titre de mesures immédiates, des réparations locales provisoires permettent de prévenir temporairement d’autres dommages. Délai <= 2 ans
+      a_long_terme,  !! Les mesures peuvent être projetées à long terme. Délai 7 - 10 ans
+      a_moyen_terme,  !! Les mesures sont nécessaires à moyen terme. Délai 5 à 7 ans
+      inconnue
+    );
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    ACCES: (          !! Possibilités d’accès à l’ouvrage d’assainissement pour une personne (non pour un véhicule)
+      couvert,  !! il faut par exemple déterrer le couvercle avant de pouvoir l'ouvrir
+      inconnu,
+      inaccessible,  !! Dans la  SIA405 1998 défini comme "non_accessible"
+      accessible  !! Accessible pour une personne (et pas nécessairement pour un véhicule)
+    );
+UNIQUE 
+    DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)
+END NOEUD;
+
+CLASS CONDUITE EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Cunette ouverte ou fermée, constructivement et hydrauliquement homogène, servant à l’évacuation d’eau usée
+  ATTRIBUTE
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    ETAT_CONSTRUCTIF: (          !! Classes d'état. Description de l'état constructif selon la directive VSA "Maintien des canalisations" (2007/2009). Ne pas confondre avec les degrés de remise en état (attribut NECESSITE_ASSAINIR)
+      inconnu,
+      Z0,  !! Plus en état de fonctionner: L'ouvrage d'assainissement n’est déjà plus parcourable ou ne le sera plus dans peu de temps: Ouvrage d'assainissement écroulé, totalement bouché par des racines ou par d’autres obstacles à l’écoulement. L'ouvrage d'assainissement perd de l’eau (exfiltration / pollution probable de l’eau souterraine)
+      Z1,  !! Graves défauts: Dommages structurels ne garantissant plus la sécurité statique, l’hydraulique ou l’étanchéité: cassures, déformations, entrées ou sorties visibles d’eau, trous dans la paroi, forte saillie des raccords latéraux, fort développement des racines, paroi  fortement érodée par lavage. Matériau  inapproprié
+      Z2,  !! Défauts moyens: Défauts structurels affectant la statique, l’hydraulique ou l’étanchéité: joints avec canalisation renflés, entrées non nettoyées, fissures, légers obstacles à l’écoulement (entartrages, saillie des raccords latéraux, légers dommages à la paroi, développement localisé des racines, paroi érodée par lavage, etc.)
+      Z3,  !! Défauts légers: Défauts ou événements structurels ayant une influence insignifiante sur l’étanchéité, l’hydraulique ou la statique de l'ouvrage d'assainissement: joints avec canalisations renflées, raccords latéraux mal nettoyés, légères déformations sur matériaux plastiques, légères érosions dues au lavage, etc
+      Z4  !! Aucun défaut
+    );
+    REMARQUE: TEXT*80;  !! Remarques générales
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données
+    DESIGNATION: MANDATORY TEXT*41; !! Désignation unique pour chaque maître des données
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données
+    FINANCEMENT: (          !! Type de financement (financement selon LEaux Art. 60a)
+      public,  !! L’intégralité des ouvrages d’assainissement qui sont financés selon l’art. 60a de la loi sur la protection des eaux (LEaux).
+      prive,  !! L’intégralité des conduites souterraines et ouvrages construits à l’intérieur et à l’extérieur des immeuble dans le domaine d’application de la SN 592 000, qui ne sont pas financés par les taxes d’épuration selon l’art. 60a de la loi sur la protection des eaux (LEaux)
+      inconnu
+    );
+    FONCTION_HIERARCHIQUE: (       !! Genre de canalisation par rapport à sa fonction dans le système d'évacuation
+      OAP (
+        autre,  !! autres ouvrages du réseau d’assainissement primaire (OAP)
+         cours_d_eau,  !! Saisie selon le point de vue de la canalisation (si par exemple des calculs hydrauliques sont nécessaires). SIA405 1998: eaux_publiques
+         collecteur_principal,  !! Collecteur principal, selon la hiérarchie du réseau
+         collecteur_principal_regional,  !! Collecteur principal avec importance régionale pour la structuration hiérarchique du réseau pour des PREE, car ne peut pas être résolu via l'attribut PROPRIETAIRE
+         evacuation_bien_fonds,  !! Terme générique pour l’évacuation des biens-fonds (hydrauliquement déterminant). La délimitation entre l'évacuation des biens-fonds et celle des immeubles se fait selon la norme "Conception et réalisation d'installations évacuation des eaux des biens-fonds (SN 592 000)"
+         collecteur,  !! Canal qui collecte les eaux des collecteurs des biens-fonds et des routes.
+         conduite_d_assainissement,  !! Conduite d'évacuation pour le raccordement technique de bâtiments isolés, auxquelles des simplifications ont été entreprises à la planification et à la réalisation.
+         evacuation_des_eaux_de_routes,  !! Evacuation des eaux des voies de communication (hydrauliquement déterminant)
+         inconnue
+      ),
+      OAS (
+         autre,  !! autre ouvrages du réseau d’assainissement secondaire (OAS)
+         evacuation_bien_fonds,  !! Terme générique pour l’évacuation des bien fonds (hydrauliquement non déterminants). La délimitation entre l'évacuation des biens-fonds et celle des immeubles se fait selon la norme "Conception et réalisation d'installations évacuation des eaux des biens-fonds (SN 592 000)"
+         conduite_d_assainissement,  !! Conduite d'évacuation pour le raccordement technique de bâtiments isolés, auxquelles des simplifications ont été entreprises à la planification et à la réalisation.
+         evacuation_des_eaux_de_routes,  !! Evacuation des eaux des voies de communication (hydrauliquement non déterminant)
+         inconnue  !! Evacuation des eaux des voies de communication (hydrauliquement non déterminant)
+      )
+    );
+    FONCTION_HYDRAULIQUE: (          !! Genre de canalisation par rapport à sa fonction hydraulique
+      autre,
+      conduite_de_transport_pour_le_drainage,  !! Canalisation transportant de l'eau provenant d'un réseau de drainage
+      conduite_d_etranglement,  !! Canalisation à section restreinte afin de diminuer le débit. Son fonctionnement se base sur des écoulement en charge
+      siphon_inverse,  !! Système de canalisations fermé, permettant le franchissement d'un obstacle. La conduite est en charge.
+      conduite_a_ecoulement_gravitaire,  !! Canalisation, dans laquelle l'eau s'écoule selon les lois de la gravité, d'un point de départ plus élevé à un point d'arrivée plus bas
+      conduite_de_refoulement,  !! Conduite sous pression installée à la suite d'une station de pompage permettant de gravir des pentes d'aval en amont
+      conduite_de_drainage,  !! 1. Canalisation avec ouverture vers des drains (SN 592 000)
+      conduite_de_retention,  !! Conduite dimensionnée afin de retenir des volumes d'eaux en lien avec un BEP, BEP_retention ou une canalisation de rétention
+      conduite_de_rincage,  !! Canalisation avec une fonction spéciale, permettant le rinçage des installations d'évacuation des eaux
+      inconnue,
+      conduite_sous_vide
+    );
+    PRECISION_ALTIMETRIQUE_VERS: (          !! Détermination altimétrique de la cote de la fin de la conduite
+      plusque_6cm,
+      plus_moins_1cm,
+      plus_moins_3cm,
+      plus_moins_6cm,
+      inconnu
+    );
+    PRECISION_ALTIMETRIQUE_DE: (          !! Détermination altimétrique de la cote du début de la conduite
+      plusque_6cm,
+      plus_moins_1cm,
+      plus_moins_3cm,
+      plus_moins_6cm,
+      inconnu
+    );
+    COTE_VERS: Base_f_LV95.Altitude;  !! COTE_RADIER de la de la conduite. Si la cote est inconnue, interpoler et documenter la valeur par l’attribut PRECISION_ALTIMETRIQUE_VERS
+    COTE_DE: Base_f_LV95.Altitude;  !! COTE_RADIER du début de la conduite. Si la cote est inconnue, interpoler et documenter la valeur par l’attribut PRECISION_ALTIMETRIQUE_DE.
+    L_EFFECTIVE: 0.00 .. 30000.00 [m];  !! Longueur effective (non projetée) incluant les parties incurvées
+    DETERMINATION_PLANIMETRIQUE: (          !! Définit la précision de la détermination du tracé.
+      precise,  !! +/- 10 cm, lors de la détermination du tracé par différentes mesures, le triple, c'est-à-dire +/- 30 cm (norme SIA 405 1998, point 4 23 3)
+      inconnue,
+      imprecise  !! voir inconnue
+    );
+    LARGEUR_MAX_PROFIL: SIA405_Base_f_LV95.Metrage;  !! Largeur maximale du profil intérieur
+    HAUTEUR_MAX_PROFIL: Hauteur_max_profile;  !! Hauteur intérieure maximale du profil
+    MATERIAU: (          !! Matériau du tuyau
+      autre,
+      amiante_ciment,
+      beton_normal,
+      beton_coule_sur_place,
+      beton_pousse_tube,
+      beton_special,
+      beton_inconnu,
+      fibrociment,
+      terre_cuite,
+      fonte_ductile,
+      fonte_grise,
+      matiere_synthetique_resine_d_epoxy,
+      matiere_synthetique_polyethylene_dur,
+      matiere_synthetique_polyester_GUP,
+      matiere_synthetique_polyethylene,
+      matiere_synthetique_polypropylene,
+      matiere_synthetique_PVC,  !! polychlorure de vinyle
+      matiere_synthetique_inconnue,  !! matière synthétique inconnu
+      acier,
+      acier_inoxydable,
+      gres,
+      argile,
+      inconnu,
+      ciment
+    );
+    GENRE_UTILISATION_PREVU: (          !! Utilisation prévue par le concept d'assainissement (voir aussi GENRE_UTILISATION_ACTUELLE)
+      autre,  !! par exemple accès, aération, désaération
+      eaux_cours_d_eau,  !! Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui peut aussi être mis sous terre par endroits
+      eaux_mixtes_deversees,  !! Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation
+      eaux_industrielles,  !! Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe).
+      eaux_mixtes,  !! 1. Réunion des eaux usées et eaux pluviales dans la même canalisation
+      eaux_pluviales,  !! Eau des précipitations naturelles non polluées par son utilisation selon directives VSA "Evacuation des eaux pluviales"
+      eaux_claires,  !! Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000)..
+      eaux_usees,  !! Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement
+      inconnu
+    );
+    GENRE_UTILISATION_ACTUEL: (          !! Pour les ouvrages du réseau primaire: utilisation actuelle autorisée pour les ouvrages du réseau secondaire: utilisation actuelle réelle
+      autre,  !! par exemple accès, aération, désaération
+      eaux_cours_d_eau,  !! Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui aussi être mis sous terre par endroits
+      eaux_mixtes_deversees,  !! Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation
+      eaux_industrielles,  !! Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe).
+      eaux_mixtes,  !! 1. Réunion des eaux usées et eaux pluviales dans la même canalisation
+      eaux_pluviales,  !! Eau des précipitations naturelles non polluées par son utilisation selon la directive VSA "Evacuation des eaux pluviales"
+      eaux_claires,  !! Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000).
+      eaux_usees,  !! Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement
+      inconnu
+    );
+    OBJ_ID_OUVRAGE_RESEAU_AS: TEXT*16;  !! OBJ_ID de l’OUVRAGE_RESEAU_AS (canalisation), seulement utilisée pendant le transfert des modèles
+    OBJ_ID_POINT_TRONCON_VERS: TEXT*16;  !! OBJ_ID du POINT_TRONCON_A de la VSA-SDEE, seulement utilisée pendant le transfert  des modèles
+    OBJ_ID_PROFIL_TUYAUX: TEXT*16;  !! OBJ_ID du PROFIL_TUYAU appartenant à VSA-SDEE, seulement utilisée pendant le transfert des modèles
+    OBJ_ID_POINT_TRONCON_DE: TEXT*16;  !! OBJ_ID du POINT_TRONCON_DE de la VSA-SDEE, seulement utilisée pendant le transfert des modèles
+    TYPE_PROFIL: (          !! Type du profil
+      ovoide,  !! A utiliser uniquement pour les profils ovoïdes normés selon DIN 4263 ayant un rapport hauteur/largeur de 1.5. Pour les autres profils ovoïdes, même ceux avec des modifications, la valeur devient « profil_special » et une définition du profil est à joindre.
+      circulaire,  !! A utiliser uniquement pour des profils circulaires normés, sans cunette de débit par temps sec ou autres modifications. Sinon la valeur devient « profil_special » et une définition du profil est à joindre.
+      profil_en_voute,  !! A utiliser uniquement pour les profils en voûte normés selon DIN 4263. Pour les variantes, même avec modifications, la valeur devient « profil_special » et une définition du profil est à joindre.
+      profil_ouvert,  !! A utiliser uniquement pour les profils ouverts. Une définition du profil est à joindre.
+      rectangulaire,  !! A utiliser uniquement pour des profils rectangulaires normés, sans cunette de débit par temps sec ou autres modifications. Sinon la valeur devient « profil_special » et une définition du profil est à joindre.
+      profil_special,  !! Pour des profils fermés non conformes. Une définition du profil est à joindre.
+      inconnu
+    );
+    NECESSITE_ASSAINIR: (          !! 	Degrés d’urgence et délai de réalisation des mesures constructives selon la directive VSA "Maintien des canalisations"
+      urgente,  !! Les mesures doivent être réalisées d’urgence. Des mesures immédiates doivent être envisagées comme pour le degré a_court_terme. Délai 3-4 ans
+      aucune,  !! Aucune mesure n’est nécessaire jusqu’au prochain relevé et à la prochaine évaluation de l’état. Délai >= 10 ans
+      a_court_terme,  !! Les mesures doivent être réalisées de façon très urgente et à court terme. A titre de mesures immédiates, des réparations locales provisoires permettent de prévenir temporairement d’autres dommages. Délai <= 2 ans
+      a_long_terme,  !! Les mesures peuvent être projetées à long terme. Délai 7 - 10 ans
+      a_moyen_terme,  !! Les mesures sont nécessaires à moyen terme. Délai 5 à 7 ans
+      inconnue
+    );
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    TRACE: Base_f_LV95.Polyligne;  !! Points de départ, intermédiaires et d’arrivée de la conduite.
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VR_TYPE_CONSTRUCTION: (          !! Valeur de remplacement du type de construction
+      autre,
+      dans_les_champs,  !! Dans les champs (type de profile selon norme SIA 190)
+      conduite_d_assainissement_retro,  !! Conduites d’assainissement posées par rétrocaveuse
+      conduite_d_assainissement_trancheuse,  !! Conduites d’assainissement posées par trancheuse
+      sous_route,  !! sous route (type profile selon norme SIA 190)
+      inconnu
+    );
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+UNIQUE 
+    DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)
+END CONDUITE;
+
+ASSOCIATION CONDUITE_VERS_NOEUDAssoc =    !! Association
+  VERS_NOEUDRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  CONDUITE_VERS_NOEUDAssocRef -- {0..*} CONDUITE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END CONDUITE_VERS_NOEUDAssoc;
+
+ASSOCIATION CONDUITE_DE_NOEUDAssoc =    !! Association
+  DE_NOEUDRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  CONDUITE_DE_NOEUDAssocRef -- {0..*} CONDUITE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END CONDUITE_DE_NOEUDAssoc;
+
+ASSOCIATION CONDUITE_VERS_CONDUITEAssoc =    !! Association
+  VERS_CONDUITERef  -- {0..1} CONDUITE; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  CONDUITE_VERS_CONDUITEAssocRef -- {0..*} CONDUITE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END CONDUITE_VERS_CONDUITEAssoc;
+
+CLASS SOUS_BASSIN_VERSANT EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Plus grande surface unifiée, depuis laquelle l’eau usée produite est évacuée à un seul et même point
+  ATTRIBUTE
+    RESTRICTION_DEBIT_PREVUE: 0.0 .. 999.9 [lsha];  !! Restriction de débit, si une exigence correspondante existe dans le concept d’évacuation des eaux. Cet attribut est une exigence et obligatoire pour l’examen de demandes de permit de construire
+    RESTRICTION_DEBIT_ACTUELLE: 0.0 .. 999.9 [lsha];  !! Restriction de débit, si une exigence est déjà mise en œuvre
+    COEFFICIENT_RUISSELLEMENT_EP_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Coefficient de ruissellement prévu pour le raccordement des eaux pluviales
+    COEFFICIENT_RUISSELLEMENT_EP_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Coefficient de ruissellement pour le raccordement actuel des eaux pluviales
+    COEFFICIENT_RUISSELLEMENT_EU_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Coefficient de ruissellement pour le raccordement prévu des eaux usées ou mixtes
+    COEFFICIENT_RUISSELLEMENT_EU_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Coefficient de ruissellement pour les raccordements eaux usées et eaux mixtes actuels
+    TAUX_IMPERMEABILISATION_EP_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Taux d'imperméabilisation pour le raccordement eaux pluviales prévu
+    TAUX_IMPERMEABILISATION_EP_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Taux d'imperméabilisation pour le raccordement eaux pluviales actuel
+    TAUX_IMPERMEABILISATION_EU_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Taux d'imperméabilisation pour les raccordements eaux usées et eaux mixtes prévus
+    TAUX_IMPERMEABILISATION_EU_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Taux d'imperméabilisation pour les raccordements eaux usées et eaux mixtes actuels
+    REMARQUE: TEXT*80;  !! Remarques générales
+    DESIGNATION: MANDATORY TEXT*20;
+    REJET_DIRECT_DANS_COURS_D_EAU_PREVU: (          !! Les eaux pluviales seront rejetées complètement ou partiellement via une conduite OAS dans un cours d’eau
+      oui,
+      non,
+      inconnu
+    );
+    REJET_DIRECT_DANS_COURS_D_EAU_ACTUEL: (          !! Les eaux pluviales sont rejetées complètement ou partiellement via une conduite OAS dans un cours d’eau
+      oui,
+      non,
+      inconnu
+    );
+    DENSITE_POPULATION_PREVUE: Densite_Population;  !! Densité (physique) de la population prévue
+    DENSITE_POPULATION_ACTUELLE: Densite_Population;  !! Densité (physique) de la population actuelle
+    SYSTEME_EVACUATION_EAUX_PREVU: (          !! Genre d’évacuation des eaux à l’état de planification (mise en œuvre du concept d’évacuation). Cet attribut est exigé. Il est obligatoire pour l’examen des demandes de permit de construire
+      systeme_unitaire,  !! Les eaux usées, ainsi que les eaux pluviales ne pouvant pas être infiltrées sont à raccorder au réseau d’évacuation des eaux mixtes. La liaison avec les nœuds EU/EM est obligatoire, la liaison avec le nœud EP n’est pas admise.
+      systeme_modifie,  !! Contrairement au système séparatif standard, le système modifié contient non seulement la partie minimale des eaux pluviales „polluées“ amenée vers la STEP (partie minimale selon la législation de la protection des cours d’eau en vigueur), mais encore une partie supplémentaire d’eau pluviale « non polluée ». La liaison avec les nœuds EP/EM est obligatoire, celle avec le nœud EP est admise.
+      non_raccorde,  !! Un bassin versant à assainir mais non raccordé (ultérieurement) à un OAP, par exemple une surface directement raccordée vers un cours d’eau via un OAS ou une surface avec de l’infiltration par les bas côtés. Aucune liaison possible avec le réseau des canalisations.
+      non_evacue,  !! Surface encore à l’intérieur du périmètre d’assainissement qui ne sera pas raccordée (cas rare). Aucune liaison possible avec le réseau des canalisations.
+      systeme_separatif,  !! Système d’évacuation des eaux comprenant en principe deux systèmes de réseaux de canalisations pour l’évacuation séparée des eaux usées et des eaux pluviales. Les eaux usées, ainsi que les eaux pluviales, considérées par la législation en vigueur comme polluées, sont à raccorder au réseau des eaux usées. Les eaux pluviales ne pouvant pas être infiltrées, sont à raccorder au réseau des eaux pluviales. La liaison avec les nœuds EU/EM est obligatoire, celle avec le nœud EP est admise.
+      inconnu  !! Cette valeur n’est admise que lors de l'élaboration d’un PGEE. Aucune règle quant aux liaisons avec le réseau des canalisations.
+    );
+    SYSTEME_EVACUATION_EAUX_ACTUEL: (          !! Genre d’évacuation des eaux réel à l’état actuel
+      systeme_unitaire,  !! Les eaux usées et les eaux pluviales sont raccordées au réseau d’évacuation des eaux unitaire. Les liaisons avec les nœuds d’EU et d’EM sont obligatoires, celle avec les nœuds EP interdites.
+      systeme_modifie,  !! Contrairement au système séparatif standard, le système modifié contient non seulement la partie minimale des eaux pluviales „polluées“ amenée vers la STEP (partie minimale selon la législation de la protection des cours d’eau en vigueur), mais encore une partie supplémentaire d’eau pluviale « non polluée ». La liaison avec les nœuds EP/EM est obligatoire, celle avec le nœud EP est admise.
+      non_raccorde,  !! Un bassin versant assaini mais non raccordé à un OAP, par exemple une surface directement raccordée vers un cours d’eau via un OAS ou une surface avec de l’infiltration par les bas côtés. Aucune liaison possible avec le réseau des canalisations.
+      non_evacue,  !! Surface encore non raccordée d’un point de vue de l’assainissement, à l’intérieur du périmètre d’assainissement, par exemple des parcelles non construites en zone à bâtir. Aucune liaison possible avec le réseau des canalisations.
+      systeme_separatif,  !! Système d’évacuation des eaux comprenant en principe deux systèmes de réseaux de canalisations pour l’évacuation séparée des eaux usées et des eaux pluviales. Les eaux usées et les eaux pluviales considérées comme polluées par la législation en vigueur sont raccordées au réseau des eaux usées, tandis que les eaux pluviales non polluées sont raccordées au réseau des eaux pluviales. La liaison avec les nœuds EU/ est obligatoire, celle avec le nœud EP est admise.
+      inconnu  !! Cette valeur n’est admise que lors de l'élaboration d’un PGEE. Aucune règle quant aux liaisons avec le réseau des canalisations.
+    );
+    SUPERFICIE: 0.0000 .. 100000.0000 [Units.ha];  !! Attribut redondant indiquant la surface calculée à partir du périmètre en ha
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit  d'eaux claires parasites (ECP) moyen prévu, rejeté dans les canalisation d’eaux usées ou mixtes
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit  d'eaux claires parasites (ECP) moyen actuel, rejeté dans les canalisation d’eaux usées ou mixtes
+    OBJ_ID_BASSIN_VERSANT_EP_PREVU: TEXT*16;  !! OBJ_ID du bassin versant temps pluie prévu
+    OBJ_ID_BASSIN_VERSANT_EP_ACTUEL: TEXT*16;  !! OBJ_ID du bassin versant temps pluie actuel
+    OBJ_ID_BASSIN_VERSANT_EU_PREVU: TEXT*16;  !! OBJ_ID du bassin versant temps sec prévu
+    OBJ_ID_BASSIN_VERSANT_EU_ACTUEL: TEXT*16;  !! OBJ_ID du bassin versant temps sec actuel
+    PERIMETRE: Base_f_LV95.Surface;  !! Points de délimitation du bassin versant partiel
+    RETENTION_PREVUE: (          !! Les eaux pluviales et mixtes seront rejetées de manière régulée dans le réseau des canalisations par un ouvrage de rétention.
+      oui,
+      non,
+      inconnu
+    );
+    RETENTION_ACTUELLE: (          !! Les eaux pluviales et mixtes sont rejetées de manière régulée dans le réseau des canalisations par un ouvrage de rétention.
+      oui,
+      non,
+      inconnu
+    );
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit moyen prévu des eaux usées rejetées dans les canalisations d’eaux usées ou d'eaux mixtes.
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit moyen actuel des eaux usées rejetées dans les canalisations d’eaux usées ou d'eaux mixtes
+    TEXTEPOS: Base_f_LV95.CoordNat;  !! Position du texte
+    INFILTRATION_PREVUE: (          !! Les eaux pluviales seront amenées complètement ou partiellement à une installation d’infiltration
+      oui,
+      non,
+      inconnu
+    );
+    INFILTRATION_ACTUELLE: (          !! Les eaux pluviales sont amenées complètement ou partiellement à une installation d’infiltration
+      oui,
+      non,
+      inconnu
+    );
+UNIQUE 
+    DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)
+END SOUS_BASSIN_VERSANT;
+
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssoc =    !! Association
+  NOEUD_EP_ACTUELRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssoc;
+
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssoc =    !! Association
+  NOEUD_EP_PREVURef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssoc;
+
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssoc =    !! Association
+  NOEUD_EU_ACTUELRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssoc;
+
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssoc =    !! Association
+  NOEUD_EU_PREVURef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssoc;
+
+CLASS DEVERSOIR_REFOULEMENT EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Connexion topologique de deux nœuds pour la représentation d’installations de déversement ou pompes
+  ATTRIBUTE
+    GENRE: (          !! Genre du déversement, resp. de l'installation de refoulement
+      INSTALLATION_REFOULEMENT,
+      LEAPING_WEIR,
+      DEVERSOIR_LATERAL
+    );
+    DESIGNATION: MANDATORY TEXT*20;
+UNIQUE 
+    DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)
+END DEVERSOIR_REFOULEMENT;
+
+ASSOCIATION DEVERSOIR_REFOULEMENT_NOEUDAssoc =    !! Association
+  NOEUDRef  -- {1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  DEVERSOIR_REFOULEMENT_NOEUDAssocRef -- {0..*} DEVERSOIR_REFOULEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END DEVERSOIR_REFOULEMENT_NOEUDAssoc;
+
+ASSOCIATION DEVERSOIR_REFOULEMENT_VERS_NOEUDAssoc =    !! Association
+  VERS_NOEUDRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  DEVERSOIR_REFOULEMENT_VERS_NOEUDAssocRef -- {0..*} DEVERSOIR_REFOULEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END DEVERSOIR_REFOULEMENT_VERS_NOEUDAssoc;
+
+CLASS FT (ABSTRACT) EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Fiche technique (classe supérieure), attributs voir sous-classes
+  ATTRIBUTE
+END FT;
+
+ASSOCIATION FT_OUVRAGE_PRINCIPALAssoc =    !! Association
+  OUVRAGE_PRINCIPALRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  FT_OUVRAGE_PRINCIPALAssocRef -- {0..*} FT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END FT_OUVRAGE_PRINCIPALAssoc;
+
+ASSOCIATION FT_OAP_NOEUD_RESEAUAssoc =    !! Association
+  OAP_NOEUD_RESEAURef  -- {1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  FT_OAP_NOEUD_RESEAUAssocRef -- {0..1} FT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END FT_OAP_NOEUD_RESEAUAssoc;
+
+CLASS FT_STATION_DE_MESURE_AUTONOME EXTENDS FT =  
+!! Fiche technique Station de mesure autonome (SM): La fonction « station_de_mesure » est attribuée uniquement aux nœuds qui n’ont aucune autre fonction spéciale (des chambres de mesure uniquement). Par exemple, un déversoir d’orage avec une mesure de débit aura la fonction « deversoir_d_orage » et non la fonction « station_de_mesure ». L’appareil de mesure est saisi comme composante d’ouvrage dans la fiche technique du « deversoir_d_orage ».
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_STATION_DE_MESURE_AUTONOME;
+
+CLASS FT_ENTREE_DE_SIPHON EXTENDS FT =  
+!! Fiche technique Entrée de siphon (ESI): Ouvrage de répartition du débit sur plusieurs tuyaux à l’entrée d’un siphon inversé. Cet ouvrage est saisi dans une fiche technique. Aucune documentation supplémentaire au-delà des données fournies du réseau des canalisations, n’est prévue pour les tuyaux du siphon ou la sortie de l’ouvrage. Si par cet ouvrage, des eaux mixtes sont déversées, il faut le saisir à l’aide de la fiche technique « deversoir_d_orage ». La distribution des débits répartis sur les différents tuyaux est documentée sur la fiche technique, si elle est connue, par les composantes d’ouvrage « surverse ».
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_ENTREE_DE_SIPHON;
+
+CLASS FT_EXUTOIRE EXTENDS FT =  
+!! Fiche technique Exutoire (EX): Les exutoires déversant les eaux usées des ouvrages de décharge (déversoirs d’orage, BEP, trop-pleins de secours des stations de pompage) et des systèmes séparatifs du réseau primaire sont à saisir dans une fiche technique. Selon les besoins, il est également possible de saisir une fiche technique pour les exutoires du réseau secondaire. Ceci implique que la fonction attribuée à l’exutoire soit égale à « exutoire_pertinent_pour_milieu_recepteur »
+  ATTRIBUTE
+    ASPECT_VISUEL_EXUTOIRE: (          !! Influence du rejet sur le cours d'eau: Aspect visuel
+      grande_influence,
+      aucune_influence,
+      aucun_avis_possible,
+      petite_influence,
+      moyenne_influence,
+      pas_clair
+    );
+    ASPECT_VISUEL_EN_AMONT: (          !! Etat des eaux en amont de l’exutoire selon OEaux annexe 1 et 2, Aspect visuel (OEaux annexe 2)
+      exigences_remplies,
+      exigences_non_remplies,
+      exigences_sujet_a_caution,
+      aucun_avis_possible,
+      inconnue
+    );
+    ASPECT_VISUEL_EN_AVAL: (          !! Etat des eaux en amont de l’exutoire selon OEaux annexe 1 et 2, Aspect visuel (OEaux annexe 2)
+      exigences_remplies,
+      exigences_non_remplies,
+      exigences_sujet_a_caution,
+      aucun_avis_possible,
+      inconnu
+    );
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    BUREAU_EXECUTANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Bureau ou administration
+    EXECUTANT: TEXT*50;  !! Responsable de saisie du bureau
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    EVALUATION_GENERALE_ECO_BIOL_REMARQUE: TEXT*80;  !! Remarques importantes sur l’évaluation générale éco-biologique du point de vue du responsable du relevé
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    DATE_DERNIERE_EXAMEN: INTERLIS_1_DATE;  !! Date de l'examen précedent. La date de l’examen actuel est saisie dans l'attribut DATE_EXAMEN (VSA-SDEE-MINI) ou xxx (VSA-DSS);
+    DATE_EXAMEN: INTERLIS_1_DATE;  !! La date du examen actuel doit être saisie.
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    ATTEINTE_GLOBALE: (          !! Atteinte globale du cours d’eau due à l’exutoire
+      grande_influence,
+      aucune_influence,
+      aucun_avis_possible,
+      petite_influence,
+      moyenne_influence,
+      pas_clair
+    );
+    GENRE_COURS_D_EAU: (          !! selon table 2.1 directive VSA STORM (2007)
+      retention,
+      gros_cours_d_eau,
+      gros_ruisseau_du_Plateau,
+      grand_lac,
+      gros_ruisseau_des_Prealpes,
+      tres_gros_cours_d_eau,
+      petit_ruisseau_du_Plateau,
+      petit_lac,
+      petit_ruisseau_des_Prealpes,
+      region_de_source,
+      inconnu
+    );
+    BESOIN_D_INTERVENTION: (          !! Un besoin d’intervention résulte de l’atteinte du rejet sur les eaux qui mène à une mesure dans le plan d’action du PGEE.
+      oui_a_court_terme,
+      oui_a_long_terme,
+      non,
+      inconnu
+    );
+    CALCUL_PERFORMANCE_IMMISSION: (          !! calcul de performance de type immission disponible
+      oui,
+      non,
+      inconnu
+    );
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    EAUX_SUPERFICIELLES: TEXT*20;  !! Nom du cours d’eau selon indications cantonales
+    OBJ_ID_EVALUATION_GENERALE_ECO_BIOL: TEXT*16;  !! OBJ_ID de la EVALUATION_GENERALE_ECO_BIOL dans la VSA-SDEE, pour le transfert du modèle.
+    COUVERTURE_VEGETALE_EXUTOIRE: (          !! atteinte éco-biologique des eaux par l’exutoire: Couverture végétale
+      grande_influence,
+      aucune_influence,
+      aucun_avis_possible,
+      petite_influence,
+      moyenne_influence,
+      pas_clair
+    );
+    COUVERTURE_VEGETALE_EN_AMONT: (          !! Etat des eaux en amont de l’exutoire selon OEaux annexe 1 et 2, Couverture végétale (OEaux annexe 2)
+      exigences_remplies,
+      exigences_non_remplies,
+      exigences_sujet_a_caution,
+      aucun_avis_possible,
+      inconnu
+    );
+    COUVERTURE_VEGETALE_EN_AVAL: (          !! Etat des eaux en aval de l’exutoire selon OEaux annexe 1 et 2, Couverture végétale (OEaux annexe 2)
+      exigences_remplies,
+      exigences_non_remplies,
+      exigences_sujet_a_caution,
+      aucun_avis_possible,
+      inconnu
+    );
+    Q347: 0.000 .. 10000.000 [SIA405_Base_f_LV95.m3s];  !! Valeur issue des annuaires hydrologique de Suisse. Si elle manque, il faut désigner une valeur.
+    PENTE_DETERMINANTE: 0 .. 1000;  !! Pente déterminante [%] de l’exutoire (pour le calcul STORM). Si inconnue, la pente doit être déterminée sur la base de plans ou par une visite de terrain
+    MATRICE_D_EVALUATION: (          !! Matrice d’évaluation selon les indications de la directive STORM
+      oui,
+      non,
+      inconnu
+    );
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VARIATION_DERNIERE_EXAMEN: (          !! Les variations de l’examen générale éco-biologique et des résultats déterminants ayant changés doivent être indiquées par rapport à la dernière inspection.
+      egal,
+      aucune_comparaison_possible,
+      pas_clair,
+      amelioration,
+      deterioration
+    );
+    NIVEAU_EAU_HYDRAULIQUE: Base_f_LV95.Altitude;  !! Niveau d’eau calculé à l’exutoire. Si aucun exigence est demandée, indiquer le niveau d’eau pour un HQ30.
+    INVERTEBREES_EXUTOIRE: (          !! atteinte éco-biologique des eaux par l’exutoire: Invertébrés
+      grande_influence,
+      aucune_influence,
+      aucun_avis_possible,
+      petite_influence,
+      moyenne_influence,
+      pas_clair
+    );
+    INVERTEBREES_EN_AMONT: (          !! Etat des eaux en amont de l’exutoire selon OEaux annexe 1 et 2, Invertébrés (OEaux annexe 1)
+      aucun_avis_possible,
+      cibles_ecologiques_atteintes,
+      cibles_ecologiques_sujet_a_caution,
+      cibles_ecologiques_non_atteintes,
+      inconnu
+    );
+    INVERTEBREES_EN_AVAL: (          !! Etat des eaux en aval de l’exutoire selon OEaux annexe 1 et 2, Invertébrés (OEaux annexe 1)
+      aucun_avis_possible,
+      cibles_ecologiques_atteintes,
+      cibles_ecologiques_sujet_a_caution,
+      cibles_ecologiques_non_atteintes,
+      inconnu
+    );
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_EXUTOIRE;
+
+CLASS FT_STATION_DE_POMPAGE EXTENDS FT =  
+!! Fiche technique Station de pompage (STAP): Installation pour le refoulement des eaux usées à l’intérieur du réseau des canalisations
+  ATTRIBUTE
+    NOMBRE_INSTALLATIONS: Nombre_installations;
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    INSTALLATION_REFOULEMENT_GENRE_UTILISATION_ACTUEL: (          !! Genre d'utilisation actuel de l'eau usée pompée
+      autres,
+      eaux_cours_d_eau,  !! Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui aussi être mis sous terre par endroits.
+      eaux_mixtes_deversees,  !! Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation
+      eaux_industrielles,  !! Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe).
+      eaux_mixtes,  !! 1. Réunion des eaux usées et eaux pluviales dans la même canalisation
+      eaux_pluviales,  !! Eau des précipitations naturelles non polluées par son utilisation selon directives VSA "Evacuation des eaux pluviales"
+      eaux_claires,  !! Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000)..
+      eaux_usees,  !! Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement
+      inconnu
+    );
+    HAUTEUR_REF_GEOM: Hauteur_ref;
+    DEBIT_REF_MAX: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit de refoulement maximal de toutes les pompes de l’ouvrage. Survient normalement à la hauteur min de refoulement.
+    DEBIT_REF_MIN: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit de refoulement minimal de toutes les pompes de l’ouvrage. Survient normalement à la hauteur max de refoulement.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    REGIME_POMPE: (          !! Pour de régime de fonctionnement spéciaux, cette fonction doit être documentée séparément et annexée à la fiche technique
+      alterne,
+      autres,
+      individuel,
+      parallele,
+      inconnu
+    );
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe.
+    VOLUME_PUISARD: 0.00 .. 10000000.00 [Units.m3];  !! Volume du puisard calculée à partir du radier jusqu’au niveau d’eau maximum possible (incl. le volume de stockage de la canalisation d’amenée).
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_STATION_DE_POMPAGE;
+
+CLASS FT_DEVERSOIR_D_ORAGE EXTENDS FT =  
+!! 	Fiche technique Déversoir d’orage (DO): Ouvrage servant à décharger les débits de pointe du réseau des canalisations d’eaux mixtes sans prétraitement dans un bassin. Sa fonction est distincte d’un trop-plein de secours dans une station de pompage par exemple (ce dernier sera modélisé comme une composante d’ouvrage de la station). Afin de distinguer si le déversoir déverse en fonctionnant normalement ou uniquement lors d’’une avarie, l’attribut « deverse » est à saisir sur la fiche technique.
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    HABITANTS_PREVU: EH;  !! Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant.
+    HABITANTS_ACTUEL: EH;  !! Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant.
+    SURFACE_IMP_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant  direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir dans la fiche technique la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_IMP_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant  direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir dans la fiche technique la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant direct en système unitaire, resp. séparatif, selon illustration.
+    SURFACE_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant direct dans le système unitaire, resp. séparatif, selon illustration.
+    SURFACE_RED_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_RED_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_PREVU: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    SURCHARGE_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale prévue après la réalisation d’éventuelles mesures.
+    SURCHARGE_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %
+    SURCHARGE_ACTUEL_OPT: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures.
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimisé après la réalisation des mesures
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    DEVERSE: (          !! Indication, si le déversoir déverse lors des événements pour lesquels il a été dimensionné.
+      oui,
+      non,
+      inconnu
+    );
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe.
+    DEVERSOIR_REMARQUE: TEXT*80;  !! Informations supplémentaires quant au fonctionnement, du point de vue de la personne responsable de la saisie.
+    DUREE_DEVERSEMENT_PREVU: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Calcul selon les mesures planifiées
+    DUREE_DEVERSEMENT_ACTUEL: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Durée moyenne de déversement par an selon des simulations pour de longs temps de retour (z > 10).
+    DUREE_DEVERSEMENT_ACTUEL_OPT: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    FREQUENCE_DEVERSEMENT_PREVU: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Calcul après la réalisation d’éventuelles mesures.
+    FREQUENCE_DEVERSEMENT_ACTUEL: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Fréquence moyenne de déversement par an selon des simulations pour de longs temps de retour (z > 10).
+    FREQUENCE_DEVERSEMENT_ACTUEL_OPT: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    VOLUME_DEVERSE_PREVU: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen de déversement par an. Calcul après la réalisation d’éventuelles mesures.
+    VOLUME_DEVERSE_ACTUEL: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen déversé par an. Volume moyen déversé par an selon des simulations pour de longs temps de retour (z > 10).
+    VOLUME_DEVERSE_ACTUEL_OPT: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    GENRE_DEVERSOIR: (          !! Genre de surverse du déversoir d'orage
+      autres,
+      leaping_weir,  !! avec ouverture de fond
+      deversoir_lateral_a_seuil_sureleve,  !! Déversoir latéral à seuil surélevé
+      deversoir_lateral_a_seuil_abaisse  !! Déversoir latéral à seuil abaissé
+    );
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_DEVERSOIR_D_ORAGE;
+
+ASSOCIATION FT_DEVERSOIR_D_ORAGE_EXUTOIREAssoc =    !! Association
+  EXUTOIRERef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  FT_DEVERSOIR_D_ORAGE_EXUTOIREAssocRef -- {0..*} FT_DEVERSOIR_D_ORAGE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END FT_DEVERSOIR_D_ORAGE_EXUTOIREAssoc;
+
+CLASS FT_BEP EXTENDS FT =  
+!! Fiche technique Bassin d'eau pluviales (BEP)
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    GENRE_BASSIN: (        
+      BEP_decantation,
+      BEP_retention,
+      canal_retention,
+      canal_stockage,
+      BEP_combine
+    );
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    HABITANTS_DIM_PREVU: EH;  !! Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom.
+    HABITANTS_DIM_ACTUEL: EH;  !! Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom.
+    HABITANTS_PREVU: EH;  !! Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant.
+    HABITANTS_ACTUEL: EH;  !! Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant.
+    SURFACE_IMP_DIM_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant de dimensionnement dans le système unitaire, resp. séparatif (BEP uniquement). Dans un système séparatif, il faut saisir dans la fiche technique la surface imperméabilisée raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_IMP_DIM_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant de dimensionnement pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir la surface réduite raccordée pour les eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_IMP_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant  direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir dans la fiche technique la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_IMP_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface imperméabilisée du bassin versant  direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir dans la fiche technique la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_DIM_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant de dimensionnement. Lors de la saisie des bassins d’eaux pluviales, il faut également indiquer le bassin versant de dimensionnement. Ce bassin versant contient toutes les surfaces en amont du BEP (incl. en amont les déversoirs d’orage, stations de pompage, etc.) jusqu'au prochain BEP.
+    SURFACE_DIM_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant de dimensionnement. Lors de la saisie des bassins d’eaux pluviales, il faut également indiquer le bassin versant de dimensionnement. Ce bassin versant contient toutes les surfaces en amont du BEP (incl. en amont les déversoirs d’orage, stations de pompage, etc.) jusqu'au prochain BEP.
+    SURFACE_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant direct en système unitaire, resp. séparatif, selon illustration.
+    SURFACE_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface brute du bassin versant direct dans le système unitaire, resp. séparatif, selon illustration.
+    SURFACE_RED_DIM_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant de dimensionnement dans le système unitaire, resp. séparatif. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_RED_DIM_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant de dimensionnement dans le système unitaire, resp. séparatif. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_RED_PREVU: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    SURFACE_RED_ACTUEL: 0.0000 .. 100000.0000 [Units.ha];  !! Surface réduite du bassin versant direct pour un système unitaire, resp. séparatif selon illustration. Dans un système séparatif, il faut saisir la surface réduite raccordée aux eaux usées. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée.
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_PREVU: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    SURCHARGE_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale prévue après la réalisation d’éventuelles mesures.
+    SURCHARGE_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %
+    SURCHARGE_ACTUEL_OPT: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures.
+    VOLUME_UTILE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de la chambre sous la crête, sans volume de stockage de la canalisation d’amenée. Ce dernier est saisi par l’attribut volume de stockage (lors de disposition en connexion directe ceci se fait dans la fiche technique de l’ouvrage principal, lors de connexion latérale, l’attribution se fait dans la fiche technique de l’ouvrage de répartition ou déversoir d’orage précédant).
+    VOLUME_UTILE_CLARIFICATION: 0.00 .. 10000000.00 [Units.m3];  !! Volume de la chambre sous la crête, incl. l’entrée, la sortie et la partie de sédimentation, sans volume de stockage de la canalisation d’amenée. Ce dernier est saisi par l’attribut volume de stockage (lors de disposition en connexion directe ceci se fait dans la fiche technique de l’ouvrage principal, lors de connexion latérale, l’attribution se fait dans la fiche technique de l’ouvrage de répartition ou déversoir d’orage précédant).
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimisé après la réalisation des mesures
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    BEP_DISPOSITION: (          !! Disposition d'un bassin d'eaux pluviales dans le réseau d'assainissement. Attribut additionnel pour les valeurs BEP_* de OUVRAGE_SPECIAL.FONCTION.
+      connexion_directe,  !! Connexion qui permet une traversée en permanence de la totalité des eaux de temps sec et d'une partie des eaux de temps de pluie
+      connexion_laterale,  !! Connexion qui présente uniquement une traversée des eaux de temps de pluie
+      inconnue
+    );
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe.
+    DEVERSOIR_REMARQUE: TEXT*80;  !! Informations supplémentaires quant au fonctionnement, du point de vue de la personne responsable de la saisie.
+    DUREE_DEVERSEMENT_PREVU: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Calcul selon les mesures planifiées
+    DUREE_DEVERSEMENT_ACTUEL: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Durée moyenne de déversement par an selon des simulations pour de longs temps de retour (z > 10).
+    DUREE_DEVERSEMENT_ACTUEL_OPT: 0.0 .. 10000.0 [Units.h];  !! Durée moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    FREQUENCE_DEVERSEMENT_PREVU: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Calcul après la réalisation d’éventuelles mesures.
+    FREQUENCE_DEVERSEMENT_ACTUEL: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Fréquence moyenne de déversement par an selon des simulations pour de longs temps de retour (z > 10).
+    FREQUENCE_DEVERSEMENT_ACTUEL_OPT: Frequence_deversement;  !! Fréquence moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    VOLUME_DEVERSE_PREVU: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen de déversement par an. Calcul après la réalisation d’éventuelles mesures.
+    VOLUME_DEVERSE_ACTUEL: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen déversé par an. Volume moyen déversé par an selon des simulations pour de longs temps de retour (z > 10).
+    VOLUME_DEVERSE_ACTUEL_OPT: 0.00 .. 10000000.00 [Units.m3];  !! Volume moyen de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_BEP;
+
+ASSOCIATION FT_BEP_EXUTOIREAssoc =    !! Association
+  EXUTOIRERef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  FT_BEP_EXUTOIREAssocRef -- {0..*} FT_BEP; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END FT_BEP_EXUTOIREAssoc;
+
+CLASS FT_BASSIN_CANAL_ACCUMULATION EXTENDS FT =  
+!! Fiche technique Bassin d’accumulation (BAC) / Canalisation d‘accumulatio
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    GENRE_BASSIN: (        
+      BEP_accumulation,
+      canal_accumulation
+    );
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_PREVU: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    TROP_PLEIN_DE_SECOURS: (          !! L’attribut décrit vers où le débit déversé s’écoule. (bassin d’accumulation / canal d’accumulation)
+      autres,
+      dans_canalisation_eaux_mixtes,
+      dans_canalisation_eaux_pluviales,
+      dans_canalisation_eaux_usees,
+      aucun,
+      inconnu
+    );
+    VOLUME_UTILE: 0.00 .. 10000000.00 [Units.m3];  !! Pour les bassins et canalisations d’accumulation : Volume de la chambre sous la surverse de secours ou bypass (volume mobilisable maximum, incl. le volume de stockage de la canalisation d’amenée). Pour les BEP il s’agit du VOLUME_UTILE_STOCKAGE et du VOLUME_UTILE_CLARIFICATION. Il faut également saisir le VOLUME_DE_STOCKAGE.
+    QDIM_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Qeff dans l’état pévur selon PGEE. (A remplir pour bassin d’accumulation / canal d’accumulation);
+    QDIM_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Qdim à l’état actuel, valeur selon les sections ouvertures, longueur d’étranglement ou de crête, etc. (A remplir pour bassin d’accumulation et canal d’accumulation);
+    QDIM_ACTUEL_OPT: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Valeur calculée qui, lors de l’événement de dimensionnement pour z = 5, garantie l’état demandé selon les lois et directive et les conditions cadres actuelles. (A remplir pour bassin d’accumulation et canal d’accumulation).
+    BEP_DISPOSITION: (          !! Disposition d'un bassin d'eaux pluviales dans le réseau d'assainissement. Attribut additionnel pour les valeurs BEP_* de OUVRAGE_SPECIAL.FONCTION.
+      connexion_directe,  !! Connexion qui permet une traversée en permanence de la totalité des eaux de temps sec et d'une partie des eaux de temps de pluie
+      connexion_laterale,  !! Connexion qui présente uniquement une traversée des eaux de temps de pluie
+      inconnue
+    );
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe.
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_BASSIN_CANAL_ACCUMULATION;
+
+CLASS FT_OUVRAGE_DE_REPARTITION EXTENDS FT =  
+!! Fiche technique Ouvrage de répartition (CR): Ouvrage, avec une ou plusieurs entrées et deux ou plusieurs sorties, qui réparti les eaux usées dans le système, sans les déverser hors du système.
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    GENRE: (          !! Indiquer le genre d'ouvrage de répartition.
+      repartition_libre,  !! Le genre d’ouvrage de répartition est à indiquer. „répartition libre“ signifie une répartition selon les conditions cadre hydrauliques. Il n’est pas nécessaire de saisir une surverse (dans VSA-SDEE).
+      leaping_weir,  !! leaping weir avec ouverture de fond
+      direction_secondaire_fermee,  !! Pas une representation directe en VSA-DSS. Valeur "direction_secondaire_fermee" si le STATUS de la CANALISATION est hors service.
+      deversoir_lateral,  !! Déversoir latéral ou autre surverse
+      inconnu
+    );
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_PREVU: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    COURBE_DE_FONCTIONNEMENT_NUM_ACTUEL_OPT: (          !! Si courbe_de_fonctionnement_num_* = oui, une courbe correspondante doit figurer dans la table Courbe de fonctionnement.
+      oui,
+      non,
+      inconnu
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    SURCHARGE_PREVU: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale prévue après la réalisation d’éventuelles mesures.
+    SURCHARGE_ACTUEL: 0.00 .. 100.00 [Units.Percent];  !! Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %
+    SURCHARGE_ACTUEL_OPT: 0.00 .. 100.00 [Units.Percent];  !! Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures.
+    NOEUD_DIRECTION_PRINCIPALE: TEXT*20;  !! A indiquer le prochain nœud dans la direction principale. Direction principale : Direction vers laquelle les eaux usées coulent normalement (par ex. débit temps sec dans le système unitaire).
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimisé après la réalisation des mesures
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures.
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];  !! Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe.
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_OUVRAGE_DE_REPARTITION;
+
+CLASS FT_AUTRES EXTENDS FT =  
+!! Fiche technique Autres ouvrages spéciaux (AOS): Ce sont tous les ouvrages remplissant une fonction spéciale dans les réseaux d’évacuation des eaux et qui doivent être documentés de manière spécifique, mais qui ne peuvent pas être attribués à une des catégories ci-dessus.
+  ATTRIBUTE
+    DOSSIER: MTEXT*255;  !! N° de plan de la documentation d’exécution, description de dossiers, manuels, etc.
+    NO_STEP: NoSTEP;  !! Raccordé à la STEP « exemple » (n° STEP de l’OFEV), numéro de l‘ouvrage
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_f_LV95.Annee;  !! Année de mise en service (réception finale);
+    REMARQUE: TEXT*80;
+    DESCRIPTION: MTEXT*255;  !! Description de l’ouvrage spécial
+    EXPLOITANT: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser de noms réels, par exemple commune « Exemple » et non commune, syndicat des eaux usées « Exemple », au lieu de syndicat des eaux usées, afin d’éviter des difficultés lors de l’agrégation des données.
+    BUREAU: SIA405_Base_f_LV95.Organisation_Designation;  !! Nom du bureau d’ingénieur qui a établi la fiche technique
+    COTE_COUVERCLE: Base_f_LV95.Altitude;  !! Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles
+    PROPRIETAIRE: SIA405_Base_f_LV95.Organisation_Designation;  !! Il est conseillé d’utiliser des noms réels, tels que commune_example, au lieu de commune, afin d’éviter des problèmes lors de l’agrégation des données.
+    SOURCE_DES_INFORMATIONS: (          !! Valeurs à disposition pour les sources d’information sur une liste à choix
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    SITUATION: Base_f_LV95.CoordNat;  !! Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec);
+    RESPONSABLE_SAISIE: TEXT*50;  !! Technicien ayant remplir la fiche technique.
+    COTE_RADIER: Base_f_LV95.Altitude;  !! Point le plus bas du noeud
+    LIEU_DIT: TEXT*50;  !! Nom de la route ou du lieu de l'ouvrage
+    ETAT: Etat;  !! Etat de fonctionnement et de planification de l’ouvrage
+    VR_ANNEE_REFERENCE: SIA405_Base_f_LV95.Annee;  !! Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement);
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];  !! Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE
+END FT_AUTRES;
+
+CLASS COURBE_DE_FONCTIONNEMENT EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! La courbe de fonctionnement de l’ouvrage de décharge décrit le débit acheminé en direction de la STEP en fonction de différents débits entrants. Elle doit contenir au minimum 2 points. Elle peut également se présenter sous forme tabulaire. La courbe est à documentée sous forme de rapport Q/Q ou H/Q. Lors de répartition libre, la courbe de fonctionnement ne doit pas être documentée. Lors de conditions d’écoulement dans la zone d’accumulation, la fonction doit être décrite séparément.
+  ATTRIBUTE
+    DEBIT: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit d'eau (Q2) en direction de la STEP
+    NIVEAU: Base_f_LV95.Altitude;  !! Niveau d'eau correspondant (h) au débit (Q2);
+    OBJ_ID_RELATION_HQ: TEXT*16;  !! OBJ_ID de la relation HQ correspondante dans la VSA-SDEE, pour le transfert du modèle
+    ETAT: (        
+      prevu,
+      actuel,
+      actuel_opt  !! actuel optimisé
+    );
+    DEBIT_ENTREE: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit d’entrée  (Q1);
+END COURBE_DE_FONCTIONNEMENT;
+
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssoc =    !! Association
+  FT_DEVERSOIR_D_ORAGERef  -- {0..1} FT_DEVERSOIR_D_ORAGE; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssoc;
+
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssoc =    !! Association
+  FT_OUVRAGE_DE_REPARTITIONRef  -- {0..1} FT_OUVRAGE_DE_REPARTITION; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssoc;
+
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_BEPAssoc =    !! Association
+  FT_BEPRef  -- {0..1} FT_BEP; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COURBE_DE_FONCTIONNEMENT_FT_BEPAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COURBE_DE_FONCTIONNEMENT_FT_BEPAssoc;
+
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssoc =    !! Association
+  FT_BASSIN_CANAL_ACCUMULATIONRef  -- {0..1} FT_BASSIN_CANAL_ACCUMULATION; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssoc;
+
+CLASS COMPOSANTES_D_OUVRAGE EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Composantes d’ouvrage des fiches technique, équipement, resp. installation auxiliaire.
+  ATTRIBUTE
+    GENRE: (          !! Genre de composante d'ouvrage (mandatory). Par ensemble des données une COMPOSANTE_D_OUVRAGE. Les informations du composante d'ouvrage doivent être complète aussi qu'on INTERLIS c'est pas mandatory.
+      vidange_de_bassins,
+      nettoyage_de_bassins,
+      limiteur_de_debit,
+      retenue_de_matieres_solides,
+      installation_refoulement,
+      appareil_mesure,  !! La composante appareil de mesure est utilisée lors que la mesure sert par exemple à la conduite ou régulation des débits d’eaux usées en direction de la STEP.
+      deversoir_de_secours,
+      protection_refoulement,
+      deversoir
+    );
+    VIDANGE_DE_BASSINS_GENRE: (          !! La composante d'ouvrage vidange de bassins ne peut être saisie qu'une seule fois. Lorsque un bassin est vidangé à l'aide de plusieurs pompes, il faut y indiquer le débit maximal des pompes.
+      autre,
+      aucun,  !! La valeur „aucun“ est à utiliser lorsque le bassin est vidangé sans appareillage.
+      pompe,  !! Lors de plusieurs pompes, indiquer le nombre total.
+      vanne  !! Lors de plusieurs vannes, il faut indiquer le nombre total.
+    );
+    VIDANGE_DE_BASSINS_DEBIT_MAX: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Lors de présence de plusieurs pompes/vannes, indiquer le débit total.
+    NETTOYAGE_DE_BASSINS_GENRE: (        
+      aeration_et_brassage,
+      autre,
+      aucun,  !! La valeur „aucun“ est à utiliser lorsque le bassin est nettoyé sans appareillage.
+      rincage_en_cascade,
+      bac_de_rincage  !! bac de rinçage ou rigole basculante
+    );
+    GENRE_LIMITEUR_DEBIT: (        
+      regulateur_de_debit,  !! régulateur de débit
+      autre,
+      conduite_d_etranglement,  !! Avec une conduite d’étranglement il faut aussi saisie une CONDUITE.FONCTION_HYDRAULIQUE = conduite_d_etranglement
+      leaping_weir,  !! avec ouverture de fond
+      pompe,  !! remplir fiche technique STAP
+      vanne_fixe,
+      vanne_avec_regulation,
+      vanne_avec_commande,
+      inconnu
+    );
+    LIMITEUR_DEBIT_OUVERTURE_ACTUEL: Hauteur_max_profile;  !! Les valeurs suivantes doivent être indiquées: Leaping weir: Longueur ouverture de fond, Cond. d’étranglement : aucune indication suppl., Vanne : hauteur max de l’ouverture (du radier jusqu’au bord inférieur plaque, point le plus bas), Régulateur de débit : aucune indication suppl., Pompe : saisir fiche technique STAP
+    LIMITEUR_DEBIT_OUVERTURE_ACTUEL_OPT: Hauteur_max_profile;  !! Les valeurs suivantes doivent être indiquées: Leaping weir: Longueur ouverture de fond, Cond. d’étranglement : aucune indication suppl., Vanne : hauteur max de l’ouverture (du radier jusqu’au bord inférieur plaque, point le plus bas), Régulateur de débit : aucune indication suppl., Pompe : saisir fiche technique STAP
+    RETENUE_DE_MATIERES_SOLIDES_COTE_DEV: Base_f_LV95.Altitude;  !! Cote du début du déversement de la retenue de matières solides en m.s.m.
+    RETENUE_DE_MATIERES_SOLIDES_GENRE: (          !! Genre de la retenue de matières solides
+      autre,
+      grille_fine,
+      grille_grossiere,  !! maille > 10mm
+      tamis,  !! tôle perforée
+      paroi_plongeante,
+      inconnu
+    );
+    RETENUE_DE_MATIERES_SOLIDES_VALEUR_DIM: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Volume, débit de dimensionnement
+    INSTALLATION_REFOULEMENT_GENRE_CONSTRUCTION: (          !! Types de pompe
+      autres,
+      systeme_a_air_comprime,
+      pompe_a_piston,
+      pompe_centrifuge,
+      pompe_a_vis,  !! aussi appelée vis sans fin ou vis d’Archimède
+      inconnu,
+      systeme_a_vide_d_air
+    );
+    INSTALLATION_REFOULEMENT_DEBIT_REF_MAX_IND: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit de refoulement maximal  d’une pompe (individuelle). Survient normalement à la hauteur min de refoulement.
+    INSTALLATION_REFOULEMENT_DEBIT_REF_MIN_IND: 0.000 .. 100000.000 [SIA405_Base_f_LV95.ls];  !! Débit de refoulement minimal d’une pompe (individuelle). Survient normalement à la hauteur max de refoulement.
+    APPAREIL_MESURE_GENRE: (          !! Type de l'appareil de mesure
+      autres,
+      sonde_de_pression,
+      injection_bulles_d_air,
+      MID_partiellement_rempli,  !! Débitmètre électromagnétique pour tuyau partiellement rempli
+      MID_rempli,  !! Débitmètre électromagnétique pour tuyau rempli
+      radar,
+      flotteur,
+      ultrason,
+      inconnu
+    );
+    APPAREIL_MESURE_GENRE_MESURE: (          !! Type de mesure, par ex. proportionnel au temps ou au débit
+      autres,
+      debit,
+      niveau,
+      inconnu
+    );
+    APPAREIL_MESURE_ELEMENT_DE_BARRAGE: (          !! ELEMENT_DE_BARRAGE de la STATION_MESURE de l'APPAREIL_MESURE
+      autre,
+      aucun,
+      lame_deversante,  !! toutes les formes, telles que seuil en bec de canard, etc.
+      inconnu,
+      etranglement_venturi
+    );
+    APPAREIL_MESURE_OBJET: (          !! Objet de la mesure
+      les_deux,  !! Répartition des coûts et but technique
+      repartition_des_couts,
+      but_technique,  !! En règle générale, seul les objets techniques sont indiqués pour les composantes d’ouvrage (réglage).
+      inconnu
+    );
+    TROP_PLEIN_DE_SECOURS_COTE: Base_f_LV95.Altitude;  !! Cote de rejet du trop-plein de secours. Si le trop-plein est un seuil, indiquer la cote de la crête.
+    OBJ_ID_LIMITEUR_DEBIT: TEXT*16;  !! OBJ_ID du LIMITEUR_DEBIT dans la VSA-SDEE, pour le transfert du modèle si GENRE_LIMITEUR_DEBIT = regulateur_de_debit ou vanne* ou VIDANGE_DE_BASSINS_GENRE = vanne ou GENRE_PROTECTION_REFOULEMENT = plaque_de_retenue
+    OBJ_ID_STATION_MESURE: TEXT*16;  !! OBJ_ID de la STATION_MESURE de l'APPAREIL_MESURE, seulement pour le transfert du modèle
+    OBJ_ID_DEVERSOIR: TEXT*16;  !! OBJ_ID du déversoir dans la VSA-SDEE, pour le transfert du modèle si GENRE_LIMITEUR_DEBIT = leaping_weir ou pompe. Ou VIDANGE_DE_BASSINS_GENRE = pompe. Ou GENRE_PROTECTION_REFOULEMENT = pompe. Pour TROP_PLEIN_DE_SECOURS le DEVERSOIR correspondant
+    GENRE_PROTECTION_REFOULEMENT: (          !! La protection contre le refoulement empêche le retour d’eau des cours d’eau dans le réseau d’assainissement. Cet attribut est saisi à chaque ouvrage spécial disposant de cette protection. En absence de protection, laisser la composante vide.
+      autres,
+      pompe,
+      clapet_de_non_retour_a_battant,
+      plaque_de_retenue
+    );
+    DEVERSOIR_L_HYDR_LAME: 0.00 .. 30000.00 [m];  !! Longueur hydrauliquement efficace de la crête. Pour les surverses à seuil double avec des hauteurs différentes, il faut saisir deux surverses. Attribut uniquement à saisir pour les déversoirs latéraux.
+    DEVERSOIR_COTE_MAX: Base_f_LV95.Altitude;  !! Cote du point le plus élevée de la crête de déversement en m.s.m.. A saisir uniquement pour les déversoirs latéraux. Pour des seuils non horizontaux, indiquer la cote la plus élevée.
+    DEVERSOIR_COTE_MIN: Base_f_LV95.Altitude;  !! Cote du point le plus bas de la crête de déversement en m.s.m.. A saisir uniquement pour les déversoirs latéraux. Pour des seuils non horizontaux, indiquer la cote la plus basse.
+END COMPOSANTES_D_OUVRAGE;
+
+ASSOCIATION COMPOSANTES_D_OUVRAGE_FTAssoc =    !! Association
+  FTRef  -- {1} FT; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COMPOSANTES_D_OUVRAGE_FTAssocRef -- {0..*} COMPOSANTES_D_OUVRAGE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COMPOSANTES_D_OUVRAGE_FTAssoc;
+
+ASSOCIATION COMPOSANTES_D_OUVRAGE_DEVERSEMENT_VERSAssoc =    !! Association
+  DEVERSEMENT_VERSRef  -- {0..1} NOEUD; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  COMPOSANTES_D_OUVRAGE_DEVERSEMENT_VERSAssocRef -- {0..*} COMPOSANTES_D_OUVRAGE; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END COMPOSANTES_D_OUVRAGE_DEVERSEMENT_VERSAssoc;
+
+
+END VSASDEEMini;   !! Ende des Topics / Fin du topic
+END VSASDEEMINI_2015_LV95.   !! Ende des Modells / Fin du modèle
+
+

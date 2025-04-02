@@ -1,0 +1,150 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 78 and 122)
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="31.1, 187.1"
+MODEL Paerke_Codelisten_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-02-04"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Kategorie_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kategorie_Catalogue;
+
+    CLASS Rechtsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*2;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Rechtsgrundlage_Catalogue;
+
+    CLASS Status_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Status_Catalogue;
+
+    CLASS Zone_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Zone_Catalogue;
+
+    STRUCTURE Kategorie_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Kategorie_Catalogue;
+    END Kategorie_CatRef;
+
+    STRUCTURE Rechtsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Rechtsgrundlage_Catalogue;
+    END Rechtsgrundlage_CatRef;
+
+    STRUCTURE Status_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Status_Catalogue;
+    END Status_CatRef;
+
+    STRUCTURE Zone_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Zone_Catalogue;
+    END Zone_CatRef;
+
+  END Codelisten;
+
+END Paerke_Codelisten_V1.
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="31.1, 187.1"
+MODEL Paerke_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS Units,GeometryCHLV03_V1,LocalisationCH_V1,Paerke_Codelisten_V1;
+
+  TOPIC Paerke =
+    DEPENDS ON Paerke_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Park =
+      ObjNummer : MANDATORY TEXT*20;
+      Name : MANDATORY TEXT*30;
+      Parkname_kurz : LocalisationCH_V1.MultilingualText;
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Kategorie : MANDATORY Paerke_Codelisten_V1.Codelisten.Kategorie_CatRef;
+      Status : MANDATORY Paerke_Codelisten_V1.Codelisten.Status_CatRef;
+      Rechtsgrundlage : MANDATORY Paerke_Codelisten_V1.Codelisten.Rechtsgrundlage_CatRef;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationgrund : LocalisationCH_V1.MultilingualMText;
+    END Park;
+
+    CLASS Park_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Zone : Paerke_Codelisten_V1.Codelisten.Zone_CatRef;
+      Geo_Obj : MANDATORY Polygon;
+    END Park_Teilobjekt;
+
+    ASSOCIATION Teilobjekt =
+      Park_Teilobjekt -- {1..*} Park_Teilobjekt;
+      Park -<#> {1} Park;
+    END Teilobjekt;
+
+  END Paerke;
+
+END Paerke_LV03_V1.
+
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="31.1, 187.1"
+MODEL Paerke_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS Units,GeometryCHLV95_V1,LocalisationCH_V1,Paerke_Codelisten_V1;
+
+  TOPIC Paerke =
+    DEPENDS ON Paerke_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Park =
+      ObjNummer : MANDATORY TEXT*20;
+      Name : MANDATORY TEXT*30;
+      Parkname_kurz : LocalisationCH_V1.MultilingualText;
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Kategorie : MANDATORY Paerke_Codelisten_V1.Codelisten.Kategorie_CatRef;
+      Status : MANDATORY Paerke_Codelisten_V1.Codelisten.Status_CatRef;
+      Rechtsgrundlage : MANDATORY Paerke_Codelisten_V1.Codelisten.Rechtsgrundlage_CatRef;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationgrund : LocalisationCH_V1.MultilingualMText;
+    END Park;
+
+    CLASS Park_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Zone : Paerke_Codelisten_V1.Codelisten.Zone_CatRef;
+      Geo_Obj : MANDATORY Polygon;
+    END Park_Teilobjekt;
+
+    ASSOCIATION Teilobjekt =
+      Park_Teilobjekt -- {1..*} Park_Teilobjekt;
+      Park -<#> {1} Park;
+    END Teilobjekt;
+
+  END Paerke;
+
+END Paerke_LV95_V1.

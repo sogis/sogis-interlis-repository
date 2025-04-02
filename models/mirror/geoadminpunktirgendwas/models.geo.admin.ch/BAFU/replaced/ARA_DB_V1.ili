@@ -1,0 +1,689 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! ARA_DB_V1.ili
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 134
+!! Bezeichnung GeoIV                         : Wasserqualität (Weitere Erhebungen)
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAFU)
+!! Zugangsberechtigungsstufe                 : A
+!!
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 134.5
+!! Bezeichnung Geobasisdatensatz             : Kläranlagendatenbank (ARA-DB)
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Wer   | Änderung
+!!------------------------------------------------------------------------------
+!! 2016-11-22 | CG    | Schlussfassung
+!! 2021-11-23 | BAFU  | Korrektur CONSTRAINT bei Klasse "Verfahrenstechnik"
+!!==============================================================================
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "134.5"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+MODEL ARA_DB_LV03_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2021-11-23" =
+
+  IMPORTS GeometryCHLV03_V1;
+  IMPORTS LocalisationCH_V1;
+
+    DOMAIN
+!!==============================================================================
+    dBetreiberTyp = (Gde, Verband, SitzGde, IKA, OeRAG, PPP, PrivUnt, KantVerw, andere);
+    dVKTyp        = (VKB, VKBFaell, andere, nvh);
+    dVorfluterTyp = (Fliessgewaesser, See, Versickerung, andere);
+    dPEliminationTyp    = (chem, bio, kombi, nvh);
+    dCAbbauTyp          = (BS, SBR, FB, WBHyb, TauchTropf, Tropf, SF, Membran, AI, HSL, PKA, andere);
+    dNitrifikationTyp   = (BS, SBR, FB, WBHyb, TauchTropf, Tropf, SF, Membran, AI, HSL, PKA, nvh, andere);
+    dDenitrifikationTyp = (BS, SBR, FB, WBHyb, MBR, AI, nvh, andere);
+    dFiltration    = (RF, FF, MF, nvh, andere);
+    dMikroV        = (PAK, GAK, O3, Kombi, nvh, andere);
+    dMikroVNachbeh = (RF, FF, WB, FB, MF, nvh, andere);
+    dDesinfektion  = (UV, UF, nvh, andere);
+    dSchlammstab   = (faul, aerob, belueft);
+    dSchlammwbeh   = (aAOx, NStr, NiDeNi, Rueckdos, nvh, andere);
+    dGasverw       = (W, WKK, Gas, nvh);
+    Polygon        = AREA WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC CAT =                            !!  Klassen zur Beschreibung der Domains
+!!==============================================================================
+    CLASS OrgTyp =
+      Typ          : MANDATORY dBetreiberTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END OrgTyp;
+
+    CLASS VKTyp =
+      Typ          : MANDATORY dVKTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END VKTyp;
+
+    CLASS VorfluterTyp =
+      Typ          : MANDATORY dVorfluterTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END VorfluterTyp;
+
+    CLASS PEliminationTyp =
+      Typ          : MANDATORY dPEliminationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PEliminationTyp;
+
+    CLASS CAbbauTyp =
+      Typ          : MANDATORY dCAbbauTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END CAbbauTyp;
+
+    CLASS NitrifikationTyp =
+      Typ          : MANDATORY dNitrifikationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END NitrifikationTyp;
+
+    CLASS DenitrifikationTyp =
+      Typ          : MANDATORY dDenitrifikationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END DenitrifikationTyp;
+
+    CLASS Filtration =
+      Typ          : MANDATORY dFiltration;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Filtration;
+
+    CLASS MikroV =
+      Typ          : MANDATORY dMikroV;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MikroV;
+
+    CLASS MikroVNachbeh =
+      Typ          : MANDATORY dMikroVNachbeh;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MikroVNachbeh;
+
+    CLASS Desinfektion =
+      Typ          : MANDATORY dDesinfektion;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Desinfektion;
+
+    CLASS Schlammstab =
+      Typ          : MANDATORY dSchlammstab;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schlammstab;
+
+    CLASS Schlammwbeh =
+      Typ          : MANDATORY dSchlammwbeh;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schlammwbeh;
+
+    CLASS Gasverw =
+      Typ          : MANDATORY dGasverw;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gasverw;
+
+  END CAT;
+
+  TOPIC ARA =                            !!  Die eigentlichen Klassen
+!!==============================================================================
+    CLASS ARA =
+    !!=============================================
+      ARANr        : MANDATORY 1 .. 999999;
+      Bezeichnung  : MANDATORY TEXT*100;
+      Betreiber    : MANDATORY TEXT*100;
+      BetreiberTyp : MANDATORY dBetreiberTyp;
+      Lage         : MANDATORY GeometryCHLV03_V1.Coord2;
+      Strasse      : MANDATORY TEXT*50;
+      PLZ          : MANDATORY 0 .. 9999;
+      Ort          : MANDATORY TEXT*40;
+      ErhVtech     : MANDATORY INTERLIS.XMLDate;
+    END ARA;
+
+    CLASS ARAGross EXTENDS ARA =
+    !!=============================================
+      ErhJahrKennzahlen : MANDATORY 1900 .. 2500;
+    END ARAGross;
+
+    CLASS Einleitstelle =
+    !!=============================================
+      Lage         : MANDATORY GeometryCHLV03_V1.Coord2;
+      VorfluterTyp : MANDATORY dVorfluterTyp;
+      GEWISSNr     : MANDATORY 0 .. 999999;
+    END Einleitstelle;
+
+    CLASS EinleitstelleGross EXTENDS Einleitstelle =
+    !!=============================================
+      Q347 : MANDATORY 0 .. 999;   !! m3/sec
+    END EinleitstelleGross;
+
+    CLASS Einzugsgebiet =
+    !!=============================================
+      Gebiet            : MANDATORY Polygon;
+      EinwAnz           : MANDATORY 0 .. 9999999;
+      EinwAngeschlossen : MANDATORY 0 .. 9999999;
+    END Einzugsgebiet;
+
+    CLASS Verfahrenstechnik =
+    !!=============================================
+      DimEWbiologisch     : MANDATORY 0 .. 999999;
+      AuslNitrifikation   : MANDATORY BOOLEAN;
+      AuslDenitrifikation : MANDATORY BOOLEAN;
+      AuslPElimination    : MANDATORY BOOLEAN;
+      AuslGUSElimination  : MANDATORY BOOLEAN;
+      AuslSpurenstoffe    : MANDATORY BOOLEAN;
+      AuslDesinfektion    : MANDATORY BOOLEAN;
+
+      !! gilt nur für Objekte, die nicht spezialisiert sind (VerfahrenstechnikGross)
+      MANDATORY CONSTRAINT INTERLIS.myClass(THIS) != >Verfahrenstechnik OR DimEWbiologisch < 1000;
+    END Verfahrenstechnik;
+
+    CLASS VerfahrenstechnikGross EXTENDS Verfahrenstechnik =
+    !!=============================================
+      RegenwVol       : MANDATORY 0 .. 99999;
+      AuslHydr        : MANDATORY 0 .. 99999;
+      PEliminationTyp : MANDATORY dPEliminationTyp;
+      Hebewerk        : MANDATORY BOOLEAN;
+      VKBVol          : MANDATORY 0 .. 99999;
+      VKTyp           :           dVKTyp;
+
+      MANDATORY CONSTRAINT DimEWbiologisch >= 1000;
+    END VerfahrenstechnikGross;
+
+    CLASS BelastungLeistung =
+    !!=============================================
+      AbwMengeBeh  : MANDATORY  0 .. 999999999;
+      AbwMengeTWZu : MANDATORY  0 .. 999999;
+      EW85         : MANDATORY  0 .. 999999;
+      ZuFrachtCSB  : MANDATORY  0 .. 999999;
+      ZuFrachtNH4  : MANDATORY  0 .. 9999;
+      ZuFrachtNtot :            0 .. 9999;
+      ZuFrachtPtot :            0 .. 9999;
+      AbFrachtCSB  : MANDATORY  0 .. 99999;
+      AbFrachtNH4  : MANDATORY  0 .. 9999;
+      AbFrachtNtot :            0 .. 9999;
+      AbFrachtPtot :            0 .. 999;
+      AbFrachtNO3  :            0 .. 9999;
+    END BelastungLeistung;
+
+    CLASS SchlammMengen =
+    !!=============================================
+      KSAbgMenge     : MANDATORY  0 .. 99999;
+      FremdschlMenge : MANDATORY  0 .. 99999;
+      CoSubstrat     : MANDATORY  BOOLEAN;
+    END SchlammMengen;
+
+    CLASS Energie =
+    !!=============================================
+      Stromverbr        : MANDATORY  0 .. 99999999;
+      StromverbrhBiol   :            0 .. 99999999;
+      Stromprod         : MANDATORY  0 .. 99999999;
+      Stromverk         : MANDATORY  0 .. 99999999;
+      Strombez          : MANDATORY  0 .. 99999999;
+      Biogasprod        : MANDATORY  0 .. 99999999;
+      BiogasverwTherm   : MANDATORY  0 .. 99999999;
+      BiogasverbrFackel : MANDATORY  0 .. 99999999;
+      Biogasverk        : MANDATORY  0 .. 99999999;
+      Waermeprod        :            0 .. 99999999;
+      Waermebez         :            0 .. 99999999;
+      Waermeverbr       :            0 .. 99999999;
+      Waermeverk        :            0 .. 99999999;
+      Heizoelverbr      :            0 .. 999999;
+      Erdgasverbr       :            0 .. 999999;
+    END Energie;
+
+    CLASS Faellmittel =
+    !!=============================================
+      Eisen          : 0 .. 999999;
+      Alu            : 0 .. 999999;
+      Polyelektrolyt : 0 .. 999999;
+      andere         : 0 .. 999999;
+    END Faellmittel;
+
+    CLASS Kosten =
+    !!=============================================
+      Personal          : MANDATORY  0 .. 9999999;  !! pro Jahr
+      Sach              : MANDATORY  0 .. 9999999;  !! pro Jahr
+      Zins              : MANDATORY  0 .. 9999999;  !! pro Jahr
+      BruttoInvest      : MANDATORY  0 .. 99999999; !! pro Jahr
+      Wiederbeschaffung : MANDATORY  0 .. 999999999;
+    END Kosten;
+
+    CLASS ReinigungBiologisch =
+    !!=============================================
+      Kap                : MANDATORY 0 .. 9999;
+      CAbbauTyp          : MANDATORY dCAbbauTyp;
+      NitrifikationTyp   : MANDATORY dNitrifikationTyp;
+      DenitrifikationTyp : MANDATORY dDenitrifikationTyp;
+      Vol                : MANDATORY 0 .. 999999;
+      NKBVol             : MANDATORY 0 .. 999999;
+      NKBOberflaeche     : MANDATORY 0 .. 99999;
+    END ReinigungBiologisch;
+
+    CLASS ReinigungWeitergehend =
+    !!=============================================
+      Filtration           : MANDATORY  dFiltration;
+      AuslHydrFiltration   : MANDATORY  0 .. 9999;
+      MikroV               : MANDATORY  dMikroV;
+      AuslHydrMikroV       : MANDATORY  0 .. 9999;
+      MikrovNachbeh        : MANDATORY  dMikroVNachbeh;
+      Desinfektion         : MANDATORY  dDesinfektion;
+      AuslHydrDesinfektion : MANDATORY  0 .. 9999;
+    END ReinigungWeitergehend;
+
+    CLASS SchlammBehandlung =
+    !!=============================================
+      Vorbeh         : MANDATORY  BOOLEAN;
+      Schlammstab    : MANDATORY  dSchlammstab;
+      Nacheindickung : MANDATORY  BOOLEAN;
+      Entwaesserung  : MANDATORY  BOOLEAN;
+      Trocknung      : MANDATORY  BOOLEAN;
+      Verbrennung    : MANDATORY  BOOLEAN;
+      Schlammwbeh    : MANDATORY  dSchlammwbeh;
+      Gasverw        : MANDATORY  dGasverw;
+    END SchlammBehandlung;
+
+    !! Beziehungen ARA zu ...
+    !!=============================================
+    ASSOCIATION ARA_Einleitstelle =
+      rAnlage        -<#> {1} ARA;
+      rEinleitstelle --   {1} Einleitstelle;
+    END ARA_Einleitstelle;
+
+    !! wegen der folgenden Spezialisierung muessen alle ARAGross mit einer EinleitstelleGross (statt Einleitstelle) verknuepft werden
+    ASSOCIATION ARAGross_Einleitstelle EXTENDS ARA_Einleitstelle =
+      rAnlage (EXTENDED)        -<#> {1} ARAGross;
+      rEinleitstelle (EXTENDED) --   {1} EinleitstelleGross;
+    END ARAGross_Einleitstelle;
+
+    ASSOCIATION ARA_Einzugsgebiet =
+      rAnlage --  {1} ARA;
+      rGebiet --  {1} Einzugsgebiet;
+    END ARA_Einzugsgebiet;
+
+    ASSOCIATION ARA_Verfahrenstechnik =
+      rAnlage    -<#> {1} ARA;
+      rVerfahren --   {1} Verfahrenstechnik;
+    END ARA_Verfahrenstechnik;
+
+    ASSOCIATION ARA_VerfahrenstechnikG EXTENDS ARA_Verfahrenstechnik =
+      rAnlage (EXTENDED)    -<#> {1} ARAGross;
+      rVerfahren (EXTENDED) --   {1} VerfahrenstechnikGross;
+    END ARA_VerfahrenstechnikG;
+
+    ASSOCIATION ARA_BelastungLeistung =
+      rAnlage            -<#> {1} ARAGross;
+      rBelastungLeistung --   {1} BelastungLeistung;
+    END ARA_BelastungLeistung;
+
+    ASSOCIATION ARA_SchlammMengen =
+      rAnlage   -<#> {1} ARAGross;
+      rSchlamm  --   {1} SchlammMengen;
+    END ARA_SchlammMengen;
+
+    ASSOCIATION ARA_Energie =
+      rAnlage  -<#> {1} ARAGross;
+      rEnergie --   {1} Energie;
+    END ARA_Energie;
+
+    ASSOCIATION ARA_Faellmittel =
+      rAnlage      -<#> {1} ARAGross;
+      rFaellmittel --   {1} Faellmittel;
+    END ARA_Faellmittel;
+
+    ASSOCIATION ARA_Kosten =
+      rAnlage   -<#> {1} ARAGross;
+      rFinanzen --   {1} Kosten;
+    END ARA_Kosten;
+
+    !! Beziehungen Verfahrenstechnik zu ...
+    !!=============================================
+    ASSOCIATION Verfahrenstechnik_Biologisch =
+      rVT         -<#> {1}    VerfahrenstechnikGross;
+      rBiologisch --   {1..*} ReinigungBiologisch;
+    END Verfahrenstechnik_Biologisch;
+
+    ASSOCIATION Verfahrenstechnik_Weitergehend =
+      rVT           -<#> {1} VerfahrenstechnikGross;
+      rWeitergehend --   {0..*} ReinigungWeitergehend;
+    END Verfahrenstechnik_Weitergehend;
+
+    ASSOCIATION Verfahrenstechnik_Schlamm =
+      rVT      -<#> {1} VerfahrenstechnikGross;
+      rSchlamm --   {1} SchlammBehandlung;
+    END Verfahrenstechnik_Schlamm;
+
+  END ARA;                                        !! topic
+
+END ARA_DB_LV03_V1.                               !! model
+
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "134.5"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+MODEL ARA_DB_LV95_V1 (de) AT "https://models.geo.admin.ch/BAFU/" VERSION "2021-11-23" =
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS LocalisationCH_V1;
+
+    DOMAIN
+!!==============================================================================
+    dBetreiberTyp = (Gde, Verband, SitzGde, IKA, OeRAG, PPP, PrivUnt, KantVerw, andere);
+    dVKTyp        = (VKB, VKBFaell, andere, nvh);
+    dVorfluterTyp = (Fliessgewaesser, See, Versickerung, andere);
+    dPEliminationTyp    = (chem, bio, kombi, nvh);
+    dCAbbauTyp          = (BS, SBR, FB, WBHyb, TauchTropf, Tropf, SF, Membran, AI, HSL, PKA, andere);
+    dNitrifikationTyp   = (BS, SBR, FB, WBHyb, TauchTropf, Tropf, SF, Membran, AI, HSL, PKA, nvh, andere);
+    dDenitrifikationTyp = (BS, SBR, FB, WBHyb, MBR, AI, nvh, andere);
+    dFiltration    = (RF, FF, MF, nvh, andere);
+    dMikroV        = (PAK, GAK, O3, Kombi, nvh, andere);
+    dMikroVNachbeh = (RF, FF, WB, FB, MF, nvh, andere);
+    dDesinfektion  = (UV, UF, nvh, andere);
+    dSchlammstab   = (faul, aerob, belueft);
+    dSchlammwbeh   = (aAOx, NStr, NiDeNi, Rueckdos, nvh, andere);
+    dGasverw       = (W, WKK, Gas, nvh);
+    Polygon        = AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC CAT =                            !!  Klassen zur Beschreibung der Domains
+!!==============================================================================
+    CLASS OrgTyp =
+      Typ          : MANDATORY dBetreiberTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END OrgTyp;
+
+    CLASS VKTyp =
+      Typ          : MANDATORY dVKTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END VKTyp;
+
+    CLASS VorfluterTyp =
+      Typ          : MANDATORY dVorfluterTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END VorfluterTyp;
+
+    CLASS PEliminationTyp =
+      Typ          : MANDATORY dPEliminationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PEliminationTyp;
+
+    CLASS CAbbauTyp =
+      Typ          : MANDATORY dCAbbauTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END CAbbauTyp;
+
+    CLASS NitrifikationTyp =
+      Typ          : MANDATORY dNitrifikationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END NitrifikationTyp;
+
+    CLASS DenitrifikationTyp =
+      Typ          : MANDATORY dDenitrifikationTyp;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END DenitrifikationTyp;
+
+    CLASS Filtration =
+      Typ          : MANDATORY dFiltration;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Filtration;
+
+    CLASS MikroV =
+      Typ          : MANDATORY dMikroV;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MikroV;
+
+    CLASS MikroVNachbeh =
+      Typ          : MANDATORY dMikroVNachbeh;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MikroVNachbeh;
+
+    CLASS Desinfektion =
+      Typ          : MANDATORY dDesinfektion;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Desinfektion;
+
+    CLASS Schlammstab =
+      Typ          : MANDATORY dSchlammstab;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schlammstab;
+
+    CLASS Schlammwbeh =
+      Typ          : MANDATORY dSchlammwbeh;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schlammwbeh;
+
+    CLASS Gasverw =
+      Typ          : MANDATORY dGasverw;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gasverw;
+
+  END CAT;
+
+  TOPIC ARA =                            !!  Die eigentlichen Klassen
+!!==============================================================================
+    CLASS ARA =
+    !!=============================================
+      ARANr        : MANDATORY 1 .. 999999;
+      Bezeichnung  : MANDATORY TEXT*100;
+      Betreiber    : MANDATORY TEXT*100;
+      BetreiberTyp : MANDATORY dBetreiberTyp;
+      Lage         : MANDATORY GeometryCHLV95_V1.Coord2;
+      Strasse      : MANDATORY TEXT*50;
+      PLZ          : MANDATORY 0 .. 9999;
+      Ort          : MANDATORY TEXT*40;
+      ErhVtech     : MANDATORY INTERLIS.XMLDate;
+    END ARA;
+
+    CLASS ARAGross EXTENDS ARA =
+    !!=============================================
+      ErhJahrKennzahlen : MANDATORY 1900 .. 2500;
+    END ARAGross;
+
+    CLASS Einleitstelle =
+    !!=============================================
+      Lage         : MANDATORY GeometryCHLV95_V1.Coord2;
+      VorfluterTyp : MANDATORY dVorfluterTyp;
+      GEWISSNr     : MANDATORY 0 .. 999999;
+    END Einleitstelle;
+
+    CLASS EinleitstelleGross EXTENDS Einleitstelle =
+    !!=============================================
+      Q347 : MANDATORY 0 .. 999;   !! m3/sec
+    END EinleitstelleGross;
+
+    CLASS Einzugsgebiet =
+    !!=============================================
+      Gebiet            : MANDATORY Polygon;
+      EinwAnz           : MANDATORY 0 .. 9999999;
+      EinwAngeschlossen : MANDATORY 0 .. 9999999;
+    END Einzugsgebiet;
+
+    CLASS Verfahrenstechnik =
+    !!=============================================
+      DimEWbiologisch     : MANDATORY 0 .. 999999;
+      AuslNitrifikation   : MANDATORY BOOLEAN;
+      AuslDenitrifikation : MANDATORY BOOLEAN;
+      AuslPElimination    : MANDATORY BOOLEAN;
+      AuslGUSElimination  : MANDATORY BOOLEAN;
+      AuslSpurenstoffe    : MANDATORY BOOLEAN;
+      AuslDesinfektion    : MANDATORY BOOLEAN;
+
+      !! gilt nur für Objekte, die nicht spezialisiert sind (VerfahrenstechnikGross)
+      MANDATORY CONSTRAINT INTERLIS.myClass(THIS) != >Verfahrenstechnik OR DimEWbiologisch < 1000;
+    END Verfahrenstechnik;
+
+    CLASS VerfahrenstechnikGross EXTENDS Verfahrenstechnik =
+    !!=============================================
+      RegenwVol       : MANDATORY 0 .. 99999;
+      AuslHydr        : MANDATORY 0 .. 99999;
+      PEliminationTyp : MANDATORY dPEliminationTyp;
+      Hebewerk        : MANDATORY BOOLEAN;
+      VKBVol          : MANDATORY 0 .. 99999;
+      VKTyp           :           dVKTyp;
+
+      MANDATORY CONSTRAINT DimEWbiologisch >= 1000;
+    END VerfahrenstechnikGross;
+
+    CLASS BelastungLeistung =
+    !!=============================================
+      AbwMengeBeh  : MANDATORY  0 .. 999999999;
+      AbwMengeTWZu : MANDATORY  0 .. 999999;
+      EW85         : MANDATORY  0 .. 999999;
+      ZuFrachtCSB  : MANDATORY  0 .. 999999;
+      ZuFrachtNH4  : MANDATORY  0 .. 9999;
+      ZuFrachtNtot :            0 .. 9999;
+      ZuFrachtPtot :            0 .. 9999;
+      AbFrachtCSB  : MANDATORY  0 .. 99999;
+      AbFrachtNH4  : MANDATORY  0 .. 9999;
+      AbFrachtNtot :            0 .. 9999;
+      AbFrachtPtot :            0 .. 999;
+      AbFrachtNO3  :            0 .. 9999;
+    END BelastungLeistung;
+
+    CLASS SchlammMengen =
+    !!=============================================
+      KSAbgMenge     : MANDATORY  0 .. 99999;
+      FremdschlMenge : MANDATORY  0 .. 99999;
+      CoSubstrat     : MANDATORY  BOOLEAN;
+    END SchlammMengen;
+
+    CLASS Energie =
+    !!=============================================
+      Stromverbr        : MANDATORY  0 .. 99999999;
+      StromverbrhBiol   :            0 .. 99999999;
+      Stromprod         : MANDATORY  0 .. 99999999;
+      Stromverk         : MANDATORY  0 .. 99999999;
+      Strombez          : MANDATORY  0 .. 99999999;
+      Biogasprod        : MANDATORY  0 .. 99999999;
+      BiogasverwTherm   : MANDATORY  0 .. 99999999;
+      BiogasverbrFackel : MANDATORY  0 .. 99999999;
+      Biogasverk        : MANDATORY  0 .. 99999999;
+      Waermeprod        :            0 .. 99999999;
+      Waermebez         :            0 .. 99999999;
+      Waermeverbr       :            0 .. 99999999;
+      Waermeverk        :            0 .. 99999999;
+      Heizoelverbr      :            0 .. 999999;
+      Erdgasverbr       :            0 .. 999999;
+    END Energie;
+
+    CLASS Faellmittel =
+    !!=============================================
+      Eisen          : 0 .. 999999;
+      Alu            : 0 .. 999999;
+      Polyelektrolyt : 0 .. 999999;
+      andere         : 0 .. 999999;
+    END Faellmittel;
+
+    CLASS Kosten =
+    !!=============================================
+      Personal          : MANDATORY  0 .. 9999999;  !! pro Jahr
+      Sach              : MANDATORY  0 .. 9999999;  !! pro Jahr
+      Zins              : MANDATORY  0 .. 9999999;  !! pro Jahr
+      BruttoInvest      : MANDATORY  0 .. 99999999; !! pro Jahr
+      Wiederbeschaffung : MANDATORY  0 .. 999999999;
+    END Kosten;
+
+    CLASS ReinigungBiologisch =
+    !!=============================================
+      Kap                : MANDATORY 0 .. 9999;
+      CAbbauTyp          : MANDATORY dCAbbauTyp;
+      NitrifikationTyp   : MANDATORY dNitrifikationTyp;
+      DenitrifikationTyp : MANDATORY dDenitrifikationTyp;
+      Vol                : MANDATORY 0 .. 999999;
+      NKBVol             : MANDATORY 0 .. 999999;
+      NKBOberflaeche     : MANDATORY 0 .. 99999;
+    END ReinigungBiologisch;
+
+    CLASS ReinigungWeitergehend =
+    !!=============================================
+      Filtration           : MANDATORY  dFiltration;
+      AuslHydrFiltration   : MANDATORY  0 .. 9999;
+      MikroV               : MANDATORY  dMikroV;
+      AuslHydrMikroV       : MANDATORY  0 .. 9999;
+      MikrovNachbeh        : MANDATORY  dMikroVNachbeh;
+      Desinfektion         : MANDATORY  dDesinfektion;
+      AuslHydrDesinfektion : MANDATORY  0 .. 9999;
+    END ReinigungWeitergehend;
+
+    CLASS SchlammBehandlung =
+    !!=============================================
+      Vorbeh         : MANDATORY  BOOLEAN;
+      Schlammstab    : MANDATORY  dSchlammstab;
+      Nacheindickung : MANDATORY  BOOLEAN;
+      Entwaesserung  : MANDATORY  BOOLEAN;
+      Trocknung      : MANDATORY  BOOLEAN;
+      Verbrennung    : MANDATORY  BOOLEAN;
+      Schlammwbeh    : MANDATORY  dSchlammwbeh;
+      Gasverw        : MANDATORY  dGasverw;
+    END SchlammBehandlung;
+
+    !! Beziehungen ARA zu ...
+    !!=============================================
+    ASSOCIATION ARA_Einleitstelle =
+      rAnlage        -<#> {1} ARA;
+      rEinleitstelle --   {1} Einleitstelle;
+    END ARA_Einleitstelle;
+
+    !! wegen der folgenden Spezialisierung muessen alle ARAGross mit einer EinleitstelleGross (statt Einleitstelle) verknuepft werden
+    ASSOCIATION ARAGross_Einleitstelle EXTENDS ARA_Einleitstelle =
+      rAnlage (EXTENDED)        -<#> {1} ARAGross;
+      rEinleitstelle (EXTENDED) --   {1} EinleitstelleGross;
+    END ARAGross_Einleitstelle;
+
+    ASSOCIATION ARA_Einzugsgebiet =
+      rAnlage --  {1} ARA;
+      rGebiet --  {1} Einzugsgebiet;
+    END ARA_Einzugsgebiet;
+
+    ASSOCIATION ARA_Verfahrenstechnik =
+      rAnlage    -<#> {1} ARA;
+      rVerfahren --   {1} Verfahrenstechnik;
+    END ARA_Verfahrenstechnik;
+
+    ASSOCIATION ARA_VerfahrenstechnikG EXTENDS ARA_Verfahrenstechnik =
+      rAnlage (EXTENDED)    -<#> {1} ARAGross;
+      rVerfahren (EXTENDED) --   {1} VerfahrenstechnikGross;
+    END ARA_VerfahrenstechnikG;
+
+    ASSOCIATION ARA_BelastungLeistung =
+      rAnlage            -<#> {1} ARAGross;
+      rBelastungLeistung --   {1} BelastungLeistung;
+    END ARA_BelastungLeistung;
+
+    ASSOCIATION ARA_SchlammMengen =
+      rAnlage   -<#> {1} ARAGross;
+      rSchlamm  --   {1} SchlammMengen;
+    END ARA_SchlammMengen;
+
+    ASSOCIATION ARA_Energie =
+      rAnlage  -<#> {1} ARAGross;
+      rEnergie --   {1} Energie;
+    END ARA_Energie;
+
+    ASSOCIATION ARA_Faellmittel =
+      rAnlage      -<#> {1} ARAGross;
+      rFaellmittel --   {1} Faellmittel;
+    END ARA_Faellmittel;
+
+    ASSOCIATION ARA_Kosten =
+      rAnlage   -<#> {1} ARAGross;
+      rFinanzen --   {1} Kosten;
+    END ARA_Kosten;
+
+    !! Beziehungen Verfahrenstechnik zu ...
+    !!=============================================
+    ASSOCIATION Verfahrenstechnik_Biologisch =
+      rVT         -<#> {1}    VerfahrenstechnikGross;
+      rBiologisch --   {1..*} ReinigungBiologisch;
+    END Verfahrenstechnik_Biologisch;
+
+    ASSOCIATION Verfahrenstechnik_Weitergehend =
+      rVT           -<#> {1} VerfahrenstechnikGross;
+      rWeitergehend --   {0..*} ReinigungWeitergehend;
+    END Verfahrenstechnik_Weitergehend;
+
+    ASSOCIATION Verfahrenstechnik_Schlamm =
+      rVT      -<#> {1} VerfahrenstechnikGross;
+      rSchlamm --   {1} SchlammBehandlung;
+    END Verfahrenstechnik_Schlamm;
+
+  END ARA;                                        !! topic
+
+END ARA_DB_LV95_V1.                               !! model

@@ -1,0 +1,538 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Version    | Who   | Modification
+!! -----------------------------------------------------------------------------
+!! 2022-01-07 | BFE   | MODEL SIA405_LKMap_f_MN95: Base_f_MN95 replaced by Base_f_LV95, SIA405_Base_f_MN95 replaced by SIA405_Base_f_LV95, Polyline replaced by Polyligne
+
+!! Copyright 2010 - 2015 SIA
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=92.1
+!!@ modelDocumentation=https://www.uvek-gis.admin.ch/BFE/redirect/92.html
+
+MODEL SIA405_LKMap_f (fr) AT "https://models.geo.admin.ch/BFE/"
+  VERSION "2022-01-07" TRANSLATION OF SIA405_LKMap [ "2014-06-28" ] =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Base_f;
+  IMPORTS SIA405_Base_f;
+
+  UNIT
+
+  DOMAIN
+
+  TOPIC SIA405_LKMap_f =
+
+  DOMAIN
+
+  STRUCTURE CHARACTERISTIQUES =
+    DESIGNATION: MANDATORY TEXT * 80;
+    VALEUR: MANDATORY TEXT * 80;
+  END CHARACTERISTIQUES;
+
+  CLASS LKOBJET (ABSTRACT) EXTENDS SIA405_Base_f.SIA405_BaseClass =
+    CHARACTERISTIQUES: BAG OF CHARACTERISTIQUES;
+    PROPRIETAIRE: MANDATORY SIA405_Base_f.Organisation_Designation;
+    DETERMINATION_PLANIMETRIQUE: MANDATORY SIA405_Base_f.Determination_planimetrique;
+    ETAT: SIA405_Base_f.Etat;
+  END LKOBJET;
+
+  CLASS LKSURFACE EXTENDS LKOBJET =
+  ATTRIBUTE
+    SURFACE2D: MANDATORY Base_f.Surface;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        exutoire_milieu_recepteur,
+        ouvrage_special (
+          separateur_d_hydrocarbures_separateur_de_materiaux_flottants,
+          station_de_pompage,
+          BEP,
+          autre
+        ),
+        inconnu,
+        installation_infiltration
+      ),
+      electricite (
+        installation (
+          cabine,
+          chambre,
+          station,
+          utilisateur_public
+        ),
+        support,
+        trace,
+        inconnu
+      ),
+      chauffage_a_distance (
+        ouvrage (
+          chambre,
+          ouvrage_special,
+          station
+        ),
+        trace,
+        inconnu
+      ),
+      gaz (
+        couloir_de_securite,
+        construction_speciale,
+        inconnu
+      ),
+      communication (
+        ouvrage,
+        chambre,
+        support,
+        trace,
+        inconnu
+      ),
+      eau (
+        construction_speciale,
+        inconnu
+      ),
+      autres_fluides (
+        couloir_de_securite,
+        ouvrage_special,
+        inconnu
+      )
+    );
+  END LKSURFACE;
+
+  CLASS LKLIGNE EXTENDS LKOBJET =
+  ATTRIBUTE
+    LARGEUR: SIA405_Base_f.Largeur;
+    LIGNE: MANDATORY Base_f.Polyligne;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        cable_de_controle_a_distance,
+        troncon_canalisation,
+        tube_de_protection
+      ),
+      electricite (
+        hauban_contrefiche,
+        trace (
+          aerien,
+          souterrain
+        )
+      ),
+      chauffage_a_distance (
+        cable_de_controle_a_distance,
+        trace (
+          aerien,
+          souterrain
+        ),
+      tube_de_protection
+      ),
+      gaz (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      ),
+      communication (
+        trace (
+          aerien,
+          souterrain
+        )
+      ),
+      eau (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      ),
+      autres_fluides (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      )
+    );
+    TYPE_PROFIL: (
+      ovoide,
+      circulaire,
+      rectangulaire,
+      inconnu,
+      autre
+    );
+  END LKLIGNE;
+
+  CLASS LKPOINT EXTENDS LKOBJET =
+  ATTRIBUTE
+    DIMENSION1: SIA405_Base_f.Metrage;
+    DIMENSION2: SIA405_Base_f.Metrage;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        couvercle,
+        exutoire_milieu_recepteur,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        changement_de_diametre,
+        debut_de_canalisation,
+        chambre_standard (
+          chambre_avec_grille_d_entree,
+          evacuation_des_eaux_des_voies_ferrees,
+          regard_de_visite,
+          separateur_d_hydrocarbures_separateur_de_materiaux_flottants,
+          depotoir,
+          autre
+        ),
+        inconnu,
+        installation_infiltration
+      ),
+      electricite (
+        cabine,
+        utilisateur_public,
+        chambre (
+          rectangulaire,
+          rond
+        ),
+        station,
+        support,
+        inconnu
+      ),
+      chauffage_a_distance (
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        point_du_trace (
+          support,
+          ventilation_drainage,
+          drainage,
+          point_fixe,
+          point_de_geometrie,
+          ouverture_de_montage_acces_de_chambre
+          ),
+        inconnu
+      ),
+      gaz (
+        organe_de_fermeture,
+        reverbere_a_gaz,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        composant (
+          coude_horizontal,
+          coude_vertical
+        ),
+        chambre,
+        siphon,
+        inconnu
+      ),
+      communication (
+        ouvrage,
+        chambre (
+          rectangulaire,
+          rond
+        ),
+        support,
+        inconnu
+      ),
+      eau (
+        organe_de_fermeture,
+        bouche_arrosage,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        borne_hydrant,
+        composant (
+          coude_horizontal,
+          coude_vertical
+        ),
+        chambre,
+        inconnu,
+        hydrant_souterrain
+      ),
+      autres_fluides (
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        point_de_conduite
+      )
+    );
+    SYMBOLEPOS: MANDATORY Base_f.CoordNat;
+    SYMBOLEORI: Base_f.Orientation;
+  END LKPOINT;
+
+  CLASS LKOBJET_Texte EXTENDS SIA405_Base_f.SIA405_TextePos =
+  END LKOBJET_Texte;
+
+  ASSOCIATION LKOBJET_LKOBJETTexteAssoc =
+    LKOBJETRef -<#> {1} LKOBJET;
+    LKOBJET_LKOBJET_TexteAssocRef -- {0 .. *} LKOBJET_Texte;
+  END LKOBJET_LKOBJETTexteAssoc;
+
+  END SIA405_LKMap_f;
+
+END SIA405_LKMap_f.
+
+!! ******************************************************
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=92.1
+!!@ modelDocumentation=https://www.uvek-gis.admin.ch/BFE/redirect/92.html
+
+MODEL SIA405_LKMap_f_MN95 (fr) AT "https://models.geo.admin.ch/BFE/"
+  VERSION "2022-01-07" TRANSLATION OF SIA405_LKMap_LV95 [ "2014-06-28" ] =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Base_f_LV95;
+  IMPORTS SIA405_Base_f_LV95;
+
+  UNIT
+
+  DOMAIN
+
+  TOPIC SIA405_LKMap_f =
+
+  DOMAIN
+
+  STRUCTURE CHARACTERISTIQUES =
+    DESIGNATION: MANDATORY TEXT * 80;
+    VALEUR: MANDATORY TEXT * 80;
+  END CHARACTERISTIQUES;
+
+  CLASS LKOBJET (ABSTRACT) EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =
+    CHARACTERISTIQUES: BAG OF CHARACTERISTIQUES;
+    PROPRIETAIRE: MANDATORY SIA405_Base_f_LV95.Organisation_Designation;
+    DETERMINATION_PLANIMETRIQUE: MANDATORY SIA405_Base_f_LV95.Determination_planimetrique;
+    ETAT: SIA405_Base_f_LV95.Etat;
+  END LKOBJET;
+
+  CLASS LKSURFACE EXTENDS LKOBJET =
+  ATTRIBUTE
+    SURFACE2D: MANDATORY Base_f_LV95.Surface;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        exutoire_milieu_recepteur,
+        ouvrage_special (
+          separateur_d_hydrocarbures_separateur_de_materiaux_flottants,
+          station_de_pompage,
+          BEP,
+          autre
+        ),
+        inconnu,
+        installation_infiltration
+      ),
+      electricite (
+        installation (
+          cabine,
+          chambre,
+          station,
+          utilisateur_public
+        ),
+        support,
+        trace,
+        inconnu
+      ),
+      chauffage_a_distance (
+        ouvrage (
+          chambre,
+          ouvrage_special,
+          station
+        ),
+        trace,
+        inconnu
+      ),
+      gaz (
+        couloir_de_securite,
+        construction_speciale,
+        inconnu
+      ),
+      communication (
+        ouvrage,
+        chambre,
+        support,
+        trace,
+        inconnu
+      ),
+      eau (
+        construction_speciale,
+        inconnu
+      ),
+      autres_fluides (
+        couloir_de_securite,
+        ouvrage_special,
+        inconnu
+      )
+    );
+  END LKSURFACE;
+
+  CLASS LKLIGNE EXTENDS LKOBJET =
+  ATTRIBUTE
+    LARGEUR: SIA405_Base_f_LV95.Largeur;
+    LIGNE: MANDATORY Base_f_LV95.Polyligne;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        cable_de_controle_a_distance,
+        troncon_canalisation,
+        tube_de_protection
+      ),
+      electricite (
+        hauban_contrefiche,
+        trace (
+          aerien,
+          souterrain
+        )
+      ),
+      chauffage_a_distance (
+        cable_de_controle_a_distance,
+        trace (
+          aerien,
+          souterrain
+        ),
+      tube_de_protection
+      ),
+      gaz (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      ),
+      communication (
+        trace (
+          aerien,
+          souterrain
+        )
+      ),
+      eau (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      ),
+      autres_fluides (
+        cable_de_controle_a_distance,
+        conduite,
+        tube_de_protection
+      )
+    );
+    TYPE_PROFIL: (
+      ovoide,
+      circulaire,
+      rectangulaire,
+      inconnu,
+      autre
+    );
+  END LKLIGNE;
+
+  CLASS LKPOINT EXTENDS LKOBJET =
+  ATTRIBUTE
+    DIMENSION1: SIA405_Base_f_LV95.Metrage;
+    DIMENSION2: SIA405_Base_f_LV95.Metrage;
+    TYPE_OBJET: MANDATORY (
+      eaux_usees (
+        couvercle,
+        exutoire_milieu_recepteur,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        changement_de_diametre,
+        debut_de_canalisation,
+        chambre_standard (
+          chambre_avec_grille_d_entree,
+          evacuation_des_eaux_des_voies_ferrees,
+          regard_de_visite,
+          separateur_d_hydrocarbures_separateur_de_materiaux_flottants,
+          depotoir,
+          autre
+        ),
+        inconnu,
+        installation_infiltration
+      ),
+      electricite (
+        cabine,
+        utilisateur_public,
+        chambre (
+          rectangulaire,
+          rond
+        ),
+        station,
+        support,
+        inconnu
+      ),
+      chauffage_a_distance (
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        point_du_trace (
+          support,
+          ventilation_drainage,
+          drainage,
+          point_fixe,
+          point_de_geometrie,
+          ouverture_de_montage_acces_de_chambre
+          ),
+        inconnu
+      ),
+      gaz (
+        organe_de_fermeture,
+        reverbere_a_gaz,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        composant (
+          coude_horizontal,
+          coude_vertical
+        ),
+        chambre,
+        siphon,
+        inconnu
+      ),
+      communication (
+        ouvrage,
+        chambre (
+          rectangulaire,
+          rond
+        ),
+        support,
+        inconnu
+      ),
+      eau (
+        organe_de_fermeture,
+        bouche_arrosage,
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        borne_hydrant,
+        composant (
+          coude_horizontal,
+          coude_vertical
+        ),
+        chambre,
+        inconnu,
+        hydrant_souterrain
+      ),
+      autres_fluides (
+        point_de_cable (
+          chambre_a_cable,
+          cabine
+        ),
+        point_de_conduite
+      )
+    );
+    SYMBOLEPOS: MANDATORY Base_f_LV95.CoordNat;
+    SYMBOLEORI: Base_f_LV95.Orientation;
+  END LKPOINT;
+
+  CLASS LKOBJET_Texte EXTENDS SIA405_Base_f_LV95.SIA405_TextePos =
+  END LKOBJET_Texte;
+
+  ASSOCIATION LKOBJET_LKOBJETTexteAssoc =
+    LKOBJETRef -<#> {1} LKOBJET;
+    LKOBJET_LKOBJET_TexteAssocRef -- {0 .. *} LKOBJET_Texte;
+  END LKOBJET_LKOBJETTexteAssoc;
+
+  END SIA405_LKMap_f;
+
+END SIA405_LKMap_f_MN95.

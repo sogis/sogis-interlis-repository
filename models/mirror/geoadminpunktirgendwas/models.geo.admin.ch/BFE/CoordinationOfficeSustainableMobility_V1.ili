@@ -1,0 +1,100 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+MODEL CoordinationOfficeSustainableMobility_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2019-07-15"  =
+  IMPORTS GeometryCHLV95_V1,WithOneState_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Numeric = 0.00 .. 100000000.00;
+    Text = TEXT*500;
+    Year = 1900 .. 2999;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC SponsorTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS SponsorType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      SponsorType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END SponsorType;
+
+    STRUCTURE SponsorTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) SponsorType;
+    END SponsorTypeRef;
+
+  END SponsorTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC StatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS ProjectStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ProjectStatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ProjectStatus;
+
+    STRUCTURE ProjectStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ProjectStatus;
+    END ProjectStatusRef;
+
+  END StatusCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC TopicCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Topic
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Topic : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Topic;
+
+    STRUCTURE TopicRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Topic;
+    END TopicRef;
+
+  END TopicCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC CoordinationOfficeSustainableMobility =
+    DEPENDS ON CoordinationOfficeSustainableMobility_V1.SponsorTypeCatalogue,CoordinationOfficeSustainableMobility_V1.StatusCatalogue,CoordinationOfficeSustainableMobility_V1.TopicCatalogue;
+
+    CLASS CoordinationOfficeSustainableMobility =
+      Id : MANDATORY CoordinationOfficeSustainableMobility_V1.Numeric;
+      ProjectStart : MANDATORY CoordinationOfficeSustainableMobility_V1.Year;
+      ProjectEnd : MANDATORY CoordinationOfficeSustainableMobility_V1.Year;
+      ProjectTitle : MANDATORY LocalisationCH_V1.MultilingualText;
+      SubTitle : LocalisationCH_V1.MultilingualText;
+      TotalCost : CoordinationOfficeSustainableMobility_V1.Numeric;
+      AmountSponsored : MANDATORY CoordinationOfficeSustainableMobility_V1.Numeric;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+      Measure : BAG {0..3} OF LocalisationCH_V1.MultilingualText;
+      Aim : BAG {0..3} OF LocalisationCH_V1.MultilingualText;
+      WebDE : INTERLIS.URI;
+      WebFR : INTERLIS.URI;
+      WebIT : INTERLIS.URI;
+      Report : INTERLIS.URI;
+      ProjectSponsor : MANDATORY CoordinationOfficeSustainableMobility_V1.Text;
+      Mail : CoordinationOfficeSustainableMobility_V1.Text;
+      Position : MANDATORY GeometryCHLV95_V1.Coord2;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      ProjectStatus : MANDATORY CoordinationOfficeSustainableMobility_V1.StatusCatalogue.ProjectStatusRef;
+      SponsorType : MANDATORY CoordinationOfficeSustainableMobility_V1.SponsorTypeCatalogue.SponsorTypeRef;
+      Topic : BAG {1..3} OF CoordinationOfficeSustainableMobility_V1.TopicCatalogue.TopicRef;
+    END CoordinationOfficeSustainableMobility;
+
+  END CoordinationOfficeSustainableMobility;
+
+END CoordinationOfficeSustainableMobility_V1.

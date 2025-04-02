@@ -1,0 +1,155 @@
+INTERLIS 2.3;
+
+/** Kataloge für die Hanglagen
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV="152.1,152.2"
+MODEL Hanglagen_Kataloge_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2014-07-01"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Liste aller Hanglagen-Typen
+     * z.B.: allgemein: 0-<18%, >=18-<=35%, >35%-<=50%, >50%
+     */
+    CLASS H_Katalog_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Bereich;
+    END H_Katalog_Typ;
+
+    /** Liste aller Hanglagen-Typen für Reben
+     * z.B.: 0-<30%, >=308-<=50%, >50%
+     */
+    CLASS H_Katalog_Typ_Reben
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+    END H_Katalog_Typ_Reben;
+
+    STRUCTURE HTypRebenRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) H_Katalog_Typ_Reben;
+    END HTypRebenRef;
+
+    STRUCTURE HTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) H_Katalog_Typ;
+    END HTypRef;
+
+  END Kataloge;
+
+END Hanglagen_Kataloge_V1_2.
+
+/** Das Modell Hanglagen ersetzt das Modell Hang- und Steillagen.
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ Issuer=blw
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV="152.1,152.2"
+MODEL Hanglagen_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2014-07-01"  =
+  IMPORTS GeometryCHLV03_V1,Hanglagen_Kataloge_V1_2;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Lagen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Hanglagen_Kataloge_V1_2.Kataloge;
+
+    /** Hanglagen allgemein
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die allgemeinen Hangbeiträge.
+     */
+    CLASS H_Flaeche_allgemein =
+      Flaeche : MANDATORY GeometryCHLV03_V1.Area;
+      /** Datum der Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY Hanglagen_Kataloge_V1_2.Kataloge.HTypRef;
+    END H_Flaeche_allgemein;
+
+    /** Hanglagen Reben
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die Hangbeiträge in Rebbergen.
+     */
+    CLASS H_Flaeche_Reben =
+      Flaeche : MANDATORY GeometryCHLV03_V1.Area;
+      /** Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY Hanglagen_Kataloge_V1_2.Kataloge.HTypRebenRef;
+    END H_Flaeche_Reben;
+
+  END Lagen;
+
+END Hanglagen_V1_2.
+
+/** Das Modell Hanglagen ersetzt das Modell Hang- und Steillagen.
+ * Hanglagen_LV95 ist eine Kopie von Hanglagen, einzig mit anderem Bezugsrahmen.
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ Issuer=blw
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV="152.1,152.2"
+MODEL Hanglagen_LV95_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2014-07-01"  =
+  IMPORTS GeometryCHLV95_V1,Hanglagen_Kataloge_V1_2;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Lagen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Hanglagen_Kataloge_V1_2.Kataloge;
+
+    /** Hanglagen allgemein
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die allgemeinen Hangbeiträge.
+     */
+    CLASS H_Flaeche_allgemein =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      /** Datum der Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY Hanglagen_Kataloge_V1_2.Kataloge.HTypRef;
+    END H_Flaeche_allgemein;
+
+    /** Hanglagen Reben
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die Hangbeiträge in Rebbergen.
+     */
+    CLASS H_Flaeche_Reben =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      /** Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY Hanglagen_Kataloge_V1_2.Kataloge.HTypRebenRef;
+    END H_Flaeche_Reben;
+
+  END Lagen;
+
+END Hanglagen_LV95_V1_2.

@@ -1,0 +1,63 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!--------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (line 36),
+!!                      Property EXTERNAL added (line 29),
+!!                      WITHOUT OVERLAPS added (line 40)
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 40)
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=160.1
+MODEL Waldreservate_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS LocalisationCH_V1,Units,CatalogueObjects_V1,GeometryCHLV03_V1;
+
+  TOPIC Codelisten
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS MCPFE_Class_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MCPFE_Class_Catalogue;
+
+    STRUCTURE MCPFE_Class_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) MCPFE_Class_Catalogue;
+    END MCPFE_Class_CatRef;
+
+  END Codelisten;
+
+  TOPIC Waldreservate =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Waldreservate_V1.Codelisten;
+
+    DOMAIN
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Waldreservat =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT;
+      Obj_GesFlaeche : MANDATORY 0.0 .. 999999.0 [Units.ha];
+      Obj_GISFlaeche : 0.0 .. 999999.0 [Units.ha];
+    END Waldreservat;
+
+    CLASS Waldreservat_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*30;
+      MCPFE_Class : MANDATORY Waldreservate_V1.Codelisten.MCPFE_Class_CatRef;
+      Obj_GISTeilobjekt : MANDATORY 0.0 .. 999999.0 [Units.ha];
+      Geo_Obj : MANDATORY Polygon;
+    END Waldreservat_Teilobjekt;
+
+    ASSOCIATION WaldreservatWaldreservat_Teilobjekt =
+      WR_Teilobjekt -- {1..*} Waldreservat_Teilobjekt;
+      WR -<#> {1} Waldreservat;
+    END WaldreservatWaldreservat_Teilobjekt;
+
+  END Waldreservate;
+
+END Waldreservate_V1.

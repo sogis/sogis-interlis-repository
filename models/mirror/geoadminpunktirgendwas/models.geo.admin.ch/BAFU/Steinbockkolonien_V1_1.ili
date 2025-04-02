@@ -1,0 +1,61 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU  | LV03 gelöscht
+
+!!@ IDGeoIV=169.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+MODEL Steinbockkolonien_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-06-02"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Gebietstyp_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gebietstyp_Catalogue;
+
+    STRUCTURE Gebietstyp_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Gebietstyp_Catalogue;
+    END Gebietstyp_CatRef;
+
+  END Codelisten;
+
+  TOPIC Steinbockkolonien =
+    DEPENDS ON Steinbockkolonien_V1_1.Codelisten;
+
+    DOMAIN
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /** Klasse für Steinbockkolonien */
+    CLASS Steinbockkolonie =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      Gebietstyp : MANDATORY Steinbockkolonien_V1_1.Codelisten.Gebietstyp_CatRef;
+      Kantone : MANDATORY TEXT*80;
+      Revisionsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Steinbockkolonie;
+
+  END Steinbockkolonien;
+
+END Steinbockkolonien_V1_1.

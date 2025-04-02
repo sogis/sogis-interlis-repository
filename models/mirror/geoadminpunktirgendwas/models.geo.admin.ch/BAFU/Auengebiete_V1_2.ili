@@ -1,0 +1,84 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU  | Attribut Geo_Obj in Klasse Auengebiet verschoben, Klasse Auengebiet_Teilobjekt
+!!                    | (und enstprechende Assoziation) gelöscht, LV03 gelöscht
+
+!!@ IDGeoIV=19.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Auengebiete_V1_2 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-06-02"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS TYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*15;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END TYP_Catalogue;
+
+    STRUCTURE TYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) TYP_Catalogue;
+    END TYP_CatRef;
+
+  END Codelisten;
+
+  TOPIC Auengebiete =
+    DEPENDS ON Auengebiete_V1_2.Codelisten;
+
+    DOMAIN
+
+      /** Aufzählungslisten */
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /** Klasse für das gesamte Auengebiet */
+    CLASS Auengebiet =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Typ : MANDATORY Auengebiete_V1_2.Codelisten.TYP_CatRef;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Geo_Obj : MANDATORY MultiPolygon;
+    UNIQUE ObjNummer;
+    END Auengebiet;
+
+  END Auengebiete;
+
+END Auengebiete_V1_2.

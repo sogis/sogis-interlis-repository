@@ -1,0 +1,468 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="142.1" 
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL NoisePollutionRegisterForNationalRoads_Codelisten_V1 (en)
+AT "https://models.geo.admin.ch/BAFU"
+VERSION "2016-11-22"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS exposure_limit_value_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END exposure_limit_value_Catalogue;
+
+    STRUCTURE exposure_limit_value_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) exposure_limit_value_Catalogue;
+    END exposure_limit_value_CatRef;
+
+    CLASS operation_status_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END operation_status_Catalogue;
+
+    STRUCTURE operation_status_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) operation_status_Catalogue;
+    END operation_status_CatRef;
+
+    CLASS emodel_street_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END emodel_street_Catalogue;
+
+    STRUCTURE emodel_street_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) emodel_street_Catalogue;
+    END emodel_street_CatRef;
+
+    CLASS pointofdetermination_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END pointofdetermination_Catalogue;
+
+    STRUCTURE pointofdetermination_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) pointofdetermination_Catalogue;
+    END pointofdetermination_CatRef;
+
+    CLASS used_roadspeed_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END used_roadspeed_Catalogue;
+
+    STRUCTURE used_roadspeed_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) used_roadspeed_Catalogue;
+    END used_roadspeed_CatRef;
+
+    CLASS noisebarriertype_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END noisebarriertype_Catalogue;
+
+    STRUCTURE noisebarriertype_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) noisebarriertype_Catalogue;
+    END noisebarriertype_CatRef;
+
+    CLASS tram_noise_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END tram_noise_Catalogue;
+
+    STRUCTURE tram_noise_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) tram_noise_Catalogue;
+    END tram_noise_CatRef;
+
+    CLASS trafficcollection_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END trafficcollection_Catalogue;
+
+    STRUCTURE trafficcollection_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) trafficcollection_Catalogue;
+    END trafficcollection_CatRef;
+
+  END Codelisten;
+
+END NoisePollutionRegisterForNationalRoads_Codelisten_V1.  
+
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="142.1" 
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL NoisePollutionRegisterForNationalRoads_LV03_V1 (en)
+AT "https://models.geo.admin.ch/BAFU"
+VERSION "2016-11-22"  =
+  IMPORTS NoisePollutionRegisterForNationalRoads_Codelisten_V1, GeometryCHLV03_V1, Units;
+  
+  TOPIC Emission_Strasse =
+    DEPENDS ON NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      PolylineZ = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3;
+
+    CLASS inputdata_Estreet =
+      inputdata_remark : MTEXT*256;
+      aDTF : MANDATORY 0.0 .. 999999.9;
+      Nt : MANDATORY 0.0 .. 999999.9;
+      Nn : MANDATORY 0.0 .. 999999.9;
+      P_Nt2 : MANDATORY 0.0 .. 100.0;
+      P_Nn2 : MANDATORY 0.0 .. 100.0;
+      gradient : MANDATORY -99.99 .. 99.99;
+      trafficcollection : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.trafficcollection_CatRef;
+      trafficcol_remark : MTEXT*256;
+      refyear_trafficcol : MANDATORY 1900 .. 2100;
+      SCS : 0.00 .. 99.99 [INTERLIS.m];
+      track_number : 0 .. 99;
+      direction_seperate : BOOLEAN;
+      roadsurface_correction : MANDATORY -99.9 .. 99.9 [Units.dB];
+      modelcorrection_day : -99.9 .. 99.9;
+      modelcorrection_night : -99.9 .. 99.9;
+      modelcorrection_remark : MTEXT*256;
+      refyear_modcal_str : 1900 .. 2100;
+      used_roadspeed : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.used_roadspeed_CatRef;
+      pavement_type : TEXT*30;
+      pavement_year : 1900 .. 2100;
+      k1_aktiv : BOOLEAN;
+    END inputdata_Estreet;
+
+    CLASS inputdata_EsonROAD
+    EXTENDS inputdata_Estreet =
+      Vt1_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vt2_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn1_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn2_str : MANDATORY 0 .. 200 [Units.kmh];
+      rollingnoise_correction : MANDATORY -99.9 .. 99.9 [Units.dB];
+    END inputdata_EsonROAD;
+
+    CLASS inputdata_EStl86
+    EXTENDS inputdata_Estreet =
+      Vt_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn_str : MANDATORY 0 .. 200 [Units.kmh];
+    END inputdata_EStl86;
+
+    CLASS inputdata_tram =
+      Ntb_tram : MANDATORY 0.0 .. 999.9;
+      Nnb_tram : MANDATORY 0.0 .. 999.9;
+      LqD_tram : MANDATORY -5.0 .. 0.0 [Units.dB];
+      LqN_tram : MANDATORY -5.0 .. 0.0 [Units.dB];
+      mcd_tram : -99.9 .. 99.9 [Units.dB];
+      mcn_tram : -99.9 .. 99.9 [Units.dB];
+      emissionmodel_tram : MANDATORY TEXT*30;
+      refyear_modcal_tram : 1900 .. 2100;
+      LrEday_tram : 0.0 .. 120.0 [Units.dB];
+      LrEnight_tram : 0.0 .. 120.0 [Units.dB];
+      trafficcollection_tram : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.trafficcollection_CatRef;
+    END inputdata_tram;
+
+    CLASS streetemission =
+      geometry_E : MANDATORY PolylineZ;
+      level_aquisition : MANDATORY BOOLEAN;
+      id_E : MANDATORY TEXT*36;
+      street_name : TEXT*50;
+      route_id : TEXT*50;
+      section_from : TEXT*50;
+      section_to : TEXT*50;
+      geometry_acquisition : GeometryCHLV03_V1.Method;
+      position_accuracy : GeometryCHLV03_V1.Accuracy;
+      streetE_remark : MTEXT*256;
+      lrEday : MANDATORY 0.0 .. 120.0 [Units.dB];
+      lrEnight : MANDATORY 0.0 .. 120.0 [Units.dB];
+      emodel_street : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.emodel_street_CatRef;
+      lrE_remark : MTEXT*256;
+      tram_noise : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.tram_noise_CatRef;
+      tunnel : MANDATORY BOOLEAN;
+      bridge : BOOLEAN;
+    END streetemission;
+
+    ASSOCIATION inputdata_EsonROAD2streetemission =
+      streetemission -<#> {1} streetemission;
+      inputdata_EsonROAD -- {0..1} inputdata_EsonROAD;
+    END inputdata_EsonROAD2streetemission;
+
+    ASSOCIATION streetemission2inputdata_EStl86 =
+      streetemission -<#> {1} streetemission;
+      inputdata_EStl86 -- {0..1} inputdata_EStl86;
+    END streetemission2inputdata_EStl86;
+
+    ASSOCIATION streetemission2inputdata_tram =
+      streetemission -<#> {1} streetemission;
+      inputdata_tram -- {0..1} inputdata_tram;
+    END streetemission2inputdata_tram;
+
+  END Emission_Strasse;
+
+  TOPIC Immission_Strasse =
+    DEPENDS ON NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten;
+
+    CLASS dispersion_calculation =
+      dispcal_remark : MTEXT*256;
+      dispersionmodel : MANDATORY TEXT*30;
+      dispersionapplication : MANDATORY TEXT*30;
+      versionnr_dispapp : TEXT*8;
+      meterologydata : TEXT*40;
+      heightmodel : TEXT*40;
+      building_database : TEXT*40;
+      noisebarrier_geodata : TEXT*40;
+      emissiondata : TEXT*40;
+      refyear_register : MANDATORY 1900 .. 2100;
+      NPR_name : MANDATORY TEXT*50;
+      I_measurement : BOOLEAN;
+    END dispersion_calculation;
+
+    CLASS noisebarrier =
+      geometry_nb : MANDATORY NoisePollutionRegisterForNationalRoads_LV03_V1.Emission_Strasse.PolylineZ;
+      noisebarrierheight : 0.00 .. 99.99 [INTERLIS.m];
+      noisebarriertyp : NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.noisebarriertype_CatRef;
+      reflexionloss_left : 0.0 .. 99.9 [Units.dB];
+      reflexionloss_right : 0.0 .. 99.9 [Units.dB];
+      ID_NB : MANDATORY TEXT*36;
+      noisebarrier_remark : MTEXT*256;
+    END noisebarrier;
+
+    CLASS affected_analysis =
+      BFSNr : MANDATORY TEXT*10;
+      GemN : MANDATORY TEXT*50;
+      affected_analysis_remark : MTEXT*256;
+      PV_day : MANDATORY 0.0 .. 99999999.9;
+      PV_night : MANDATORY 0.0 .. 99999999.9;
+      ALV_day : MANDATORY 0.0 .. 99999999.9;
+      ALV_night : MANDATORY 0.0 .. 99999999.9;
+      AV_day : MANDATORY 0.0 .. 99999999.9;
+      AV_night : MANDATORY 0.0 .. 99999999.9;
+      sum_people : MANDATORY 0.0 .. 99999999.9;
+      withoutsensitivitylevel : MANDATORY 0.0 .. 99999999.9;
+      analysis_year : MANDATORY 1900 .. 2100;
+    END affected_analysis;
+
+    CLASS pointofdetermination =
+      determination_remark : MTEXT*256;
+      Lr_day : MANDATORY 0.0 .. 120.0 [Units.dB];
+      Lr_night : MANDATORY 0.0 .. 120.0 [Units.dB];
+      mcd_street : 0.0 .. 99.9 [Units.dB];
+      mcn_street : 0.0 .. 99.9 [Units.dB];
+      geometry_pod : MANDATORY GeometryCHLV03_V1.Coord3;
+      ID_pod : MANDATORY TEXT*36;
+      operation_status : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.operation_status_CatRef;
+      EGID : 0 .. 9999999999;
+      EDID : 0 .. 9999999999;
+      pointofdetermination_t : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.pointofdetermination_CatRef;
+      address_pod : TEXT*100;
+      exposure_limit_value_d : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.exposure_limit_value_CatRef;
+      exposure_limit_value_n : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.exposure_limit_value_CatRef;
+      exposure_limit_date : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      Lr_day_a : 0.0 .. 120.0 [Units.dB];
+      Lr_night_a : 0.0 .. 120.0 [Units.dB];
+      Lr_ruled_date : INTERLIS.XMLDate;
+      Lr_ruled_by : TEXT*40;
+    END pointofdetermination;
+
+    ASSOCIATION dispersion_calculation2pointofdetermination =
+      dispersion_calculation -- {1} dispersion_calculation;
+      pointofdetermination -- {1..*} pointofdetermination;
+    END dispersion_calculation2pointofdetermination;
+
+  END Immission_Strasse;
+
+END NoisePollutionRegisterForNationalRoads_LV03_V1.
+
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="142" 
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL NoisePollutionRegisterForNationalRoads_LV95_V1 (en)
+AT "https://models.geo.admin.ch/BAFU"
+VERSION "2016-11-22"  =
+  IMPORTS NoisePollutionRegisterForNationalRoads_Codelisten_V1, GeometryCHLV95_V1, Units;
+  
+  TOPIC Emission_Strasse =
+    DEPENDS ON NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      PolylineZ = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3;
+
+    CLASS inputdata_Estreet =
+      inputdata_remark : MTEXT*256;
+      aDTF : MANDATORY 0.0 .. 999999.9;
+      Nt : MANDATORY 0.0 .. 999999.9;
+      Nn : MANDATORY 0.0 .. 999999.9;
+      P_Nt2 : MANDATORY 0.0 .. 100.0;
+      P_Nn2 : MANDATORY 0.0 .. 100.0;
+      gradient : MANDATORY -99.99 .. 99.99;
+      trafficcollection : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.trafficcollection_CatRef;
+      trafficcol_remark : MTEXT*256;
+      refyear_trafficcol : MANDATORY 1900 .. 2100;
+      SCS : 0.00 .. 99.99 [INTERLIS.m];
+      track_number : 0 .. 99;
+      direction_seperate : BOOLEAN;
+      roadsurface_correction : MANDATORY -99.9 .. 99.9 [Units.dB];
+      modelcorrection_day : -99.9 .. 99.9;
+      modelcorrection_night : -99.9 .. 99.9;
+      modelcorrection_remark : MTEXT*256;
+      refyear_modcal_str : 1900 .. 2100;
+      used_roadspeed : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.used_roadspeed_CatRef;
+      pavement_type : TEXT*30;
+      pavement_year : 1900 .. 2100;
+      k1_aktiv : BOOLEAN;
+    END inputdata_Estreet;
+
+    CLASS inputdata_EsonROAD
+    EXTENDS inputdata_Estreet =
+      Vt1_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vt2_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn1_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn2_str : MANDATORY 0 .. 200 [Units.kmh];
+      rollingnoise_correction : MANDATORY -99.9 .. 99.9 [Units.dB];
+    END inputdata_EsonROAD;
+
+    CLASS inputdata_EStl86
+    EXTENDS inputdata_Estreet =
+      Vt_str : MANDATORY 0 .. 200 [Units.kmh];
+      Vn_str : MANDATORY 0 .. 200 [Units.kmh];
+    END inputdata_EStl86;
+
+    CLASS inputdata_tram =
+      Ntb_tram : MANDATORY 0.0 .. 999.9;
+      Nnb_tram : MANDATORY 0.0 .. 999.9;
+      LqD_tram : MANDATORY -5.0 .. 0.0 [Units.dB];
+      LqN_tram : MANDATORY -5.0 .. 0.0 [Units.dB];
+      mcd_tram : -99.9 .. 99.9 [Units.dB];
+      mcn_tram : -99.9 .. 99.9 [Units.dB];
+      emissionmodel_tram : MANDATORY TEXT*30;
+      refyear_modcal_tram : 1900 .. 2100;
+      LrEday_tram : 0.0 .. 120.0 [Units.dB];
+      LrEnight_tram : 0.0 .. 120.0 [Units.dB];
+      trafficcollection_tram : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.trafficcollection_CatRef;
+    END inputdata_tram;
+
+    CLASS streetemission =
+      geometry_E : MANDATORY PolylineZ;
+      level_aquisition : MANDATORY BOOLEAN;
+      id_E : MANDATORY TEXT*36;
+      street_name : TEXT*50;
+      route_id : TEXT*50;
+      section_from : TEXT*50;
+      section_to : TEXT*50;
+      geometry_acquisition : GeometryCHLV95_V1.Method;
+      position_accuracy : GeometryCHLV95_V1.Accuracy;
+      streetE_remark : MTEXT*256;
+      lrEday : MANDATORY 0.0 .. 120.0 [Units.dB];
+      lrEnight : MANDATORY 0.0 .. 120.0 [Units.dB];
+      emodel_street : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.emodel_street_CatRef;
+      lrE_remark : MTEXT*256;
+      tram_noise : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.tram_noise_CatRef;
+      tunnel : MANDATORY BOOLEAN;
+      bridge : BOOLEAN;
+    END streetemission;
+
+    ASSOCIATION inputdata_EsonROAD2streetemission =
+      streetemission -<#> {1} streetemission;
+      inputdata_EsonROAD -- {0..1} inputdata_EsonROAD;
+    END inputdata_EsonROAD2streetemission;
+
+    ASSOCIATION streetemission2inputdata_EStl86 =
+      streetemission -<#> {1} streetemission;
+      inputdata_EStl86 -- {0..1} inputdata_EStl86;
+    END streetemission2inputdata_EStl86;
+
+    ASSOCIATION streetemission2inputdata_tram =
+      streetemission -<#> {1} streetemission;
+      inputdata_tram -- {0..1} inputdata_tram;
+    END streetemission2inputdata_tram;
+
+  END Emission_Strasse;
+
+  TOPIC Immission_Strasse =
+    DEPENDS ON NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten;
+
+    CLASS dispersion_calculation =
+      dispcal_remark : MTEXT*256;
+      dispersionmodel : MANDATORY TEXT*30;
+      dispersionapplication : MANDATORY TEXT*30;
+      versionnr_dispapp : TEXT*8;
+      meterologydata : TEXT*40;
+      heightmodel : TEXT*40;
+      building_database : TEXT*40;
+      noisebarrier_geodata : TEXT*40;
+      emissiondata : TEXT*40;
+      refyear_register : MANDATORY 1900 .. 2100;
+      NPR_name : MANDATORY TEXT*50;
+      I_measurement : BOOLEAN;
+    END dispersion_calculation;
+
+    CLASS noisebarrier =
+      geometry_nb : MANDATORY NoisePollutionRegisterForNationalRoads_LV95_V1.Emission_Strasse.PolylineZ;
+      noisebarrierheight : 0.00 .. 99.99 [INTERLIS.m];
+      noisebarriertyp : NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.noisebarriertype_CatRef;
+      reflexionloss_left : 0.0 .. 99.9 [Units.dB];
+      reflexionloss_right : 0.0 .. 99.9 [Units.dB];
+      ID_NB : MANDATORY TEXT*36;
+      noisebarrier_remark : MTEXT*256;
+    END noisebarrier;
+
+    CLASS affected_analysis =
+      BFSNr : MANDATORY TEXT*10;
+      GemN : MANDATORY TEXT*50;
+      affected_analysis_remark : MTEXT*256;
+      PV_day : MANDATORY 0.0 .. 99999999.9;
+      PV_night : MANDATORY 0.0 .. 99999999.9;
+      ALV_day : MANDATORY 0.0 .. 99999999.9;
+      ALV_night : MANDATORY 0.0 .. 99999999.9;
+      AV_day : MANDATORY 0.0 .. 99999999.9;
+      AV_night : MANDATORY 0.0 .. 99999999.9;
+      sum_people : MANDATORY 0.0 .. 99999999.9;
+      withoutsensitivitylevel : MANDATORY 0.0 .. 99999999.9;
+      analysis_year : MANDATORY 1900 .. 2100;
+    END affected_analysis;
+
+    CLASS pointofdetermination =
+      determination_remark : MTEXT*256;
+      Lr_day : MANDATORY 0.0 .. 120.0 [Units.dB];
+      Lr_night : MANDATORY 0.0 .. 120.0 [Units.dB];
+      mcd_street : 0.0 .. 99.9 [Units.dB];
+      mcn_street : 0.0 .. 99.9 [Units.dB];
+      geometry_pod : MANDATORY GeometryCHLV95_V1.Coord3;
+      ID_pod : MANDATORY TEXT*36;
+      operation_status : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.operation_status_CatRef;
+      EGID : 0 .. 9999999999;
+      EDID : 0 .. 9999999999;
+      pointofdetermination_t : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.pointofdetermination_CatRef;
+      address_pod : TEXT*100;
+      exposure_limit_value_d : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.exposure_limit_value_CatRef;
+      exposure_limit_value_n : MANDATORY NoisePollutionRegisterForNationalRoads_Codelisten_V1.Codelisten.exposure_limit_value_CatRef;
+      exposure_limit_date : FORMAT INTERLIS.XMLDate "1900-1-1" .. "2100-12-31";
+      Lr_day_a : 0.0 .. 120.0 [Units.dB];
+      Lr_night_a : 0.0 .. 120.0 [Units.dB];
+      Lr_ruled_date : INTERLIS.XMLDate;
+      Lr_ruled_by : TEXT*40;
+    END pointofdetermination;
+
+    ASSOCIATION dispersion_calculation2pointofdetermination =
+      dispersion_calculation -- {1} dispersion_calculation;
+      pointofdetermination -- {1..*} pointofdetermination;
+    END dispersion_calculation2pointofdetermination;
+
+  END Immission_Strasse;
+
+END NoisePollutionRegisterForNationalRoads_LV95_V1.

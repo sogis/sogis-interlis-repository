@@ -1,0 +1,78 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2023-01-01 | BLW   | LV03 gelöscht, Klasse Bezugsjahr gelöscht, Versionsnummer neu V2_0,
+!!                    | Kataloge kein eigenes MODEL mehr, Erstellungsdatum in Aenderungsdatum umbenannt
+!! 2023-03-17 | BLW   | Topic Kataloge und Topic Lagen: OID AS INTERLIS.UUIDOID gelöscht
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation="https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/hanglagen.html"
+!!@ IDGeoIV="152.1,152.2"
+MODEL LWB_Hanglagen_V2_0 (de)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2023-03-17"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+
+    /** Liste aller Hanglagen-Typen
+     * z.B.: allgemein: 0-<18%, >=18%-<=35%, >35%-<=50%, >50%
+     */
+    CLASS H_Katalog_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Bereich;
+    END H_Katalog_Typ;
+
+    /** Liste aller Hanglagen-Typen für Reben
+     * z.B.: 0-<30%, >=30%-<=50%, >50%
+     */
+    CLASS H_Katalog_Typ_Reben
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+    END H_Katalog_Typ_Reben;
+
+    STRUCTURE HTypRebenRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) H_Katalog_Typ_Reben;
+    END HTypRebenRef;
+
+    STRUCTURE HTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) H_Katalog_Typ;
+    END HTypRef;
+
+  END Kataloge;
+
+  TOPIC Lagen =
+
+    DEPENDS ON LWB_Hanglagen_V2_0.Kataloge;
+
+    /** Hanglagen allgemein
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die allgemeinen Hangbeiträge.
+     */
+    CLASS H_Flaeche_allgemein =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      Aenderungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY LWB_Hanglagen_V2_0.Kataloge.HTypRef;
+    END H_Flaeche_allgemein;
+
+    /** Hanglagen Reben
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die Hangbeiträge in Rebbergen.
+     */
+    CLASS H_Flaeche_Reben =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      Aenderungsdatum : MANDATORY INTERLIS.XMLDate;
+      Typ : MANDATORY LWB_Hanglagen_V2_0.Kataloge.HTypRebenRef;
+    END H_Flaeche_Reben;
+
+  END Lagen;
+
+END LWB_Hanglagen_V2_0.

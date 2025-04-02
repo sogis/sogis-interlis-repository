@@ -1,0 +1,174 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "113.2,204.1"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+
+!! Version    | Wer | Änderung
+!!------------------------------------------------------------------------------
+!! 2023-12-13 | BAFU  | Korrekturen in den CONSTRAINTs betr. Ampelcodes
+!! 2024-09-03 | BAFU  | Korrektur: Fehlendes Attribut ASKLSMinoel in Klasse Verkehrsaufkommen ergänzt
+!!==============================================================================
+
+MODEL ERKAS_Strassen_Kataster_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-09-03" =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+!!==============================================================================
+    StreckenTyp = (O, T);                          !! offene Strecke, Tunnel
+
+  TOPIC ERKAS_Strassen_Kataster =
+!!==============================================================================
+    CLASS Datenpunkt =
+      ID                  : MANDATORY TEXT*256;
+      IDLaenge            : MANDATORY 0 .. 99999[INTERLIS.m];
+      Inhaber             : MANDATORY TEXT*6;
+      Ort                 : MANDATORY GeometryCHLV95_V1.Coord2;
+      StrassenNr          :           TEXT*256;
+      SegmentNamePers     :           TEXT*256;
+      SegmentNameOFG      :           TEXT*256;
+      SegmentNameGW       :           TEXT*256;
+      Streckentyp         : MANDATORY StreckenTyp;
+      Streckenbezeichnung :           TEXT*1024;
+
+      UNIQUE ID, Inhaber;
+    END Datenpunkt;
+
+    CLASS Verkehrsaufkommen  =
+      VDatum          : MANDATORY INTERLIS.XMLDate;
+      DTV             : MANDATORY 0 .. 999999999;
+      DWV             :           0 .. 999999999;
+      ASV             :           0  .. 100;
+      AGS             :           0  .. 100;
+      ASKLSBenzin     :           0  .. 100;
+      ASKLSPropan     :           0  .. 100;
+      ASKLSChlor      :           0  .. 100;
+      ASKLSMinoel     :           0  .. 100;
+      ASKLSEpi        :           0  .. 100;
+    END Verkehrsaufkommen;
+
+    CLASS Vollzug =
+      Datum         : MANDATORY INTERLIS.XMLDate;
+      DatumStFVUnt  :           INTERLIS.XMLDate;
+      KBfrei        : MANDATORY BOOLEAN;
+      REPflichtPers :           BOOLEAN;
+      REPflichtOFG  :           BOOLEAN;
+      REPflichtGW   :           BOOLEAN;
+      DatumREPers   :           INTERLIS.XMLDate;
+      DatumREOFG    :           INTERLIS.XMLDate;
+      DatumREGW     :           INTERLIS.XMLDate;
+      KonsBereich   :           0 .. 9999 [INTERLIS.m];
+
+      !! bedingt obligatorische Felder
+      !! Wenn KBfrei = FALSE und Datum ungleich 27.02.1991, dann muss x definiert sein (wenn = TRUE nicht relevant)
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (REPflichtPers);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (REPflichtOFG);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (REPflichtGW);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (KonsBereich);
+      MANDATORY CONSTRAINT NOT (REPflichtPers) OR DEFINED (DatumREPers);
+      MANDATORY CONSTRAINT NOT (REPflichtOFG) OR DEFINED (DatumREOFG);
+      MANDATORY CONSTRAINT NOT (REPflichtGW) OR DEFINED (DatumREGW);
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : 0.0000 .. 9999.0000;
+      AmpelCodePers : 0 .. 4;
+      AmpelWertOFG  : 0.0000 .. 9999.0000;
+      AmpelCodeOFG  : 0 .. 4;
+      AmpelWertGW   : 0.0000 .. 9999.0000;
+      AmpelCodeGW   : 0 .. 4;
+    END Ergebnis;
+
+    !! Klassenübergreifende Constraints für Verkehrsaufkommen
+    !!=============================================
+    VIEW vVA                                      !! bedingt obligatorische Felder
+      JOIN OF Verkehrsaufkommen, Vollzug; =       !! wenn KBfrei == #false und Datum ungleich 27.02.1991,
+      ATTRIBUTE                                   !! dann müssen die nachfolgenden Felder definiert sein,
+        ALL OF Verkehrsaufkommen;                 !! KBfrei == #true ist es nicht von Bedeutung
+        ALL OF Vollzug;
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (ASV);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (AGS);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (ASKLSBenzin);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (ASKLSPropan);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (ASKLSChlor);
+      MANDATORY CONSTRAINT NOT (KBfrei == #false AND Datum != "1991-02-27") OR DEFINED (ASKLSEpi);
+    END vVA;
+
+    !! Klassenübergreifende Constraints für Ergebnisse
+    !!=============================================
+    VIEW vER
+      JOIN OF Ergebnis, Vollzug; =
+      ATTRIBUTE
+        ALL OF Ergebnis;
+        ALL OF Vollzug;
+      MANDATORY CONSTRAINT (KBfrei == #false AND Datum != "1991-02-27") AND DEFINED (AmpelCodePers);
+      MANDATORY CONSTRAINT (KBfrei == #false AND Datum != "1991-02-27") AND DEFINED (AmpelCodeOFG);
+      MANDATORY CONSTRAINT (KBfrei == #false AND Datum != "1991-02-27") AND DEFINED (AmpelCodeGW);
+	  
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelWertPers);
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelCodePers);
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelWertOFG);
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelCodeOFG);
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelWertGW);
+	  MANDATORY CONSTRAINT (KBfrei == #true) OR DEFINED (AmpelCodeGW);
+    END vER;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Verkehrsaufkommen =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rVerkehrsaufkommen -- {1} Verkehrsaufkommen;
+    END Datenpunkt_Verkehrsaufkommen;
+
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+
+  END ERKAS_Strassen_Kataster;
+
+END ERKAS_Strassen_Kataster_V2_0.
+
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "210.2,211.1"
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+MODEL ERKAS_Strassen_Karte_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-12-13" =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+!!==============================================================================
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC ERKAS_Strassen_Karte =
+
+    CLASS Raumplanung_Lage =
+      StrassenNr : TEXT*256;
+      Lage       : MANDATORY Linie;
+    END Raumplanung_Lage;
+
+    CLASS Raumplanung_KonsBereich =
+      KonsBereich_F : MANDATORY Polygon;
+    END Raumplanung_KonsBereich;
+
+    ASSOCIATION KonsBereich_Lage =
+      rKonsBereich -- {0..*} Raumplanung_KonsBereich;
+      rLage -- {1} Raumplanung_Lage;
+    END KonsBereich_Lage;
+
+  END ERKAS_Strassen_Karte;
+
+END ERKAS_Strassen_Karte_V2_0.
+

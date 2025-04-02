@@ -1,0 +1,67 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "77.2"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+MODEL Bodeneignungskarte_V1 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2011-12-31"  =
+  IMPORTS Units,GeometryCHLV03_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** Die Bodeneignungskarte der Schweiz besteht aus 144 verschiedenen Kartierungseinheiten.
+     * Sie schliesst im Gegensatz zur Bodenkarte die pflanzliche Anbaueignung ein.
+     * Jede Kartierungseinheit ist mit einem Code aus einem Grossbuchstaben und
+     * einer Zahl versehen. Die grossen Buchstaben bedeuten physiographische Einheiten.
+     * Die Zahlen geben verschiedene Formelemente der Landschaften wieder, geordnet nach
+     * Muttergestein, Hanglage und Hangneigung. Jede Kartierungseinheit entspricht
+     * zudem einem oder mehreren Bodentypen.
+     * Dynamische Liste der Kartierungseinheiten
+     */
+    CLASS Kartierungseinheit
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ID : MANDATORY INTERLIS.UUIDOID;
+      Code_int : MANDATORY INTERLIS.I32OID;
+      Code_Kartierung : MANDATORY TEXT*2;
+      Code_Eignung : MANDATORY TEXT*50;
+      Code_Gruendigkeit : -9999 .. 6;
+      Code_Skelettgehalt : -9999 .. 5;
+      Code_Wasserspeichervermoegen : -9999 .. 6;
+      Code_Naehrstoffspeichervermoegen : -9999 .. 6;
+      Code_Wasserdurchlaessigkeit : -9999 .. 6;
+      Code_Vernaessung : -9999 .. 4;
+      Code_Kulturland : 1 .. 99;
+      /** Am häufigsten vorkommende Bodentypen in dieser Einheit
+       */
+      Boden_Typ : TEXT*200;
+      MTextForstwEignung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      MTextGruendigkeit : LocalisationCH_V1.MultilingualText;
+      MTextKulturland : LocalisationCH_V1.MultilingualText;
+      MTextLandwEignung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      MTextNaehrstoffspeichervermoegen : LocalisationCH_V1.MultilingualText;
+      MTextSkelettgehalt : LocalisationCH_V1.MultilingualText;
+      MTextVernaessung : LocalisationCH_V1.MultilingualText;
+      MTextWasserdurchlaessigkeit : LocalisationCH_V1.MultilingualText;
+      MTextWasserspeichervermoegen : LocalisationCH_V1.MultilingualText;
+    END Kartierungseinheit;
+
+    STRUCTURE KartierungseinheitRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Kartierungseinheit;
+    END KartierungseinheitRef;
+
+  END Kataloge;
+
+  TOPIC Boden_Eignung_Karte =
+    DEPENDS ON Bodeneignungskarte_V1.Kataloge;
+
+    CLASS Boden_Area =
+      Geometrie : MANDATORY GeometryCHLV03_V1.Area;
+      Kartierungseinheit : MANDATORY Bodeneignungskarte_V1.Kataloge.KartierungseinheitRef;
+    END Boden_Area;
+
+  END Boden_Eignung_Karte;
+
+END Bodeneignungskarte_V1.

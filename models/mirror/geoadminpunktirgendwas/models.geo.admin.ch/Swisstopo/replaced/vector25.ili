@@ -1,0 +1,739 @@
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Version:   1.7
+!! Sprache:   Deutsch
+!! Dateiname: vector25.ili
+!! Datum:     28.4.2006
+!! Status:    Definitiv
+!! History:   Original November 2002 - InfoGrips
+!!            Div. Anpassungen Januar 2003 - bac
+!!
+!!            Korrekturen 6.3.2003 - bac
+!!              In Aufzählung 'hebObject' 'Obstbaum' neu 'ObstBaum'
+!!              Topic 'Strassennetz' Table 'str_node'
+!!                 Attribut 'Heigh' neu 'Height'
+!!
+!!            Korrekturen 21.3.2003 - bac
+!!              XY Wertebereich für LKoord und HKoord um 20000 in
+!!              jede Richtung erweitert
+!!            Korrekturen 19.05.2003 Werte in Aufzählungen
+!!              Z_WaldO -> Z_WaldOf
+!!              Grenzln -> GrenzIn
+!!              BrueckeLe -> BrueckLe
+!!
+!!            Erweiterung 15.10.2003 Werte in Aufzählung objectOriginType
+!!              Neue Version 1.1 (V1.1)
+!!
+!!            Erweiterung 24.02.2004 Beim Export von nicht geklippten Daten
+!!              gibt es Probleme bei den Inseln angeschnittener Flächen.
+!!              Diese gehören nicht zu den Daten und werden deshalb nur
+!!              wegen der Konsistenz künstlich gebildet. Dies gilt für
+!!              alle flächenhaften Objekte.
+!!              Neue Version 1.2 (V1.2)
+!!
+!!            Erweiterung 07.04.2004 Anpassen des ObjectOrigin bei PRI,
+!!              ANL, GEB, GG25 Kanten. Neu werden die Werte GN25, BWG,
+!!              Kanton, Ausland, GN200 unterstützt.
+!!              Neue Version 1.3 (V1.3)
+!!
+!!            Erweiterung 23.04.2005 Anpassen gemname neu 50 Zeichen,
+!!              alt 30.  Neue Version 1.4 (V1.4)
+!!
+!!            Erweiterung 18.05.2005  Anpassen der ObjVal bei den Strassen
+!!              Neu hinzugefügt: 5_Klass_Spur, 6_Klass_Spur
+!!              Gebäude: Das Attribut ObjectName wird nicht mehr exportiert
+!!
+!!            Erweiterung 28.04.2006
+!!              Domain strObject Wert WW50 hinzugefügt
+!!              Domain objectOriginType SAW50 hinzugefügt
+!!              Topic Strassennetz Table str Attribut Hikingtype hinzugefügt
+!!              Neu wird die Versionsnummer in den Modellnamen integriert.
+!!              Neue Version 1.6 (V1.6)
+!!
+!!            Erweiterung 01.06.2007
+!!              Topic gwn an gwn07 angepasst
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+MODEL VECTOR25_V01_07
+
+  DOMAIN
+
+    INTEGER4 = [0 .. 9999999999];
+
+    LKoord = COORD2   460000.000     50000.000
+                     860000.000    320000.000;
+
+    HKoord = COORD3   460000.000     50000.000     -200.000
+                     860000.000    320000.000     5000.000;
+
+    Orientierung = DEGREES 0.0 360.0;
+
+    Jahr = [1900 .. 9999];
+
+    !! Aufzählung wird laufend ergänzt.
+    objectOriginType = (AV,        !! Amtliche Vermessung
+                        BFS,       !! Bundesamt fur Statistik
+                        DGN_AG,    !! DGN AG, Nov. 1998
+                        DGN_BE,    !! DGN25/5 Kanton BE, Dez.1998
+                        DGN_LU,    !! DGN25 Kanton LU, Feb. 1998
+                        DGN_SO,    !! DGN Kanton SO, Nov. 1998
+                        DGN_VD,    !! DGN Kanton VD GESREAU, Oct. 1998
+                        DGN_ZH,    !! DGN Kanton ZH 1:2500, Jan. 1999,
+                                   !! Vertrag 134
+                        GG25,      !! Digitale Gemeindegrenzen
+                        GN_BL,     !! GN BL 1989
+                        LK100,     !! Landeskarte 1:100?000
+                        LK200,     !! Landeskarte 1:200?000
+                        LK25,      !! Landeskarte 1:25?000
+                        LK50,      !! Landeskarte 1:50?000
+                        LK500,     !! Landeskarte 1:500?000
+                        NDB,       !! Namensdatenbank
+                        Photo,     !! Photogrammetrische Auswertung
+                        GN25,      !! Gesamtnachführung 25 (V1.1)
+                        BWG,       !! Bundesamt für Wasser und Geologie (V1.1)
+                        Kanton,    !! Kanton (V1.1)
+                        Ausland,   !! Ausland (V1.1)
+                        GN200,     !! Gesamtnachführung 200 (V1.1)
+                        undefined, !! Für Löcher in Flächen ausserhalb des Exportperimeters
+                        SAW50);    !! Wanderkarte 1:50000
+
+
+
+    tunnelType = (Galerie,
+                Tunnel);
+
+    strObject = (Autobahn,
+                 Autob_Ri,       !! Autobahn richtungsgetrennt
+                 Autostr,        !! Autostrasse
+                 Ein_Ausf,       !! Autobahn Ein-/Ausfahrt
+                 A_Zufahrt,      !! Autobahnzufahrt
+                 Klass_1,        !! 1.Klass Strasse
+                 Klass_2,        !! 2.Klass Strasse
+                 Klass_3,        !! 3.Klass Strasse
+                 Klass_4,        !! 4.Klass Strasse
+                 Klass_5,        !! 5.Klass Strasse
+                 Klass_6,        !! 6.Klass Strasse
+                 Q_Klass,        !! Quartierstrasse
+                 HistWeg,        !! historischer Weg/Strasse
+                 PzPiste,        !! Panzerpiste
+                 Parkweg,
+                 BrueckLe,       !! alleinstehende Bruecke
+                 GedBruLe,       !! alleinstehende Bruecke gedeckt
+                 StegLe,         !! alleinstehender Steg
+                 Bundesst,       !! D:Bundesstrasse
+                 Fahrweg,        !! D:Fahrweg
+                 Fussweg,        !! D:Fussweg
+                 Hauptst,        !! D:Hauptstrasse
+                 Nebenst,        !! D:Nebenstrasse
+                 Wirtweg,        !! D:Wirtweg
+                 Acces,          !! F:Accès et sortie (autoroute)
+                 AutoRte,        !! F:Autoroute
+                 AutrRteA,       !! F:Autre route régulièrement entretenue
+                 AutrRteB,       !! F:Autre route irrégulièrement entretenue
+                 ChExploi,       !! F:Chemin d'exploitation
+                 Rte2etr,        !! F:Route à 2 voies étroites
+                 Rte2larg,       !! F:Route à 2 voies larges
+                 Rte3voie,       !! F:Route à 3 voies et plus
+                 Rte2chau,       !! F:Route à 2 chaussées séparées
+                 RteEtroi,       !! F:Route étroite
+                 Sentier,        !! F:Sentier, layon, ligne de coupe
+                 Klass_5_Spur,   !! 5.Klass Strasse als Spur
+                 Klass_6_Spur,   !! 6.Klass Strasse als Spur
+                 WW50);          !! Verbindungselemente Wanderwege
+
+    strBridgeType = (Bruecke,
+                     GedBrue,
+                     Steg);
+
+    eisObject = (Gt_Bahn,      !! Güterbahn
+                 I_Geleis,     !! Industriegeleise
+                 MS_Bahn,      !! Museumsbahn
+                 NS_Bahn1,     !! Normalspurbahn eingeleisig
+                 NS_Bahn2,     !! Normalspurbahn mehrgeleisig
+                 SS_Bahn1,     !! Schmalspurbahn eingeleisig
+                 SS_Bahn2,     !! Schmalspurbahn mehrgeleisig
+                 Str_Bahn,     !! Strassenbahn
+                 Str_Bhof);    !! Streckenverknüpfung innerhalb des
+                               !! Bahnhofareals
+
+
+    eisBridgeType = (Bruecke);
+
+
+
+
+    uvkObject = (A_Faehre,     !! Autofähre
+
+                LS_Bahn,      !! Luftseilbahn
+                Mat_Bahn,     !! Materialbahn
+                P_Faehre,     !! Personenfähre
+                Skilift);
+
+    gwnObject = (Bach,
+                 Bachachs,     !! Bachachse
+                 Bach_U,       !! Bachverlauf unterirdisch
+                 Bisse,
+                 Druckl_1,     !! Druckleitung einfach
+                 Druckl_2,     !! Druckleitung mehrfach
+                 Drucksto,     !! Druckstollen
+                 Fluss,        !! Flussachse
+                 Fluss_U,      !! Flussverlauf unterirdisch
+                 Kanal,        !! Bach ohne erkennbare/eindeutige Fliessrichtung
+                 Seeachse,
+                 Seeinsel,
+                 See);         !! Seeufer
+
+    gwnUnterirdisch = (eingedolt,
+                       versickert,
+                       Karst,
+                       Leitung,
+                       unbestimmt);
+
+    gwnLaufNr = [-1 .. 9999];
+
+    gwnMeasure = [0 .. 999999];
+
+    gwnGewissNr = [0 .. 800000];
+
+    gwnLinst = (CH,
+                ZH,
+                BE,
+                LU,
+                UR,
+                SZ,
+                OW,
+                NW,
+                GL,
+                ZG,
+                FR,   !! 10
+                SO,
+                BS,
+                BL,
+                SH,
+                AR,   !! 15
+                AI,
+                SG,
+                GR,
+                AG,
+                TG,   !! 20
+                TI,
+                VD,
+                VS,
+                NE,
+                GE,   !! 25
+                JU,
+                No_Data);
+
+       gwnTopOrt = (Start_Fliessgewaesserachse,
+                    Zufluss_auf_Fliessgewaesserachse,
+                    Wegfluss_von_Fliessgewaesserachse,
+                    Ende_von_Fliessgewaesserachse,
+                    Start_Uferlinie,
+                    Zufluss_auf_Uferlinie,
+                    Wegfluss_von_Uferlinie,
+                    Ende_von_Uferlinie,
+                    Grenzpunkt,
+                    Start_Fliessgewaesserachse_im_See,
+                    Start_Fliessgewaesserachse_auf_Uferlinie,
+                    Uferlinie_kreuzt_zufliessende_Fliessgewaesserachse,
+                    Uferlinie_kreuzt_wegfliessende_Fliessgewaesserachse,
+                    Fliessgewaesserachse_kreuzt_Fliessgewaesserachse);
+
+    priObject = (Z_BaumS,      !! Baumschule
+                 Z_Fels,
+                 Z_Fluss,
+                 Z_Gebue,      !! Gebüsch
+                 Z_GerGeb,     !! Geröll mit Gebüsch
+                 Z_GerGle,     !! Geröll auf Gletscher
+                 Z_Geroel,     !! Geröll
+                 Z_GerWa,      !! Geröll im Wald
+                 Z_GerWaO,     !! Geröll im offenen Wald
+                 Z_Glet,       !! Gletscher
+                 Z_GsPist,     !! Graspiste
+                 Z_HaPist,     !! Piste mit Hartbelag
+                 Z_KiGrub,     !! Kiesgrube
+                 Z_LeGrub,     !! Lehmgrube
+                 Z_ObstAn,     !! Obstanlage
+                 Z_Reben,      !! Reben
+                 Z_See,
+                 Z_Siedl,      !! Siedlung
+                 Z_StauDa,     !! Staudamm
+                 Z_StauMa,     !! Staumauer
+                 Z_SteBru,     !! Steinbruch
+                 Z_SumGeb,     !! Sumpf und Gebüsch
+                 Z_Sumpf,
+                 Z_SumWa,      !! Sumpf in Wald
+                 Z_SumWaO,     !! Sumpf in offenem Wald
+                 Z_Uebrig,     !! Uebriges Gebiet
+                 Z_Wald,
+                 Z_WaldOf,     !! Wald offen
+                 undefined);   !! Für Löcher in Flächen ausserhalb des Exportperimeters
+
+    priLineObject = (Flussins,     !! Flussinsel
+                     Flu_Rand,     !! Flussrand
+                     Fluss_Li,     !! Flussufer links
+                     Fluss_Re,     !! Flussufer rechts
+                     GrenzEx,      !! Grenze exakt
+                     GrenzIn,      !! Grenze interpretiert
+                     H_Grenze,     !! Hilfsgrenze
+                     H_Rahmen,     !! Gesamtperimeter
+                     Seeufer,
+                     Seeu_and,     !! Seeufer veränderlich
+                     Seeu_bau,     !! Seeufer verbaut
+                     Waldrand,
+                     WaldrO,       !! Waldrand offen
+                     Stau_OK,      !! Staumaueroberkante/ Staudammoberkante
+                     Stau_UK);     !! Staumauerunterkante/ Staudammunterkante
+
+    hebObject = (EinBaum,      !! Einzelbaum, Baumgruppe
+                 ObstBaum);
+
+    hebLineObject = (BauReihe,         !! Baumreihe
+                     Hecke,
+                     OBReihe);         !! Obstbaumreihe
+
+    anlObject = (Z_BhArea,    !! Bahnhofareal
+                 Z_FlArea,    !! Flughafenareal
+                 Z_FlugBh,    !! Bahnhof im Flughafen
+                 undefined);  !! Für Löcher in Flächen ausserhalb des Exportperimeters
+
+    anlLineObject = (GrenzAnl);   !! Grenzlinie Anlagen
+
+    eobObject = (Antenne,
+                 ARA,
+                 AusTurm,      !! Aussichtsturm
+                 BiStock,      !! Bildstock/Wegkreuz
+                 Brunnen,
+                 Denkmal,
+                 Doline,
+                 Drehsch,      !! Drehscheibe
+                 ElWerk,       !! Elektrizitätswerk
+                 Hafen,
+                 Hoehle,
+                 Kamin,
+                 Kapelle,
+                 KiTurm,       !! Kirchturm
+                 Quelle,
+                 Reserv,       !! Reservoir
+                 Schiffst,     !! Schiffstation
+                 SendeAnl,     !! Sendeanlage
+                 Turm,
+                 W_Turm,       !! Wasserturm
+                 WaFall,       !! Wasserfall
+                 ZistOff);     !! Zisterne offen
+
+    eobLinienObject = (BoeschOK,     !! Böschungsoberkante
+                       BoeschUK,     !! Böschungsunterkante
+                       HSP_Ltg,      !! Hochspannungsleitung
+                       Ruine,
+                       Sender,       !! Radiosender
+                       StBoeOK,      !! Steinböschungsoberkante
+                       StBoeUK);     !! Steinböschungsunterkante
+
+    gebObject = (Z_Gebaeude,      !! Gebäude / Einzelhaus
+                 Z_Innenhof,
+                 Z_Gasthof,
+                 Z_Huette,        !! Hütte
+                 Z_Kirche,
+                 Z_Kuehlturm,     !! Kühlturm
+                 Z_Lagertank,
+                 Z_Perron,        !! Perrondach
+                 Z_Schiessstand,  !! Schiessstand, Schützenhaus
+                 Z_Schloss,       !! Schloss, Burg
+                 Z_Station,       !! Station / Haltestelle von
+                                  !! öffentlichen Verkehrsmitteln
+                 Z_Treibhaus,
+                 Z_WBecken,       !! Wasserbecken (Schwimmbäder, ARA)
+                 undefined);      !! Für Löcher in Flächen ausserhalb des Exportperimeters
+
+    gebLineObject = (GrenzGeb);     !! Grenzlinie Gebäude
+
+    gg25LineObject = (Bezirk,
+                      Gemeinde,
+                      Kanton,
+                      Land,
+                      See);
+
+
+  TOPIC Strassennetz =
+
+    !! Die Koordinate der Knoten sind durch den Anfang/Ende
+    !! der Linie gegeben.
+    TABLE str_node =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: OPTIONAL TEXT*20;
+      YearOfChange: Jahr;
+      Height: [0 .. 9999];
+    IDENT ObjectId;
+    END str_node;
+
+    TABLE str =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin:  objectOriginType;
+      ObjectVal: strObject;
+      YearOfChange: Jahr;
+      BridgeType: OPTIONAL strBridgeType;
+      TunnelType: OPTIONAL tunnelType;
+      StradaId: OPTIONAL TEXT*24;   !! BaseID der Strada-Axe mit der
+                                    !! hintenangehängten durch '_'
+                                    !! getrennten dreiziffrigen
+                                    !! Segmentnummer
+                                    !! z.B. ASB.RP..000000000145_005
+                                    !! BaseID:  0-3 Besitzer der DB
+                                    !!          4-7 Name der DB
+                                    !!          8-19 Sequenznummer der DB
+                                    !! Segmentnummer: 21-23
+      FromNode: -> str_node;
+      ToNode: -> str_node;
+      Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      HikingType: OPTIONAL (Wanderweg,
+                            Bergwanderweg,
+                            Alpinwanderweg);
+    IDENT ObjectId;
+    END str;
+
+  END Strassennetz.
+
+  TOPIC Eisenbahnnetz =
+
+    !! Die Koordinate der Knoten sind durch den Anfang/Ende
+    !! der Linie gegeben.
+    TABLE eis_node =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: OPTIONAL TEXT*20;
+      YearOfChange: Jahr;
+    IDENT ObjectId;
+    END eis_node;
+
+    TABLE eis =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: eisObject;
+      YearOfChange: Jahr;
+      BridgeType: OPTIONAL eisBridgeType;
+      TunnelType: OPTIONAL tunnelType;
+      FromNode: -> eis_node;
+      ToNode: -> eis_node;
+      Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    IDENT ObjectId;
+    END eis;
+
+  END Eisenbahnnetz.
+
+  TOPIC UebrigerVerkehr =
+
+    TABLE uvk =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: uvkObject;
+      YearOfChange: Jahr;
+      Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    IDENT ObjectId;
+    END uvk;
+
+  END UebrigerVerkehr.
+
+  TOPIC Gewaessernetz =
+
+    TABLE gwn =
+       ObjectId: INTEGER4;                !! Schlüssel
+       ObjectOrigin: objectOriginType;
+       ObjectVal: gwnObject;
+       YearOfChange: Jahr;
+       Name: OPTIONAL TEXT*50;
+       Unterirdisch: OPTIONAL gwnUnterirdisch;
+       GewissNr: gwnGewissNr;
+       LaufNr: gwnLaufNr;
+       Linst: OPTIONAL gwnLinst;
+       BachNr: OPTIONAL TEXT*30;
+       GWLNR: OPTIONAL TEXT*25;
+       Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    IDENT ObjectId;
+    END gwn;
+
+    TABLE gwn_k =
+      ObjectId: INTEGER4;                 !! Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: OPTIONAL (Kalibrierungspunkt);
+      YearOfChange: Jahr;
+      Geometrie: LKoord;
+    IDENT ObjectId;
+    END gwn_k;
+
+    TABLE gwn_referenzorte =
+      N_ObjectId: INTEGER4;               !! FK gwn_k
+      GewissNr: gwnGewissNr;
+      LaufNr: gwnLaufNr;
+      Linst: OPTIONAL gwnLinst;
+      GWLNR: OPTIONAL TEXT*25;
+      Measure: gwnMeasure;
+      TopOrt: gwnTopOrt;
+    NO IDENT
+    END gwn_referenzorte;
+
+  END Gewaessernetz.
+
+  TOPIC Primaerflaechen =
+
+    TABLE pri =
+      !! Koordinaten der Zentroide entsprechen den Koordinaten
+      !! der ArcInfo Label
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel innerhalb Perimeter
+      ObjectOrigin:  objectOriginType;
+      ObjectVal: priObject;
+      YearOfChange: Jahr;
+      Geometrie: AREA WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0
+        LINEATTR =
+          ObjectId: [0 .. 9999999999];        !! Eindeutiger Schlüssel
+          ObjectOrigin:(AV,
+                        BFS,
+                        DGN_AG,
+                        DGN_BE,
+                        DGN_LU,
+                        DGN_SO,
+                        DGN_VD,
+                        DGN_ZH,
+                        GG25,
+                        GN_BL,
+                        LK100,
+                        LK200,
+                        LK25,
+                        LK50,
+                        LK500,
+                        NDB,
+                        Photo,
+                        GN25,
+                        BWG,
+                        Kanton,
+                        Ausland,
+                        GN200);
+          ObjectVal: (Flussins,
+                      Flu_Rand,
+                      Fluss_Li,
+                      Fluss_Re,
+                      GrenzEx,
+                      GrenzIn,
+                      H_Grenze,
+                      H_Rahmen,
+                      Seeufer,
+                      Seeu_and,
+                      Seeu_bau,
+                      Waldrand,
+                      WaldrO,
+                      Stau_OK,
+                      Stau_UK);
+          YearOfChange: [1900 .. 9999];
+        END;
+    NO IDENT
+    END pri;
+
+  END Primaerflaechen.
+
+  TOPIC HeckenUndBaeume =
+
+    TABLE heb =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin:  objectOriginType;
+      ObjectVal: hebObject;
+      YearOfChange: Jahr;
+      ObjectAzimuth: OPTIONAL Orientierung;
+      Geometrie: LKoord;
+    IDENT ObjectId;
+    END heb;
+
+    TABLE hebLinien =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: hebLineObject;
+      YearOfChange: Jahr;
+      Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    IDENT ObjectId;
+    END hebLinien;
+
+  END HeckenUndBaeume.
+
+  TOPIC Anlagen =
+
+    TABLE anl =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin:  objectOriginType;
+      ObjectVal: anlObject;
+      YearOfChange: Jahr;
+      Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord
+        LINEATTR =
+          ObjectId: [0 .. 9999999999];
+          ObjectOrigin:(AV,
+                        BFS,
+                        DGN_AG,
+                        DGN_BE,
+                        DGN_LU,
+                        DGN_SO,
+                        DGN_VD,
+                        DGN_ZH,
+                        GG25,
+                        GN_BL,
+                        LK100,
+                        LK200,
+                        LK25,
+                        LK50,
+                        LK500,
+                        NDB,
+                        Photo,
+                        GN25,
+                        BWG,
+                        Kanton,
+                        Ausland,
+                        GN200);
+          ObjectVal: (GrenzAnl);
+          YearOfChange: [1900 .. 9999];
+        END;
+    NO IDENT
+    END anl;
+
+    !! Das Feature Surface kennt keine Zentroiden. Mittels
+    !! nachfolgender Tabelle bleiben die Koordinaten der
+    !! ArcInfo Labels erhalten.
+    TABLE anl_zentroid =
+      ObjectId: -> anl;  !! Beziehung 1:1
+      Geometry: LKoord;
+    NO IDENT
+    END anl_zentroid;
+
+  END Anlagen.
+
+  TOPIC Einzelobjekte =
+
+    TABLE eob =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: eobObject;
+      YearOfChange: Jahr;
+      ObjectAzimuth: OPTIONAL Orientierung;
+      Geometrie: LKoord;
+    IDENT ObjectId;
+    END eob;
+
+    TABLE eobLinien =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel
+      ObjectOrigin: objectOriginType;
+      ObjectVal: eobLinienObject;
+      YearOfChange: Jahr;
+      Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+    IDENT ObjectId;
+    END eobLinien;
+
+  END Einzelobjekte.
+
+  TOPIC Gebaeude =
+
+    TABLE geb =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel innerhalb Perimeter
+      ObjectOrigin: objectOriginType;
+      ObjectVal: gebObject;
+      YearOfChange: Jahr;
+      Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord
+        LINEATTR =
+          ObjectId: [0 .. 9999999999];
+          ObjectOrigin:(AV,
+                        BFS,
+                        DGN_AG,
+                        DGN_BE,
+                        DGN_LU,
+                        DGN_SO,
+                        DGN_VD,
+                        DGN_ZH,
+                        GG25,
+                        GN_BL,
+                        LK100,
+                        LK200,
+                        LK25,
+                        LK50,
+                        LK500,
+                        NDB,
+                        Photo,
+                        GN25,
+                        BWG,
+                        Kanton,
+                        Ausland,
+                        GN200);
+          ObjectVal: (GrenzGeb);
+          YearOfChange: [1900 .. 9999];
+        END;
+    NO IDENT
+    END geb;
+
+    !! Das Feature Surface kennt keine Zentroiden. Mittels
+    !! nachfolgender Tabelle bleiben die Koordinaten der
+    !! ArcInfo Labels erhalten.
+    TABLE geb_zentroid =
+      ObjectId: -> geb;  !! Beziehung 1:1
+      Geometry: LKoord;
+    NO IDENT
+    END geb_zentroid;
+
+  END Gebaeude.
+
+  TOPIC Gemeinde =
+
+    TABLE gg25 =
+      ObjectId: INTEGER4;                 !! Eindeutiger Schlüssel innerhalb des Perimeters
+      ObjectOrigin: objectOriginType;
+      ObjectVal: [1 .. 9999];
+      YearOfChange: Jahr;
+      BezirksNr: OPTIONAL [0 .. 2700];
+      GemFlaeche: OPTIONAL [0 .. 999999999];
+      GemName: TEXT*50;
+      GemTeil: OPTIONAL [0 .. 50];
+      KantonsNr: OPTIONAL [0 .. 27];
+      SeeNr: OPTIONAL INTEGER4;
+      Geometrie: AREA WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0
+        LINEATTR =
+          ObjectId: [0 .. 9999999999];    !! Eindeutiger Schlüssel
+          ObjectOrigin:(AV,
+                        BFS,
+                        DGN_AG,
+                        DGN_BE,
+                        DGN_LU,
+                        DGN_SO,
+                        DGN_VD,
+                        DGN_ZH,
+                        GG25,
+                        GN_BL,
+                        LK100,
+                        LK200,
+                        LK25,
+                        LK50,
+                        LK500,
+                        NDB,
+                        Photo,
+                        GN25,
+                        BWG,
+                        Kanton,
+                        Ausland,
+                        GN200);
+          ObjectVal:   (Bezirk,
+                        Gemeinde,
+                        Kanton,
+                        Land,
+                        See);
+          YearOfChange: [1900 .. 9999];
+          DateOfChange: OPTIONAL DATE;
+        END;
+    NO IDENT
+    END gg25;
+
+    END Gemeinde.
+
+END VECTOR25_V01_07.
+
+FORMAT FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+

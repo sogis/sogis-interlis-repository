@@ -1,0 +1,38 @@
+INTERLIS 2.3;
+!! Neue Modelldatei, UTF-8-codiert
+
+/** NHG1
+ * Geometrische Basis: Überlappungsfreies Polygon mit 2D-Koordinaten (CHLV95) der Schweiz.
+ */
+MODEL Kant_Koordination_NHG_LV95
+  AT "http://www.kbnl.ch"
+  VERSION "2022-11-07" =
+
+  IMPORTS UNQUALIFIED
+    GeometryCHLV95_V1, CHAdminCodes_V1;
+
+
+  TOPIC Kant_Koordination_NHG =
+
+    /** Beinhaltet alle Flächen, in denen für die korrekte Beitragsauszahlung nach Artikel 18, 
+	* NHG, eine Verrechnung/Koordination mit den Flächenbeiträgen nach DZV/ÖQV notwendig ist. 
+	*/
+    CLASS Kant_Koordination_NHG =
+      /** Überlappungsfrei (WITHOUT OVERLAPS > 0.002).
+       */
+      Geometrie : MANDATORY MultiSurface;
+      /** Kantonaler Datensatzidentifikator, max. 255 Zeichen.
+       * Für kantonale Schlüsselfelder in anderen Formaten kann der Texteintrag nach dem Transfer wieder 
+	   * in den Ursprungsdatentyp zurückübersetzt werden. Es steht frei, mehrere Schlüssel als kombinierter 
+	   * Wert in diesem Feld mitzugeben.
+       */
+      KtId : MANDATORY TEXT*255;
+      /** Kantonskürzel (2 Zeichen)
+       */
+      Kt : MANDATORY CHAdminCodes_V1.CHCantonCode;
+    SET CONSTRAINT INTERLIS.areAreas(ALL, Geometrie->Surfaces, Geometrie);
+	END Kant_Koordination_NHG;
+
+  END Kant_Koordination_NHG;
+
+END Kant_Koordination_NHG_LV95.

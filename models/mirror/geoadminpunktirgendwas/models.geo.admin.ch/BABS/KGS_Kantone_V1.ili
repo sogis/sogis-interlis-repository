@@ -1,0 +1,111 @@
+INTERLIS 2.3;
+
+/** Kantonales Inventar der Kulturgüter von regionaler und lokaler Bedeutung
+ */
+!!@ IDGeoIV=188.1
+!!@ furtherInformation=https://www.babs.admin.ch/de/aufgabenbabs/kgs/inventar.html
+!!@ technicalContact=mailto:Geographisches-Informationssystem@babs.admin.ch
+MODEL KGS_Kantone_V1 (de)
+AT "https://models.geo.admin.ch/BABS/"
+VERSION "2021-07-21"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  TOPIC KGS_Kantone_Inventar =
+
+    DOMAIN
+
+      Objektarten = (
+        /** Sammlungen in Museen, Archiven und Bibliotheken
+         */
+        Sammlung,
+        /** Gebäude, Brücken und andere Bauten
+         */
+        Bau,
+        /** Archäologische Stätten
+         */
+        Archaeologie
+      );
+
+    STRUCTURE EGID_Structure =
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      EGID : MANDATORY 1 .. 900000000;
+    END EGID_Structure;
+
+    STRUCTURE Address_Structure =
+      /** Postadresse mit Strassenname und Hausnummer (Bezeichnung gemäss dem amtlichen Gebäudeverzeichnis)
+       */
+      Adresse : MANDATORY TEXT*100;
+    END Address_Structure;
+
+    STRUCTURE EGRID_Structure =
+      /** Eidgenössischer Grundstücksidentifikator EGRID oder Parzellennummer
+       */
+      EGRID : MANDATORY TEXT*20;
+    END EGRID_Structure;
+
+    CLASS KGS_Kantone_Objekt =
+      /** Koordinaten EN LV95
+       */
+      Punktkoordinate : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Es können keine, eine oder mehrere Einzelflächen definiert werden (mit Geraden und Kreisbögen, ohne Overlaps > 0.001 m)
+       */
+      Flaechen : GeometryCHLV95_V1.MultiSurface;
+      /** Kantonaler Identifikator des Objekts (z.B. UUID)
+       */
+      Kantonale_ID : MANDATORY TEXT*80;
+      /** Bedeutung des Objekts: B = Objekt von regionaler Bedeutung / C = Objekt von lokaler Bedeutung
+       */
+      KGS_Kategorie : MANDATORY (
+        /** regional
+         */
+        B,
+        /** lokal
+         */
+        C
+      );
+      /** BABS KGS B-Objektnummer. Fünfstellige Nummer des Datensatzes in der KGS-SAP-Datenbank des BABS. Null (Wert 0) bedeutet, dass die Objektnummer noch nicht vergeben wurde
+       */
+      KGS_B_ObjektNr : 0 .. 89999;
+      /** Kantonale KGS C-Objektnummer (alphanummerisch)
+       */
+      KGS_C_ObjektNr : TEXT*100;
+      /** Präzisierung des Bundes zur Ausprägung/Art der Objekte
+       */
+      Objektart : MANDATORY Objektarten;
+      /** Beschreibung des KGS-Objekts. Name bzw. (ehemalige) Funktion des Objekts, z.B. Palais de Justice (ancien hôpital) sowie Präzisierung der Art des Kulturguts unter «Objektart»
+       */
+      Beschreibung : MANDATORY MTEXT*256;
+      /** Es können kein, ein oder mehrere EGID definiert werden
+       */
+      EGID : BAG {0..*} OF KGS_Kantone_V1.KGS_Kantone_Inventar.EGID_Structure;
+      /** Es können keine, eine oder mehrere Adressen definiert werden
+       */
+      Adressen : BAG {0..*} OF KGS_Kantone_V1.KGS_Kantone_Inventar.Address_Structure;
+      /** Es können kein, ein oder mehrere EGRID oder Parzellennummern definiert werden
+       */
+      EGRID : BAG {0..*} OF KGS_Kantone_V1.KGS_Kantone_Inventar.EGRID_Structure;
+      /** Gemeindename. Offizieller Name der Gemeinde gemäss aktueller Liste des BFS
+       */
+      Gemeinde : MANDATORY TEXT*100;
+      /** Kanton (Abkürzung)
+       */
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** Dient der Darstellung der Punktsymbole, wobei zwischen punktartigen und flächenartigen Ausprägungen unterschieden wird
+       */
+      Signatur_Typ (FINAL) : MANDATORY (
+        /** punktartige Ausprägung
+         */
+        Punktobjekt,
+        /** flächenhafte Ausprägung
+         */
+        Flaechenobjekt
+      );
+      /** Bedingung bezüglich KGS_Kategorie und KGS_B_ObjektNr
+       */
+      MANDATORY CONSTRAINT NOT (KGS_Kategorie == #B) OR DEFINED (KGS_B_ObjektNr);
+    END KGS_Kantone_Objekt;
+
+  END KGS_Kantone_Inventar;
+
+END KGS_Kantone_V1.

@@ -1,0 +1,66 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:baukultur@bak.admin.ch
+!!@ furtherInformation=https://www.bak.admin.ch/unesco
+!!@ IDGeoIV=179.1
+MODEL UNESCO_Kultur_V1 (de)
+AT "https://models.geo.admin.ch/BAK/"
+VERSION "2022-02-03"  =
+  IMPORTS LocalisationCH_V1,Units,GeometryCHLV95_V1,CatalogueObjects_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Welterbe_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*60;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END Welterbe_Typ;
+
+    STRUCTURE Welterbe_TypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Welterbe_Typ;
+    END Welterbe_TypRef;
+
+    CLASS Welterbe_Name
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*60;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END Welterbe_Name;
+
+    STRUCTURE Welterbe_NameRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Welterbe_Name;
+    END Welterbe_NameRef;
+
+  END Codelisten;
+
+  TOPIC UNESCO_Kultur =
+    DEPENDS ON UNESCO_Kultur_V1.Codelisten;
+
+    /** Klasse für UNESCO_Kultur-Teilobjekt
+     */
+    CLASS UNESCO_Kultur_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*30;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Typ : MANDATORY UNESCO_Kultur_V1.Codelisten.Welterbe_TypRef;
+      Flaeche : MANDATORY 0.0000 .. 999999.0000 [Units.ha];
+      UNIQUE Teilobj_Nr;
+    END UNESCO_Kultur_Teilobjekt;
+
+    /** Klasse für gesamtes UNESCO_Kultur-Objekt
+     */
+    CLASS UNESCO_Kultur =
+      Name : MANDATORY UNESCO_Kultur_V1.Codelisten.Welterbe_NameRef;
+      Datum : MANDATORY INTERLIS.XMLDate;
+    END UNESCO_Kultur;
+
+    ASSOCIATION UNESCO_Kultur_TeilobjektUNESCO_Kultur =
+      UNESCO_Kultur_Teilobjekt -- {1..*} UNESCO_Kultur_Teilobjekt;
+      UNESCO_Kultur -<#> {1} UNESCO_Kultur;
+    END UNESCO_Kultur_TeilobjektUNESCO_Kultur;
+
+  END UNESCO_Kultur;
+
+END UNESCO_Kultur_V1.

@@ -1,0 +1,689 @@
+INTERLIS 2.3;
+
+!! Version    | Who  | Modification
+!!------------------------------------------------------------------------------
+!! 2018-05-08 | BAFU | Ergänzung Kantonsliste um FL,CH (Linien 61,405)
+
+/** Datenmodell Schutzbauten Naturgefahren
+ *  Identifikator 81.2
+ *  Version 1.0
+ */
+
+!!@ IDGeoIV=81.2
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL Schutzbauten_LV95_V1 (de)
+    AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-05-08" =
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Die Verwendung von Kreisbögen (ARCS) ist in diesem Modell nicht
+     *  zugelassen.
+     */
+    Linie2 = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    Polygon2 = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2
+               WITHOUT OVERLAPS>0.001;
+
+  TOPIC Schutzbauten =
+
+    DOMAIN
+
+      Aggregierung_Typ (FINAL) = (
+        Einzelwerk,
+        Werksgruppe
+      );
+
+      Baumaterial_Typ (FINAL) = (
+        Beton,
+        Stein,
+        Holz,
+        Erdmaterial,
+        Metall,
+        Kunststoff,
+        Ingenieurbiologie
+      );
+
+      Beurteilung_Typ (FINAL) = (
+        gut_bis_annehmbar,
+        schadhaft_bis_schlecht,
+        alarmierend,
+        noch_abzuklaeren
+      );
+
+      Datenherr_Typ (FINAL) = (
+      /** Alle Kantone ergänzt mit der hier aufgeführten Auswahlliste.
+       */
+        Kantone(
+          ZH,BE,LU,UR,SZ,OW,NW,GL,ZG,FR,SO,BS,BL,SH,AR,AI,SG,GR,AG,TG,TI,VD,VS,
+          NE,GE,JU,FL,CH),
+        Verkehr(
+          AA,                                     !! ASTRA
+          SB,                                       !! SBB
+          PB                               !! Privatbahnen
+        ),
+        AN                                       !! andere
+      );
+
+      Koerperschaft_Typ (FINAL) = (
+        Kanton,
+        Bezirk,
+        Gemeinde,
+        Buergergemeinde,
+        Korporation,
+        Private,
+        ASTRA,
+        SBB,
+        Privatbahn,
+        keine,
+        in_Abklaerung
+      );
+
+      Prozess_Typ (FINAL) = (
+        Wasser,
+        Rutschung,
+        Sturz,
+        Lawine
+      );
+
+      Werksartenliste (FINAL) = (
+        Wasser(
+          Schutz_vor_Ueberflutung_Uebersarung(
+            Damm,
+            Mauer
+          ),
+          Gewaehrung_der_Sohlenstabilitaet(
+            Sperre,
+            Schwelle,
+            Rampe,
+            flaechenhafte_Sohlensicherung
+          ),
+          Schutz_vor_Seitenerosion(
+            Buhne,
+            Uferdeckwerk,
+            Ufermauer_Holzlaengsverbau,
+            Lebendverbau
+          ),
+          Rueckhalt(
+            Hochwasserrueckhaltebauwerk,
+            Geschiebe_oder_Murgangrueckhaltebauwerk,
+            Schwemmholzrueckhaltebauwerk,
+            Eisrueckhaltebauwerk,
+            bewirtschafteter_Geschiebeablagerungsplatz_strecke
+            ),
+          Entlastung(
+            Entlastungsbauwerk,
+            Umleit_Entlastungsstollen,
+            Entlastungsgerinne_kanal
+          ),
+          Diverse(
+            Eindolung,
+            Murbrecher_Murbremse,
+            andere_Werksart
+          )
+        ),
+        Rutschung(
+          Schutz_vor_Anriss(
+            Hangstuetzwerk,
+            Abdeckung,
+            ingenieurbiologische_Massnahme,
+            Entwaesserung,
+            Palisade
+          ),
+          Ablenkung_und_Auffangen(
+            Damm,
+            Auffangnetz
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        ),
+        Sturz(
+          Schutz_vor_Ausbruch(
+            Abdeckung,
+            Verankerung,
+            Unterfangung
+          ),
+          Schutz_vor_Aufprall(
+            Schutznetz,
+            Palisade_Barrage,
+            Damm,
+            Schutzzaun,
+            Galerie,
+            Mauer
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        ),
+        Lawine(
+          Schutz_vor_Anriss(
+            Stuetzwerk,
+            Schneenetz,
+            Gleitschneeschutz,
+            Verwehungsverbau
+          ),
+          Ablenkung_und_Auffangen(
+            Leitwerk,
+            Auffangwerk
+          ),
+          Schutz_vor_Aufprall(
+            Mauer,
+            Bremswerk,
+            Galerie
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        )
+      );
+      /** Objekte können als Einzelwerk oder als Werksgruppe abgebildet werden.
+      */
+
+    CLASS Schutzbautenobjekt =
+      /** Bei der Geometrie muss genau eines der drei verschiedenen Attribute
+       * gewählt werden.
+       */
+      Geometrie_Punkt : GeometryCHLV95_V1.Coord2;                  !! Punkt (2D)
+      Geometrie_Linie : Linie2;
+      Geometrie_Polygon : Polygon2;
+      Datenherr : MANDATORY Datenherr_Typ;
+      /** Schutzbauten_ID ist innerhalb eines Datenherrn persistente ID
+       */
+      Schutzbauten_ID : MANDATORY TEXT*30;
+      Aggregierung : MANDATORY Aggregierung_Typ;
+      Hauptprozess : MANDATORY Prozess_Typ;
+      /* Bei weiteren Prozessen wird der unter dem Attribut "Hauptprozess"
+       * genannte Prozess nicht nochmals angegeben, sondern erhält den Wert
+       * "FALSE" (oder bleibt allenfalls leer).
+       */
+      weiterer_Prozess_Wasser : BOOLEAN;
+      weiterer_Prozess_Rutschung : BOOLEAN;
+      weiterer_Prozess_Sturz : BOOLEAN;
+      weiterer_Prozess_Lawine : BOOLEAN;
+      Werksart : MANDATORY Werksartenliste;
+      Material : MANDATORY Baumaterial_Typ;
+      /** Bei den folgenden Abmessungen / Bauwerksparametern wird unterschieden
+       * zwischen Einzelwerken und Werksgruppen. Bei Einzelwerken sind die
+       * Abmessungen des einzelnen Bauwerks (gemäss Werksartenliste), bei Werks-
+       * gruppen das jeweilige Total anzugeben.
+       */
+      Laenge : 0.1 .. 99999.9 [INTERLIS.m];              !! nur bei Einzelwerken
+      Breite : 0.1 .. 9999.9 [INTERLIS.m];
+      Hoehe : 0.1 .. 999.9 [INTERLIS.m];
+      Hoehe_zum_Umland : 0.1 .. 999.9 [INTERLIS.m];
+      Flaeche : 1 .. 9999999 [Units.m2];                 !! nur bei Einzelwerken
+      Rueckhaltevolumen : 1 .. 999999999 [Units.m3];     !! nur bei Einzelwerken
+      Anzahl : 2 .. 9999;                                !! nur bei Werksgruppen
+      Gesamtlaenge : 1 .. 999999 [INTERLIS.m];           !! nur bei Werksgruppen
+      Gesamtflaeche : 1 .. 9999999 [Units.m2];      !! nur bei Werksgruppen
+      Erstellungsjahr : MANDATORY 1800 .. 2050 [INTERLIS.Y];
+      /** "in_Abklaerung" wird vergeben, wenn bei der Erhebung der Erhaltungs-
+       * verantwortliche noch nicht bekannt ist.
+       */
+      Erhaltungsverantwortung_Kategorie : MANDATORY Koerperschaft_Typ;
+      Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
+      Zustand : MANDATORY Beurteilung_Typ;
+      Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
+      Bemerkungen : TEXT*1000;
+
+      UNIQUE Datenherr, Schutzbauten_ID;
+
+        /**-----Einschränkungen-----
+         * (1) Geometrie:
+         *       (1a) Es muss genau eine der 3 möglichen Attributstypen
+         *            ('...Coord2', '...Linie2' oder '...Polygon2') angegeben
+                       sein.
+         *       (1b) IF Aggregierung = 'Werksgruppe'
+         *            THEN <Es muss 'Polygon' verwendet werden>
+         * (2) Hauptprozess:
+         *       Auswahl (Wasser, Rutschung, Sturz, Lawine) gemäss Werksarten-
+         *       liste, d. h.:
+         *       IF Hauptprozess = 'Wasser'
+         *       THEN Werksartenliste :=
+         *               ('Schutz_vor_Ueberflutung_Uebersarung' OR ' ...)
+         *       IF Hauptprozess = 'Rutschung'
+         *       THEN <dito>
+         *       etc.
+         *       (2a) Formulierung für Hauptprozess Wasser
+         *       (2b) Formulierung für Hauptprozess Rutschung
+         *       (2c) Formulierung für Hauptprozess Sturz
+         *       (2d) Formulierung für Hauptprozess Lawine
+         * (3) weitere Prozesse:
+         *       Die weiteren Prozesse dürfen nicht mit Hauptprozess identisch
+         *       sein.
+         */
+            MANDATORY CONSTRAINT  !! (1a)
+              (DEFINED(Geometrie_Punkt) AND NOT (DEFINED(Geometrie_Linie))
+               AND NOT (DEFINED(Geometrie_Polygon))) OR
+               (DEFINED(Geometrie_Linie) AND NOT (DEFINED(Geometrie_Punkt))
+                AND NOT (DEFINED(Geometrie_Polygon))) OR
+              (DEFINED(Geometrie_Polygon) AND NOT (DEFINED(Geometrie_Punkt))
+                AND NOT (DEFINED(Geometrie_Linie)));
+            MANDATORY CONSTRAINT  !! (1b)
+              DEFINED(Geometrie_Polygon) OR (Aggregierung != #Werksgruppe);
+
+            MANDATORY CONSTRAINT  !! (2a)
+              (Hauptprozess != #Wasser) OR
+                (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Damm) OR
+                (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Mauer) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Sperre) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Schwelle) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Rampe) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.flaechenhafte_Sohlensicherung) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Buhne) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Uferdeckwerk) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Ufermauer_Holzlaengsverbau) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Lebendverbau) OR
+                (Werksart == # Wasser.Rueckhalt.Hochwasserrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Geschiebe_oder_Murgangrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Schwemmholzrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Eisrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.bewirtschafteter_Geschiebeablagerungsplatz_strecke) OR
+                (Werksart == # Wasser.Entlastung.Entlastungsbauwerk) OR
+                (Werksart == # Wasser.Entlastung.Umleit_Entlastungsstollen) OR
+                (Werksart == # Wasser.Entlastung.Entlastungsgerinne_kanal) OR
+                (Werksart == # Wasser.Diverse.Eindolung) OR
+                (Werksart == # Wasser.Diverse.Murbrecher_Murbremse) OR
+                (Werksart == # Wasser.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2b)
+              (Hauptprozess != #Rutschung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Hangstuetzwerk) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Abdeckung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.ingenieurbiologische_Massnahme) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Entwaesserung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Palisade) OR
+                (Werksart == # Rutschung.Ablenkung_und_Auffangen.Damm) OR
+                (Werksart == # Rutschung.Ablenkung_und_Auffangen.Auffangnetz) OR
+                (Werksart == # Rutschung.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2c)
+              (Hauptprozess != #Sturz) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Abdeckung) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Verankerung) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Unterfangung) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Schutznetz) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Palisade_Barrage) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Damm) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Schutzzaun) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Galerie) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Mauer) OR
+                (Werksart == # Sturz.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2d)
+              (Hauptprozess != #Lawine) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Stuetzwerk) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Schneenetz) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Gleitschneeschutz) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Verwehungsverbau) OR
+                (Werksart == # Lawine.Ablenkung_und_Auffangen.Leitwerk) OR
+                (Werksart == # Lawine.Ablenkung_und_Auffangen.Auffangwerk) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Mauer) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Bremswerk) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Galerie) OR
+                (Werksart == # Lawine.Diverse.andere_Werksart);
+
+            MANDATORY CONSTRAINT  !! (3)
+              ((Hauptprozess == #Wasser) AND NOT (weiterer_Prozess_Wasser)) OR
+                (Hauptprozess != #Wasser);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Rutschung) AND NOT (weiterer_Prozess_Rutschung)) OR
+                (Hauptprozess != #Rutschung);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Sturz) AND NOT (weiterer_Prozess_Sturz)) OR
+                (Hauptprozess != #Sturz);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Lawine) AND NOT (weiterer_Prozess_Lawine)) OR
+                (Hauptprozess != #Lawine);
+        /**-----Ende Einschränkungen-----
+         */
+
+    END Schutzbautenobjekt;
+
+  END Schutzbauten;
+
+END Schutzbauten_LV95_V1.
+
+
+/**--------------------------------------------------------------------------**/
+
+
+/** Datenmodell Schutzbauten Naturgefahren
+ *  Identifikator 81.2
+ *  Version 1.0
+ */
+
+!!@ IDGeoIV=81.2
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+
+MODEL Schutzbauten_LV03_V1 (de)
+    AT "https://models.geo.admin.ch/BAFU/" VERSION "2018-05-08" =
+  IMPORTS Units;
+  IMPORTS GeometryCHLV03_V1;
+
+  DOMAIN
+
+    /** Die Verwendung von Kreisbögen (ARCS) ist in diesem Modell nicht
+     *  zugelassen.
+     */
+    Linie2 = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+    Polygon2 = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2
+               WITHOUT OVERLAPS>0.001;
+
+  TOPIC Schutzbauten =
+
+    DOMAIN
+
+      Aggregierung_Typ (FINAL) = (
+        Einzelwerk,
+        Werksgruppe
+      );
+
+      Baumaterial_Typ (FINAL) = (
+        Beton,
+        Stein,
+        Holz,
+        Erdmaterial,
+        Metall,
+        Kunststoff,
+        Ingenieurbiologie
+      );
+
+      Beurteilung_Typ (FINAL) = (
+        gut_bis_annehmbar,
+        schadhaft_bis_schlecht,
+        alarmierend,
+        noch_abzuklaeren
+      );
+
+      Datenherr_Typ (FINAL) = (
+      /** Alle Kantone ergänzt mit der hier aufgeführten Auswahlliste.
+       */
+        Kantone(
+          ZH,BE,LU,UR,SZ,OW,NW,GL,ZG,FR,SO,BS,BL,SH,AR,AI,SG,GR,AG,TG,TI,VD,VS,
+          NE,GE,JU,FL,CH),
+        Verkehr(
+          AA,                                     !! ASTRA
+          SB,                                       !! SBB
+          PB                               !! Privatbahnen
+        ),
+        AN                                       !! andere
+      );
+
+      Koerperschaft_Typ (FINAL) = (
+        Kanton,
+        Bezirk,
+        Gemeinde,
+        Buergergemeinde,
+        Korporation,
+        Private,
+        ASTRA,
+        SBB,
+        Privatbahn,
+        keine,
+        in_Abklaerung
+      );
+
+      Prozess_Typ (FINAL) = (
+        Wasser,
+        Rutschung,
+        Sturz,
+        Lawine
+      );
+
+      Werksartenliste (FINAL) = (
+        Wasser(
+          Schutz_vor_Ueberflutung_Uebersarung(
+            Damm,
+            Mauer
+          ),
+          Gewaehrung_der_Sohlenstabilitaet(
+            Sperre,
+            Schwelle,
+            Rampe,
+            flaechenhafte_Sohlensicherung
+          ),
+          Schutz_vor_Seitenerosion(
+            Buhne,
+            Uferdeckwerk,
+            Ufermauer_Holzlaengsverbau,
+            Lebendverbau
+          ),
+          Rueckhalt(
+            Hochwasserrueckhaltebauwerk,
+            Geschiebe_oder_Murgangrueckhaltebauwerk,
+            Schwemmholzrueckhaltebauwerk,
+            Eisrueckhaltebauwerk,
+            bewirtschafteter_Geschiebeablagerungsplatz_strecke
+            ),
+          Entlastung(
+            Entlastungsbauwerk,
+            Umleit_Entlastungsstollen,
+            Entlastungsgerinne_kanal
+          ),
+          Diverse(
+            Eindolung,
+            Murbrecher_Murbremse,
+            andere_Werksart
+          )
+        ),
+        Rutschung(
+          Schutz_vor_Anriss(
+            Hangstuetzwerk,
+            Abdeckung,
+            ingenieurbiologische_Massnahme,
+            Entwaesserung,
+            Palisade
+          ),
+          Ablenkung_und_Auffangen(
+            Damm,
+            Auffangnetz
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        ),
+        Sturz(
+          Schutz_vor_Ausbruch(
+            Abdeckung,
+            Verankerung,
+            Unterfangung
+          ),
+          Schutz_vor_Aufprall(
+            Schutznetz,
+            Palisade_Barrage,
+            Damm,
+            Schutzzaun,
+            Galerie,
+            Mauer
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        ),
+        Lawine(
+          Schutz_vor_Anriss(
+            Stuetzwerk,
+            Schneenetz,
+            Gleitschneeschutz,
+            Verwehungsverbau
+          ),
+          Ablenkung_und_Auffangen(
+            Leitwerk,
+            Auffangwerk
+          ),
+          Schutz_vor_Aufprall(
+            Mauer,
+            Bremswerk,
+            Galerie
+          ),
+          Diverse(
+            andere_Werksart
+          )
+        )
+      );
+      /** Objekte können als Einzelwerk oder als Werksgruppe abgebildet werden.
+      */
+
+    CLASS Schutzbautenobjekt =
+      /** Bei der Geometrie muss genau eines der drei verschiedenen Attribute
+       * gewählt werden.
+       */
+      Geometrie_Punkt : GeometryCHLV03_V1.Coord2;                  !! Punkt (2D)
+      Geometrie_Linie : Linie2;
+      Geometrie_Polygon : Polygon2;
+      Datenherr : MANDATORY Datenherr_Typ;
+      /** Schutzbauten_ID ist innerhalb eines Datenherrn persistente ID
+       */
+      Schutzbauten_ID : MANDATORY TEXT*30;
+      Aggregierung : MANDATORY Aggregierung_Typ;
+      Hauptprozess : MANDATORY Prozess_Typ;
+      /* Bei weiteren Prozessen wird der unter dem Attribut "Hauptprozess"
+       * genannte Prozess nicht nochmals angegeben, sondern erhält den Wert
+       * "FALSE" (oder bleibt allenfalls leer).
+       */
+      weiterer_Prozess_Wasser : BOOLEAN;
+      weiterer_Prozess_Rutschung : BOOLEAN;
+      weiterer_Prozess_Sturz : BOOLEAN;
+      weiterer_Prozess_Lawine : BOOLEAN;
+      Werksart : MANDATORY Werksartenliste;
+      Material : MANDATORY Baumaterial_Typ;
+      /** Bei den folgenden Abmessungen / Bauwerksparametern wird unterschieden
+       * zwischen Einzelwerken und Werksgruppen. Bei Einzelwerken sind die
+       * Abmessungen des einzelnen Bauwerks (gemäss Werksartenliste), bei Werks-
+       * gruppen das jeweilige Total anzugeben.
+       */
+      Laenge : 0.1 .. 99999.9 [INTERLIS.m];              !! nur bei Einzelwerken
+      Breite : 0.1 .. 9999.9 [INTERLIS.m];
+      Hoehe : 0.1 .. 999.9 [INTERLIS.m];
+      Hoehe_zum_Umland : 0.1 .. 999.9 [INTERLIS.m];
+      Flaeche : 1 .. 9999999 [Units.m2];                 !! nur bei Einzelwerken
+      Rueckhaltevolumen : 1 .. 999999999 [Units.m3];     !! nur bei Einzelwerken
+      Anzahl : 2 .. 9999;                                !! nur bei Werksgruppen
+      Gesamtlaenge : 1 .. 999999 [INTERLIS.m];           !! nur bei Werksgruppen
+      Gesamtflaeche : 1 .. 9999999 [Units.m2];      !! nur bei Werksgruppen
+      Erstellungsjahr : MANDATORY 1800 .. 2050 [INTERLIS.Y];
+      /** "in_Abklaerung" wird vergeben, wenn bei der Erhebung der Erhaltungs-
+       * verantwortliche noch nicht bekannt ist.
+       */
+      Erhaltungsverantwortung_Kategorie : MANDATORY Koerperschaft_Typ;
+      Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
+      Zustand : MANDATORY Beurteilung_Typ;
+      Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
+      Bemerkungen : TEXT*1000;
+
+      UNIQUE Datenherr, Schutzbauten_ID;
+
+        /**-----Einschränkungen-----
+         * (1) Geometrie:
+         *       (1a) Es muss genau eine der 3 möglichen Attributstypen
+         *            ('...Coord2', '...Linie2' oder '...Polygon2') angegeben
+                       sein.
+         *       (1b) IF Aggregierung = 'Werksgruppe'
+         *            THEN <Es muss 'Polygon' verwendet werden>
+         * (2) Hauptprozess:
+         *       Auswahl (Wasser, Rutschung, Sturz, Lawine) gemäss Werksarten-
+         *       liste, d. h.:
+         *       IF Hauptprozess = 'Wasser'
+         *       THEN Werksartenliste :=
+         *               ('Schutz_vor_Ueberflutung_Uebersarung' OR ' ...)
+         *       IF Hauptprozess = 'Rutschung'
+         *       THEN <dito>
+         *       etc.
+         *       (2a) Formulierung für Hauptprozess Wasser
+         *       (2b) Formulierung für Hauptprozess Rutschung
+         *       (2c) Formulierung für Hauptprozess Sturz
+         *       (2d) Formulierung für Hauptprozess Lawine
+         * (3) weitere Prozesse:
+         *       Die weiteren Prozesse dürfen nicht mit Hauptprozess identisch
+         *       sein.
+         */
+            MANDATORY CONSTRAINT  !! (1a)
+              (DEFINED(Geometrie_Punkt) AND NOT (DEFINED(Geometrie_Linie))
+               AND NOT (DEFINED(Geometrie_Polygon))) OR
+               (DEFINED(Geometrie_Linie) AND NOT (DEFINED(Geometrie_Punkt))
+                AND NOT (DEFINED(Geometrie_Polygon))) OR
+              (DEFINED(Geometrie_Polygon) AND NOT (DEFINED(Geometrie_Punkt))
+                AND NOT (DEFINED(Geometrie_Linie)));
+            MANDATORY CONSTRAINT  !! (1b)
+              DEFINED(Geometrie_Polygon) OR (Aggregierung != #Werksgruppe);
+
+            MANDATORY CONSTRAINT  !! (2a)
+              (Hauptprozess != #Wasser) OR
+                (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Damm) OR
+                (Werksart == # Wasser.Schutz_vor_Ueberflutung_Uebersarung.Mauer) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Sperre) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Schwelle) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.Rampe) OR
+                (Werksart == # Wasser.Gewaehrung_der_Sohlenstabilitaet.flaechenhafte_Sohlensicherung) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Buhne) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Uferdeckwerk) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Ufermauer_Holzlaengsverbau) OR
+                (Werksart == # Wasser.Schutz_vor_Seitenerosion.Lebendverbau) OR
+                (Werksart == # Wasser.Rueckhalt.Hochwasserrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Geschiebe_oder_Murgangrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Schwemmholzrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.Eisrueckhaltebauwerk) OR
+                (Werksart == # Wasser.Rueckhalt.bewirtschafteter_Geschiebeablagerungsplatz_strecke) OR
+                (Werksart == # Wasser.Entlastung.Entlastungsbauwerk) OR
+                (Werksart == # Wasser.Entlastung.Umleit_Entlastungsstollen) OR
+                (Werksart == # Wasser.Entlastung.Entlastungsgerinne_kanal) OR
+                (Werksart == # Wasser.Diverse.Eindolung) OR
+                (Werksart == # Wasser.Diverse.Murbrecher_Murbremse) OR
+                (Werksart == # Wasser.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2b)
+              (Hauptprozess != #Rutschung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Hangstuetzwerk) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Abdeckung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.ingenieurbiologische_Massnahme) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Entwaesserung) OR
+                (Werksart == # Rutschung.Schutz_vor_Anriss.Palisade) OR
+                (Werksart == # Rutschung.Ablenkung_und_Auffangen.Damm) OR
+                (Werksart == # Rutschung.Ablenkung_und_Auffangen.Auffangnetz) OR
+                (Werksart == # Rutschung.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2c)
+              (Hauptprozess != #Sturz) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Abdeckung) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Verankerung) OR
+                (Werksart == # Sturz.Schutz_vor_Ausbruch.Unterfangung) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Schutznetz) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Palisade_Barrage) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Damm) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Schutzzaun) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Galerie) OR
+                (Werksart == # Sturz.Schutz_vor_Aufprall.Mauer) OR
+                (Werksart == # Sturz.Diverse.andere_Werksart);
+            MANDATORY CONSTRAINT  !! (2d)
+              (Hauptprozess != #Lawine) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Stuetzwerk) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Schneenetz) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Gleitschneeschutz) OR
+                (Werksart == # Lawine.Schutz_vor_Anriss.Verwehungsverbau) OR
+                (Werksart == # Lawine.Ablenkung_und_Auffangen.Leitwerk) OR
+                (Werksart == # Lawine.Ablenkung_und_Auffangen.Auffangwerk) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Mauer) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Bremswerk) OR
+                (Werksart == # Lawine.Schutz_vor_Aufprall.Galerie) OR
+                (Werksart == # Lawine.Diverse.andere_Werksart);
+
+            MANDATORY CONSTRAINT  !! (3)
+              ((Hauptprozess == #Wasser) AND NOT (weiterer_Prozess_Wasser)) OR
+                (Hauptprozess != #Wasser);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Rutschung) AND NOT (weiterer_Prozess_Rutschung)) OR
+                (Hauptprozess != #Rutschung);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Sturz) AND NOT (weiterer_Prozess_Sturz)) OR
+                (Hauptprozess != #Sturz);
+            MANDATORY CONSTRAINT
+              ((Hauptprozess == #Lawine) AND NOT (weiterer_Prozess_Lawine)) OR
+                (Hauptprozess != #Lawine);
+        /**-----Ende Einschränkungen-----
+         */
+
+    END Schutzbautenobjekt;
+
+  END Schutzbauten;
+
+END Schutzbauten_LV03_V1.

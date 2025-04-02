@@ -1,0 +1,53 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=164.14
+MODEL LFI_Eingriff_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2020-11-19"  =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Id = 0 .. 999999999999999;
+
+    /* Flächen ohne Kreisbogen */
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /* Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;	
+
+  TOPIC Eingriff =
+
+    CLASS Letzeing =
+      /** Identifikationsnummer der Geometrie
+       */
+      GeometrieId : MANDATORY LFI_Eingriff_V1_1.Id;
+      /** Geometrie
+       */
+      Geometrie : MANDATORY LFI_Eingriff_V1_1.MultiPolygon;
+      /** Identifikationsnummer der Eingriff
+       */
+      LetzeingId : MANDATORY LFI_Eingriff_V1_1.Id;
+      /** Textbeschreibung Eingriff deutsch.
+       */
+      LetzeingName_de : MANDATORY TEXT*128;
+      /** Textbeschreibung Eingriff franzoesisch.
+       */
+      LetzeingName_fr : MANDATORY TEXT*128;
+      /** Textbeschreibung Eingriff italienisch.
+       */
+      LetzeingName_it : MANDATORY TEXT*128;
+    END Letzeing;
+
+  END Eingriff;
+
+END LFI_Eingriff_V1_1.

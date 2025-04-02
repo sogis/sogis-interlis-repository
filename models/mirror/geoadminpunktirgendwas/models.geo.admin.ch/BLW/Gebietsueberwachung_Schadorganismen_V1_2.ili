@@ -1,0 +1,75 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell für die Gebietsüberwachung Schadorganismen
+ */
+
+!! Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2018-05-04 | KOGIS | AT Statement adapted (line 15)
+!! 2019-02-01 | KOGIS | Meta-attribute technicalContact adapted (line 11)
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+!!@ IDGeoIV=154
+MODEL Gebietsueberwachung_Schadorganismen_V1_2 (de)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2019-02-01"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Nutzung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Code für die landwirtschaftliche Nutzung
+       */
+      Code_LN : MANDATORY TEXT*20;
+      Bezeichnung : LocalisationCH_V1.MultilingualText;
+    END Nutzung;
+
+    STRUCTURE NutzungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Nutzung;
+    END NutzungRef;
+
+  END Kataloge;
+
+  TOPIC Schadorganismen =
+    DEPENDS ON Gebietsueberwachung_Schadorganismen_V1_2.Kataloge;
+
+    CLASS Befund =
+      /** Datum, an welchem die Kontrolle durchgeführt wurde
+       */
+      Datum_Kontrolle : MANDATORY FORMAT INTERLIS.XMLDate "2000-1-1" .. "2099-12-31";
+      /** TRUE = Die untersuchte Fläche ist befallen
+       */
+      Ist_Befallen : BOOLEAN;
+      /** Untersuchungsergebnisse
+       */
+      Kommentar : MTEXT*200000;
+      /** Obligatorisch, falls befallen
+       */
+      Gesperrt_Bis : FORMAT INTERLIS.XMLDate "2000-1-1" .. "2099-12-31";
+      /** Name des Schadorganismus
+       */
+      Organismus : MANDATORY TEXT*50;
+      /** Name der Organisation, welche die Kontrolle durchgeführt hat
+       */
+      Erfassungsstelle : TEXT*200;
+    END Befund;
+
+    CLASS Kontrollflaeche =
+      /** Untersuchte Fläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      Nutzung : MANDATORY Gebietsueberwachung_Schadorganismen_V1_2.Kataloge.NutzungRef;
+    END Kontrollflaeche;
+
+    ASSOCIATION KontrollflaecheBefund =
+      Kontrollflaeche -- {1} Kontrollflaeche;
+      Befund -- {1..*} Befund;
+    END KontrollflaecheBefund;
+
+  END Schadorganismen;
+
+END Gebietsueberwachung_Schadorganismen_V1_2.

@@ -1,0 +1,114 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2021-05-06 | BAFU  | UNIQUE Constraints in CLASS Gebietsauslass, Teileinzugsgebiet, VorfluterAbschnitt eingefügt, LV03 gelöscht
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=135.4
+MODEL EZGG_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2021-05-06"  =
+  IMPORTS CoordSys;
+
+  TOPIC EZGG =
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D: CHLV95
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+
+  DOMAIN
+
+    Coord2 = COORD
+      2460000.000 .. 2870000.000 [INTERLIS.m] {CHLV95[1]},
+      1045000.000 .. 1330000.000 [INTERLIS.m] {CHLV95[2]},
+      ROTATION 2 -> 1;
+
+  /* Linie ohne Kreisbogen */
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX Coord2;
+
+  /* Fläche ohne Kreisbogen */
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.001;
+
+  /* Aufzählung für Attribut SEE */
+    SEE = (
+        Normales_TEZG,
+        See_stehendesGW,
+        See_RestEZG
+        );
+
+  /* Aufzählung für Attribut FLUSSGB */
+    Flussgebiete = (
+        Rhein,
+        Aare,
+        Reuss,
+        Limmat,
+        Rhone,
+        Ticino,
+        Adda,
+        Inn,
+        Adige,
+        Olona
+        );
+
+  /* Klasse für den Gebietsauslass */
+    CLASS Gebietsauslass =
+      ID : MANDATORY 0 .. 9999999;
+      Geometrie : MANDATORY Coord2;
+      Gewaessername : TEXT*50;
+      EZGNR : MANDATORY 0 .. 999999;
+      GWLNR : MANDATORY TEXT*20;
+      Adresse : MANDATORY 0.000 .. 999999.999;
+      Nebenarm : MANDATORY BOOLEAN;
+     UNIQUE EZGNR;
+     UNIQUE ID;
+    END Gebietsauslass;
+
+  /* Klasse für das Teileinzugsgebiet */
+    CLASS Teileinzugsgebiet =
+      EZGNR : MANDATORY 0 .. 999999;
+      TEILEZGNR : MANDATORY 0 .. 999999;
+      Geometrie : MANDATORY Polygon;
+      Gewaessername : TEXT*50;
+      Gebietsauslass : 0 .. 9999999;
+      SEE : MANDATORY SEE;
+      H1 : MANDATORY -1 .. 999999;
+      H2 : MANDATORY -1 .. 999999;
+      Nebenarm : MANDATORY BOOLEAN;
+      InterneSenke : MANDATORY 0 .. 999999;
+      TEZGNR40 : MANDATORY 0 .. 999999;
+      TEZGNR150 : MANDATORY 0 .. 999999;
+      TEZGNR1000 : MANDATORY 0 .. 999999;
+      FLUSSGB : MANDATORY Flussgebiete;
+     UNIQUE EZGNR;
+     UNIQUE TEILEZGNR;
+    END Teileinzugsgebiet;
+
+  /* Klasse für die Vorfluter-Abschnitte */
+    CLASS VorfluterAbschnitt =
+      ID : MANDATORY 0 .. 9999999;
+      Geometrie : MANDATORY Linie;
+      Gewaessername : TEXT*50;
+      EZGNR : MANDATORY 0 .. 999999;
+      GWLNR : MANDATORY TEXT*20;
+      UnteresEnde : MANDATORY 0.000 .. 999999.999;
+      OberesEnde : MANDATORY 0.000 .. 999999.999;
+      Nebenarm : MANDATORY BOOLEAN;
+     UNIQUE EZGNR;
+     UNIQUE ID;
+    END VorfluterAbschnitt;
+
+    ASSOCIATION TeileinzugsgebietGebietsauslass =
+      Gebietsauslass_ -- {0..1} Gebietsauslass;
+      Teileinzugsgebiet -- {1} Teileinzugsgebiet;
+    END TeileinzugsgebietGebietsauslass;
+
+    ASSOCIATION VorfluterAbschnittGebietsauslass =
+      Gebietsauslass_ -- {1} Gebietsauslass;
+      VorfluterAbschnitt -- {0..1} VorfluterAbschnitt;
+    END VorfluterAbschnittGebietsauslass;
+
+  END EZGG;
+
+END EZGG_V1_1.

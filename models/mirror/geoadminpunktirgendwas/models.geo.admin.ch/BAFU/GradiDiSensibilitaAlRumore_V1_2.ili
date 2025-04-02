@@ -1,0 +1,184 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimale
+ * Gradi di sensibilità al rumore (in zone d'utilizzazione)
+ * Geodati di base No 145
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2023-03-20 | ARE   | - DOMAIN SuperficieIndividuale al posto de PartizioneComprensorio
+!!                    | - CLASS SensibilitaAlRumore_SuperficieDiZoni: geometria del tipo SuperficieIndividuale (SURFACE)
+!!                    | - CLASS SensibilitaAlRumore_SuperficieDiZoni: CONSTRAINT per garantire la topologia AREA
+!!                    | - CLASS Tipo: Attributo Codice, lunghezza campo 40 caratteri
+!!------------------------------------------------------------------------------
+!! 2021-11-19 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!!------------------------------------------------------------------------------
+!! 2021-09-01 | ARE   | Version 1.2
+!!                    | Adaption au modèle-cadre RDPPF version 2.0 du 14 avril 2021 :
+!!                    | - DOMAIN StatoGiuridico adapté, TipoDocumento nouveau
+!!                    | - STRUCTURE LocalisedBlob et MultilingualBlob nouveaux
+!!                    | - CLASS SensibilitaAlRumore_SuperficieDiZoni : nouvel attribut pubblicataFinoAl
+!!                    | - CLASS Documento adapté au modèle-cadre RDPPF
+!!                    | - CLASS Servizio adapté au modèle-cadre RDPPF
+!!                    | Modifications techniques ultérieures
+!!                    | - ASSOCIATION Geometria_Documento inséré additionellement pour permettre un lien direct entre les classes Geometria et Documento
+!!                    | - TOPIC GeodatiDiBase maintenant avec BASKET OID du type TypeID
+!!                    | - CLASS SetDiDati : Attribut BasketID maintenant du type TypeID, nouvel méta-attribut pour la vérification de l’ID
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL GradiDiSensibilitaAlRumore_V1_2 (it)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-03-20"
+TRANSLATION OF Laermempfindlichkeitsstufen_V1_2 ["2023-03-20"] =
+  IMPORTS CHAdminCodes_V1,InternationalCodes_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    GS = (
+      Senza_GS,
+      GS_I,
+      GS_II,
+      GS_III,
+      GS_IV
+    );
+
+    SuperficieIndividuale = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    TypeID = OID TEXT*60;
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+    StatoGiuridico = (
+      inVigore,
+      ModificazioneConEffettoAnticipato,
+      ModificazioneSenzaEffettoAnticipato
+    );
+
+    TipoDocumento = (
+      PrescrizionLegale,
+      BaseLegale,
+      Indicazione
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF GradiDiSensibilitaAlRumore_V1_2.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  STRUCTURE LocalisedBlob =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Blob : MANDATORY BLACKBOX BINARY;
+  END LocalisedBlob;
+
+  STRUCTURE MultilingualBlob =
+    LocalisedBlob : BAG {1..*} OF GradiDiSensibilitaAlRumore_V1_2.LocalisedBlob;
+    UNIQUE (LOCAL) LocalisedBlob: Language;
+  END MultilingualBlob;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Tipo : MANDATORY GradiDiSensibilitaAlRumore_V1_2.TipoDocumento;
+      Titolo : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abbreviazione : LocalisationCH_V1.MultilingualText;
+      NoUfficiale : LocalisationCH_V1.MultilingualText;
+      SoloNelComune : CHAdminCodes_V1.CHMunicipalityCode;
+      TestoNelWeb : GradiDiSensibilitaAlRumore_V1_2.MultilingualUri;
+      Documento : GradiDiSensibilitaAlRumore_V1_2.MultilingualBlob;
+      IndiceEstratto : MANDATORY -1000 .. 1000;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_V1_2.StatoGiuridico;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      pubblicataFinoAl : INTERLIS.XMLDate;
+    END Documento;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    BASKET OID AS TypeID;
+    DEPENDS ON GradiDiSensibilitaAlRumore_V1_2.PrescrizioniLegali;
+
+    CLASS SensibilitaAlRumore_SuperficieDiZoni =
+      Geometria : MANDATORY GradiDiSensibilitaAlRumore_V1_2.SuperficieIndividuale;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_V1_2.StatoGiuridico;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      pubblicataFinoAl : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    SET CONSTRAINT WHERE StatoGiuridico == #inVigore:
+      INTERLIS.areAreas(ALL, UNDEFINED, >> Geometria);
+    END SensibilitaAlRumore_SuperficieDiZoni;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*40;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*10;
+      Grado : MANDATORY GradiDiSensibilitaAlRumore_V1_2.GS;
+      Declassate : BOOLEAN;
+      ForzaVincolante : MANDATORY GradiDiSensibilitaAlRumore_V1_2.ForzaVincolante;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+        NOT (Declassate == #true) OR (Grado == #GS_II OR Grado == #GS_III);
+    END Tipo;
+
+    ASSOCIATION Geometria_Documento =
+      Geometria (EXTERNAL) -- {0..*} SensibilitaAlRumore_SuperficieDiZoni;
+      Documento (EXTERNAL) -- {0..*} GradiDiSensibilitaAlRumore_V1_2.PrescrizioniLegali.Documento;
+    END Geometria_Documento;
+
+    ASSOCIATION Tipo_Documento =
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+      Documento (EXTERNAL) -- {0..*} GradiDiSensibilitaAlRumore_V1_2.PrescrizioniLegali.Documento;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} SensibilitaAlRumore_SuperficieDiZoni;
+      Tipo -<> {1} Tipo;
+    END Tipo_Geometria;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+
+    CLASS Servizio =
+      Nome : MANDATORY LocalisationCH_V1.MultilingualText;
+      ServizioNelWeb : GradiDiSensibilitaAlRumore_V1_2.MultilingualUri;
+      IDI : TEXT*12;
+      Riga1 : TEXT*80;
+      Riga2 : TEXT*80;
+      Via : TEXT*100;
+      Numero : TEXT*7;
+      CAP : TEXT*4;
+      Localita : TEXT*40;
+      UNIQUE IDI;
+    END Servizio;
+
+    CLASS SetDiDati =
+      !!@ basketRef=GradiDiSensibilitaAlRumore_V1_2.GeodatiDiBase
+      BasketID : MANDATORY TypeID;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : TEXT*20;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente (EXTERNAL) -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END GradiDiSensibilitaAlRumore_V1_2.

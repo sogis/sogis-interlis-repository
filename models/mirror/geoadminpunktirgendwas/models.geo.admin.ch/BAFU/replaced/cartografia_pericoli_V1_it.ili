@@ -1,0 +1,536 @@
+/* MODELLO DI DATI PER LA CARTOGRAFIA DEI PERICOLI
+
+   Il presente modello di dati contiene una parte minima conformemente alla
+   legge sulla geoinformazione e una parte ampliata.
+   La suddivisione è indicata nei diversi topic sotto forma di commento.
+
+   Il presente modello fa ricorso a diversi sottomodelli:
+   -- da http://models.interlis.ch/
+   -- CONTRACTED TYPE MODEL Units (en)
+   -- da http://models.geo.admin.ch/CH/
+   -- MODEL GeometryCHLV03_V1;  !! Part   I of CHBase
+   -- MODEL CHAdminCodes_V1;    !! Part   IV of CHBase
+   -- MODEL WithOneState_V1;    !! Part   V of CHBase
+
+   Il vero e proprio modello di dati è:
+   -- MODEL cartografia_pericoli_V1 (it_CH) */
+
+
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | WITHOUT OVERLAPS added
+!! 2015-08-12 | KOGIS | EnumElement commented
+!! 2016-04-15 | KOGIS | Geometry definition adapted
+!! 2021-01-13 | BAFU  | Correzioni: TOPIC stato_rilevamento definito come ABSTRACT, correzione condizione tre in CLASS intensita_per_fonti_processo
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "166.1"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+CONTRACTED MODEL cartografia_pericoli_V1 (it_CH)
+    AT "http://models.geo.admin.ch/BAFU" VERSION "2021-01-13" =
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;  !! Part   I of CHBase
+  IMPORTS CHAdminCodes_V1;                !! Part   IV of CHBase
+  IMPORTS WithOneState_V1;                !! Part   V of CHBase
+
+  DOMAIN
+    CP_OID = OID TEXT*120; !! <OID secondo il Cantone>.<sigla del Cantone>.ch
+
+    SurfaceWithoutArcs = SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.001;
+    SurfaceWithoutArcsWithOverlaps2mm =
+      SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.002;
+    /* SurfaceWithoutArcsWithOverlaps2mm è il tipo di dati per tutti gli
+       attributi superficiali nel modello di dati. Gli archi di cerchio non sono
+       consentiti. L'auto-intersezione massima è di 2 millimetri. */
+
+  FUNCTION areFuzzyAreas (Objects: OBJECTS OF ANYCLASS;
+                          SurfaceBag: ATTRIBUTE OF @ Objects
+                            RESTRICTION (BAG OF ANYSTRUCTURE);
+                          SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                            RESTRICTION (SURFACE);
+                          Tolerance: NUMERIC): BOOLEAN;
+  /* Questa funzione dà "true" se le superfici indicate,
+     a prescindere da discrepanze all'interno della tolleranza indicata,
+     producono una copertura capillare */
+
+  FUNCTION isEnumExactVal(Val: ENUMTREEVAL; NodeVal: ENUMTREEVAL): BOOLEAN;
+  /* Questa funzione dà "true" se "Val" coincide esattamente con "NodeVal".
+     (valori inferiori quindi "false"). */
+
+
+  TOPIC cartografia_pericoli_base_WithOneState (ABSTRACT) =
+    OID AS CP_OID;
+
+    /* _WithOneState si riferisce al principio di aggiornamento secondo
+       il modello di base della Confederazione. Nella cartografia dei pericoli
+       non vengono utilizzate informazioni sugli aggiornamenti, ma viene
+       descritto solo lo stato in un determinato momento (OneState).
+       La struttura ModInfo è pertanto vuota. */
+
+    STRUCTURE ModInfo EXTENDS WithOneState_V1.ModInfo =
+    END ModInfo;
+
+    DOMAIN            !! classificazione dei processi
+      processo_principale = (
+        acqua,
+        scivolamento,
+        crollo,
+        valanga
+      );
+
+      proc_indicativo EXTENDS processo_principale = (
+        acqua(
+          inondazione,     !! comprende anche alluvione
+          colata_detritica),
+        scivolamento(
+          scivolamento_permanente,
+          scivolamente_improvviso)
+!!      crollo,
+!!      valanga
+      );
+
+      classificazione_processo_indicativa = ALL OF proc_indicativo;
+
+      processo_dettagliato EXTENDS proc_indicativo = (
+        acqua(
+!!        inondazione,
+!!        colata_detritica,
+          erosione_sponda),
+        scivolamento(
+!!        scivolamento_permanente,
+          scivolamente_improvviso(
+            scivolamento_spontaneo,
+            colata_detritica_versante)),
+        crollo(
+          caduta_sassi_blocchi,
+          crollo_roccia_frana,
+          caduta_ghiaccio),
+        sprofondamento_cedimento(
+          sprofondamento,
+          cedimento),
+        valanga(
+          valanga_radente,
+          valanga_polverosa,
+          colata_neve)     !! comprende anche scivolamento del manto nevoso
+        );
+
+      classificazione_dettagliata_processo = ALL OF processo_dettagliato;
+
+      processo_indicativo_speciale = (
+            ruscellamento_superficiale,
+            risalita_falda);
+
+    FUNCTION areFuzzyAreas_processo_principale
+                           (Objects: OBJECTS OF ANYCLASS;
+                            processo_principale: ATTRIBUTE OF @ Objects
+                              RESTRICTION (processo_principale);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* come "areFuzzyAreas" ma con l'aggiunta che
+      per ogni processo principale è richiesta una copertura capillare. */
+
+    FUNCTION areFuzzyAreas_processo_indicativo
+                           (Objects: OBJECTS OF ANYCLASS;
+                            proc_indicativo: ATTRIBUTE OF @ Objects
+                              RESTRICTION (classificazione_processo_indicativa);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* come "areFuzzyAreas" ma con l'aggiunta che
+      per ogni processo indicativo è richiesta una copertura capillare. */
+
+    FUNCTION areFuzzyAreas_processo_speciale
+                           (Objects: OBJECTS OF ANYCLASS;
+                            processo_indicativo_speciale: ATTRIBUTE OF @ Objects
+                              RESTRICTION (processo_indicativo_speciale);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* come "areFuzzyAreas" ma con l'aggiunta che
+      per ogni processo indicativo speciale è richiesta una copertura
+      capillare. */
+
+    DOMAIN            !! criteri di valutazione
+      valutazione_tipo = MANDATORY (
+        non_valutato,
+        valutazione_non_necessaria,
+        valutato);
+
+      completezza_tipo = (
+        completo,
+        incompleto,
+        non_determinabile,
+        in_chiarificazione);
+
+    STRUCTURE valutazione_processo =
+      stato_valutazione: valutazione_tipo;
+      fonti_processo_parziale_complete: completezza_tipo;
+      MANDATORY CONSTRAINT
+      /* Solo se la completezza (attributo vedi "completezza_tipo")
+         è stata chiarita, è possibile assegnare lo stato "valutato"
+         nello stato di valutazione. */
+        (stato_valutazione == #valutato) ==
+                      DEFINED (fonti_processo_parziale_complete);
+    END valutazione_processo;
+
+    STRUCTURE processi_parziali =
+      !! acqua
+      inondazione: valutazione_processo;      !! comprende anche alluvione
+      colata_detritica: valutazione_processo;
+      erosione_sponda: valutazione_processo;
+      !! scivolamento
+      scivolamento_permanente: valutazione_processo;
+      scivolamento_spontaneo: valutazione_processo;
+      colata_detritica_versante: valutazione_processo;
+      !! crollo
+      caduta_sassi_blocchi: valutazione_processo;
+      crollo_roccia_frana: valutazione_processo;
+      caduta_ghiaccio: valutazione_tipo;     !! nessuna indicazione della
+                                             !!               completezza
+      !! sprofondamento/cedimento
+      sprofondamento: valutazione_tipo;      !! nessuna indicazione della
+                                             !!               completezza
+      cedimento: valutazione_tipo;           !! nessuna indicazione della
+                                             !!               completezza
+      !! valanga
+      valanga_radente: valutazione_processo;
+      valanga_polverosa: valutazione_processo;
+      colata_neve: valutazione_processo;     !! comprende anche scivolamento del
+                                             !!                     manto nevoso
+    END processi_parziali;
+
+    FUNCTION processo_parziale_valutato(P: processo_dettagliato;
+                                        PP: processi_parziali): BOOLEAN;
+    /* verifica se il processo parziale conformemente a P 
+       è stato contrassegnato come "valutato" nei processi parziali.
+       Per la caduta ghiaccio (non compare nella struttura dei processi
+       parziali) la funzione dà sempre "true". */
+
+    DOMAIN            !! periodi di ritorno
+      periodo_ritorno_tipo = 1..99999;
+      /* Note:
+         Il campo di valori è sempre limitato con CONSTRAINTS a:
+         1..10 000, 99 999
+         (99 999 indica uno scenario estremo)
+         
+         Il periodo di ritorno è obbligatorio per la maggior parte dei processi
+         parziali, eccetto 
+         - scivolamento_permamente: sempre indefinito, perché non ha senso
+         - colata_neve, caduta_ghiaccio: opzionale
+         - sprofondamento_cedimento: se valutato solo a livello indicativo.
+         
+         Generalmente, ad eccezione dell'evento estremo, viene assegnato un
+         Periodo di ritorno compreso fra 1 e 300.
+         L'evento estremo determinante viene comunque contrassegnato con un
+         periodo di ritorno di 99 999, indipendentemente che si basi su un
+         periodo di ritorno determinato oppure no.
+         Se alla base di questo evento estremo determinante vi è un periodo di
+         ritorno determinato, viene anche assegnato un valore compreso fra 301
+         e 10 000. In questo caso l'oggetto compare due volte: una volta come
+         scenario estremo con periodo di ritorno noto e una volta con 99 999.
+         Sono possibili ulteriori eventi di minore probabilità fra 301 e
+         10 000 che non rappresentano l'evento estremo determinante. */
+
+    DOMAIN            !! probabilità
+      probabilita_tipo = 0.00..1.00;
+
+    DOMAIN            !! gradi di pericolo
+      grado_pericolo_tipo = (
+        non_in_pericolo,
+        pericolo_residuo,
+        basso,
+        medio,
+        elevato);
+
+    CLASS oggetto_base (ABSTRACT) =
+      modifica: MANDATORY ModInfo;
+      titolare_dati: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      area_impatto: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      commento: MTEXT;
+    END oggetto_base;
+
+  END cartografia_pericoli_base_WithOneState;
+
+
+  TOPIC parametri EXTENDS cartografia_pericoli_base_WithOneState =
+    !! Parte del modello di dati ampliato
+
+    DOMAIN            !! per parametro
+      metodo_determinazione_tipo = (
+        non_ricostruibile,
+        valutazione_modello,
+        perizia);
+
+    CLASS parametro (ABSTRACT) EXTENDS oggetto_base =
+      periodo_ritorno: MANDATORY periodo_ritorno_tipo;
+      probabilita_scenario_parziale: MANDATORY probabilita_tipo;
+      /* Se la "probabilita_scenario_parziale" è = 1,00,
+         si tratta di uno scenario globale,
+         altrimenti di uno scenario parziale. */
+      descrizione_scenario: MTEXT;
+      fonte_processo: MANDATORY TEXT;
+      metodo_determinazione: metodo_determinazione_tipo;
+      designazione_processo_Cantone: TEXT;
+      MANDATORY CONSTRAINT
+        !! Per gli scenari parziali la "descrizione_scenario" è obbligatoria.
+        (probabilita_scenario_parziale == 1.00) OR
+        DEFINED (descrizione_scenario);
+    END parametro;
+
+    /* Sistema dei parametri:
+       - Periodo di ritorno: vedi sopra
+       - I valori vengono descritti con un limite inferiore (_li) e
+         un limite superiore (_ls).
+       - Se su una superficie parziale di un'area analizzata non è presente
+         alcun impatto causato dal processo corrispondente e dalla fonte di 
+         processo, vengono assegnati i valori _li==0 und _ls ==0.
+       - I parametri sono presenti solo nei processi parziali "inondazione" e
+         "colata detritica". */
+
+    DOMAIN
+      in_profondita_tipo = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS par_inondazione_profondita EXTENDS parametro =
+      in_profondita_li: MANDATORY in_profondita_tipo;
+      in_profondita_ls: MANDATORY in_profondita_tipo;
+      MANDATORY CONSTRAINT
+        in_profondita_li <= in_profondita_ls;
+    END par_inondazione_profondita;
+
+    DOMAIN
+      in_velocita_scorrimento_tipo = MANDATORY 0.00 .. 30.00 [Units.ms]; !! m/s
+
+    CLASS par_inondazione_velocita EXTENDS parametro =
+      in_velocita_li: MANDATORY in_velocita_scorrimento_tipo;
+      in_velocita_ls: MANDATORY in_velocita_scorrimento_tipo;
+      MANDATORY CONSTRAINT
+        in_velocita_li <= in_velocita_ls;
+    END par_inondazione_velocita;
+
+    UNIT
+      v_per_h [m2s];
+
+    DOMAIN
+      in_v_per_h_tipo = MANDATORY 0.00 .. 50.00 [m2s]; !! m^2/s
+
+    CLASS par_inondazione_v_per_h EXTENDS parametro =
+      in_v_per_h_li: MANDATORY in_v_per_h_tipo;
+      in_v_per_h_ls: MANDATORY in_v_per_h_tipo;
+      MANDATORY CONSTRAINT
+        in_v_per_h_li <= in_v_per_h_ls;
+    END par_inondazione_v_per_h;
+
+    DOMAIN
+      cd_spessore_deposito_tipo = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS par_colata_detritica_spessore EXTENDS parametro =
+      cd_spessore_deposito_li: MANDATORY cd_spessore_deposito_tipo;
+      cd_spessore_deposito_ls: MANDATORY cd_spessore_deposito_tipo;
+      MANDATORY CONSTRAINT
+        cd_spessore_deposito_li <= cd_spessore_deposito_ls;
+    END par_colata_detritica_spessore;
+
+    DOMAIN
+      cd_velocita_tipo = MANDATORY 0.00 .. 10.00 [Units.ms]; !! m/s
+
+    CLASS par_colata_detritica_velocita EXTENDS parametro =
+      cd_velocita_li: MANDATORY cd_velocita_tipo;
+      cd_velocita_ls: MANDATORY cd_velocita_tipo;
+      MANDATORY CONSTRAINT
+        cd_velocita_li <= cd_velocita_ls;
+    END par_colata_detritica_velocita;
+
+  END parametri;
+
+
+  TOPIC stato_rilevamento (ABSTRACT) EXTENDS cartografia_pericoli_base_WithOneState =
+    !! Parte del modello di dati minimo
+
+    CLASS area_rilevamento =
+      modifica: MANDATORY ModInfo;
+      titolare_dati: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      superficie: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      estensione_processo: MANDATORY processi_parziali;
+      commento: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas(ALL, UNDEFINED, >> superficie, 0.002);
+    END area_rilevamento;
+
+  END stato_rilevamento;
+
+
+  TOPIC Intensita (ABSTRACT) EXTENDS cartografia_pericoli_base_WithOneState =
+
+    DOMAIN            !! intensità
+      descrizione_intensita = (
+        nessun_impatto,
+        impatto_presente(
+          debole,
+          medio,
+          forte)) ORDERED;
+
+      intensita_tipo = ALL OF descrizione_intensita;
+      !! impatto presente (senza indicazione dell'intensità) ammesso
+
+    CLASS intensita (ABSTRACT) EXTENDS oggetto_base =
+      periodo_ritorno: periodo_ritorno_tipo;
+      classe_intensita: MANDATORY intensita_tipo;
+      designazione_processo_Cantone: MANDATORY TEXT;
+      MANDATORY CONSTRAINT
+      /* Se è indicato un periodo di ritorno compreso fra 1 e 300 compreso,
+         le intensità devono essere indicate in modo dettagliato.
+         (--> "nessun_impatto", "debole", "medio", "forte" -> corrisponde al
+         tipo di attributo "descrizione_intensita" -> ovvero in questo caso il
+         valore "impatto_presente" non può essere assegnato.) */
+        (periodo_ritorno > 300) OR
+          NOT (isEnumExactVal(classe_intensita,#impatto_presente));
+    END intensita;
+
+  END Intensita;
+
+
+  TOPIC Intensita_per_fonti_processo EXTENDS Intensita =
+    !! Parte del modello di dati ampliato
+
+    CLASS intensita_per_fonti_processo EXTENDS intensita =
+      fonte_processo: MANDATORY TEXT;
+      processo_parziale: MANDATORY processo_dettagliato;
+      /* Se la "probabilita_scenario_parziale" è = 1,00,
+         si tratta di uno scenario globale,
+         altrimenti di uno scenario parziale. */
+      probabilita_scenario_parziale: MANDATORY probabilita_tipo;
+      descrizione_scenario: MTEXT;
+      MANDATORY CONSTRAINT
+        !! Per gli scenari parziali la "descrizione_scenario" è obbligatoria
+        (probabilita_scenario_parziale == 1.00) OR
+        DEFINED(descrizione_scenario);
+      MANDATORY CONSTRAINT
+        /* Per il processo parziale "scivolamento_permanente" non è consentito
+           indicare un periodo di ritorno. */
+        (processo_parziale != #scivolamento.scivolamento_permanente) OR
+        NOT (DEFINED (periodo_ritorno));
+      MANDATORY CONSTRAINT
+        /* Per tutti i processi ad eccezione di "caduta_ghiaccio",
+           "sprofondamento_cedimento", "colata_neve" e "scivolamento_permanente"
+           deve essere indicato un periodo di ritorno.
+           (Nel processo parziale "sprofondamento_cedimento" questa opzione è
+           disponibile per quei casi in cui la valutazione avviene soltanto
+           a livello indicativo.) */
+        (processo_parziale == #crollo.caduta_ghiaccio) OR
+        (processo_parziale == #sprofondamento_cedimento.sprofondamento) OR
+        (processo_parziale == #sprofondamento_cedimento.cedimento) OR
+        (processo_parziale == #valanga.colata_neve) OR
+        (processo_parziale == #scivolamento.scivolamento_permanente) OR
+        DEFINED (periodo_ritorno);
+    END intensita_per_fonti_processo;
+
+  END Intensita_per_fonti_processo;
+
+
+  TOPIC Intensita_sinottiche EXTENDS Intensita =
+    !! Parte del modello di dati minimo
+
+    CLASS intensita_sinottica EXTENDS intensita =
+      processo_parziale: MANDATORY classificazione_dettagliata_processo;
+      fonti_processo_parziale_complete: MANDATORY completezza_tipo;
+      MANDATORY CONSTRAINT
+        /* Per il processo parziale "scivolamento_permanente" non
+           deve essere indicato alcun periodo di ritorno. */
+        (processo_parziale != #scivolamento.scivolamento_permanente) OR
+        NOT (DEFINED (periodo_ritorno));
+      MANDATORY CONSTRAINT
+        /* Per tutti i processi ad eccezione di "caduta_ghiaccio",
+           "sprofondamento", "cedimento", "colata_neve" e "scivolamento_permanente"
+           deve essere indicato un periodo di ritorno.
+           (Nel processo parziale "sprofondamento_cedimento" questa opzione è
+           disponibile per quei casi in cui la valutazione avviene soltanto
+           a livello indicativo.) */
+        (processo_parziale == #crollo.caduta_ghiaccio) OR
+        (processo_parziale == #sprofondamento_cedimento) OR
+        (processo_parziale == #valanga.colata_neve) OR
+        (processo_parziale == #scivolamento.scivolamento_permanente) OR
+        DEFINED (periodo_ritorno);
+    END intensita_sinottica;
+
+  END Intensita_sinottiche;
+
+
+  TOPIC aree_pericolo EXTENDS cartografia_pericoli_base_WithOneState =
+    !! Parte del modello di dati minimo
+
+    CLASS area_pericolo EXTENDS oggetto_base =
+      processo_aree_pericolo: MANDATORY processo_principale;
+      grado_pericolo: MANDATORY grado_pericolo_tipo;
+      processi_parziali_completi: MANDATORY completezza_tipo;
+      fonti_processo_complete: MANDATORY completezza_tipo;
+      SET CONSTRAINT
+        areFuzzyAreas_processo_principale
+                     (ALL, processo_aree_pericolo,
+                      UNDEFINED, >> area_impatto, 0.100);
+    END area_pericolo;
+
+  END aree_pericolo;
+
+
+  TOPIC pericoli_sinottici EXTENDS cartografia_pericoli_base_WithOneState =
+    !! Parte del modello di dati ampliato
+
+    !! per carte dei pericoli sinottiche
+
+    CLASS area_pericolo_sinottica EXTENDS oggetto_base =
+      valutazione_completa: MANDATORY completezza_tipo;
+      !! riferito a processi parziali E fonti di processo
+      acqua: grado_pericolo_tipo;
+      scivolamento: grado_pericolo_tipo;
+      crollo: grado_pericolo_tipo;
+      valanga: grado_pericolo_tipo;
+      /* Il grado di pericolo per i singoli processi principali
+         deve essere indicato per tutti i processi o per nessun
+         processo. */
+      pericolo_massimo: MANDATORY grado_pericolo_tipo;
+      SET CONSTRAINT
+        areFuzzyAreas (ALL, UNDEFINED, >> area_impatto, 0.100);
+    END area_pericolo_sinottica;
+
+  END pericoli_sinottici;
+
+
+  TOPIC aree_indicative_pericolo EXTENDS
+                                 cartografia_pericoli_base_WithOneState =
+    !! Parte del modello di dati ampliato
+
+    CLASS area_indicativa_pericolo EXTENDS oggetto_base =
+      processo_indicativo: MANDATORY classificazione_processo_indicativa;
+      pericolo_indicativo: MANDATORY BOOLEAN;
+      metodo: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas_processo_indicativo
+                     (ALL, processo_indicativo,
+                      UNDEFINED, >> area_impatto, 0.100);
+    END area_indicativa_pericolo;
+
+    CLASS area_indicativa_pericolo_speciale EXTENDS oggetto_base =
+      processo_speciale: MANDATORY processo_indicativo_speciale;
+      pericolo_indicativo: MANDATORY BOOLEAN;
+      metodo: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas_processo_speciale
+             (ALL, processo_speciale,
+              UNDEFINED, >> area_impatto, 0.100);
+    END area_indicativa_pericolo_speciale;
+
+  END aree_indicative_pericolo;
+
+
+END cartografia_pericoli_V1.

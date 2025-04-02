@@ -1,0 +1,82 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (line 54),
+!!                      Property EXTERNAL added (line 38, 43, 48)
+
+!!@ IDGeoIV=23.1
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Biotopflaechen_V1 (en)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-05-26"  =
+  IMPORTS CatalogueObjects_V1,CHAdminCodes_V1,GeometryCHLV03_V1,LocalisationCH_V1;
+
+  TOPIC aCodelisten =
+
+    CLASS BIO_Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_Bedeutung_Catalogue;
+
+    CLASS BIO_Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_Kartierungsgrundlage_Catalogue;
+
+    CLASS BIO_TYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*9;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_TYP_Catalogue;
+
+    STRUCTURE BIO_Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) BIO_Bedeutung_Catalogue;
+    END BIO_Bedeutung_CatRef;
+
+    STRUCTURE BIO_Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) BIO_Kartierungsgrundlage_Catalogue;
+    END BIO_Kartierungsgrundlage_CatRef;
+
+    STRUCTURE BIO_TYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) BIO_TYP_Catalogue;
+    END BIO_TYP_CatRef;
+
+  END aCodelisten;
+
+  TOPIC Biotopflaechen =
+    DEPENDS ON Biotopflaechen_V1.aCodelisten;
+
+    CLASS Biotopflaeche =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT;
+      Name : TEXT;
+      BIO_TYP : MANDATORY Biotopflaechen_V1.aCodelisten.BIO_TYP_CatRef;
+      Bio_Typ_KT : TEXT;
+      Herkunft : MANDATORY TEXT;
+      Kartierungsgrundlage : MANDATORY Biotopflaechen_V1.aCodelisten.BIO_Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationgsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY Biotopflaechen_V1.aCodelisten.BIO_Bedeutung_CatRef;
+    END Biotopflaeche;
+
+    CLASS Biotopflaeche_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT;
+      Geo_Obj : MANDATORY GeometryCHLV03_V1.MultiSurface;
+    END Biotopflaeche_Teilobjekt;
+
+    ASSOCIATION TeilobjektBiotopflaeche =
+      Biotop_Teilobjekt -- {1..*} Biotopflaeche_Teilobjekt;
+      Biotop -<#> {1} Biotopflaeche;
+    END TeilobjektBiotopflaeche;
+
+  END Biotopflaechen;
+
+END Biotopflaechen_V1.

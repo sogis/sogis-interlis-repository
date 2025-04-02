@@ -1,0 +1,111 @@
+INTERLIS 2.3;
+
+/** Kataloge zum Perimeter LN / Sömmerungsflächen
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2016-04-15 | KOGIS | Geometry definition adapted (line 48, 86)
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV=153.5
+MODEL Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2016-04-15"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** dynamische Liste aller Flaechen-Typen
+     */
+    CLASS PLS_Katalog_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PLS_Katalog_Typ;
+
+    STRUCTURE PLSTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) PLS_Katalog_Typ;
+    END PLSTypRef;
+
+  END Kataloge;
+
+END Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2.
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV=153.5
+MODEL Perimeter_LN_Soemmerungsflaechen_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2016-04-15"  =
+  IMPORTS GeometryCHLV03_V1,Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2;
+
+  DOMAIN
+
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Perimeter =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2.Kataloge;
+
+    /** Perimeter der LN und Sömmerungsflächen.
+     */
+    CLASS PLS_Flaeche =
+      Flaeche : MANDATORY Perimeter_LN_Soemmerungsflaechen_V1_2.SurfaceWithOverlaps5m;
+      Typ : MANDATORY Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2.Kataloge.PLSTypRef;
+    END PLS_Flaeche;
+
+  END Perimeter;
+
+END Perimeter_LN_Soemmerungsflaechen_V1_2.
+
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+!!@ IDGeoIV=153.5
+MODEL Perimeter_LN_Soemmerungsflaechen_LV95_V1_2 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2016-04-15"  =
+  IMPORTS GeometryCHLV95_V1,Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2;
+
+  DOMAIN
+
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Perimeter =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2.Kataloge;
+
+    /** Perimeter der LN und Sömmerungsflächen.
+     */
+    CLASS PLS_Flaeche =
+      Flaeche : MANDATORY Perimeter_LN_Soemmerungsflaechen_LV95_V1_2.SurfaceWithOverlaps5m;
+      Typ : MANDATORY Perimeter_LN_Soemmerungsflaechen_Kataloge_V1_2.Kataloge.PLSTypRef;
+    END PLS_Flaeche;
+
+  END Perimeter;
+
+END Perimeter_LN_Soemmerungsflaechen_LV95_V1_2.

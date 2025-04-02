@@ -1,0 +1,165 @@
+INTERLIS 2.3;
+
+/** Grundstruktur zur Verwendung innerhalb der zuständigen Stelle für die Geobasisdaten eines OeREBK-Themas.
+ */
+MODEL OeREBKRM09gs (de)
+AT "mailto:ce@eisenhutinformatik.ch"
+VERSION "2010-10-26"  // Entwurf nach der Anhörung // =
+  IMPORTS OeREBKRM09,MultilingualText09,OeREBKRM09vs;
+
+  /** Um aus den Geodaten und den Rechtsvorschriften die konkreten öffentlichrechtlichen Eigentumsbeschränkungen zu bilden, werden Definitionen für die Zuordnung (OEREB-Definitionen) benötigt.
+   */
+  TOPIC Grundstruktur
+  EXTENDS OeREBKRM09vs.Vorschriften =
+    OID AS OeREBKRM09.OEREBOID;
+
+    DOMAIN
+
+      /** Wert eines Attributs z.B. "34" oder "W3".
+       */
+      AttributWert = TEXT;
+    STRUCTURE AttributWert_ = value : MANDATORY AttributWert; END AttributWert_;
+
+    /** Abstrakte Definition der Eigentumsbeschränkung.
+     */
+    CLASS OerebDefinition =
+      /** Textliche Beschreibung der Beschränkung; z.B. "Wohnen W3"
+       */
+      Aussage : MANDATORY MultilingualText09.MultilingualMText;
+      /** Definition des Raumbezugs in Prosa, z.B. "Im Abstand von 5m zum Strassenrand".
+       */
+      UmschreibungRaumbezug : MultilingualText09.MultilingualMText;
+      /** Einordnung der Eigentumsbeschränkung in ein OEREB-Katasterthema
+       */
+      OerebkThema : MANDATORY OeREBKRM09.Thema;
+    END OerebDefinition;
+
+    /** Formale/maschinen-interpretierbare  Definition der Eigentumsbeschränkung (insbesondere des Raumbezugs)
+     */
+    CLASS TechOerebDef (ABSTRACT) =
+    END TechOerebDef;
+
+    /** Verweis auf Geodaten, die in einem Attribut einen Identifikator (z.B. Biotop-Nr) haben.
+     */
+    CLASS IdBasierteFilterDefinition
+    EXTENDS TechOerebDef =
+      /** Qualifizierter INTERLIS-Klassenname der Klasse mit den Geodaten z.B. "oerebkbsp.Biotope.Biotop"
+       */
+      KlassenName : MANDATORY TEXT;
+      /** Name des Geomtrieattributs z.B. "Perimeter"
+       */
+      GeometrieAttributName : MANDATORY TEXT;
+      /** Name des Id-Attributs z.B. "BiotopNr"
+       */
+      IdAttributName : MANDATORY TEXT;
+      /** Wert des Identifikators für diese Eigentumsbeschränkung z.B. "34".
+       */
+      IdAttributWert : MANDATORY AttributWert;
+      /** Name des Attributs mit der Gueltigkeit z.B. "gueltigAb"
+       */
+      DatumAttributName : MANDATORY TEXT;
+    END IdBasierteFilterDefinition;
+
+    /** Verweis auf Geodaten, die in einem Attribut eine Typ/Art-Angabe (z.B. Zonenart) haben.
+     */
+    CLASS TypBasierteFilterDefinition
+    EXTENDS TechOerebDef =
+      /** Qualifizierter INTERLIS-Klassenname der Klasse mit den Geodaten z.B. "oerebkbsp2.Bauzone.Bauzone"
+       */
+      KlassenName : MANDATORY TEXT;
+      /** Name des Geomtrieattributs z.B. "Perimeter"
+       */
+      GeometrieAttributName : MANDATORY TEXT;
+      /** Name des Typ-/Art-Attributs z.B. "Zonenart"
+       */
+      TypAttributName : TEXT;
+      /** Werte des Art-Attributs die für diese Eigentumsbeschränkung massgebend sind z.B. "W3".
+       */
+      TypAttributWert : BAG {0..*} OF AttributWert_;
+      /** Name des Attributs mit der Gueltigkeit z.B. "gueltigAb"
+       */
+      DatumAttributName : MANDATORY TEXT;
+    END TypBasierteFilterDefinition;
+
+    ASSOCIATION HinweisVorschrift =
+      Eigentumsbeschraenkung -- {0..*} OerebDefinition;
+      /** Verweis auf die Rechtsvorschrift (oder das Gesetz/den Artikel für abstrakte Eigentumsbeschränkungen). Kann in einem anderen Behälter sein.
+       */
+      Vorschrift (EXTERNAL) -- {1..*} OeREBKRM09vs.Vorschriften.DokumentElement;
+      /** Hinweis auf spezifische Artikel.
+       */
+      ArtikelNr : BAG {0..*} OF OeREBKRM09.ArtikelNummer_;
+    END HinweisVorschrift;
+
+    ASSOCIATION TechOerebDefOerebDefinition =
+      /** Verweis auf die abstrakte OeREB-Definition (kann in einem anderen Behälter sein)
+       */
+      OerebDefinition (EXTERNAL) -<#> {1} OerebDefinition;
+      /** Formale/maschinen-interpretierbare  Definition der Eigentumsbeschränkung (insbesondere des Raumbezugs)
+       */
+      TechOerebDef -- {1} TechOerebDef;
+    END TechOerebDefOerebDefinition;
+
+    /** OEREB-Definitionen können im Interesse einfacherer Definitionen auf anderen OEREB-Definitionen aufbauen.
+     */
+    ASSOCIATION VerfeinerungBasis =
+      Verfeinerung -- {0..*} OerebDefinition;
+      Basis (EXTERNAL) -- {0..1} OerebDefinition;
+    END VerfeinerungBasis;
+
+  END Grundstruktur;
+
+  /** Metadaten zu den Geodaten innerhalb der für die Geobasisdaten zuständigen Stelle (zur Aufbereitung der Transferstruktur)
+   */
+  TOPIC OerebMetadaten =
+
+    /** Eine organisatorische Einheit innerhalb der öffentlichen Verwaltung, z.B. eine für Geobasisdaten zuständige Stelle.
+     */
+    CLASS Amt =
+      /** Name des Amtes z.B. "Amt für Gemeinden und Raumordnung des Kantons Bern".
+       */
+      Name : MANDATORY MultilingualText09.MultilingualText;
+      /** Verweis auf die Website des Amtes z.B. "http://www.jgk.be.ch/site/agr/".
+       */
+      AmtImWeb : OeREBKRM09.WebReferenz;
+    END Amt;
+
+    /** Angaben zum Darstellungsdienst.
+     */
+    CLASS Darstellungsdienst =
+      /** WMS GetMap-Request (für Maschine-Maschine-Kommunikation), z.B. "http://ecogis.admin.ch/de/wms?version=1.1.1&service=WMS&request=GetMap&LAYERS=invent_leit&srs=EPSG:21781&WIDTH=500&HEIGHT=500&bbox=500000,100000,700000,300000&FORMAT=image/png&TRANSPARENT=TRUE"
+       */
+      VerweisWMS : MANDATORY URI;
+      /** Verweis auf ein Dokument das die Karte beschreibt; z.B. "http://www.apps.be.ch/geoportal/output/gdp_adm_x3012app0081524772611.png"
+       */
+      LegendeImWeb : MANDATORY OeREBKRM09.WebReferenz;
+    END Darstellungsdienst;
+
+    /** OEREB-Metadaten zu den Geodaten
+     */
+    CLASS OerebMetadaten =
+      /** BasketId oder Dateiname oder vollständiger WFS-Request.
+       */
+      DatensatzIdentifikator : MANDATORY URI;
+      /** Verweis auf weitere, maschinenlesbare, Metadaten (XML) der Geodaten.
+       */
+      weitereMetadaten : URI;
+    END OerebMetadaten;
+
+    ASSOCIATION AmtMetadaten =
+      /** Amt das für die Geodaten zuständig ist.
+       */
+      Amt -- {1} Amt;
+      Metadaten -<#> {1} OerebMetadaten;
+    END AmtMetadaten;
+
+    ASSOCIATION DarstellungsdienstMetadaten =
+      /** Darstellungsdienst für die Geodaten.
+       */
+      Darstellungsdienst -- {1} Darstellungsdienst;
+      Metadaten -<#> {1} OerebMetadaten;
+    END DarstellungsdienstMetadaten;
+
+  END OerebMetadaten;
+
+END OeREBKRM09gs.

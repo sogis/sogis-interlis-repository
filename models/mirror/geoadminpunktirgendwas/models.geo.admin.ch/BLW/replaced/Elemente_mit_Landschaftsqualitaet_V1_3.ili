@@ -1,0 +1,193 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV=153.8
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL Elemente_mit_Landschaftsqualitaet_LV95_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2017-03-21"  =
+  IMPORTS Bearbeitungsstatus_V1_2,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  STRUCTURE SurfaceWithOverlaps5mStructure =
+    Surface : SurfaceWithOverlaps5m;
+  END SurfaceWithOverlaps5mStructure;
+
+  STRUCTURE MultiSurfaceWithOverlaps5m =
+    Surfaces : BAG {1..*} OF SurfaceWithOverlaps5mStructure;
+  END MultiSurfaceWithOverlaps5m;
+
+  TOPIC Landschaftsqualitaet =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1_2.Status;
+
+    /** Perimeter, in welchem die Vertragsobjekte liegen dürfen.
+     */
+    CLASS LQ_Projektperimeter =
+      Flaeche : MANDATORY Elemente_mit_Landschaftsqualitaet_LV95_V1_3.MultiSurfaceWithOverlaps5m;
+      Name : LocalisationCH_V1.MultilingualText;
+      /** Erstellung des Datensatzes
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      /** Beginn der Projektumsetzung
+       */
+      Projektbeginn : MANDATORY INTERLIS.XMLDate;
+      Identifikator : TEXT*50;
+    END LQ_Projektperimeter;
+
+    /** Vertragsobjekte/Elemente, als Flächen, Linien oder Punkte zu erfassen.
+     */
+    CLASS LQ_Vertragsobjekt =
+      Flaeche : GeometryCHLV95_V1.MultiSurface;
+      Linie : POLYLINE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 1000000;
+      /** Nummer und / oder Name der Massnahme
+       */
+      Massnahme : MANDATORY MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_1 : MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_2 : MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_3 : MTEXT*20;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_4 : MTEXT*20;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_5 : MTEXT;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      Identifikator : TEXT*50;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Linie) OR DEFINED (Punkt);
+    END LQ_Vertragsobjekt;
+
+    ASSOCIATION LQ_VertragsobjekteLQ_Projektperimeter =
+      Vertragsobjekt -- {0..*} LQ_Vertragsobjekt;
+      Projektperimeter -<#> {1} LQ_Projektperimeter;
+    END LQ_VertragsobjekteLQ_Projektperimeter;
+
+  END Landschaftsqualitaet;
+
+END Elemente_mit_Landschaftsqualitaet_LV95_V1_3.
+
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV=153.8
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL Elemente_mit_Landschaftsqualitaet_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2017-03-21"  =
+  IMPORTS Bearbeitungsstatus_V1_2,GeometryCHLV03_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    SurfaceWithOverlaps5m = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>5;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  STRUCTURE SurfaceWithOverlaps5mStructure =
+    Surface : SurfaceWithOverlaps5m;
+  END SurfaceWithOverlaps5mStructure;
+
+  STRUCTURE MultiSurfaceWithOverlaps5m =
+    Surfaces : BAG {1..*} OF SurfaceWithOverlaps5mStructure;
+  END MultiSurfaceWithOverlaps5m;
+
+  TOPIC Landschaftsqualitaet =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1_2.Status;
+
+    /** Perimeter, in welchem die Vertragsobjekte liegen dürfen.
+     */
+    CLASS LQ_Projektperimeter =
+      Flaeche : MANDATORY Elemente_mit_Landschaftsqualitaet_V1_3.MultiSurfaceWithOverlaps5m;
+      Name : LocalisationCH_V1.MultilingualText;
+      /** Erstellung des Datensatzes
+       */
+      Erstellungsdatum : MANDATORY INTERLIS.XMLDate;
+      /** Beginn der Projektumsetzung
+       */
+      Projektbeginn : MANDATORY INTERLIS.XMLDate;
+      Identifikator : TEXT*50;
+    END LQ_Projektperimeter;
+
+    /** Vertragsobjekte/Elemente, als Flächen, Linien oder Punkte zu erfassen.
+     */
+    CLASS LQ_Vertragsobjekt =
+      Flaeche : GeometryCHLV03_V1.MultiSurface;
+      /** Linienelement
+       */
+      Linie : POLYLINE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 1000000;
+      /** Nummer und / oder Name der Massnahme
+       */
+      Massnahme : MANDATORY MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_1 : MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_2 : MTEXT;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_3 : MTEXT*20;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_4 : MTEXT*20;
+      /** Zusätzliche Beschreibung des LQ-Elementes
+       */
+      Zusatz_5 : MTEXT;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      Identifikator : TEXT*50;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Linie) OR DEFINED (Punkt);
+    END LQ_Vertragsobjekt;
+
+    ASSOCIATION LQ_VertragsobjekteLQ_Projektperimeter =
+      Vertragsobjekt -- {0..*} LQ_Vertragsobjekt;
+      Projektperimeter -<#> {1} LQ_Projektperimeter;
+    END LQ_VertragsobjekteLQ_Projektperimeter;
+
+  END Landschaftsqualitaet;
+
+END Elemente_mit_Landschaftsqualitaet_V1_3.

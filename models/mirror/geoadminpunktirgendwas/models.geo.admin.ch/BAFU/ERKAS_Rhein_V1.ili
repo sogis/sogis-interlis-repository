@@ -1,0 +1,80 @@
+INTERLIS 2.3;
+!!==============================================================================
+!! ERKAS_Rhein_V1.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 113
+!! Bezeichnung GeoIV                         : Risikokataster (Erhebungen der Kantone)
+!! Zuständige Stelle (Fachstelle des Bundes) : Kantone (BAFU)
+!! Zugangsberechtigungsstufe                 : B
+!! 
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 113.3
+!! Bezeichnung Geobasisdatensatz             : Kantonaler Risikokataster gemäss Störfallverordnung / Rhein
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Nr  | Änderung
+!!------------------------------------------------------------------------------
+!! 2017-02-21 | 1.0 | Verabschiedete Version
+!!==============================================================================
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = 113.3
+!!@ furtherInformation = https://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Rhein_V1 (de) AT "https://models.geo.admin.ch/BAFU" VERSION "2017-02-21" =
+
+  TOPIC ERKAS_Rhein =
+!!==============================================================================
+    CLASS Datenpunkt =
+      ID                  : MANDATORY 1 .. 9;
+      Ort_Anfang          : MANDATORY 1.00 .. 999.99;
+      Ort_Ende            : MANDATORY 1.00 .. 999.99;
+      Streckenbezeichnung :           TEXT*1024;
+
+      UNIQUE ID;
+    END Datenpunkt;
+
+    CLASS Verkehrsaufkommen  =
+      DatumV               : MANDATORY INTERLIS.XMLDate;
+      GG_Erd_Mineraloel    : MANDATORY 0 .. 9999999999;
+      GG_Duengemittel      : MANDATORY 0 .. 9999999999;
+      GG_chem_Erzeugnisse  : MANDATORY 0 .. 9999999999;
+      Total_Ankunft_SRH    : MANDATORY 0 .. 9999999999;
+      Total_Abgang_SRH     : MANDATORY 0 .. 9999999999;
+    END Verkehrsaufkommen ;
+
+    CLASS Vollzug =
+      DatumRE         : MANDATORY INTERLIS.XMLDate;
+      DatumBE         : MANDATORY INTERLIS.XMLDate;
+      KonsBereich     : MANDATORY 1 .. 9999;
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelCodePers   : MANDATORY 0 .. 4;
+      AmpelCodeOFG    : MANDATORY 0 .. 4;
+    END Ergebnis;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Verkehrsaufkommen =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rVerkehrsaufkommen -- {1} Verkehrsaufkommen;
+    END Datenpunkt_Verkehrsaufkommen;
+
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+
+  END ERKAS_Rhein;
+
+END ERKAS_Rhein_V1.

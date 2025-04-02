@@ -1,0 +1,307 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle/
+!!@ IDGeoIV=165.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL SanasilvaInventuren_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2014-02-03"  =
+  IMPORTS GeometryCHLV03_V1;
+
+  DOMAIN
+
+    Id = 0 .. 999999999999999;
+
+  TOPIC SanasilvaInventuren_LV03_V1 =
+
+    DOMAIN
+
+      /** Aufteilung der Schweiz gemäss Lage in:
+       * Berggebiet und Nicht-Berggebiet.
+       * Zur Ermittlung der Schadenentwicklung im Berggebiet werden Probeflächen, die höher als 900 m ü. Meer liegen oder steiler als 40 Prozent sind, zu einer Region "Berggebiet" zusammengefasst. Es basiert auf objektiven, topographischen Kriterien.
+       * Id 1: Berggebiet
+       * Id 2: Nicht-Berggebiet
+       */
+      Lage = (
+        /** Berggebiet
+         */
+        Berggebiet,
+        /** Nicht-Berggebiet
+         */
+        NichtBerggebiet
+      );
+
+      /** Aufteilung in Laub-/Nadelholz/alle
+       */
+      LaubNadelholz = (
+        /** Laub- und Nadelhölzer zusammen
+         */
+        Gesamt,
+        /** Nadelholz
+         */
+        Nadelholz,
+        /** Laubholz
+         */
+        Laubholz
+      );
+
+      /** Je nach Aufnahmejahr variert die Netzdichte: 1985-1992: 4x4 km; 1993, 1994, 1997: 8x8 km; alle anderen Jahre: 16x16 km
+       */
+      Netzdichte = (
+        /** 4x4 km Netz
+         */
+        R4x4km,
+        /** 8x8 km Netz
+         */
+        R8x8km,
+        /** 16x16 km Netz
+         */
+        R16x16km
+      );
+
+    /** Entwicklung der Kronenverlichtung
+     */
+    CLASS Kronenverlichtung =
+      /** Anteil der Bäume mit Kronenverlichtung unbekannter Ursache über 25% [%]
+       */
+      KrounbUr : MANDATORY 0 .. 100;
+      /** Standardfehler (Anteil der Bäume mit Kronenverlichtung unbekannter Ursache über 25%) [+/-%].
+       */
+      StdErrUnbUr : MANDATORY 0 .. 100;
+      /** Anteil der Bäume mit Gesamtverlichtung über 25% [%]
+       */
+      KroGesamtverl : MANDATORY 0 .. 100;
+      /** Standardfehler (Anteil der Bäume mit Gesamtverlichtung) über 25% [+/-%]
+       */
+      StdErrTot : MANDATORY 0 .. 100;
+    END Kronenverlichtung;
+
+    /** Entwicklung der Mortalität
+     */
+    CLASS Mortalitaet =
+      /** Anteil jährlich abgestorbene Bäume (stehend)
+       */
+      StehTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (stehend) [+/- %]
+       */
+      StdStehTot : MANDATORY 0 .. 100;
+      /** Anteil jährlich abgestorbener Bäume (liegend)
+       */
+      LieTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (liegend) [+/- %]
+       */
+      StdLieTot : MANDATORY 0 .. 100;
+      /** Anteil jährlich abgestorbener Bäume (Total)
+       */
+      TotTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (Total) [+/- %]
+       */
+      StdTotTot : MANDATORY 0 .. 100;
+    END Mortalitaet;
+
+    /** Die Klasse Erhebung zeigt, in Welchem Jahr in welchem Netz aufgenommen worden ist.
+     */
+    CLASS Erhebung =
+      Jahr : MANDATORY INTERLIS.XMLDate;
+      Netzdichte : MANDATORY Netzdichte;
+    END Erhebung;
+
+    /** Räumliche Ausprägung der Daten
+     */
+    CLASS Stichproben =
+      /** Lage und Höhe (X,Y,Z)
+       */
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord3;
+      /** Radius (Schrägdistanz) des 200 m²-Kreis [m]
+       */
+      Radius_200m2 : MANDATORY 8 .. 13 CIRCULAR [INTERLIS.m];
+      /** Radius (Schrägdistanz) des 500 m²-Kreis [m]
+       */
+      Radius_500m2 : MANDATORY 13 .. 60 CIRCULAR [INTERLIS.m] COUNTERCLOCKWISE;
+      /** Erhebungsjahr
+       */
+      Jahr : MANDATORY INTERLIS.XMLDate;
+      /** Identifikationsnummer des Stichprobennetzes (4x4, 8x8, 16x16 km)
+       */
+      Netzdichte : MANDATORY Netzdichte;
+      /** Aufteilung der Schweiz gemäss Lage in:
+       * Berggebiet und Nicht-Berggebiet.
+       * Zur Ermittlung der Schadenentwicklung im Berggebiet werden Probeflächen, die höher als 900 m ü. Meer liegen oder steiler als 40 Prozent sind, zu einer Region "Berggebiet" zusammengefasst. Es basiert auf objektiven, topographischen Kriterien.
+       * Id 1: Berggebiet
+       * Id 2: Nicht-Berggebiet
+       */
+      Lage : MANDATORY Lage;
+      LaubNadelholz : MANDATORY LaubNadelholz;
+    END Stichproben;
+
+    ASSOCIATION Erhebung_Kronenverlichtung =
+      Erhebung -<#> {1} Erhebung;
+      Kronenverlichtung -- {1} Kronenverlichtung;
+    END Erhebung_Kronenverlichtung;
+
+    ASSOCIATION Erhebung_Mortalitaet =
+      Mortalitaet -- {1} Mortalitaet;
+      Erhebung -<#> {1} Erhebung;
+    END Erhebung_Mortalitaet;
+
+    ASSOCIATION StichprobenErhebung =
+      Erhebung -- {1..*} Erhebung;
+      Stichprobe -- {1..*} Stichproben;
+    END StichprobenErhebung;
+
+  END SanasilvaInventuren_LV03_V1;
+
+END SanasilvaInventuren_LV03_V1.
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle/
+!!@ IDGeoIV=165.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL SanasilvaInventuren_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2014-02-03"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Id = 0 .. 999999999999999;
+
+  TOPIC SanasilvaInventuren_LV95_V1 =
+
+    DOMAIN
+
+      /** Aufteilung der Schweiz gemäss Lage in:
+       * Berggebiet und Nicht-Berggebiet.
+       * Zur Ermittlung der Schadenentwicklung im Berggebiet werden Probeflächen, die höher als 900 m ü. Meer liegen oder steiler als 40 Prozent sind, zu einer Region "Berggebiet" zusammengefasst. Es basiert auf objektiven, topographischen Kriterien.
+       * Id 1: Berggebiet
+       * Id 2: Nicht-Berggebiet
+       */
+      Lage = (
+        /** Berggebiet
+         */
+        Berggebiet,
+        /** Nicht-Berggebiet
+         */
+        NichtBerggebiet
+      );
+
+      /** Aufteilung in Laub-/Nadelholz/alle
+       */
+      LaubNadelholz = (
+        /** Laub- und Nadelhölzer zusammen
+         */
+        Gesamt,
+        /** Nadelholz
+         */
+        Nadelholz,
+        /** Laubholz
+         */
+        Laubholz
+      );
+
+      /** Je nach Aufnahmejahr variert die Netzdichte: 1985-1992: 4x4 km; 1993, 1994, 1997: 8x8 km; alle anderen Jahre: 16x16 km
+       */
+      Netzdichte = (
+        /** 4x4 km Netz
+         */
+        R4x4km,
+        /** 8x8 km Netz
+         */
+        R8x8km,
+        /** 16x16 km Netz
+         */
+        R16x16km
+      );
+
+    /** Entwicklung der Kronenverlichtung
+     */
+    CLASS Kronenverlichtung =
+      /** Anteil der Bäume mit Kronenverlichtung unbekannter Ursache über 25% [%]
+       */
+      KrounbUr : MANDATORY 0 .. 100;
+      /** Standardfehler (Anteil der Bäume mit Kronenverlichtung unbekannter Ursache über 25%) [+/-%].
+       */
+      StdErrUnbUr : MANDATORY 0 .. 100;
+      /** Anteil der Bäume mit Gesamtverlichtung über 25% [%]
+       */
+      KroGesamtverl : MANDATORY 0 .. 100;
+      /** Standardfehler (Anteil der Bäume mit Gesamtverlichtung) über 25% [+/-%]
+       */
+      StdErrTot : MANDATORY 0 .. 100;
+    END Kronenverlichtung;
+
+    /** Entwicklung der Mortalität
+     */
+    CLASS Mortalitaet =
+      /** Anteil jährlich abgestorbene Bäume (stehend)
+       */
+      StehTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (stehend) [+/- %]
+       */
+      StdStehTot : MANDATORY 0 .. 100;
+      /** Anteil jährlich abgestorbener Bäume (liegend)
+       */
+      LieTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (liegend) [+/- %]
+       */
+      StdLieTot : MANDATORY 0 .. 100;
+      /** Anteil jährlich abgestorbener Bäume (Total)
+       */
+      TotTot : MANDATORY 0 .. 100;
+      /** Standardfehler Anteil jährlich abgestorbener Bäume (Total) [+/- %]
+       */
+      StdTotTot : MANDATORY 0 .. 100;
+    END Mortalitaet;
+
+    /** Die Klasse Erhebung zeigt, in Welchem Jahr in welchem Netz aufgenommen worden ist.
+     */
+    CLASS Erhebung =
+      Jahr : MANDATORY INTERLIS.XMLDate;
+      Netzdichte : MANDATORY Netzdichte;
+    END Erhebung;
+
+    /** Räumliche Ausprägung der Daten
+     */
+    CLASS Stichproben =
+      /** Lage und Höhe (X,Y,Z)
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord3;
+      /** Radius (Schrägdistanz) des 200 m²-Kreis [m]
+       */
+      Radius_200m2 : MANDATORY 8 .. 13 CIRCULAR [INTERLIS.m];
+      /** Radius (Schrägdistanz) des 500 m²-Kreis [m]
+       */
+      Radius_500m2 : MANDATORY 13 .. 60 CIRCULAR [INTERLIS.m] COUNTERCLOCKWISE;
+      /** Erhebungsjahr
+       */
+      Jahr : MANDATORY INTERLIS.XMLDate;
+      /** Identifikationsnummer des Stichprobennetzes (4x4, 8x8, 16x16 km)
+       */
+      Netzdichte : MANDATORY Netzdichte;
+      /** Aufteilung der Schweiz gemäss Lage in:
+       * Berggebiet und Nicht-Berggebiet.
+       * Zur Ermittlung der Schadenentwicklung im Berggebiet werden Probeflächen, die höher als 900 m ü. Meer liegen oder steiler als 40 Prozent sind, zu einer Region "Berggebiet" zusammengefasst. Es basiert auf objektiven, topographischen Kriterien.
+       * Id 1: Berggebiet
+       * Id 2: Nicht-Berggebiet
+       */
+      Lage : MANDATORY Lage;
+      LaubNadelholz : MANDATORY LaubNadelholz;
+    END Stichproben;
+
+    ASSOCIATION Erhebung_Kronenverlichtung =
+      Erhebung -<#> {1} Erhebung;
+      Kronenverlichtung -- {1} Kronenverlichtung;
+    END Erhebung_Kronenverlichtung;
+
+    ASSOCIATION Erhebung_Mortalitaet =
+      Mortalitaet -- {1} Mortalitaet;
+      Erhebung -<#> {1} Erhebung;
+    END Erhebung_Mortalitaet;
+
+    ASSOCIATION StichprobenErhebung =
+      Erhebung -- {1..*} Erhebung;
+      Stichprobe -- {1..*} Stichproben;
+    END StichprobenErhebung;
+
+  END SanasilvaInventuren_LV95_V1;
+
+END SanasilvaInventuren_LV95_V1.

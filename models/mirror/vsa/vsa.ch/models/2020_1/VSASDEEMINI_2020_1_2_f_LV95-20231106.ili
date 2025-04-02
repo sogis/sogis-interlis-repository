@@ -1,0 +1,1996 @@
+!!@ comment = "VSASDEEMINI_2020_1_2_f_LV95.ili"
+
+INTERLIS 2.3;
+
+MODEL VSASDEEMINI_2020_1_LV95 (fr) AT "http://www.vsa.ch/models"
+  VERSION "06.11.2023" TRANSLATION OF VSADSSMINI_2020_1_LV95 [ "06.11.2023" ] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS Base_f_LV95;
+  IMPORTS SIA405_Base_Eaux_usees_1_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Association suisse des professionnels de la protection des eaux (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Libéré pour utilisation publique et application commerciale."
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = " Fichier modèle INTERLIS examiné avec Compiler INTERLIS Version 5.3.3 (03.08.2023)"
+
+
+UNIT
+  Kilogramm_par_annee [kga] = (kg/Units.a);
+  Habitants_par_hectare [EWha] = (Units.CountedObjects/Units.ha);
+  Litre_par_seconde_hectare [lsha] = (SIA405_Base_Eaux_usees_1_LV95.ls/Units.ha);
+  Kilogramm_par_annee_par_cubicmetre_par_seconde [kga_m3s] = (kga/SIA405_Base_Eaux_usees_1_LV95.m3s);
+
+TOPIC VSASDEEMini =  DEPENDS ON SIA405_Base_Eaux_usees_1_LV95.Administration;
+
+
+
+DOMAIN
+
+
+!!@ comment = ""
+Nombre = -99999999.9999 ..  99999999.9999;
+
+
+!!@ comment = "extension valeurs SIA405 Etat Etat de fonctionnement et de planification de l’ouvrage."
+EtatValeurs EXTENDS SIA405_Base_Eaux_usees_1_LV95.Etat = (  !! Etat de fonctionnement et de planification de l’ouvrage. 
+!! 1.2.2013 Adaptation à la nouvelle version de SIA405_Base_f_LV95.Etat – Extension des valeurs de base du fluide, modélisation hiérarchique et adaption compiler 4.5.13
+      !! 17.7.2015 hors_service, !! comporte hors_service et les valeurs suivantes
+         !!  reserve  !! n’existe pas en eaux_usées
+      en_service (  !! comporte en_service et les valeurs suivantes 
+         !! 17.7.2015 en_service,
+         provisoire,  !! Etat provisoire, remplace un ouvrage temporairement (par exemple après dégâts)
+         sera_supprime  !! 
+      ),
+      abandonne (  !! Comporte abandonne et les valeurs suivantes
+          !!  Abandonne,   !! N’existe pas en eaux usées
+         supprime_non_demoli,  !! L'ouvrage est supprimé, mais pas démoli
+         supprime_inconnu,  !! L'ouvrage du réseau d'assainissement est supprimé, mais l'état de la mise en œuvre est inconnu
+         demoli  !! L'ouvrage est démoli et supprimé
+      ),
+      !! 17.7.2015 inconnu,
+      autre ( !! Comporte les valeurs suivantes
+         variante_de_calcul,
+         planifie,
+         projet  !! Projet de construction concret existant ou en cours d'exécution (en construction). En cas d'intention, utiliser le statut "planifié". Une fois la construction terminée, passer au statut "en_exploitation".
+      )
+    );   
+    !! Nouveau 17.7.2015  
+    Etat = ALL OF EtatValeurs;
+
+
+!!@ comment = "Coefficient de rugosité d’après Prandtl Colebrook (ks ou kb), unité milimètre [mm]"
+Prandtl = 0.00 .. 100.00 [Units.mm];
+
+
+!!@ comment = "kilogramm par année [kg/annee]"
+Charge = 0 .. 1000000 [kga];
+
+
+!!@ comment = "habitants par hectare [habitants/ha]"
+Densite_Population = 0 .. 10000 [EWha];
+
+
+!!@ comment = "Equivalent habitants [EH]"
+EH = 0 .. 300000 [Units.CountedObjects];
+
+
+!!@ comment = "Nombre d’habitants [habitants]"
+Habitants = 0 .. 9999999 [Units.CountedObjects];
+
+
+!!@ comment = "Numéro de cours d’eau du cours d’eau selon le réseau de cours d’eau VECTOR25"
+GWLNR = TEXT*25;
+
+
+!!@ comment = "Numéro de la STEP selon l’Office fédéral de l’environnement (OFEV)"
+NoSTEP = 1 .. 999999 [Units.CountedObjects];
+
+
+!!@ comment = "Numéro dans l’ordre des dômes X/Y du profil de PROFIL_TUYAU_GEOM"
+ordre = 1 .. 999;
+
+
+!!@ comment = "nombre de déversements par année[nombre/annee]"
+Frequence_deversement = 0.0 .. 999.9;
+
+
+!!@ comment = "Nombre d’agrégats"
+Nombre_installations = 1 .. 9  [Units.CountedObjects];
+
+
+!!@ comment = "milimètre [mm]"
+Hauteur_max_profile = 0 .. 99999 [Units.mm];
+
+
+!!@ comment = "mètres [m], 2 décimals"
+Hauteur_ref = 0.00 .. 30000.00 [m];
+
+
+!!@ comment = "Désignation cantonale du tronçon de cours d’eau dans le réseau cantonal"
+Troncon_cours_eau_id = TEXT*36;
+
+
+!!@ comment = "pourcent [%]"
+Pourcent1000 = 0 .. 1000;
+
+
+!!@ comment = ""
+Indice_d_urgence = 0 .. 400;
+
+
+!!@ comment = ""
+Note_d_etat = 0.00 .. 4.00;
+
+
+!!@ comment = "Charge spécifique de déversement [kga]/[m3s]"
+Charge_specifique_de_deversement = 0 .. 10000 [kga_m3s];
+
+!!@comment = "Nouveau Wegleitung GEP-Daten 2020 MAITRE_DES_DONNEES et FOURNISSEUR_DES_DONNEES comme relation à la class ORGANISATION au lieu d'une attribut Texte"
+CLASS VSA_BaseClass (ABSTRACT) EXTENDS SIA405_Base_Eaux_usees_1_LV95.SIA405_BaseClass =
+
+END VSA_BaseClass;
+
+!!@ comment = "Maître des données est le gestionnaire de données, qui est la personne ou l’organisation autorisée à gérer, modifier ou supprimer les données de cette table/classe. Si un bureau d’ingénieurs exécute cette fonction mandaté par une commune, il faut saisir la commune comme MAITRE_DES_DONNEES et non le bureau d’ingénieurs. Ce dernier sera le fournisseur des données."
+ASSOCIATION MAITRE_DES_DONNEESAssoc = 
+   MAITRE_DES_DONNEESRef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+   VSA_BaseClass_MAITRE_DES_DONNEESAssocRef -- {0..*} VSA_BaseClass;
+END MAITRE_DES_DONNEESAssoc;
+
+!!@ comment = "Organisation qui crée l’enregistrement de ces données (cf. MAITRE_DES_DONNEES et DERNIERE_MODIFICATION)."
+ASSOCIATION FOURNISSEUR_DES_DONNEESAssoc =
+   FOURNISSEUR_DES_DONNEESRef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+   VSA_BaseClass_FOURNISSEUR_DES_DONNEESAssocRef -- {0..*} VSA_BaseClass;
+END FOURNISSEUR_DES_DONNEESAssoc;
+
+!!@ comment = "Définition d'un profil de tuyau avec désignation, peut être utilisée pour différentes lignes. Un profil de tuyau est uniquement saisi s'il ne s'agit pas d'un profil normal CONDUITE.TYPE_PROFIL.profil_special ou profil_ouvert). Un profil de tuyau est constitué des différents points d'appui qui définissent la géométrie de la section (-> classe PROFIL_TUYAU_GEOM)"
+CLASS PROFIL_TUYAU EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Remarques générales"
+    REMARQUE: TEXT*80;
+    DESIGNATION: MANDATORY TEXT*20;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END PROFIL_TUYAU;
+
+!!@ comment = "Données géométriques sur le profil du tuyau sous la forme de points (X,Y) avec hauteur maximale du profil = 1"
+CLASS PROFIL_TUYAU_GEOM EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Ordre des points de détail de la définition de la géométrie"
+    ORDRE: ordre;
+    !!@ comment = "l'abscisse (X)"
+    X: Nombre;
+    !!@ comment = "l'ordonnée (Y)"
+    Y: Nombre;
+END PROFIL_TUYAU_GEOM;
+
+!!@ comment = "Composition"
+ASSOCIATION PROFIL_TUYAU_GEOM_GENRE_PROFILAssoc =
+  GENRE_PROFILRef  -<#> {1} PROFIL_TUYAU;
+  PROFIL_TUYAU_GEOM_GENRE_PROFILAssocRef -- {0..*} PROFIL_TUYAU_GEOM;
+END PROFIL_TUYAU_GEOM_GENRE_PROFILAssoc;
+
+!!@ comment = "Lieu (point) dans le réseau d’évacuation des eaux avec une fonction constructive et/ou hydraulique"
+CLASS NOEUD EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Numéro d'identification unique de la STEP (n° STEP de l’OFEV) dans le bassin versant de laquelle se trouve le nœud. A remplir également si le nœud n'est pas raccordé à la STEP. En cas de doute, la délimitation des bassins versants de STEP est à demander auprès de l'autorité cantonale."
+    NO_STEP: NoSTEP;
+    !!@ comment = "Année de mise en service (réception finale)"
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Classes d'état. Description de l'état constructif selon la directive VSA 'Maintien des canalisations' (2007). Ne pas confondre avec les degrés de remise en état (attribut NECESSITE_ASSAINIR)"
+    ETAT_CONSTRUCTIF: (     
+      inconnu,
+      !!@ comment = "Plus en état de fonctionner: L'ouvrage d'assainissement n’est déjà plus parcourable ou ne le sera plus dans peu de temps: Ouvrage d'assainissement écroulé, totalement bouché par des racines ou par d’autres obstacles à l’écoulement. L'ouvrage d'assainissement perd de l’eau (exfiltration / pollution probable de l’eau souterraine)"
+      Z0,
+      !!@ comment = "Graves défauts: Dommages structurels ne garantissant plus la sécurité statique, l’hydraulique ou l’étanchéité: cassures, déformations, entrées ou sorties visibles d’eau, trous dans la paroi, forte saillie des raccords latéraux, fort développement des racines, paroi  fortement érodée par lavage. Matériau  inapproprié"
+      Z1,
+      !!@ comment = "Défauts moyens: Défauts structurels affectant la statique, l’hydraulique ou l’étanchéité: joints avec canalisation renflés, entrées non nettoyées, fissures, légers obstacles à l’écoulement (entartrages, saillie des raccords latéraux, légers dommages à la paroi, développement localisé des racines, paroi érodée par lavage, etc.)"
+      Z2,
+      !!@ comment = "Défauts légers: Défauts ou événements structurels ayant une influence insignifiante sur l’étanchéité, l’hydraulique ou la statique de l'ouvrage d'assainissement: joints avec canalisations renflées, raccords latéraux mal nettoyés, légères déformations sur matériaux plastiques, légères érosions dues au lavage, etc"
+      Z3,
+      !!@ comment = "Aucun défaut"
+      Z4
+    );
+    !!@ comment = "Remarques générales"
+    REMARQUE: TEXT*80;
+    DESIGNATION: MANDATORY TEXT*20;
+    !!@ comment = "Cote du couvercle de l’ouvrage. Indiquer la cote du couvercle principal, lorsqu’il y a plusieurs couvercles. Laisser vide en l'absence de couvercle."
+    COTE_COUVERCLE: Base_f_LV95.Altitude;
+    !!@ comment = "Géométrie détaillée particulièrement pour un OUVRAGE_SPECIAL. Pour l’attribut CHAMBRE_STANDARD utilisez Dimension1 et 2, de même pour une INSTALLATION_INFILTRATION normée.  Les canalisations n’ont en général pas de géométrie détaillée."
+    GEOMETRIE_DETAILLEE: Base_f_LV95.Surface;
+    !!@ comment = "Dimension1 de la chambre (plus grande mesure intérieure)."
+    DIMENSION1: SIA405_Base_Eaux_usees_1_LV95.Metrage;
+    !!@ comment = "Dimension2 de la chambre (plus petite mesure intérieure)"
+    DIMENSION2: SIA405_Base_Eaux_usees_1_LV95.Metrage;
+    !!@ comment = "L’indice d’urgence est un nombre qui indique l’urgence de mesures de réhabilitation d’un ouvrage du réseau d’assainissement. Il découle de l’appréciation de l’état, basé sur la note d’état ainsi que d’autres facteurs d’influence."
+    INDICE_D_URGENCE: Indice_d_urgence;
+    !!@ comment = "Type de financement (financement selon LEaux Art. 60a)"
+    FINANCEMENT: (     
+      !!@ comment = "L’intégralité des ouvrages d’assainissement qui sont financés selon l’art. 60a de la loi sur la protection des eaux (LEaux)."
+      public,
+      !!@ comment = "L’intégralité des conduites souterraines et ouvrages construits à l’intérieur et à l’extérieur des immeuble dans le domaine d’application de la SN 592 000, qui ne sont pas financés par les taxes d’épuration selon l’art. 60a de la loi sur la protection des eaux (LEaux)"
+      prive,
+      inconnu
+    );
+    !!@ comment = "L’attribut « fonction » détermine si un nœud est un ouvrage spécial et quelle fiche technique doit être saisie. Il est très important d’attribuer la fonction correctement"
+    FONCTION: (     
+      toilette_sans_vidange,
+      !!@ comment = "Fosse étanche"
+      fosse_etanche,
+      !!@ comment = "Ouvrage spécial dans le réseau de canalisations servant à relier des différences d'altitude sur une petite distance, en brisant l'énergie de l'écoulement."
+      ouvrage_de_chute,
+      !!@ comment = "Fosse digestive: 3 compartiments"
+      fosse_digestive,
+      !!@ comment = "Uniquement à utiliser si aucune autre valeur correspond. Décrire la fonction de l'ouvrage à l'attribut REMARQUE"
+      autres,
+      !!@ comment = "Indiquer le premier ouvrage de la STEP proprement dite. Indiquer également les éventuels stations de pompage, bassins d'eaux pluviales ou déversoirs en amont. Saisir comme ouvrage de STEP dans la VSA-SDEE."
+      ouvragesSTEP,
+      !!@ comment = "Installation permettant une aération dans un ouvrage d'assainissement"
+      aeration,
+      !!@ comment = "Installation de traitement des eaux de chaussée (SETEC) ou des eaux pluviales issues des biens-fonds, telle que filtres en terre, en gravillon, en sable ou techniques et adsorbeurs artificiels. Réalisation concrète comme cuvette, chambre (standard), ouvrage spécial/bassin ou installation technique. Les chambres et bassins de décantation (= dépotoirs ou BEP clarification) ne sont pas considérés à ce titre comme des installations de traitement. Des valeurs d’attribut distinctes sont disponibles pour ces installations de traitement."
+      installation_traitement,
+      !!@ comment = "Ecoulement d'eau au sol, grille de sol"
+      ecoulement_de_sol,
+      !!@ comment = "Chambre se trouvant entre l'évacuation des eaux des bien-fonds et du réseau des canalisations, à l'arrivée d'un tuyau de descente. Souvent de taille inférieure que des chambres avec grille d'entrée"
+      chambre_recolte_eaux_toitures,
+      !!@ comment = "Ouvrage spécial servant à purger le siphon inverse au point le plus bas."
+      chambre_avec_siphon_inverse,
+      !!@ comment = "Ouvrage d’entrée d'un siphon inversé pour répartir le débit sur plusieurs tuyaux."
+      entree_siphon,
+      !!@ comment = "chambre avec grille d'entrée (sans retenue de boues) selon SN 640 356"
+      chambre_avec_grille_d_entree,
+      !!@ comment = "Tous les exutoires des STEP publiques et industrielles, des petites stations d'épuration (PETITE_STEP) et des réseaux publics d'évacuation des eaux mixtes et pluviales avec une hauteur ou une largeur intérieure = 30 cm. Sont considérés comme milieux récepteurs au sens de la définition tous les cours d'eau publics. (Définition et normalisation des indicateurs pour l'évacuation des eaux usées, VSA/OKI, 2016)"
+      exutoire_pertinent_pour_milieu_recepteur,
+      !!@ comment = "Tous les exutoires qui ne répondent pas aux critères indiqués pour 'exutoire_pertinent_pour_milieu_recepteur'"
+      exutoire_insignifiant_pour_milieu_recepteur,
+      !!@ comment = "Ouvrage rectiligne à fentes, servant à récolter les eaux de ruissellement."
+      rigole_de_drainage,
+      !!@ comment = "Ouvrage rectiligne à fentes avec dépotoir, servant à récolter les eaux de ruissellement. Le dépotoir se situe au départ du canal d'eaux de surface, donc au NOEUD_RESEAU et au couvercle."
+      rigole_de_drainage_avec_depotoir,
+      !!@ comment = "Fosse septique: 2 compartiments"
+      fosse_septique_deux_chambres,
+      !!@ comment = "Séparateur pour les graisses et huiles d'origine animale et végétale . (SN 592 000:2012)"
+      separateur_de_graisse,
+      !!@ comment = "Dépression de terrain artificielle ou naturelle ayant une fonction de rétention"
+      depression_de_terrain,
+      !!@ comment = "Chambre standard servant à évacuer les eaux d'installation ferroviaires"
+      evacuation_des_eaux_des_voies_ferrees,
+      !!@ comment = "Ouvrage spécial dans un cours d'eau ouvert, servant à récolter les matériaux transportés. Se trouve souvent à l'entrée des tronçons mis sous terre"
+      depotoir_pour_alluvions,
+      !!@ comment = "fosse à purin"
+      fosse_a_purin,
+      !!@ comment = "Bassin destiné à recueillir les substances de nature à polluer les eaux en cas d'accident ou d'accident majeur."
+      bassin_d_avarie,
+      !!@ comment = "Appareil destiné à la collecte, à la liquéfaction partielle des matières polluantes contenues dans les eaux usées et à la rétention des matières solides et des déchets flottants. Il est souvent utilisé pour des bâtiments qui ne sont pas raccordés à un réseau d’égouts aboutissant à un traitement"
+      fosse_septique,
+      !!@ comment = "Station destinée au traitement d'eaux usées domestiques ayant une valeur de raccordement limitée. (DIN 4045)"
+      petite_step,
+      !!@ comment = "chambre_de_visite_ou_d_inspection commmune pour deux conduites d'assainissement en parallèle, typiquement une conduite d'eaux usées et une conduite d'eaux de surface"
+      chambre_combine,
+      !!@ comment = "Chambre de visite ou boîte de branchement/d'inspection pour entretenir et inspecter les canalisations (définitions selon SIA 190.301 = EN 16323:2014)"
+      chambre_de_visite_ou_d_inspection,
+      !!@ comment = "Les nœuds de conduite représentent des nœuds topologiques spéciaux qui ne se réfèrent pas à un ouvrage du réseau d’assainissement particulier. Les nœuds de conduite sont à saisir pour : a) la réunion de plusieurs conduites primaires ou plusieurs conduites secondaires sans chambre, b) le changement de pente, diamètre, matériau ou année de construction sans chambre, c) début de conduite sans chambre ou d) début de conduite de la partie déversante des ouvrages spéciaux ayant des sorties hydrauliquement séparées, par exemple déversoir d’orage, BEP ou ouvrage de répartition"
+      noeud_de_conduite,
+      !!@ comment = "La fonction « station_mesure » n’est que attribuée à des nœuds qui n’ont aucune autre fonction d’ouvrage spécial (chambres de mesure unique). Par exemple un déversoir avec une mesure de débit aura la fonction « deversoir_d_orage » et non la fonction « station_mesure ». L’appareil de mesure est donc saisie comme composante d’ouvrage à la fiche technique"
+      station_mesure,
+      !!@ comment = "Ouvrage servant à séparer des liquides minéraux légers de l'eau, év. par coalescence et/ou avec fermeture automatique (SN 592'000)"
+      separateur_d_hydrocarbures,
+      !!@ comment = "Installation destinée à élever les eaux d'un niveau à un autre, soit pour le franchissement d'un obstacle, soit pour modifier des tracés devenus économiquement inacceptables en réseau gravitaire"
+      station_de_pompage,
+      !!@ comment = "Ouvrage de réseau d’eaux mixtes pour la décantation de matières solides et le stockage d’eaux mixtes (fonction secondaire, pour le stockage de volumes d’eau pluviale minimes)"
+      BEP_decantation,
+      !!@ comment = "Bassin d'eau pluviale ayant comme fonction la rétention du premier flot d’orage (first flush)"
+      BEP_retention,
+      !!@ comment = "Canalisation de rétention avec déversement en amont dans un cours d'eau."
+      BEP_canal_retention,
+      !!@ comment = "Bassin d’eaux pluviales de décantation dans un système séparatif. Peut également être utilisé pour les clarificateurs à lamelles, mais pas pour les réservoirs avec des étapes de nettoyage supplémentaires (filtres à sol/sable, adsorbeurs, etc.) --> installation_traitement"
+      BEP_clarification,
+      !!@ comment = "Bassin d'accumulation de débits de pointe dans un réseau d’eaux mixtes ou pluviales. Sa fonction est de décharger le réseau lors d’orages et n’a, contrairement au déversoir d’orage aucun déversement, mise à part un trop-plein vers un exutoire en milieu récepteur"
+      BEP_accumulation,
+      !!@ comment = "Canalisation de stockage avec mode de fonctionnement identique que la bassin d'accumulation."
+      BEP_canal_accumulation,
+      !!@ comment = "Canalisation de stockage avec déversement en aval dans un cours d'eau"
+      BEP_canal_stockage,
+      !!@ comment = "Bassin d'eau pluviale réunissant la rétention et la clarification"
+      BEP_combine,
+      !!@ comment = "Ouvrage spécial, séparant les eaux mixtes en y rejetant une partie directement dans un cours d’eau"
+      deversoir_d_orage,
+      !!@ comment = "Installation de séparation avec siphon (typiquement coude plongeur) destinée à retenir et à prélever les matières décantables indésirables (gravier, sable etc.). Les pièges à boue (=séparateurs sans siphon) reçoivent également l'attribut dépotoir."
+      depotoir,
+      !!@ comment = "Dépotoir contenant un siphon prolongé ou une paroi plongeante. Tient le rôle de prétraitement sur une installation d'infiltration"
+      separateur_materiaux_flottants,
+      !!@ comment = "Accès à un ouvrage sans descente ou montée"
+      acces_lateral,
+      !!@ comment = "Chambre servant d'accès spécifiquement pour le rinçage. Si pas de véritable chambre, modeliser comme tete_de_rincage (element_ouvrage)"
+      chambre_de_chasse,
+      !!@ comment = "Ouvrage, qui répartit les eaux dans le système sans les déverser. Exception: avant un bassin ou un canal de stockage, les eaux mixtes sont déversées dans le cours ou plan d'eau via l'ouvrage de répartition après remplissage du volume du bassin. Une ou plusieurs entrées, deux ou plusieurs sorties."
+      ouvrage_de_repartition,
+      inconnu,
+      !!@ comment = "Ouvrage en surface ou souterrain, ayant comme objectif l’infiltration artificielle des eaux pluviales. Sont également considérées des installations d’infiltration, des surfaces au sol réservées, où une accumulation de polluants est pris en compte. Ceci est en général le cas, lorsque le rapport entre la surface à évacuer et la surface d’infiltration est supérieur à 5"
+      installation_infiltration,
+      !!@ comment = "Installation destinée au prétraitement des eaux usées industrielles ou artisanales avant l'évacuation vers la STEP, telle que des installations de séparation ou de flottation. Les séparateurs d'hydrocarbures et de graisses et les chambres et bassins de décantation (= dépotoirs ou BEP clarification) ne sont pas considérés à ce titre comme des installations de prétraitement. Des valeurs d’attribut distinctes sont disponibles pour ces équipements. Utiliser la valeur 'installation_de_traitement' pour eaux pluviales."
+      installation_de_pretraitement,
+      !!@ comment = "Ouvrage permettant l'évacuation des eaux sans dégâts sur une hauteur donnée. L'ouvrage est composé de: chambre à formation de vortex, tuyau de chute, puits dissipateur et un tuyau d'aération"
+      chambre_de_chute_a_vortex
+    );
+    !!@ comment = "Attribut déduit – Règle de composition: Tous les nœuds qui sont connectés par une conduite OAP (arrivée ou départ) font partie du réseau des OAP. Cet attribut a la fonction d’un examen technique et simplifié, car beaucoup de principes techniques dépendent du fait d’être des ouvrages d’assainissement primaires ou secondaires."
+    FONCTION_HIERARCHIQUE: (     
+      !!@ comment = "Ouvrages du réseau d’assainissement primaire"
+      OAP,
+      !!@ comment = "ouvrages du réseau d’assainissement secondaire"
+      OAS
+    );
+    !!@ comment = "Positionnement du nœud. Point de référence déterminant pour le calcul de réseau de canalisations (en règle générale positionnement du milieu du couvercle ou de la sortie temps sec)"
+    SITUATION: Base_f_LV95.CoordNat;
+    !!@ comment = "Plage de précision des coordonnées planimétriques du couvercle."
+    PRECISION_PLANIMETRIQUE: (     
+      plusque_50cm,
+      plus_moins_10cm,
+      plus_moins_3cm,
+      plus_moins_50cm,
+      inconnue
+    );
+    !!@ comment = "Attribut déduit pour la visualisation à partir de CONDUITE.GENRE_UTILISATION_PREVUE de la conduite d'évacuation dans la direction principale. Voir CONDUITE pour la définition des valeurs"
+    GENRE_UTILISATION_PREVUE: (     
+      autre,
+      eaux_cours_d_eau,
+      eaux_mixtes_deversees,
+      eaux_industrielles,
+      eaux_mixtes,
+      eaux_de_surface,
+      eaux_claires,
+      eaux_usees,
+      inconnu
+    );
+    !!@ comment = "Attribut déduit pour la visualisation à partir de CONDUITE.GENRE_UTILISATION_ACTUELLE de la conduite d'évacuation dans la direction principale. Voir CONDUITE pour la définition des valeurs."
+    GENRE_UTILISATION_ACTUELLE: (     
+      autre,
+      eaux_cours_d_eau,
+      eaux_mixtes_deversees,
+      eaux_industrielles,
+      eaux_mixtes,
+      eaux_de_surface,
+      eaux_claires,
+      eaux_usees,
+      inconnu
+    );
+    !!@ comment = "OID de l’OUVRAGE_RESEAU_AS appartenant de la VSA-SDEE, seulement pour transfers des modèles"
+    OBJ_ID_OUVRAGE_RESEAU_AS: TEXT*16;
+    !!@ comment = "OID du couvercle principal (important quand il y en a plusieurs)"
+    OBJ_ID_COUVERCLE: TEXT*16;
+    !!@ comment = "Cote de refoulement déterminante calculée à partir des pluies de projet"
+    COTE_REFOULEMENT_ACTUEL: Base_f_LV95.Altitude;
+    !!@ comment = "	Degrés d’urgence et délai de réalisation des mesures constructives selon la directive VSA 'Maintien des canalisations (2007)'"
+    NECESSITE_ASSAINIR: (     
+      !!@ comment = "Les mesures doivent être réalisées d’urgence. Des mesures immédiates doivent être envisagées comme pour le degré a_court_terme. Délai 3-4 ans"
+      urgente,
+      !!@ comment = "Aucune mesure n’est nécessaire jusqu’au prochain relevé et à la prochaine évaluation de l’état. Délai >= 10 ans"
+      aucune,
+      !!@ comment = "Les mesures doivent être réalisées de façon très urgente et à court terme. A titre de mesures immédiates, des réparations locales provisoires permettent de prévenir temporairement d’autres dommages. Délai <= 2 ans"
+      a_court_terme,
+      !!@ comment = "Les mesures peuvent être projetées à long terme. Délai 8 - 10 ans"
+      a_long_terme,
+      !!@ comment = "Les mesures sont nécessaires à moyen terme. Délai 5 à 7 ans"
+      a_moyen_terme,
+      inconnue
+    );
+    !!@ comment = "Pour des ouvrages spéciaux, point le plus bas du nœud auquel la fiche technique appartient, généralement la sortie en direction de la STEP."
+    COTE_RADIER: Base_f_LV95.Altitude;
+    !!@ comment = "Etat de fonctionnement et de planification de l’ouvrage"
+    ETAT: Etat;
+    !!@ comment = "Default: 90 degre"
+    SymboleOri: 0.0 .. 359.9 CIRCULAR [Units.Angle_Degree];
+    !!@ comment = "Possibilités d’accès à l’ouvrage d’assainissement pour une personne (non pour un véhicule)"
+    ACCES: (     
+      !!@ comment = "Il faut par exemple déterrer le couvercle avant de pouvoir l'ouvrir"
+      couvert,
+      inconnu,
+      !!@ comment = "Pas d'accès libre - des barrières doivent être enlevées, des autorisations d'accès doivent être demandées au préalable, des clés sont nécessaires, etc."
+      inaccessible,
+      !!@ comment = "Accessible pour une personne (et pas nécessairement pour un véhicule)"
+      accessible
+    );
+    !!@ comment = "Année du dernier relevé d'état. Utilisé pour le relevé des indicateurs PGEE. Peut être rempli automatiquement par une requête sur EVENEMENT_MAINTENANCE.DATE_HEURE (dernier événement) avec EVENEMENT_MAINTENANCE.GENRE = examen et status = execute ."
+    ANNEE_RELEVE_D_ETAT: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "La note d’état reflète sous forme numérique l’état structurel et fonctionnel d’un ouvrage du réseau d’assainissement. Elle est calculée à partir de l’ensemble des états individuels. relevés par inspection visuelle sur un ouvrage du réseau d’assainissement."
+    NOTE_D_ETAT: Note_d_etat;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END NOEUD;
+
+CLASS NOEUD_Texte EXTENDS SIA405_Base_Eaux_usees_1_LV95.SIA405_TextePos =
+END NOEUD_Texte;
+
+!!@comment = "Composition"
+ASSOCIATION NOEUD_TexteAssoc =
+  NOEUDRef -<#> {1} NOEUD;
+  Texte -- {0 .. *} NOEUD_Texte;
+END NOEUD_TexteAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION NOEUD_PROPRIETAIREAssoc =
+  PROPRIETAIRERef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  NOEUD_PROPRIETAIREAssocRef -- {0..*} NOEUD;
+END NOEUD_PROPRIETAIREAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION NOEUD_EXPLOITANTAssoc =
+  EXPLOITANTRef (EXTERNAL) -- {0..1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  NOEUD_EXPLOITANTAssocRef -- {0..*} NOEUD;
+END NOEUD_EXPLOITANTAssoc;
+
+!!@ comment = "Cunette ouverte ou fermée, constructivement et hydrauliquement homogène, servant à l’évacuation d’eau usée"
+CLASS CONDUITE EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Année de mise en service (réception finale)"
+    ANNEE_DE_CONSTRUCTION: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Classes d'état. Description de l'état constructif selon la directive VSA 'Maintien des canalisations' (2007). Ne pas confondre avec les degrés de remise en état (attribut NECESSITE_ASSAINIR)"
+    ETAT_CONSTRUCTIF: (     
+      inconnu,
+      !!@ comment = "Plus en état de fonctionner: L'ouvrage d'assainissement n’est déjà plus parcourable ou ne le sera plus dans peu de temps: Ouvrage d'assainissement écroulé, totalement bouché par des racines ou par d’autres obstacles à l’écoulement. L'ouvrage d'assainissement perd de l’eau (exfiltration / pollution probable de l’eau souterraine)"
+      Z0,
+      !!@ comment = "Graves défauts: Dommages structurels ne garantissant plus la sécurité statique, l’hydraulique ou l’étanchéité: cassures, déformations, entrées ou sorties visibles d’eau, trous dans la paroi, forte saillie des raccords latéraux, fort développement des racines, paroi  fortement érodée par lavage. Matériau  inapproprié"
+      Z1,
+      !!@ comment = "Défauts moyens: Défauts structurels affectant la statique, l’hydraulique ou l’étanchéité: joints avec canalisation renflés, entrées non nettoyées, fissures, légers obstacles à l’écoulement (entartrages, saillie des raccords latéraux, légers dommages à la paroi, développement localisé des racines, paroi érodée par lavage, etc.)"
+      Z2,
+      !!@ comment = "Défauts légers: Défauts ou événements structurels ayant une influence insignifiante sur l’étanchéité, l’hydraulique ou la statique de l'ouvrage d'assainissement: joints avec canalisations renflées, raccords latéraux mal nettoyés, légères déformations sur matériaux plastiques, légères érosions dues au lavage, etc"
+      Z3,
+      !!@ comment = "Aucun défaut"
+      Z4
+    );
+    !!@ comment = "Remarques générales"
+    REMARQUE: TEXT*80;
+    !!@ comment = "Désignation unique pour chaque maître des données"
+    DESIGNATION: MANDATORY TEXT*41;
+    !!@ comment = "L’indice d’urgence est un nombre qui indique l’urgence de mesures de réhabilitation d’un ouvrage du réseau d’assainissement. Il découle de l’appréciation de l’état, basé sur la note d’état ainsi que d’autres facteurs d’influence."
+    INDICE_D_URGENCE: Indice_d_urgence;
+    !!@ comment = "Type de financement (financement selon LEaux Art. 60a)"
+    FINANCEMENT: (     
+      !!@ comment = "L’intégralité des ouvrages d’assainissement qui sont financés selon l’art. 60a de la loi sur la protection des eaux (LEaux)."
+      public,
+      !!@ comment = "L’intégralité des conduites souterraines et ouvrages construits à l’intérieur et à l’extérieur des immeuble dans le domaine d’application de la SN 592 000, qui ne sont pas financés par les taxes d’épuration selon l’art. 60a de la loi sur la protection des eaux (LEaux)"
+      prive,
+      inconnu
+    );
+    !!@ comment = "Genre de canalisation par rapport à sa fonction hiérarchique dans le système d'évacuation"
+    FONCTION_HIERARCHIQUE: (     
+      OAP (
+      !!@ comment = "autres ouvrages du réseau d’assainissement primaire (OAP)"
+        autre,
+          !!@ comment = "Saisie selon le point de vue de la canalisation (si par exemple des calculs hydrauliques sont nécessaires). SIA405 1998: eaux_publiques"
+        cours_d_eau,
+          !!@ comment = "A utiliser pour: a) des sorties d'un déversoir d'orage ou d'un bassin d'eaux pluviales. b) des diamètres > 1000 mm (en particulier sur des tronçons longs sans DO/BEP)"
+        collecteur_principal,
+          !!@ comment = "Toutes les canalisations propriété du syndicat de STEP ou les canalisations de transport intercommunales propriété de la commune"
+        collecteur_principal_regional,
+          !!@ comment = "Terme générique pour l’évacuation des biens-fonds (hydrauliquement déterminant). Toutes les conduites sur un bien-fonds et pour l'acheminement en dehors du bien-fonds jusqu'au collecteur. La délimitation entre l'évacuation des biens-fonds et celle des immeubles se fait selon la norme 'Conception et réalisation d'installations évacuation des eaux des biens-fonds (SN 592 000)'"
+        evacuation_bien_fonds,
+          !!@ comment = "A utiliser pour: a) toutes les autres conduites propriété de la commune et à financement public ou b) après la jonction de l'évacuation des biens-fonds et de l'évacuation publique des eaux de routes"
+        collecteur,
+          !!@ comment = "Conduite d'évacuation pour le raccordement technique de bâtiments isolés, auxquelles des simplifications ont été entreprises à la planification et à la réalisation."
+        conduite_d_assainissement,
+          !!@ comment = "Conduites hydrauliquement déterminantes qui servent uniquement à l'évacuation des eaux des chaussées"
+        evacuation_des_eaux_de_routes,
+        inconnue
+      ),
+      OAS (
+           !!@ comment = "Autre ouvrages du réseau d’assainissement secondaire (OAS) p. ex. toutes les conduites de drainage et les évacuations des eaux des chemins ruraux"
+         autre,
+          !!@ comment = "Terme générique pour l’évacuation des bien fonds (hydrauliquement non déterminants). Toutes les conduites sur un bien-fonds et pour l'acheminement en dehors du bien-fonds jusqu'au collecteur. La délimitation entre l'évacuation des biens-fonds et celle des immeubles se fait selon la norme 'Conception et réalisation d'installations évacuation des eaux des biens-fonds (SN 592 000)'"
+        evacuation_bien_fonds,
+          !!@ comment = "Conduite d'évacuation pour le raccordement technique de bâtiments isolés, auxquelles des simplifications ont été entreprises à la réalisation."
+        conduite_d_assainissement,
+          !!@ comment = "Conduites hydrauliquement non déterminantes qui sert uniquement à l'évacuation des eaux des chaussées"
+        evacuation_des_eaux_de_routes,
+        inconnue  !!@ comment = "Conduites hydrauliquement non déterminantes qui sert uniquement à l'évacuation des eaux des chaussées"
+      )
+    );
+    !!@ comment = "Genre de canalisation par rapport à sa fonction hydraulique"
+    FONCTION_HYDRAULIQUE: (     
+      autre,
+      !!@ comment = "Canalisation transportant de l'eau provenant d'un réseau de drainage"
+      conduite_de_transport_pour_le_drainage,
+      !!@ comment = "Canalisation à section restreinte afin de diminuer le débit. Son fonctionnement se base sur des écoulement en charge"
+      conduite_d_etranglement,
+      !!@ comment = "Système de canalisations fermé, permettant le franchissement d'un obstacle. La conduite est en charge."
+      siphon_inverse,
+      !!@ comment = "Canalisation, dans laquelle l'eau s'écoule selon les lois de la gravité, d'un point de départ plus élevé à un point d'arrivée plus bas"
+      conduite_a_ecoulement_gravitaire,
+      !!@ comment = "Conduite sous pression installée à la suite d'une station de pompage permettant de gravir des pentes d'aval en amont"
+      conduite_de_refoulement,
+      !!@ comment = "1. Canalisation avec ouverture vers des drains (SN 592 000)"
+      conduite_de_drainage,
+      !!@ comment = "Conduite dimensionnée afin de retenir des volumes d'eaux en lien avec un BEP, BEP_retention ou une canalisation de rétention"
+      conduite_de_retention,
+      !!@ comment = "Canalisation avec une fonction spéciale, permettant le rinçage des installations d'évacuation des eaux"
+      conduite_de_rincage,
+      inconnue,
+      conduite_sous_vide,
+      !!@ comment = "Les conduites d'infiltration - associées aux conduites de drainage - sont utilisées en particulier pour les installations infiltration souterraines."
+      conduite_d_infiltration
+    );
+    !!@ comment = "Détermination altimétrique de la cote de la fin de la conduite"
+    PRECISION_ALTIMETRIQUE_VERS: (     
+      plusque_6cm,
+      plus_moins_1cm,
+      plus_moins_3cm,
+      plus_moins_6cm,
+      inconnu
+    );
+    !!@ comment = "Détermination altimétrique de la cote du début de la conduite"
+    PRECISION_ALTIMETRIQUE_DE: (     
+      plusque_6cm,
+      plus_moins_1cm,
+      plus_moins_3cm,
+      plus_moins_6cm,
+      inconnu
+    );
+    !!@ comment = "Débit de dimensionnement divisé par la capacité d'écoulement normale de la conduite [%]."
+    CHARGE_HYDR_ACTUELLE: Pourcent1000;
+    !!@ comment = "COTE_RADIER de la de la conduite. Si la cote est inconnue, interpoler et documenter la valeur par l’attribut PRECISION_ALTIMETRIQUE_VERS"
+    COTE_VERS: Base_f_LV95.Altitude;
+    !!@ comment = "COTE_RADIER du début de la conduite. Si la cote est inconnue, interpoler et documenter la valeur par l’attribut PRECISION_ALTIMETRIQUE_DE."
+    COTE_DE: Base_f_LV95.Altitude;
+    !!@ comment = "Longueur effective (non projetée) incluant les parties incurvées"
+    L_EFFECTIVE: 0.00 .. 30000.00 [m];
+    !!@ comment = "Définit la précision de la détermination du tracé."
+    DETERMINATION_PLANIMETRIQUE: (     
+      !!@ comment = "+/- 10 cm, lors de la détermination du tracé par différentes mesures, le triple, c'est-à-dire +/- 30 cm (norme SIA 405 1998, point 4 23 3)"
+      precise,
+      inconnue,
+      !!@ comment = "voir precise"
+      imprecise
+    );
+    !!@ comment = "Tube à double paroi ou autre système destiné à protéger la conduite contre les fuites dans dans des zones de protection des eaux souterraines."
+    PROTECTION_FUITE: (     
+      inexistant,
+      inconnu,
+      existant
+    );
+    !!@ comment = "Largeur interne maximale du profil du tube. Les liners installés ne sont pas à prendre en compte (-> Reliner_largeur nominale)."
+    LARGEUR_MAX_PROFIL: 0 .. 99999 [Units.mm];
+    !!@ comment = "Hauteur interne maximale du profil du tube. Les revêtements installés ne doivent pas être pris en compte (-> Reliner_largeur nominale.)."
+    HAUTEUR_MAX_PROFIL: Hauteur_max_profile;
+    !!@ comment = "Matériau du tuyau"
+    MATERIAU: (     
+      autre,
+      amiante_ciment,
+      beton_normal,
+      beton_coule_sur_place,
+      beton_pousse_tube,
+      beton_special,
+      beton_inconnu,
+      fibrociment,
+      terre_cuite,
+      fonte_ductile,
+      fonte_grise,
+      matiere_synthetique_resine_d_epoxy,
+      matiere_synthetique_polyethylene_dur,
+      !!@ comment = "PRV: polyester renforcé de fibre de verre"
+      matiere_synthetique_polyester_PRV,
+      matiere_synthetique_polyethylene,
+      matiere_synthetique_polypropylene,
+      !!@ comment = "polychlorure de vinyle"
+      matiere_synthetique_PVC,
+      !!@ comment = "matière synthétique inconnu"
+      matiere_synthetique_inconnue,
+      acier,
+      acier_inoxydable,
+      gres,
+      argile,
+      inconnu,
+      ciment
+    );
+    !!@ comment = "Utilisation prévue par le concept d'assainissement (voir aussi GENRE_UTILISATION_ACTUELLE)"
+    GENRE_UTILISATION_PREVUE: (     
+      !!@ comment = "par exemple accès, aération, désaération"
+      autre,
+      !!@ comment = "Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui peut aussi être mis sous terre par endroits"
+      eaux_cours_d_eau,
+      !!@ comment = "Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation"
+      eaux_mixtes_deversees,
+      !!@ comment = "Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe)."
+      eaux_industrielles,
+      !!@ comment = "1. Réunion des eaux usées et eaux pluviales dans la même canalisation"
+      eaux_mixtes,
+      !!@ comment = "Eaux de précipitation non infiltrées dans le sol et rejetées depuis le sol ou les surfaces extérieures des bâtiments dans les réseaux d’évacuation et d’assainissement (SIA 190.301 = EN 16323:2014). Classification en eaux polluées et non polluées selon la législation sur la protection des eaux resp. selon la directive VSA 'Gestion des eaux urbaines par temps de pluie'."
+      eaux_de_surface,
+      !!@ comment = "Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000).."
+      eaux_claires,
+      !!@ comment = "Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement"
+      eaux_usees,
+      inconnu
+    );
+    !!@ comment = "Pour les ouvrages du réseau primaire: utilisation actuelle autorisée pour les ouvrages du réseau secondaire: utilisation actuelle réelle"
+    GENRE_UTILISATION_ACTUELLE: (     
+      !!@ comment = "par exemple accès, aération, désaération"
+      autre,
+      !!@ comment = "Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui aussi être mis sous terre par endroits"
+      eaux_cours_d_eau,
+      !!@ comment = "Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation"
+      eaux_mixtes_deversees,
+      !!@ comment = "Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe)."
+      eaux_industrielles,
+      !!@ comment = "1. Réunion des eaux usées et eaux pluviales dans la même canalisation"
+      eaux_mixtes,
+      !!@ comment = "Eaux de précipitation non infiltrées dans le sol et rejetées depuis le sol ou les surfaces extérieures des bâtiments dans les réseaux d’évacuation et d’assainissement (SIA 190.301 = EN 16323:2014). Classification en eaux polluées et non polluées selon la législation sur la protection des eaux resp. selon la directive VSA 'Gestion des eaux urbaines par temps de pluie'."
+      eaux_de_surface,
+      !!@ comment = "Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000)."
+      eaux_claires,
+      !!@ comment = "Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement"
+      eaux_usees,
+      inconnu
+    );
+    !!@ comment = "OID de l’OUVRAGE_RESEAU_AS (canalisation), seulement utilisée pendant le transfert des modèles"
+    OBJ_ID_OUVRAGE_RESEAU_AS: TEXT*16;
+    !!@ comment = "OID du POINT_TRONCON_A de la VSA-SDEE, seulement utilisée pendant le transfert  des modèles"
+    OBJ_ID_POINT_TRONCON_VERS: TEXT*16;
+    !!@ comment = "OID du POINT_TRONCON_DE de la VSA-SDEE, seulement utilisée pendant le transfert des modèles"
+    OBJ_ID_POINT_TRONCON_DE: TEXT*16;
+    !!@ comment = "Type du profil"
+    TYPE_PROFIL: (     
+      !!@ comment = "A utiliser uniquement pour les profils ovoïdes normés selon DIN 4263 ayant un rapport hauteur/largeur de 1.5. Pour les autres profils ovoïdes, même ceux avec des modifications, la valeur devient « profil_special » et une définition du profil est à joindre."
+      ovoide,
+      !!@ comment = "A utiliser uniquement pour des profils circulaires normés, sans cunette de débit par temps sec ou autres modifications. Sinon la valeur devient « profil_special » et une définition du profil est à joindre."
+      circulaire,
+      !!@ comment = "A utiliser uniquement pour les profils en voûte normés selon DIN 4263. Pour les variantes, même avec modifications, la valeur devient « profil_special » et une définition du profil est à joindre."
+      profil_en_voute,
+      !!@ comment = "A utiliser uniquement pour les profils ouverts. Une définition du profil est à joindre."
+      profil_ouvert,
+      !!@ comment = "A utiliser uniquement pour des profils rectangulaires normés, sans cunette de débit par temps sec ou autres modifications. Sinon la valeur devient « profil_special » et une définition du profil est à joindre."
+      rectangulaire,
+      !!@ comment = "Pour des profils fermés non conformes. Une définition du profil est à joindre."
+      profil_special,
+      inconnu
+    );
+    !!@ comment = "Genre du relining"
+    RELINING_GENRE: (     
+      troncon_entier,
+      partiellement,
+      inconnu
+    );
+    !!@ comment = "Hauteur libre avec revêtement installé (= hauteur libre du profilé d'origine du tuyau moins deux fois l'épaisseur de la paroi du revêtement)."
+    RELINER_DIAMETRE_NOMINALE: Hauteur_max_profile;
+    !!@ comment = "	Degrés d’urgence et délai de réalisation des mesures constructives selon la directive VSA 'Maintien des canalisations (2007)'"
+    NECESSITE_ASSAINIR: (     
+      !!@ comment = "Les mesures doivent être réalisées d’urgence. Des mesures immédiates doivent être envisagées comme pour le degré a_court_terme. Délai 3-4 ans"
+      urgente,
+      !!@ comment = "Aucune mesure n’est nécessaire jusqu’au prochain relevé et à la prochaine évaluation de l’état. Délai >= 10 ans"
+      aucune,
+      !!@ comment = "Les mesures doivent être réalisées de façon très urgente et à court terme. A titre de mesures immédiates, des réparations locales provisoires permettent de prévenir temporairement d’autres dommages. Délai <= 2 ans"
+      a_court_terme,
+      !!@ comment = "Les mesures peuvent être projetées à long terme. Délai 8 - 10 ans"
+      a_long_terme,
+      !!@ comment = "Les mesures sont nécessaires à moyen terme. Délai 5 à 7 ans"
+      a_moyen_terme,
+      inconnue
+    );
+    !!@ comment = "Etat de fonctionnement et de planification de l’ouvrage"
+    ETAT: Etat;
+    !!@ comment = "Points de départ, intermédiaires et d’arrivée de la conduite."
+    TRACE: Base_f_LV95.Polyligne;
+    !!@ comment = "Coefficient de rugosité d'après Prandtl Colebrook (ks ou kb)"
+    K_COLEBROOK: Prandtl;
+    !!@ comment = "Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement)"
+    VR_ANNEE_REFERENCE: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Valeur de remplacement du type de construction"
+    VR_TYPE_CONSTRUCTION: (     
+      autre,
+      !!@ comment = "Dans les champs (type de profile selon norme SIA 190)"
+      dans_les_champs,
+      !!@ comment = "Conduites d’assainissement posées par rétrocaveuse"
+      conduite_d_assainissement_retro,
+      !!@ comment = "Conduites d’assainissement posées par trancheuse"
+      conduite_d_assainissement_trancheuse,
+      !!@ comment = "sous route (type profile selon norme SIA 190)"
+      sous_route,
+      inconnu
+    );
+    !!@ comment = "Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE"
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];
+    !!@ comment = "Année du dernier relevé d'état. Utilisé pour le relevé des indicateurs PGEE. Peut être rempli automatiquement par une requête sur EVENEMENT_MAINTENANCE.DATE_HEURE (dernier événement) avec EVENEMENT_MAINTENANCE.GENRE = examen et status = execute ."
+    ANNEE_RELEVE_D_ETAT: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "La note d’état reflète sous forme numérique l’état structurel et fonctionnel d’un ouvrage du réseau d’assainissement. Elle est calculée à partir de l’ensemble des états individuels. relevés par inspection visuelle sur un ouvrage du réseau d’assainissement."
+    NOTE_D_ETAT: Note_d_etat;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END CONDUITE;
+
+CLASS CONDUITE_Texte EXTENDS SIA405_Base_Eaux_usees_1_LV95.SIA405_TextePos =
+END CONDUITE_Texte;
+
+!!@comment = "Composition"
+ASSOCIATION CONDUITE_TexteAssoc =
+  CONDUITERef -<#> {1} CONDUITE;
+  Texte -- {0 .. *} CONDUITE_Texte;
+END CONDUITE_TexteAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_VERS_NOEUDAssoc =
+  VERS_NOEUDRef  -- {0..1} NOEUD;
+  CONDUITE_VERS_NOEUDAssocRef -- {0..*} CONDUITE;
+END CONDUITE_VERS_NOEUDAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_DE_NOEUDAssoc =
+  DE_NOEUDRef  -- {0..1} NOEUD;
+  CONDUITE_DE_NOEUDAssocRef -- {0..*} CONDUITE;
+END CONDUITE_DE_NOEUDAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_VERS_CONDUITEAssoc =
+  VERS_CONDUITERef  -- {0..1} CONDUITE;
+  CONDUITE_VERS_CONDUITEAssocRef -- {0..*} CONDUITE;
+END CONDUITE_VERS_CONDUITEAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_PROPRIETAIREAssoc =
+  PROPRIETAIRERef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  CONDUITE_PROPRIETAIREAssocRef -- {0..*} CONDUITE;
+END CONDUITE_PROPRIETAIREAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_EXPLOITANTAssoc =
+  EXPLOITANTRef (EXTERNAL) -- {0..1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  CONDUITE_EXPLOITANTAssocRef -- {0..*} CONDUITE;
+END CONDUITE_EXPLOITANTAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION CONDUITE_GENRE_PROFILAssoc =
+  GENRE_PROFILRef  -- {0..1} PROFIL_TUYAU;
+  CONDUITE_GENRE_PROFILAssocRef -- {0..*} CONDUITE;
+END CONDUITE_GENRE_PROFILAssoc;
+
+!!@ comment = "Fiche technique (classe supérieure), attributs voir sous-classes"
+CLASS FT (ABSTRACT) EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "N° de plan de la documentation d’exécution, description de dossiers, manuels, etc."
+    DOSSIER: MTEXT*255;
+    !!@ comment = "Si FICHE_TECHNIQUE Autres, insérer ici la description"
+    REMARQUE: TEXT*80;
+    !!@ comment = "Valeurs à disposition pour les sources d’information sur une liste à choix"
+    SOURCE_DES_INFORMATIONS: (     
+      autre,
+      bassin_versant_STEP,
+      entite_responsable_PGEE,
+      inconnue
+    );
+    !!@ comment = "Technicien ayant remplir la fiche technique."
+    RESPONSABLE_SAISIE: TEXT*50;
+    !!@ comment = "Nom de la route ou du lieu de l'ouvrage"
+    LIEU_DIT: TEXT*50;
+    !!@ comment = "Commande/alarme de l'ouvrage spécial. La plage de valeurs est censée être cumulative dans l'ordre suivant : aucune_commande, commande_locale, transmission_alarme, transmission_signaux_mesure, commande_combinee. Contrairement à l'attribut COMMANDE dans les classes VSA-SDEE DEVERSOIR et LIMITEUR_DEBIT, cet attribut fait référence à l'ensemble commande/alarme de l'ouvrage spécial."
+    COMMANDE_EFFET_DISTANT: (     
+      autre,
+      aucune_commande,
+      !!@ comment = "Pas de transmission à distance/d'alarme"
+      commande_locale,
+      !!@ comment = "Nécessite une commande locale. Les alarmes sont transmises mais aucun autre signal."
+      transmission_alarme,
+      !!@ comment = "Présuppose une commande locale. Outre les alarmes, d'autres données de mesure sont transmises, généralement à un système de contrôle de processus (SCP)."
+      transmission_signaux_mesure,
+      inconnu,
+      !!@ comment = "Présuppose une commande locale. Outre les alarmes, d'autres données de mesure sont transmises à un un système de contrôle de processus (SCP). Le SCP peut en outre renvoyer des signaux de commande ou d'état à l'ouvrage en vue d'une commande interconnectée."
+      commande_combinee
+    );
+    !!@ comment = "Année de référence pour le calcul de la valeur de remplacement (cf. valeur de remplacement)"
+    VR_ANNEE_REFERENCE: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Valeur de remplacement de l'OUVRAGE_RESEAU_AS. On à besoin aussi de saisir l'attribut VR_ANNEE_REFERENCE"
+    VALEUR_REMPLACEMENT: 0.00 .. 99999999.99 [Units.CHF];
+END FT;
+
+!!@ comment = "Association"
+ASSOCIATION FT_OUVRAGE_PRINCIPALAssoc =
+  OUVRAGE_PRINCIPALRef  -- {0..1} FT;
+  FT_OUVRAGE_PRINCIPALAssocRef -- {0..*} FT;
+END FT_OUVRAGE_PRINCIPALAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION FT_OAP_NOEUD_RESEAUAssoc =
+  OAP_NOEUD_RESEAURef  -- {1} NOEUD;
+  FT_OAP_NOEUD_RESEAUAssocRef -- {0..1} FT;
+END FT_OAP_NOEUD_RESEAUAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION FT_COMMUNE_IMPLANTATIONAssoc =
+  COMMUNE_IMPLANTATIONRef (EXTERNAL) -- {0..1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  FT_COMMUNE_IMPLANTATIONAssocRef -- {0..*} FT;
+END FT_COMMUNE_IMPLANTATIONAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION FT_OUVRAGE_SPECIAL_SUIVANTAssoc =
+  OUVRAGE_SPECIAL_SUIVANTRef  -- {0..1} FT;
+  FT_OUVRAGE_SPECIAL_SUIVANTAssocRef -- {0..*} FT;
+END FT_OUVRAGE_SPECIAL_SUIVANTAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION FT_BUREAUAssoc =
+  BUREAURef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  FT_BUREAUAssocRef -- {0..*} FT;
+END FT_BUREAUAssoc;
+
+!!@ comment = "Connexion topologique de deux nœuds pour la représentation d’installations de déversement ou pompes"
+CLASS DEVERSOIR_REFOULEMENT EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Genre du déversement, resp. de l'installation de refoulement"
+    GENRE: (     
+      INSTALLATION_REFOULEMENT,
+      LEAPING_WEIR,
+      DEVERSOIR_LATERAL
+    );
+    DESIGNATION: MANDATORY TEXT*41;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END DEVERSOIR_REFOULEMENT;
+
+!!@ comment = "Association"
+ASSOCIATION DEVERSOIR_REFOULEMENT_NOEUDAssoc =
+  NOEUDRef  -- {1} NOEUD;
+  DEVERSOIR_REFOULEMENT_NOEUDAssocRef -- {0..*} DEVERSOIR_REFOULEMENT;
+END DEVERSOIR_REFOULEMENT_NOEUDAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION DEVERSOIR_REFOULEMENT_VERS_NOEUDAssoc =
+  VERS_NOEUDRef  -- {1} NOEUD;
+  DEVERSOIR_REFOULEMENT_VERS_NOEUDAssocRef -- {0..*} DEVERSOIR_REFOULEMENT;
+END DEVERSOIR_REFOULEMENT_VERS_NOEUDAssoc;
+
+!!@ comment = "Plus grande surface unifiée, depuis laquelle l’eau usée produite est évacuée à un seul et même point et qui comporte un système unitaire. Pour chaque sous-bassin versant, il est possible de définir un point de raccordement séparé des eaux usées et des eaux pluviales pour l'état actuel et l'état prévu."
+CLASS SOUS_BASSIN_VERSANT EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Restriction de débit, si une exigence correspondante existe dans le concept d’évacuation des eaux. Cet attribut est une exigence et obligatoire pour l’examen de demandes de permit de construire"
+    RESTRICTION_DEBIT_PREVUE: 0.0 .. 999.9 [lsha];
+    !!@ comment = "Restriction de débit, si une exigence est déjà mise en œuvre"
+    RESTRICTION_DEBIT_ACTUELLE: 0.0 .. 999.9 [lsha];
+    !!@ comment = "Coefficient de ruissellement prévu pour le raccordement des eaux pluviales"
+    COEFFICIENT_RUISSELLEMENT_EP_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficient de ruissellement pour le raccordement actuel des eaux pluviales"
+    COEFFICIENT_RUISSELLEMENT_EP_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficient de ruissellement pour le raccordement prévu des eaux usées ou mixtes"
+    COEFFICIENT_RUISSELLEMENT_EU_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Coefficient de ruissellement pour les raccordements eaux usées et eaux mixtes actuels"
+    COEFFICIENT_RUISSELLEMENT_EU_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Taux d'imperméabilisation pour le raccordement eaux pluviales prévu"
+    TAUX_IMPERMEABILISATION_EP_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Taux d'imperméabilisation pour le raccordement eaux pluviales actuel"
+    TAUX_IMPERMEABILISATION_EP_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Taux d'imperméabilisation pour les raccordements eaux usées et eaux mixtes prévus"
+    TAUX_IMPERMEABILISATION_EU_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Taux d'imperméabilisation pour les raccordements eaux usées et eaux mixtes actuels"
+    TAUX_IMPERMEABILISATION_EU_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Remarques générales"
+    REMARQUE: TEXT*80;
+    DESIGNATION: MANDATORY TEXT*20;
+    !!@ comment = "Les eaux pluviales seront rejetées complètement ou partiellement via une conduite OAS dans un cours d’eau"
+    REJET_DIRECT_DANS_COURS_D_EAU_PREVU: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Les eaux pluviales sont rejetées complètement ou partiellement via une conduite OAS dans un cours d’eau"
+    REJET_DIRECT_DANS_COURS_D_EAU_ACTUEL: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Densité (physique) de la population prévue"
+    DENSITE_POPULATION_PREVUE: Densite_Population;
+    !!@ comment = "Densité (physique) de la population actuelle"
+    DENSITE_POPULATION_ACTUELLE: Densite_Population;
+    !!@ comment = "Genre d’évacuation des eaux à l’état de planification (mise en œuvre du concept d’évacuation). Cet attribut est exigé. Il est obligatoire pour l’examen des demandes de permit de construire"
+    SYSTEME_EVACUATION_EAUX_PREVU: (     
+      !!@ comment = "Surfaces drainées à l'extérieur de l'agglomération qui sont raccordées à l'assainissement urbain."
+      systeme_de_drainage,
+      !!@ comment = "Les eaux usées et les eaux pluviales ne pouvant pas être infiltrées ou évaporées sont à raccorder au réseau d’évacuation des eaux mixtes. La liaison avec les nœuds EU/EM est obligatoire, la liaison avec le nœud EP n’est pas admise."
+      systeme_unitaire,
+      !!@ comment = "Contrairement au système séparatif, dans le système modifié, outre les eaux pluviales provenant de surfaces non couvertes pouvant être polluées, une autre partie des eaux pluviales (nécessitant généralement un traitement) doit être acheminée vers la STEP. La liaison avec les nœuds EP/EM est obligatoire, celle avec le nœud EP est admise."
+      systeme_modifie,
+      !!@ comment = "Un bassin versant à assainir mais non raccordé (ultérieurement) à un OAP, par exemple une surface directement raccordée vers un cours d’eau via un OAS ou une surface avec de l’infiltration par les bas côtés. Aucune liaison possible avec le réseau des canalisations."
+      non_raccorde,
+      !!@ comment = "Surface encore à l’intérieur du périmètre d’assainissement qui ne sera pas raccordée (cas rare). Aucune liaison possible avec le réseau des canalisations."
+      non_evacue,
+      !!@ comment = "Système d’évacuation des eaux comprenant en principe deux systèmes de réseaux de canalisations pour l’évacuation séparée des eaux usées et des eaux pluviales. Les eaux usées  ainsi que les eaux pluviales provenant de surfaces non couvertes pouvant être polluées sont à raccorder au réseau des eaux usées. Le reste des eaux pluviales qui ne peuvent pas être infiltrées ou évaporées sont à raccorder au réseaux des eaux pluviales. Les liaisons avec les nœuds d’EU et d’EM ou d'EP sont obligatoires. La liaison avec un deuxième nœud (EP ou EU/EM) est autorisée."
+      systeme_separatif,
+      !!@ comment = "Cette valeur n’est admise que lors de l'élaboration d’un PGEE. Aucune règle quant aux liaisons avec le réseau des canalisations."
+      inconnu,
+      !!@ comment = "Les sous-bassins versants dont les eaux usées sont évacuées par un réseau d'eaux usées et les eaux pluviales par un réseau d'eaux pluviales doivent, d'après le guide, avoir le SYSTEME_EVACUATION_EAUX_ACTUEL 'systeme_separatif'. Si les conduites d'eaux pluviales OAP débouchent ensuite sur le système mixte car le système séparatif n'est pas terminé (et ne sera peut-être jamais réalisé), l'attribut systeme_separatif peut être trompeur."
+      systeme_separatif_prepare
+    );
+    !!@ comment = "Genre d’évacuation des eaux réel à l’état actuel"
+    SYSTEME_EVACUATION_EAUX_ACTUEL: (     
+      !!@ comment = "Surfaces drainées à l'extérieur de l'agglomération qui sont raccordées  à l'assainissement urbain."
+      systeme_de_drainage,
+      !!@ comment = "Les eaux usées et les eaux pluviales ne pouvant pas être infiltrées ou évaporées sont raccordées au réseau d’évacuation des eaux unitaire. La liaison avec les nœuds d’EU et d’EM sont obligatoires, celle avec les nœuds EP interdites."
+      systeme_unitaire,
+      !!@ comment = "Contrairement au système séparatif, dans le système modifié, outre les eaux pluviales provenant surfaces non couvertes pouvant être polluées, une autre partie des eaux pluviales (nécessitant généralement un traitement) doit être acheminée vers la STEP. La liaison avec les nœuds EU/EM est obligatoire, celle avec le nœud EP est admise."
+      systeme_modifie,
+      !!@ comment = "Un bassin versant assaini mais non raccordé à un OAP, par exemple une surface directement raccordée vers un cours d’eau via un OAS ou une surface avec de l’infiltration par les bas côtés. Aucune liaison possible avec le réseau des canalisations."
+      non_raccorde,
+      !!@ comment = "Surface encore non raccordée d’un point de vue de l’assainissement, à l’intérieur du périmètre d’assainissement, par exemple des propriété non construites en zone à bâtir. Aucune liaison possible avec le réseau des canalisations."
+      non_evacue,
+      !!@ comment = "Système d’évacuation des eaux comprenant en principe deux systèmes de réseaux de canalisations pour l’évacuation séparée des eaux usées et des eaux pluviales. Les eaux usées  ainsi que les eaux pluviales provenant de surfaces non couvertes pouvant être polluées sont raccordées au réseau des eaux usées. Le reste des eaux pluviales qui ne peuvent pas être infiltrées ou évaporées sont raccordées au réseau d'eaux pluviales. Les liaisons avec les nœuds d’EU et d’EM ou d'EP sont obligatoires. La liaison avec un deuxième nœud (EP ou EU/EM) est autorisée."
+      systeme_separatif,
+      !!@ comment = "Cette valeur n’est admise que lors de l'élaboration d’un PGEE. Aucune règle quant aux liaisons avec le réseau des canalisations."
+      inconnu,
+      !!@ comment = "Doit être attribuée si le sous-bassin versant est évacué en système séparatif (voir description pour cette valeur) et la conduite d'eaux pluviales OAP auquel le sous-bassin versant est raccordée débouche plus bas dans le réseau d'eaux mixtes."
+      systeme_separatif_prepare
+    );
+    !!@ comment = "Attribut redondant indiquant la surface calculée à partir du périmètre en ha"
+    SUPERFICIE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Débit  d'eaux claires parasites (ECP) moyen prévu, rejeté dans les canalisation d’eaux usées ou mixtes"
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit  d'eaux claires parasites (ECP) moyen actuel, rejeté dans les canalisation d’eaux usées ou mixtes"
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Points de délimitation du bassin versant partiel"
+    PERIMETRE: Base_f_LV95.Surface;
+    !!@ comment = "Les eaux pluviales et mixtes seront rejetées de manière régulée dans le réseau des canalisations par un ouvrage de rétention."
+    RETENTION_PREVUE: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Les eaux pluviales et mixtes sont rejetées de manière régulée dans le réseau des canalisations par un ouvrage de rétention."
+    RETENTION_ACTUELLE: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Débit moyen prévu des eaux usées rejetées dans les canalisations d’eaux usées ou d'eaux mixtes."
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit moyen actuel des eaux usées rejetées dans les canalisations d’eaux usées ou d'eaux mixtes"
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Position du texte"
+    TEXTEPOS: Base_f_LV95.CoordNat;
+    !!@ comment = "Les eaux pluviales seront amenées complètement ou partiellement à une installation d’infiltration"
+    INFILTRATION_PREVUE: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Les eaux pluviales sont amenées complètement ou partiellement à une installation d’infiltration"
+    INFILTRATION_ACTUELLE: (     
+      oui,
+      non,
+      inconnu
+    );
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END SOUS_BASSIN_VERSANT;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssoc =
+  NOEUD_EP_ACTUELRef  -- {0..1} NOEUD;
+  SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_NOEUD_EP_ACTUELAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssoc =
+  NOEUD_EP_PREVURef  -- {0..1} NOEUD;
+  SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_NOEUD_EP_PREVUAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssoc =
+  NOEUD_EU_ACTUELRef  -- {0..1} NOEUD;
+  SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_NOEUD_EU_ACTUELAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssoc =
+  NOEUD_EU_PREVURef  -- {0..1} NOEUD;
+  SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_NOEUD_EU_PREVUAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_ACTUELAssoc =
+  OUVRAGE_SPECIAL_EU_ACTUELRef  -- {0..1} FT;
+  SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_ACTUELAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_PREVUAssoc =
+  OUVRAGE_SPECIAL_EU_PREVURef  -- {0..1} FT;
+  SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EU_PREVUAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_ACTUELAssoc =
+  OUVRAGE_SPECIAL_EP_ACTUELRef  -- {0..1} FT;
+  SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_ACTUELAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_ACTUELAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_PREVUAssoc =
+  OUVRAGE_SPECIAL_EP_PREVURef  -- {0..1} FT;
+  SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_PREVUAssocRef -- {0..*} SOUS_BASSIN_VERSANT;
+END SOUS_BASSIN_VERSANT_OUVRAGE_SPECIAL_EP_PREVUAssoc;
+
+!!@ comment = "Fiche technique Station de mesure autonome (SM): La fonction « station_de_mesure » est attribuée uniquement aux nœuds qui n’ont aucune autre fonction spéciale (des chambres de mesure uniquement). Par exemple, un déversoir d’orage avec une mesure de débit aura la fonction « deversoir_d_orage » et non la fonction « station_de_mesure ». L’appareil de mesure est saisi comme composante d’ouvrage dans la fiche technique du « deversoir_d_orage »."
+CLASS FT_STATION_DE_MESURE_AUTONOME EXTENDS FT =  
+  ATTRIBUTE
+END FT_STATION_DE_MESURE_AUTONOME;
+
+!!@ comment = "Fiche technique Entrée de siphon (ESI): Ouvrage de répartition du débit sur plusieurs tuyaux à l’entrée d’un siphon inversé. Cet ouvrage est saisi dans une fiche technique. Aucune documentation supplémentaire au-delà des données fournies du réseau des canalisations, n’est prévue pour les tuyaux du siphon ou la sortie de l’ouvrage. Si par cet ouvrage, des eaux mixtes sont déversées, il faut le saisir à l’aide de la fiche technique « deversoir_d_orage ». La distribution des débits répartis sur les différents tuyaux est documentée sur la fiche technique, si elle est connue, par les composantes d’ouvrage « surverse »."
+CLASS FT_ENTREE_DE_SIPHON EXTENDS FT =  
+  ATTRIBUTE
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+END FT_ENTREE_DE_SIPHON;
+
+!!@ comment = "Fiche technique Exutoire (EX): Les exutoires déversant les eaux usées des ouvrages de décharge (déversoirs d’orage, BEP, trop-pleins de secours des stations de pompage) et des systèmes séparatifs du réseau primaire sont à saisir dans une fiche technique. Selon les besoins, il est également possible de saisir une fiche technique pour les exutoires du réseau secondaire. Ceci implique que la fonction attribuée à l’exutoire soit égale à « exutoire_pertinent_pour_milieu_recepteur »"
+CLASS FT_EXUTOIRE EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Responsable de saisie du bureau"
+    EXECUTANT: TEXT*50;
+    !!@ comment = "Hauteur intérieure maximale de la sortie. Utile pour identifier le bon exutoire sur le terrain."
+    HAUTEUR_MAX_PROFIL_EXUTOIRE: Hauteur_max_profile;
+    !!@ comment = "Remarques importantes sur l’évaluation générale éco-biologique du point de vue du responsable du relevé"
+    EVALUATION_GENERALE_ECO_BIOL_REMARQUE: MTEXT*255;
+    !!@ comment = "Désignation de l’évaluation générale éco-biologique"
+    EVALUATION_GENERALE_ECO_BIOL_DESIGNATION: TEXT*20;
+    !!@ comment = "Date de l'examen précedent. La date de l’examen actuel est saisie dans l'attribut DATE_EXAMEN (VSA-SDEE-MINI) ou DATE_HEURE (VSA-DSS)"
+    DATE_DERNIERE_EXAMEN: INTERLIS_1_DATE;
+    !!@ comment = "La date du examen actuel doit être saisie."
+    DATE_EXAMEN: INTERLIS_1_DATE;
+    !!@ comment = "Résultat de la comparaison de l'aspect visuel en aval et en amont de l'exutoire"
+    INFLUENCE_ASPECT_VISUEL: (     
+      elevee,
+      aucun,
+      aucun_avis_possible,
+      faible_moyenne,
+      inconnue,
+      pas_clair
+    );
+    !!@ comment = "Uniquement pour eaux stagnantes"
+    INFLUENCE_INDICATEURS_AUXILIAIRES: (     
+      elevee,
+      aucune_petite,
+      aucun_avis_possible,
+      moyen,
+      inconnue,
+      pas_clair
+    );
+    !!@ comment = "Uniquement pour des eaux courantes. Résultat de la comparaison des invertébrés aquatiques en aval et en amont de l'exutoire selon le module Analyse de la qualité des eaux de la directive Gestion des eaux pluviales du VSA. Ne pas confondre avec les attributs INVERTEBREES_EN_AMONT, INVERTEBREES_EXUTOIRE et INVERTEBREES_EN_AVAL."
+    INFLUENCE_INVERTEBRES_AQUATIQUES: (     
+      elevee,
+      aucune_petite,
+      aucun_avis_possible,
+      moyen,
+      inconnue,
+      pas_clair
+    );
+    !!@ comment = "Uniquement pour eaux stagnantes"
+    INFLUENCE_PLANTES_AQUATIQUES: (     
+      elevee,
+      aucune_petite,
+      aucun_avis_possible,
+      moyen,
+      inconnue,
+      pas_clair
+    );
+    !!@ comment = "selon table 5.1 du module STORM de la directive 'Gestion des eaux urbaines par temps de pluie' (2019/2021)"
+    GENRE_COURS_D_EAU: (     
+      !!@ comment = "rétention"
+      retention,
+      gros_cours_d_eau,
+      gros_ruisseau_du_Plateau,
+      gros_ruisseau_des_Prealpes,
+      tres_gros_cours_d_eau,
+      petit_ruisseau_du_Plateau,
+      petit_ruisseau_des_Prealpes,
+      region_de_source,
+      !!@ comment = "Le module G de la directive VSA sur la gestion des eaux usées par temps de pluie (2021) supprime la distinction entre petits et grands lacs. Elle n'est pas pertinente pour l'évaluation écologique des masses d'eau et n'est pas clairement définie."
+      lac,
+      inconnu
+    );
+    !!@ comment = "Selon module de base chapitre 8.4 de la directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_SPECIFIQUE_NH4_N_PREVU: Charge_specifique_de_deversement;
+    !!@ comment = "Selon module de base chapitre 8.4 de la directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_SPECIFIQUE_NH4_N_ACTUELLE: Charge_specifique_de_deversement;
+    !!@ comment = "Selon module de base chapitre 8.4 de la directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_SPECIFIQUE_NH4_N_ACTUELLE_OPT: Charge_specifique_de_deversement;
+    !!@ comment = "Un besoin d’intervention résulte de l’atteinte du rejet sur les eaux qui mène à une mesure dans le plan d’action du PGEE. L'attribut sert aussi à la détermination de 'l'attteinte globale' dans le MGDM 129.1 de l'OFEV si celui-ci est encore géré."
+    BESOIN_D_INTERVENTION: (     
+      !!@ comment = "Forte influence du rejet sur la base de l'analyse, donc besoin d'intervention à court terme."
+      oui_a_court_terme,
+      !!@ comment = "Influence moyenne du rejet sur la base de l'analyse, donc besoin d'intervention à long terme."
+      oui_a_long_terme,
+      !!@ comment = "En raison des conditions, l'analyse ne permet pas de se prononcer sur l'influence du rejet. Une autre analyse ne permettrait pas fournir de connaissances supplémentaires."
+      aucun_avis_possible,
+      !!@ comment = "Pas d'influence du rejet sur la base de l'analyse, donc pas de besoin d'intervention."
+      non,
+      !!@ comment = "L'analyse a donné des résultats peu clairs. Des informations supplémentaires sont attendues d'une analyse nouvelle / plus approfondie."
+      clarifier_statut
+    );
+    !!@ comment = "calcul de performance de type immission disponible"
+    CALCUL_PERFORMANCE_IMMISSION: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Nom du cours d’eau selon indications cantonales"
+    EAUX_SUPERFICIELLES: TEXT*100;
+    !!@ comment = "OID de la EVALUATION_GENERALE_ECO_BIOL dans la VSA-SDEE, pour le transfert du modèle."
+    OBJ_ID_EVALUATION_GENERALE_ECO_BIOL: TEXT*16;
+    !!@ comment = "Pour le choix de la relation correcte n:m à EVALUATION_GENERALE_ECO_BIOL dans le VSA-SDEE"
+    OBJ_ID_EVENEMENT_MAINTENANCE_OUVRAGE_RESEAU_AS: TEXT*16;
+    !!@ comment = "Valeur issue des annuaires hydrologique de Suisse. Si elle manque, il faut désigner une valeur."
+    Q347: 0.000 .. 10000.000 [SIA405_Base_Eaux_usees_1_LV95.m3s];
+    !!@ comment = "Pente déterminante [%] de l’exutoire (pour le calcul STORM). Si inconnue, la pente doit être déterminée sur la base de plans ou par une visite de terrain"
+    PENTE_DETERMINANTE: 0 .. 1000;
+    !!@ comment = "Matrice d’évaluation selon les indications de la directive 'Gestion des eaux urbaines par temps de pluie', module STORM du VSA (2019)"
+    MATRICE_D_EVALUATION: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Les variations de l’examen générale éco-biologique et des résultats déterminants ayant changés doivent être indiquées par rapport à la dernière inspection."
+    VARIATION_DERNIERE_EXAMEN: (     
+      egal,
+      aucune_comparaison_possible,
+      inconnu,
+      pas_clair,
+      amelioration,
+      deterioration
+    );
+    !!@ comment = "Niveau d’eau calculé à l’exutoire. Si aucun exigence est demandée, indiquer le niveau d’eau pour un HQ30."
+    NIVEAU_EAU_HYDRAULIQUE: Base_f_LV95.Altitude;
+END FT_EXUTOIRE;
+
+!!@ comment = "Association"
+ASSOCIATION FT_EXUTOIRE_BUREAU_EXECUTANTAssoc =
+  BUREAU_EXECUTANTRef (EXTERNAL) -- {0..1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  FT_EXUTOIRE_BUREAU_EXECUTANTAssocRef -- {0..*} FT_EXUTOIRE;
+END FT_EXUTOIRE_BUREAU_EXECUTANTAssoc;
+
+!!@ comment = "Fiche technique Station de pompage (STAP): Installation pour le refoulement des eaux usées à l’intérieur du réseau des canalisations"
+CLASS FT_STATION_DE_POMPAGE EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Nombre d'installations de refoulement"
+    NOMBRE_INSTALLATIONS: Nombre_installations;
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_PREVU: EH;
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_ACTUEL: EH;
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "GENRE_UTILISATION_ACTUELLE de l'eau usée pompée. Déduit automatiquement du genre d'utilisation de la conduite d'évacuation. Disponible uniquement dans VSA-SDEE-Mini."
+    INSTALLATION_REFOULEMENT_GENRE_UTILISATION_ACTUEL: (     
+      autres,
+      !!@ comment = "Eaux d'un cours d'eau s'écoulant dans son état naturel à la surface, mais qui aussi être mis sous terre par endroits."
+      eaux_cours_d_eau,
+      !!@ comment = "Eau conduite entre un ouvrage de déversement et un exutoire au milieu récepteur. Aucune eau usée ne doit être déversée dans cette canalisation"
+      eaux_mixtes_deversees,
+      !!@ comment = "Eaux industrielles ou chimiques: Les eaux industrielles comprennent toutes les eaux produites lors d'un processus de production ou de fabrication. Les eaux industrielles doivent être prétraitées avant d'être déversées dans les canalisations en direction de la STEP communal (voir évacuation indirecte). En cas de déversement direct dans une eaux de surface, un traitement dans une station de traitement spécifique doit être effectué (voir évacuation directe)."
+      eaux_industrielles,
+      !!@ comment = "1. Réunion des eaux usées et eaux pluviales dans la même canalisation"
+      eaux_mixtes,
+      !!@ comment = "Eaux de précipitation non infiltrées dans le sol et rejetées depuis le sol ou les surfaces extérieures des bâtiments dans les réseaux d’évacuation et d’assainissement (SIA 190.301 = EN 16323:2014). Classification en eaux polluées et non polluées selon la législation sur la protection des eaux resp. Selon la directive VSA 'Gestion des eaux urbaines par temps de pluie'."
+      eaux_de_surface,
+      !!@ comment = "Terme générique pour l'eau de drainage, de source, souterraine, des fontaines, ainsi que de l'eau de refroidissement. Les eaux claires sont considérées comme non polluées (SN 592 000).."
+      eaux_claires,
+      !!@ comment = "Eaux transformées par leur utilisation (domestique, artisanale ou industrielle) et qui sont rejetées dans un système d'évacuation et qui doivent être conduites à un traitement"
+      eaux_usees,
+      inconnu
+    );
+    HAUTEUR_REF_GEOM: Hauteur_ref;
+    !!@ comment = "Débit de refoulement maximal de toutes les pompes de l’ouvrage. Survient normalement à la hauteur min de refoulement."
+    DEBIT_REF_MAX: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit de refoulement minimal de toutes les pompes de l’ouvrage. Survient normalement à la hauteur max de refoulement."
+    DEBIT_REF_MIN: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_PREVU: TEXT*16;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+    !!@ comment = "Pour de régime de fonctionnement spéciaux, cette fonction doit être documentée séparément et annexée à la fiche technique"
+    REGIME_POMPE: (     
+      alterne,
+      autres,
+      individuel,
+      parallele,
+      inconnu
+    );
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe."
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume du puisard calculée à partir du radier jusqu’au niveau d’eau maximum possible (sans le volume de stockage de la canalisation d’amenée)."
+    VOLUME_PUISARD: 0.00 .. 10000000.00 [Units.m3];
+END FT_STATION_DE_POMPAGE;
+
+!!@ comment = "	Fiche technique Déversoir d’orage (DO): Ouvrage servant à décharger les débits de pointe du réseau des canalisations d’eaux mixtes sans prétraitement dans un bassin. Sa fonction est distincte d’un trop-plein de secours dans une station de pompage par exemple (ce dernier sera modélisé comme une composante d’ouvrage de la station). Afin de distinguer si le déversoir déverse en fonctionnant normalement ou uniquement lors d’’une avarie, l’attribut « deverse » est à saisir sur la fiche technique."
+CLASS FT_DEVERSOIR_D_ORAGE EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant."
+    HABITANTS_PREVU: EH;
+    !!@ comment = "Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant."
+    HABITANTS_ACTUEL: EH;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_ACTUEL_OPT: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_PREVUE: Charge;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_ACTUELLE: Charge;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_ACTUELLE_OPT: Charge;
+    !!@ comment = "Surface imperméabilisée du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface imperméabilisée du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface brute du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface brute du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface réduite du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface réduite effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface réduite du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface réduite effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    BASSIN_VERSANT_COMPLET_DESIGNATION_PREVU: TEXT*20;
+    BASSIN_VERSANT_COMPLET_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    !!@ comment = "Surcharge optimale prévue après la réalisation d’éventuelles mesures."
+    SURCHARGE_PREVUE: Pourcent1000;
+    !!@ comment = "Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %"
+    SURCHARGE_ACTUELLE: Pourcent1000;
+    !!@ comment = "Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    SURCHARGE_ACTUELLE_OPT: Pourcent1000;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_PREVU: TEXT*16;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+    !!@ comment = "Débit optimisé après la réalisation des mesures"
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand)"
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Indication, si le déversoir déverse lors des événements pour lesquels il a été dimensionné."
+    DEVERSE: (     
+      oui,
+      non,
+      inconnu
+    );
+    !!@ comment = "Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe."
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Informations supplémentaires quant au fonctionnement, du point de vue de la personne responsable de la saisie."
+    DEVERSOIR_REMARQUE: TEXT*80;
+    !!@ comment = "Durée moyenne de déversement par an. Calcul selon les mesures planifiées"
+    DUREE_DEVERSEMENT_PREVUE: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durée moyenne de déversement par an selon des simulations à long terme ou des mesures (Messungen)."
+    DUREE_DEVERSEMENT_ACTUELLE: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durée moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    DUREE_DEVERSEMENT_ACTUELLE_OPT: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Fréquence moyenne de déversement par an. Calcul après la réalisation d’éventuelles mesures (Massnahmen)."
+    FREQUENCE_DEVERSEMENT_PREVUE: Frequence_deversement;
+    !!@ comment = "Fréquence moyenne de déversement par an selon des simulations à long terme ou des mesures (Messungen)."
+    FREQUENCE_DEVERSEMENT_ACTUELLE: Frequence_deversement;
+    !!@ comment = "Fréquence moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    FREQUENCE_DEVERSEMENT_ACTUELLE_OPT: Frequence_deversement;
+    !!@ comment = "Volume moyen de déversement par an. Calcul après la réalisation d’éventuelles mesures (Massnahmen)."
+    VOLUME_DEVERSE_PREVU: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume moyen déversé par an selon des simulations à long terme ou des mesures (Messungen)."
+    VOLUME_DEVERSE_ACTUEL: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume moyen de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    VOLUME_DEVERSE_ACTUEL_OPT: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Genre de surverse du déversoir d'orage"
+    GENRE_DEVERSOIR: (     
+      autres,
+      !!@ comment = "avec ouverture de fond"
+      leaping_weir,
+      !!@ comment = "Déversoir latéral à seuil surélevé"
+      deversoir_lateral_a_seuil_sureleve,
+      !!@ comment = "Déversoir latéral à seuil abaissé"
+      deversoir_lateral_a_seuil_abaisse
+    );
+END FT_DEVERSOIR_D_ORAGE;
+
+!!@ comment = "Association"
+ASSOCIATION FT_DEVERSOIR_D_ORAGE_EXUTOIREAssoc =
+  EXUTOIRERef  -- {0..1} NOEUD;
+!!@comment = " EXUTOIRE du déversoir dans le cours d'eau"
+  FT_DEVERSOIR_D_ORAGE_EXUTOIREAssocRef -- {0..*} FT_DEVERSOIR_D_ORAGE;
+END FT_DEVERSOIR_D_ORAGE_EXUTOIREAssoc;
+
+!!@ comment = "Fiche technique Bassin d'orage (BdO)"
+CLASS FT_BASSIN_D_ORAGE EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_PREVU: EH;
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_ACTUEL: EH;
+    !!@ comment = "Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant."
+    HABITANTS_PREVU: EH;
+    !!@ comment = "Nombre d'habitants dans le bassin versant direct, valeur à titre indicatif. Le débit d'eaux usées déterminant est spécifié dans l'attribut correspondant."
+    HABITANTS_ACTUEL: EH;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_PREVU: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_ACTUEL: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    DEVERSEMENT_NH4_N_ACTUEL_OPT: 0.00 .. 100.00 [Units.Percent];
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_PREVUE: Charge;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_ACTUELLE: Charge;
+    !!@ comment = "Selon module de base chapitre 8.5 directive 'Gestion des eaux urbaines par temps de pluie' du VSA (2019)"
+    CHARGE_DEVERSEE_NH4_N_ACTUELLE_OPT: Charge;
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface imperméabilisée du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface imperméabilisée du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface brute du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface brute du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface réduite du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface réduite effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Surface réduite du bassin versant direct. Elle couvre tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface réduite effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    BASSIN_VERSANT_COMPLET_DESIGNATION_PREVU: TEXT*20;
+    BASSIN_VERSANT_COMPLET_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    !!@ comment = "Surcharge optimale prévue après la réalisation d’éventuelles mesures."
+    SURCHARGE_PREVUE: Pourcent1000;
+    !!@ comment = "Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %"
+    SURCHARGE_ACTUELLE: Pourcent1000;
+    !!@ comment = "Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    SURCHARGE_ACTUELLE_OPT: Pourcent1000;
+    !!@ comment = "Volume de la chambre sous la crête, sans volume de stockage de la canalisation d’amenée. Ce dernier est saisi par l’attribut volume de stockage (lors de disposition en connexion directe ceci se fait dans la fiche technique de l’ouvrage principal, lors de connexion latérale, l’attribution se fait dans la fiche technique de l’ouvrage de répartition ou déversoir d’orage précédant)."
+    VOLUME_UTILE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume de la chambre sous la crête, incl. l’entrée, la sortie et la partie de sédimentation, sans volume de stockage de la canalisation d’amenée. Ce dernier est saisi par l’attribut volume de stockage (lors de disposition en connexion directe ceci se fait dans la fiche technique de l’ouvrage principal, lors de connexion latérale, l’attribution se fait dans la fiche technique de l’ouvrage de répartition ou déversoir d’orage précédant)."
+    VOLUME_UTILE_CLARIFICATION: 0.00 .. 10000000.00 [Units.m3];
+    OBJ_ID_BASSIN_VERSANT_COMPLET_PREVU: TEXT*16;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+    !!@ comment = "Débit optimisé après la réalisation des mesures"
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand)"
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Disposition du bassin d'eaux pluviales dans le système, voir chap. 6.2 du module DB de la directive «Gestion des eaux urbaines par temps de pluie» du VSA."
+    BEP_DISPOSITION: (     
+      !!@ comment = "Disposition qui permet une traversée en permanence de la totalité des eaux par temps sec et d'une partie des eaux par temps de pluie"
+      en_serie,
+      !!@ comment = "Disposition qui permet uniquement une traversée des eaux par temps de pluie"
+      en_parallele,
+      inconnue
+    );
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe."
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Informations supplémentaires quant au fonctionnement, du point de vue de la personne responsable de la saisie."
+    DEVERSOIR_REMARQUE: TEXT*80;
+    !!@ comment = "Durée moyenne de déversement par an. Calcul selon les mesures planifiées"
+    DUREE_DEVERSEMENT_PREVUE: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durée moyenne de déversement par an selon des simulations à long terme ou des mesures (Messungen)."
+    DUREE_DEVERSEMENT_ACTUELLE: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Durée moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    DUREE_DEVERSEMENT_ACTUELLE_OPT: 0.0 .. 10000.0 [Units.h];
+    !!@ comment = "Fréquence moyenne de déversement par an. Calcul après la réalisation d’éventuelles mesures (Massnahmen)."
+    FREQUENCE_DEVERSEMENT_PREVUE: Frequence_deversement;
+    !!@ comment = "Fréquence moyenne de déversement par an selon des simulations à long terme ou des mesures (Messungen)."
+    FREQUENCE_DEVERSEMENT_ACTUELLE: Frequence_deversement;
+    !!@ comment = "Fréquence moyenne de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    FREQUENCE_DEVERSEMENT_ACTUELLE_OPT: Frequence_deversement;
+    !!@ comment = "Volume moyen de déversement par an. Calcul après la réalisation d’éventuelles mesures (Massnahmen)."
+    VOLUME_DEVERSE_PREVU: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume moyen déversé par an selon des simulations à long terme ou des mesures (Messungen)."
+    VOLUME_DEVERSE_ACTUEL: 0.00 .. 10000000.00 [Units.m3];
+    !!@ comment = "Volume moyen de déversement par an. Calcul en mode optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    VOLUME_DEVERSE_ACTUEL_OPT: 0.00 .. 10000000.00 [Units.m3];
+END FT_BASSIN_D_ORAGE;
+
+!!@ comment = "Association"
+ASSOCIATION FT_BASSIN_D_ORAGE_EXUTOIREAssoc =
+  EXUTOIRERef  -- {0..1} NOEUD;
+!!@comment = " EXUTOIRE du déversoir dans le cours d'eau"
+  FT_BASSIN_D_ORAGE_EXUTOIREAssocRef -- {0..*} FT_BASSIN_D_ORAGE;
+END FT_BASSIN_D_ORAGE_EXUTOIREAssoc;
+
+!!@ comment = "Fiche technique Bassin de rétention (BdR) / Canal de rétention (CdR)"
+CLASS FT_BASSIN_CANAL_RETENTION EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_PREVU: EH;
+    !!@ comment = "Nombre d’habitants dans le bassin versant direct (dimensionnement), valeur indicative. Le débit des eaux usées doit être indiqué dans l’attribut du même nom."
+    HABITANTS_DIM_ACTUEL: EH;
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface imperméabilisée de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds. Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_IMP_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Le bassin versant de dimensionnement couvre la surface brute de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur."
+    SURFACE_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_PREVUE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Couvre la surface réduite de tous les bassins versants partiels en amont de l'ouvrage, jusqu'au bassin d'orage immédiatement supérieur. Dans un système séparatif, il faut saisir uniquement la surface imperméabilisée effectivement raccordée à l'ouvrage (généralement, celle reliée via les nœuds). Au minimum une surface (imperméabilisée ou réduite) doit être indiquée."
+    SURFACE_RED_DIM_ACTUELLE: 0.0000 .. 100000.0000 [Units.ha];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux claires parasites à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    APPORT_ECP_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    BASSIN_VERSANT_COMPLET_DESIGNATION_PREVU: TEXT*20;
+    BASSIN_VERSANT_COMPLET_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    !!@ comment = "L’attribut décrit vers où le débit déversé s’écoule (surtout bassin d’accumulation / canal d’accumulation)"
+    TROP_PLEIN_DE_SECOURS: (     
+      autres,
+      !!@ comment = "Connexion directe au cours d'eau (construction non souhaitée). Remplir aussi TROP_PLEIN_DE_SECOURS_EXUTOIRERef pour que le besoin d'intervention soit visible."
+      dans_cours_d_eau,
+      !!@ comment = "L'ouvrage est directement connectée aux canalisations des eaux mixtes sans passer par le terrain"
+      dans_canalisation_eaux_mixtes,
+      !!@ comment = "L'ouvrage est directement connectée aux canalisations des eaux pluviales sans passer par le terrain"
+      dans_canalisation_eaux_pluviales,
+      !!@ comment = "L'ouvrage est directement connectée aux canalisations des eaux useés sans passer par le terrain"
+      dans_canalisation_eaux_usees,
+      aucun,
+      !!@ comment = "L'eau submerge l'ouvrage jusqu'à la surface (indiquant un colmatage)"
+      deversement_en_surface,
+      inconnu
+    );
+    !!@ comment = "Volume de la chambre sous la surverse de secours ou bypass (volume mobilisable maximum, hors volume de stockage de la canalisation d’amenée). Pour les canaux d'accumulation disposés en série, le VOLUME_UTILE = 0. Seul le volume de stockage est disponible, à saisir dans l'attribut correspondant."
+    VOLUME_UTILE: 0.00 .. 10000000.00 [Units.m3];
+    OBJ_ID_BASSIN_VERSANT_COMPLET_PREVU: TEXT*16;
+    OBJ_ID_BASSIN_VERSANT_COMPLET_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+    !!@ comment = "Qdim dans l’état pévur selon PGEE. (A remplir pour bassin d’accumulation / canal d’accumulation)"
+    QDIM_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Qdim à l’état actuel, valeur selon les sections ouvertures, longueur d’étranglement ou de crête, etc. (A remplir pour bassin d’accumulation et canal d’accumulation)"
+    QDIM_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Valeur calculée qui, lors de l’événement de dimensionnement pour z = 5, garantie l’état demandé selon les lois et directive et les conditions cadres actuelles. (A remplir pour bassin d’accumulation et canal d’accumulation)."
+    QDIM_ACTUEL_OPT: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Disposition du bassin d'eaux pluviales dans le système, voir chap. 6.2 du module DB de la directive «Gestion des eaux urbaines par temps de pluie» du VSA."
+    BEP_DISPOSITION: (     
+      !!@ comment = "Disposition qui permet une traversée en permanence de la totalité des eaux par temps sec et d'une partie des eaux par temps de pluie"
+      en_serie,
+      !!@ comment = "Disposition qui permet uniquement une traversée des eaux par temps de pluie"
+      en_parallele,
+      inconnue
+    );
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit total d’eaux usées à l’ouvrage, incluant les surfaces en amont. Moyenne annuelle sur 24 h en l/s."
+    DEBIT_EAUX_USEES_ACTUEL: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe."
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+END FT_BASSIN_CANAL_RETENTION;
+
+!!@ comment = "Fiche technique Ouvrage de répartition (CR): Ouvrage, avec une ou plusieurs entrées et deux ou plusieurs sorties, qui réparti les eaux usées dans le système, sans les déverser hors du système."
+CLASS FT_OUVRAGE_DE_REPARTITION EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Indiquer le genre d'ouvrage de répartition."
+    GENRE: (     
+      autre,
+      !!@ comment = "Le genre d’ouvrage de répartition est à indiquer. „répartition libre“ signifie une répartition selon les conditions cadre hydrauliques. Il n’est pas nécessaire de saisir une surverse (dans VSA-SDEE)."
+      repartition_libre,
+      !!@ comment = "leaping weir avec ouverture de fond"
+      leaping_weir,
+      !!@ comment = "Pas une representation directe en VSA-DSS. Valeur 'direction_secondaire_fermee' si le STATUS de la CANALISATION est hors service."
+      direction_secondaire_fermee,
+      !!@ comment = "Déversoir latéral ou autre surverse"
+      deversoir_lateral,
+      inconnu
+    );
+    PARAMETRES_HYDR_DESIGNATION_PREVU: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL: TEXT*20;
+    PARAMETRES_HYDR_DESIGNATION_ACTUEL_OPT: TEXT*20;
+    !!@ comment = "Surcharge optimale prévue après la réalisation d’éventuelles mesures."
+    SURCHARGE_PREVUE: Pourcent1000;
+    !!@ comment = "Surcharge des canalisations en aval lors de l’événement de dimensionnement = 100 * (Qdim – Qachemine) / Qachemine 	[%]. Rapport des volumes d’eau acheminé vers la STEP lors du déversement (Qachemine) et du débit acheminé à z = 5. Exemple: Qachemine = 100 l/s Qdim = 150 l/s surcharge = 50 %"
+    SURCHARGE_ACTUELLE: Pourcent1000;
+    !!@ comment = "Surcharge optimale à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    SURCHARGE_ACTUELLE_OPT: Pourcent1000;
+    OBJ_ID_PARAMETRES_HYDR_PREVU: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL: TEXT*16;
+    OBJ_ID_PARAMETRES_HYDR_ACTUEL_OPT: TEXT*16;
+    !!@ comment = "Débit optimisé après la réalisation des mesures"
+    QDEV_PREVU: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit acheminé à l’état actuel, valeur selon la section d'ouvertures, la longueur d’étranglement ou de crête, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand)"
+    QDEV_EFF: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit optimal à l’état actuel avant la réalisation d’éventuelles mesures (Massnahmen)."
+    QDEV_EFF_OPT: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Volume de stockage dans un bassin et dans la canalisation d’amenée entre la crête et le niveau d’eau de Qdim (débit conservé). Lors de bassins d’eaux pluviales en connexion latérale, le volume de stockage est à saisir à l’ouvrage de répartition, resp. déversoir d’orage précédant (cf. explications volume utile clarification, resp. volume utile stockage). Pour les pompes, il s’agit du volume de stockage dans la canalisation d’amenée sous le niveau d’eau lorsque la pompe s’enclenche (niveau max d’enclenchement lorsqu’il y a plusieurs pompes). Pour les bassins d’eaux pluviales, à saisir uniquement en connexion directe."
+    VOLUME_DE_STOCKAGE: 0.00 .. 10000000.00 [Units.m3];
+END FT_OUVRAGE_DE_REPARTITION;
+
+!!@ comment = "Association"
+ASSOCIATION FT_OUVRAGE_DE_REPARTITION_DIRECTION_PRINCIPALEAssoc =
+  DIRECTION_PRINCIPALERef  -- {1} NOEUD;
+!!@comment = " Nœud suivant dans la direction principale"
+  FT_OUVRAGE_DE_REPARTITION_DIRECTION_PRINCIPALEAssocRef -- {0..*} FT_OUVRAGE_DE_REPARTITION;
+END FT_OUVRAGE_DE_REPARTITION_DIRECTION_PRINCIPALEAssoc;
+
+!!@ comment = "Fiche technique Autres ouvrages spéciaux (AOS): Ce sont tous les ouvrages remplissant une fonction spéciale dans les réseaux d’évacuation des eaux et qui doivent être documentés de manière spécifique, mais qui ne peuvent pas être attribués à une des catégories ci-dessus."
+CLASS FT_AUTRES EXTENDS FT =  
+  ATTRIBUTE
+    !!@ comment = "Description de l’ouvrage spécial"
+    DESCRIPTION: MTEXT*255;
+END FT_AUTRES;
+
+!!@ comment = "La courbe de fonctionnement de l’ouvrage de décharge décrit le débit acheminé en direction de la STEP en fonction de différents débits entrants. Elle doit contenir au minimum 2 points. Elle peut également se présenter sous forme tabulaire. La courbe est à documentée sous forme de rapport Q/Q ou H/Q. Lors de répartition libre, la courbe de fonctionnement ne doit pas être documentée. Lors de conditions d’écoulement dans la zone d’accumulation, la fonction doit être décrite séparément."
+CLASS COURBE_DE_FONCTIONNEMENT EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Débit d'eau (Q2) en direction de la STEP"
+    DEBIT: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Niveau d'eau correspondant (h) au débit (Q2)"
+    NIVEAU: Base_f_LV95.Altitude;
+    !!@ comment = "OID de la relation HQ correspondante dans la VSA-SDEE, pour le transfert du modèle"
+    OBJ_ID_RELATION_HQ: TEXT*16;
+    ETAT: (     
+      prevu,
+      actuel,
+      !!@ comment = "actuel optimisé"
+      actuel_opt
+    );
+    !!@ comment = "Débit d’entrée  (Q1)"
+    DEBIT_ENTREE: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+END COURBE_DE_FONCTIONNEMENT;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssoc =
+  FT_DEVERSOIR_D_ORAGERef  -- {0..1} FT_DEVERSOIR_D_ORAGE;
+  COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_DEVERSOIR_D_ORAGEAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssoc =
+  FT_OUVRAGE_DE_REPARTITIONRef  -- {0..1} FT_OUVRAGE_DE_REPARTITION;
+  COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_OUVRAGE_DE_REPARTITIONAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_BEPAssoc =
+  FT_BEPRef  -- {0..1} FT_BASSIN_D_ORAGE;
+  COURBE_DE_FONCTIONNEMENT_FT_BEPAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_BEPAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssoc =
+  FT_BASSIN_CANAL_ACCUMULATIONRef  -- {0..1} FT_BASSIN_CANAL_RETENTION;
+  COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_BASSIN_CANAL_ACCUMULATIONAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_ENTREE_DE_SIPHONAssoc =
+  FT_ENTREE_DE_SIPHONRef  -- {0..1} FT_ENTREE_DE_SIPHON;
+  COURBE_DE_FONCTIONNEMENT_FT_ENTREE_DE_SIPHONAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_ENTREE_DE_SIPHONAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COURBE_DE_FONCTIONNEMENT_FT_STATION_DE_POMPAGEAssoc =
+  FT_STATION_DE_POMPAGERef  -- {0..1} FT_STATION_DE_POMPAGE;
+  COURBE_DE_FONCTIONNEMENT_FT_STATION_DE_POMPAGEAssocRef -- {0..*} COURBE_DE_FONCTIONNEMENT;
+END COURBE_DE_FONCTIONNEMENT_FT_STATION_DE_POMPAGEAssoc;
+
+!!@ comment = "Composantes d’ouvrage des fiches technique, équipement, resp. installation auxiliaire."
+CLASS COMPOSANTES_D_OUVRAGE EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Genre de composante d'ouvrage (mandatory). Par ensemble des données une COMPOSANTE_D_OUVRAGE. Les informations du composante d'ouvrage doivent être complète aussi qu'on INTERLIS c'est pas mandatory."
+    GENRE: (     
+      vidange_de_bassins,
+      nettoyage_de_bassins,
+      limiteur_de_debit,
+      retenue_de_matieres_solides,
+      !!@ comment = "Si les agrégats sont transportés vers différents points du réseau, une fiche téchnique distinct doit être enregistré"
+      installation_refoulement,
+      !!@ comment = "La composante appareil de mesure est utilisée lors que la mesure sert par exemple à la conduite ou régulation des débits d’eaux usées en direction de la STEP."
+      appareil_mesure,
+      !!@ comment = "A saisir uniquement pour les trop-pleins de secours à l'intérieur de stations de pompage. Les trop-pleins de secours dans des ouvrages séparés sont saisis avec la fiche technique DO (définir l'attribut DEVERSE = non)"
+      deversoir_de_secours,
+      protection_refoulement,
+      deversoir
+    );
+    !!@ comment = "La composante d'ouvrage vidange de bassins ne peut être saisie qu'une seule fois. Lorsque un bassin est vidangé à l'aide de plusieurs pompes, il faut y indiquer le débit maximal des pompes."
+    VIDANGE_DE_BASSINS_GENRE: (     
+      autre,
+      !!@ comment = "La valeur „gravitation“ est à utiliser lorsque le bassin est vidangé sans appareillage."
+      gravitation,
+      !!@ comment = "Lors de plusieurs pompes, indiquer le nombre total."
+      pompe,
+      !!@ comment = "Lors de plusieurs vannes, il faut indiquer le nombre total."
+      vanne,
+      inconnu
+    );
+    !!@ comment = "Lors de présence de plusieurs pompes/vannes, indiquer le débit total."
+    VIDANGE_DE_BASSINS_DEBIT_MAX: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    NETTOYAGE_DE_BASSINS_GENRE: (     
+      !!@ comment = "Flux d'air comprimé, également appelé pompe d'injection"
+      aeration_et_brassage,
+      autre,
+      !!@ comment = "dispositif de curage"
+      dispositif_de_curage,
+      agitateur,
+      cunette_courbe,
+      rincage_en_cascade,
+      !!@ comment = "bac de rinçage ou rigole basculante"
+      bac_de_rincage,
+      inconnu
+    );
+    !!@ comment = "Remarques générales"
+    REMARQUE: TEXT*80;
+    LIMITEUR_DEBIT_GENRE: (     
+      !!@ comment = "régulateur de débit"
+      regulateur_de_debit,
+      autre,
+      !!@ comment = "Avec une conduite d’étranglement il faut aussi saisie une CONDUITE.FONCTION_HYDRAULIQUE = conduite_d_etranglement"
+      conduite_d_etranglement,
+      !!@ comment = "avec ouverture de fond"
+      leaping_weir,
+      !!@ comment = "remplir fiche technique STAP"
+      pompe,
+      vanne_fixe,
+      vanne_avec_regulation,
+      vanne_avec_commande,
+      inconnu
+    );
+    !!@ comment = "Les valeurs suivantes doivent être indiquées: Leaping weir: Longueur ouverture de fond, Cond. d’étranglement : aucune indication, Vanne : hauteur max de l’ouverture (du radier jusqu’au bord inférieur plaque, point le plus bas), Régulateur de débit : aucune indication, Pompe : aucune indication"
+    LIMITEUR_DEBIT_OUVERTURE_ACTUEL: Hauteur_max_profile;
+    !!@ comment = "Les valeurs suivantes doivent être indiquées: Leaping weir: Longueur ouverture de fond, Cond. d’étranglement : aucune indication, Vanne : hauteur max de l’ouverture (du radier jusqu’au bord inférieur plaque, point le plus bas), Régulateur de débit : aucune indication, Pompe : aucune indication"
+    LIMITEUR_DEBIT_OUVERTURE_ACTUEL_OPT: Hauteur_max_profile;
+    !!@ comment = "Cote du début du déversement de la retenue de matières solides en m.s.m."
+    RETENUE_DE_MATIERES_SOLIDES_COTE_DEV: Base_f_LV95.Altitude;
+    !!@ comment = "Genre de la retenue de matières solides"
+    RETENUE_DE_MATIERES_SOLIDES_GENRE: (     
+      autre,
+      !!@ comment = "dégrilleur a brosses"
+      degrilleur_a_brosses,
+      grille_fine,
+      !!@ comment = "maille > 10mm"
+      grille_grossiere,
+      !!@ comment = "tôle perforée"
+      tamis,
+      plaque_de_retenue,
+      paroi_plongeante,
+      inconnu
+    );
+    !!@ comment = "Volume, débit de dimensionnement"
+    RETENUE_DE_MATIERES_SOLIDES_VALEUR_DIM: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Types de pompe"
+    INSTALLATION_REFOULEMENT_GENRE_CONSTRUCTION: (     
+      autres,
+      systeme_a_air_comprime,
+      pompe_a_piston,
+      pompe_centrifuge,
+      !!@ comment = "aussi appelée vis sans fin ou vis d’Archimède"
+      pompe_a_vis,
+      inconnu,
+      systeme_a_vide_d_air
+    );
+    !!@ comment = "Débit de refoulement maximal  d’une pompe (individuelle). Survient normalement à la hauteur min de refoulement."
+    INSTALLATION_REFOULEMENT_DEBIT_REF_MAX_IND: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Débit de refoulement minimal d’une pompe (individuelle). Survient normalement à la hauteur max de refoulement."
+    INSTALLATION_REFOULEMENT_DEBIT_REF_MIN_IND: 0.000 .. 100000.000 [SIA405_Base_Eaux_usees_1_LV95.ls];
+    !!@ comment = "Type de l'appareil de mesure"
+    APPAREIL_MESURE_GENRE: (     
+      autres,
+      sonde_de_pression,
+      injection_bulles_d_air,
+      !!@ comment = "Débitmètre électromagnétique pour tuyau partiellement rempli"
+      MID_partiellement_rempli,
+      !!@ comment = "Débitmètre électromagnétique pour tuyau rempli"
+      MID_rempli,
+      radar,
+      flotteur,
+      ultrason,
+      inconnu
+    );
+    !!@ comment = "Type de mesure des RESULTAT_MESURE, par ex. proportionnel au temps ou au débit"
+    APPAREIL_MESURE_GENRE_MESURE: (     
+      autres,
+      debit,
+      niveau,
+      inconnu
+    );
+    !!@ comment = "ELEMENT_DE_BARRAGE de la STATION_MESURE de l'APPAREIL_MESURE"
+    APPAREIL_MESURE_ELEMENT_DE_BARRAGE: (     
+      autre,
+      aucun,
+      !!@ comment = "toutes les formes, telles que seuil en bec de canard, etc."
+      lame_deversante,
+      inconnu,
+      etranglement_venturi
+    );
+    !!@ comment = "Objet de la mesure"
+    APPAREIL_MESURE_OBJET: (     
+      !!@ comment = "Répartition des coûts et but technique"
+      les_deux,
+      repartition_des_couts,
+      !!@ comment = "En règle générale, seul les objets techniques sont indiqués pour les composantes d’ouvrage (réglage)."
+      but_technique,
+      inconnu
+    );
+    !!@ comment = "Cote de rejet du trop-plein de secours. Si le trop-plein est un seuil, indiquer la cote de la crête."
+    TROP_PLEIN_DE_SECOURS_COTE: Base_f_LV95.Altitude;
+    !!@ comment = "OID du LIMITEUR_DEBIT dans la VSA-SDEE, pour le transfert du modèle si GENRE_LIMITEUR_DEBIT = regulateur_de_debit ou vanne* ou VIDANGE_DE_BASSINS_GENRE = vanne ou GENRE_PROTECTION_REFOULEMENT = plaque_de_retenue"
+    OBJ_ID_LIMITEUR_DEBIT: TEXT*16;
+    OBJ_ID_VIDANGE_DE_BASSINS: TEXT*16;
+    OBJ_ID_NETTOYAGE_DE_BASSINS: TEXT*16;
+    OBJ_ID_RETENUE_DE_MATIERES_SOLIDES: TEXT*16;
+    OBJ_ID_APPAREIL_MESURE: TEXT*16;
+    !!@ comment = "OID de la STATION_MESURE de l'APPAREIL_MESURE, seulement pour le transfert du modèle"
+    OBJ_ID_STATION_MESURE: TEXT*16;
+    OBJ_ID_PROTECTION_REFOULEMENT: TEXT*16;
+    !!@ comment = "OID du déversoir dans la VSA-SDEE, pour le transfert du modèle si GENRE_LIMITEUR_DEBIT = leaping_weir ou pompe. Ou VIDANGE_DE_BASSINS_GENRE = pompe. Ou GENRE_PROTECTION_REFOULEMENT = pompe. Pour TROP_PLEIN_DE_SECOURS le DEVERSOIR correspondant"
+    OBJ_ID_DEVERSOIR: TEXT*16;
+    !!@ comment = "La protection contre le refoulement empêche le retour d’eau des cours d’eau dans le réseau d’assainissement. Cet attribut est saisi à chaque ouvrage spécial disposant de cette protection. En absence de protection, laisser la composante vide."
+    PROTECTION_REFOULEMENT_GENRE: (     
+      autres,
+      pompe,
+      clapet_de_non_retour_a_battant,
+      plaque_de_retenue,
+      inconnu
+    );
+    !!@ comment = "Longueur hydrauliquement efficace de la crête. Pour les surverses à seuil double avec des hauteurs différentes, il faut saisir deux surverses. Attribut uniquement à saisir pour les déversoirs latéraux."
+    DEVERSOIR_L_HYDR_LAME: 0.00 .. 30000.00 [m];
+    !!@ comment = "Cote du point le plus élevée de la crête de déversement en m.s.m.. A saisir uniquement pour les déversoirs latéraux. Pour des seuils non horizontaux, indiquer la cote la plus élevée."
+    DEVERSOIR_COTE_MAX: Base_f_LV95.Altitude;
+    !!@ comment = "Cote du point le plus bas de la crête de déversement en m.s.m.. A saisir uniquement pour les déversoirs latéraux. Pour des seuils non horizontaux, indiquer la cote la plus basse."
+    DEVERSOIR_COTE_MIN: Base_f_LV95.Altitude;
+END COMPOSANTES_D_OUVRAGE;
+
+!!@ comment = "Association"
+ASSOCIATION COMPOSANTES_D_OUVRAGE_FTAssoc =
+  FTRef  -- {1} FT;
+  COMPOSANTES_D_OUVRAGE_FTAssocRef -- {0..*} COMPOSANTES_D_OUVRAGE;
+END COMPOSANTES_D_OUVRAGE_FTAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION COMPOSANTES_D_OUVRAGE_TROP_PLEIN_DE_SECOURS_EXUTOIREAssoc =
+  TROP_PLEIN_DE_SECOURS_EXUTOIRERef  -- {0..1} NOEUD;
+!!@comment = " Liaison avec les noeuds du point de décharge de la décharge d'urgence"
+  COMPOSANTES_D_OUVRAGE_TROP_PLEIN_DE_SECOURS_EXUTOIREAssocRef -- {0..*} COMPOSANTES_D_OUVRAGE;
+END COMPOSANTES_D_OUVRAGE_TROP_PLEIN_DE_SECOURS_EXUTOIREAssoc;
+
+!!@ comment = "Mesures élaborées dans le cadre du PGEE et leur état de mise en œuvre. Pour les tâches récurrentes, ne pas utiliser de 'MESURES' mais la classe EVENEMENT_MAINTENANCE. Les coûts des tâches récurrentes doivent être pris en compte dans le module (projet partiel) financement."
+CLASS MESURE EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Remarques du gestionnaire du projet ou de l'autorité de surveillance"
+    REMARQUE: TEXT*80;
+    DESCRIPTION: TEXT*100;
+    DESIGNATION: MANDATORY TEXT*50;
+    !!@ comment = "Date d'entrée de la mesure dans le plan d'actions"
+    DATE_ENTREE: INTERLIS_1_DATE;
+    !!@ comment = "Somme des contributions propres et des coûts de parties tiers. Ils peuvent également être justifiés séparément"
+    COUTS_TOTAUX: 0.00 .. 99999999.99 [Units.CHF];
+    !!@ comment = "Description courte du besoin d'intervention"
+    BESOIN_D_INTERVENTION: MTEXT*255;
+    !!@ comment = "Année à laquelle la mesure a effectivement été mise en œuvre"
+    ANNEE_MISE_EN_OEUVRE_ACTUELLE: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Année à laquelle la mesure devrait être mise en œuvre"
+    ANNEE_MISE_EN_OEUVRE_PREVUE: SIA405_Base_Eaux_usees_1_LV95.Annee;
+    !!@ comment = "Catégorie de la mesure (obligatoire)"
+    CATEGORIE: (     
+      !!@ comment = "Mesures de l'évacuation des eaux des biens-fonds visant à favoriser la circulation de l'eau à petite échelle"
+      limitation_ecoulement_retention_infiltration,
+      !!@ comment = "Adaptation de règlements, établissement de règles contractuelles, etc."
+      mesure_administrative,
+      !!@ comment = "Pour toutes les mesures du sous-projet Eaux usées en milieu rural (EMR)"
+      EMR,
+      autre,
+      !!@ comment = "Mise hors service ou déconstruction d'installations existantes"
+      suppression,
+      gestion_des_donnees,
+      !!@ comment = "Mise en place sur l’ancien tracé ou sur un nouveau de nouvelles canalisations d'eaux usées qui intègrent la fonction des anciennes (SN EN 752)."
+      maintenance_renouvellement,
+      !!@ comment = "Nettoyage ou vidange"
+      maintenance_nettoyage,
+      !!@ comment = "Rénovation: mesures d’amélioration de la capacité fonctionnelle actuelle des canalisations d’eaux usées impliquant tout ou partie de leur substance originelle (SN EN 752). Dans des directives plus anciennes le terme 'Assainissement' était utilisé. Réparation: mesures d’élimination de dommages d’étendue limitée (SN EN 752)."
+      maintenance_renovation_reparation,
+      !!@ comment = "Si la mesure de maintenance n'est pas encore spécifiée"
+      maintenance_inconnue,
+      reduction_ecp,
+      !!@ comment = "P. ex. modification du genre d'utilisation d'un tronçon de canalisation. Pour des ouvrages spéciaux, utiliser la valeur 'ouvrage_special_adaptation'."
+      changement_de_fonction,
+      !!@ comment = "Tous les travaux en lien avec la révison ou la mise à jour du PGEE"
+      elaboration_PGEE,
+      controle_et_surveillence,
+      !!@ comment = "Nouvelle proposition guide des données PGEE 2020 : remplace assainissement_cours_d_eau et renaturalisation_cours_d_eau comme terme générique."
+      mesure_sur_cours_d_eau,
+      !!@ comment = "Construction de nouvelles installations. Pour des ouvrages spéciaux et des reconstructions, utiliser les valeurs spécifiques 'ouvrage_spécial_nouvelle_cosntruction' et 'maintenance_renouvellement'."
+      extension_reseau,
+      !!@ comment = "Adaptations de la conception hydraulique, telles que nouveau réglage du débit de réacheminement ou optimisation hydraulique. Ne pas utiliser pour des mesures de maintenance pures."
+      ouvrage_special_adaptation,
+      ouvrage_special_nouvelle_construction,
+      !!@ comment = "Nouvele proposition guide des données PGEE 2020"
+      prevention_des_accidents_majeurs,
+      inconnu
+    );
+    !!@ comment = "Permet la visualisation d'une mesure à l'aide d'une ligne (optionnelle)"
+    LIGNE: Base_f_LV95.Polyligne;
+    OBJ_ID_EVENEMENT_MAINTENANCE_OUVRAGE_RESEAU_AS: TEXT*16;
+    !!@ comment = "Pour la visualisation et l’illustration avec une surface (optionelle)"
+    PERIMETRE: Base_f_LV95.Surface;
+    !!@ comment = "Priorité de la mesure."
+    PRIORITE: (     
+      !!@ comment = "La mesure doit être exécutée en urgence et à très court terme. Délais <= 2 ans"
+      M0,
+      !!@ comment = "La mesure doit être exécutée en rapidement. Délais 3 à 4 ans"
+      M1,
+      !!@ comment = "La mesure est nécessaire à moyen terme. Délais 5 à 7 ans"
+      M2,
+      !!@ comment = "La mesure peut être planifiée à long terme. Délais 7 à 10 ans"
+      M3,
+      !!@ comment = "La mesure peut attendre la prochaine mise à jour du PGEE. Délais >= 10 ans"
+      M4,
+      inconnu
+    );
+    !!@ comment = "Etat de la mesure"
+    ETAT: (     
+      regle,
+      en_preparation,
+      en_suspens,
+      supprime,
+      inconnu
+    );
+    !!@ comment = "Pour la visualisation (sans relation géométrique)"
+    SYMBOLEPOS: Base_f_LV95.CoordNat;
+    !!@ comment = "Référence à d’autres mesures ou travaux, documents explicatifs concernant la mesure, par exemple les projets partiels PGEE ou rapports d’état"
+    RENVOI: MTEXT*255;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END MESURE;
+
+!!@ comment = "Association"
+ASSOCIATION MESURE_ENTITE_RESPONSABLEAssoc =
+  ENTITE_RESPONSABLERef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  MESURE_ENTITE_RESPONSABLEAssocRef -- {0..*} MESURE;
+END MESURE_ENTITE_RESPONSABLEAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION MESURE_RESPONSABLE_DECLENCHEMENTAssoc =
+  RESPONSABLE_DECLENCHEMENTRef (EXTERNAL) -- {1} SIA405_Base_Eaux_usees_1_LV95.Administration.ORGANISATION;
+  MESURE_RESPONSABLE_DECLENCHEMENTAssocRef -- {0..*} MESURE;
+END MESURE_RESPONSABLE_DECLENCHEMENTAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION MESURE_CONDUITEAssoc =
+  CONDUITERef  -- {0..*} CONDUITE;
+  MESURE_CONDUITEAssocRef -- {0..*} MESURE;
+END MESURE_CONDUITEAssoc;
+
+!!@ comment = "Association"
+ASSOCIATION MESURE_NOEUDAssoc =
+  NOEUDRef  -- {0..*} NOEUD;
+  MESURE_NOEUDAssocRef -- {0..*} MESURE;
+END MESURE_NOEUDAssoc;
+
+!!@ comment = "Evacuation des eaux usées en milieu rural (EMR)"
+CLASS EMR EXTENDS VSA_BaseClass =  
+  ATTRIBUTE
+    !!@ comment = "Élimination actuelle des eaux usées"
+    ELIMINATION_ACTUEL: (     
+      !!@ comment = "toilette sans vidange"
+      toilette_sans_vidange,
+      !!@ comment = "Fosse étanche"
+      fosse_etanche,
+      !!@ comment = "Fosse digestive: 3 compartiments"
+      fosse_digestive,
+      !!@ comment = "En cas d'utilisation de la valeur 'autre', l'élimination doit être précisée en remarque, p. ex. déversement ou infiltration sans traitement pour un refuge de montagne"
+      autre,
+      raccordement_egouts,
+      fosse_septique_deux_chambres,
+      !!@ comment = "Fosse à purin. Valorisation agricole"
+      fosse_a_purin,
+      aucune_production_d_eaux_usees,
+      !!@ comment = "Appareil destiné à la collecte, à la liquéfaction partielle des matières polluantes contenues dans les eaux usées et à la rétention des matières solides et des déchets flottants. Il est souvent utilisé pour des bâtiments qui ne sont pas raccordés à un réseau d’égouts aboutissant à un traitement (1 chambre)"
+      fosse_septique,
+      !!@ comment = "petite station d’épuration (petite STEP)"
+      petite_STEP,
+      inconnu
+    );
+    DESIGNATION: MANDATORY TEXT*20;
+    !!@ comment = "Consiste en un nombre d'habitants (E) et d'équivalents de population (EGW). Voir la directive de la VSA sur les équivalents population EMR A03"
+    EQUIVALENTS_HABITANTS: EH;
+    !!@ comment = "Localisation du groupe de bâtiments (peut être repris des données du Registre fédéral des bâtiments et des logements (RegBL))"
+    SITUATION: Base_f_LV95.CoordNat;
+    !!@ comment = "OID de l'EVACUATION associée dans la VSA-SDEE, seulement pour transferts entre modèles"
+    OBJ_ID_EVACUATION: TEXT*16;
+    !!@ comment = "OID de l'EVACUATION. OUVRAGE_RESEAU_ASRef dans la VSA-SDEE, seulement pour transferts entre modèles"
+    OBJ_ID_EVACUATION_OUVRAGE_RESEAU_AS: TEXT*16;
+    !!@ comment = "OID de l'EVACUATION.OUVRAGE_RESEAU_ASREF associée dans la VSA-SDEE, seulement pour transferts entre modèles"
+    OBJ_ID_EVACUATION_EXUTOIRE: TEXT*16;
+    !!@ comment = "OID de l'EVACUATION.OUVRAGE_RESEAU_ASREF associée dans la VSA-SDEE, seulement pour transferts entre modèles"
+    OBJ_ID_EVACUATION_INSTALLATION_INFILTRATION: TEXT*16;
+    OBJ_ID_BATIMENTS_EVACUATION: TEXT*16;
+    NECESSITE_ASSAINIR: (     
+      oui,
+      non,
+      inconnu
+    );
+    DATE_DE_REHABILITATION: INTERLIS_1_DATE;
+    !!@ comment = "Version courte du concept en fonction de l'offre de service (Cahier des charges type du PGEE)"
+    CONCEPT_DE_RESTRUCTURATION: MTEXT*255;
+UNIQUE 
+    !!@ comment = "UNIQUE Combinaison de DESIGNATON, MAITRE_DES_DONNEESRef, donc compatible avec VSA-DSS-Mini (Guide des données de l’assainissement urbain 2020)
+    DESIGNATION, MAITRE_DES_DONNEESRef;
+END EMR;
+
+!!@ comment = "Association"
+ASSOCIATION EMR_MESUREAssoc =
+  MESURERef  -- {0..1} MESURE;
+  EMR_MESUREAssocRef -- {0..*} EMR;
+END EMR_MESUREAssoc;
+
+
+!!@comment = "Ende des Topics / Fin du topic"
+END VSASDEEMini;
+!!@comment = "Ende des Modells / Fin du modèle"
+END VSASDEEMINI_2020_1_LV95.
+

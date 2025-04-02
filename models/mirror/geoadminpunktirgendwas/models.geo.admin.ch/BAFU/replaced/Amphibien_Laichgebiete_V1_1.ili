@@ -1,0 +1,165 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=22.1
+MODEL Amphibien_Laichgebiete_Codelisten_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-04-05"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Bereich_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*1;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bereich_Catalogue;
+
+    STRUCTURE Bereich_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Bereich_Catalogue;
+    END Bereich_CatRef;
+
+  END Codelisten;
+
+END Amphibien_Laichgebiete_Codelisten_V1_1.
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=22.1
+MODEL Amphibien_Laichgebiete_LV03_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-04-05"  =
+  IMPORTS GeometryCHLV03_V1,LocalisationCH_V1,Amphibien_Laichgebiete_Codelisten_V1_1;
+
+  TOPIC Amphibienlaichgebiete =
+    DEPENDS ON Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+  /* Flächen ohne Kreisbogen */
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+  /* Codelisten */
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+  /* Definition von Multipolygonen, analog CHBase Geometry */
+  STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+  STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    CLASS Amphibienlaichgebiet_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      Bereich : MANDATORY Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Bereich_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Amphibienlaichgebiet_Teilobjekt;
+
+    CLASS Amphibienlaichgebiet =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+    END Amphibienlaichgebiet;
+
+    ASSOCIATION Amphibienlaichgebiet_TeilobjektAmphibienlaichgebiet =
+      Amphibienlaichgebiet_Teilobjekt -- {1..*} Amphibienlaichgebiet_Teilobjekt;
+      Amphibienlaichgebiet -<#> {1} Amphibienlaichgebiet;
+    END Amphibienlaichgebiet_TeilobjektAmphibienlaichgebiet;
+
+  END Amphibienlaichgebiete;
+
+END Amphibien_Laichgebiete_LV03_V1_1.
+
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=22.1
+MODEL Amphibien_Laichgebiete_LV95_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2017-04-05"  =
+  IMPORTS GeometryCHLV95_V1,LocalisationCH_V1,Amphibien_Laichgebiete_Codelisten_V1_1;
+
+  TOPIC Amphibienlaichgebiete =
+    DEPENDS ON Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+  /* Flächen ohne Kreisbogen */
+    Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+  /* Codelisten */
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+  /* Definition von Multipolygonen, analog CHBase Geometry */
+  STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+  STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    CLASS Amphibienlaichgebiet_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      Bereich : MANDATORY Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Bereich_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Amphibienlaichgebiet_Teilobjekt;
+
+    CLASS Amphibienlaichgebiet =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+    END Amphibienlaichgebiet;
+
+    ASSOCIATION Amphibienlaichgebiet_TeilobjektAmphibienlaichgebiet =
+      Amphibienlaichgebiet_Teilobjekt -- {1..*} Amphibienlaichgebiet_Teilobjekt;
+      Amphibienlaichgebiet -<#> {1} Amphibienlaichgebiet;
+    END Amphibienlaichgebiet_TeilobjektAmphibienlaichgebiet;
+
+  END Amphibienlaichgebiete;
+
+END Amphibien_Laichgebiete_LV95_V1_1.

@@ -1,0 +1,187 @@
+INTERLIS 2.4;
+
+/** DE: Fixpunkt-Datenservice 2.0
+ *  FR: Service de donnees sur les points fixes 2.0
+ *  IT: Servizio di dati sui punti fissi 2.0
+ *  EN: Control Point Data Service 2.0
+ *
+ *  [2022-07-01] 1.0 Initialer Modellrelease
+ *  [2022-07-14] 1.1 Umwandlung Strukturen in Klassen
+*/
+
+!!@ technicalContact=mailto:info@kgk-cgc.ch
+!!@ furtherInformation=https://models.kgk-cgc.ch/pdf/KGKCGC_FPDS2_V1_1_FR.pdf
+
+MODEL KGKCGC_FPDS2_V1_1_FR (fr)
+AT "https://www.kgk-cgc.ch"
+VERSION "2022-07-14"
+TRANSLATION OF KGKCGC_FPDS2_V1_1 ["2022-07-14"] =
+  IMPORTS CHAdminCodes_V2;
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+
+    Precision = 0.001 .. 7.000 [INTERLIS.M];
+
+    IdentDN = TEXT*12;
+
+    Fiabilite = (
+      oui,
+      non
+    );
+
+  TOPIC FPDS2 =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS VueEnsembleGeoservice =
+      Designation : MANDATORY TEXT*30;
+      URL : MANDATORY INTERLIS.URI;
+    END VueEnsembleGeoservice;
+
+    CLASS VueEnsembleEchelle =
+      Echelle : MANDATORY 0.0 .. 2500000.0;
+    END VueEnsembleEchelle;
+
+    CLASS Responsabilite =
+      Canton : MANDATORY CHAdminCodes_V2.CHCantonCode;
+      Nom : MANDATORY MTEXT*100;
+      Adresse : MTEXT*50;
+    END Responsabilite;
+
+    CLASS PointFixe =
+      Genre : MANDATORY (
+        PFP2,
+        PFA2
+      );
+      Accessibilite : MANDATORY (
+          accessible,
+          inaccessible
+      );
+      Remarque : MTEXT*400;
+      SourceImage1 : INTERLIS.URI;
+      SourceImage2 : INTERLIS.URI;
+      VisibiliteGNSS : MANDATORY (
+        bonne,
+        moyenne,
+        mauvaise,
+        sans_indication
+      );
+      Inscription : TEXT*8;
+      IdentDN : MANDATORY KGKCGC_FPDS2_V1_1_FR.IdentDN;
+      Numero : MANDATORY TEXT*12;
+      LangueFicheSignaletique : MANDATORY (
+        allemand,
+        francais,
+        italien
+      );
+      SymbolOri : 0.0 .. 399.9 CIRCULAR CLOCKWISE;
+      PAT : MANDATORY BOOLEAN;
+      StrategieEntretien : MANDATORY (
+          actif,
+          passif
+      );
+      UNIQUE IdentDN, Numero;
+    END PointFixe;
+
+    CONSTRAINTS OF PointFixe =
+      MANDATORY CONSTRAINT Genre != #PFP2 OR DEFINED(SymbolOri);
+    END;
+
+    CLASS PointFixe_Version =
+      Geometrie : GeometryCHLV95_V2.Coord2;
+      ValableJusque : INTERLIS.XMLDate;
+      PrecAlt : KGKCGC_FPDS2_V1_1_FR.Precision;
+      GeomAlt : -200.000 .. 5000.000 [INTERLIS.M];
+      FiabAlt : KGKCGC_FPDS2_V1_1_FR.Fiabilite;
+      DeterminationCoordonnees : MANDATORY (
+        transforme,
+        mesure_MN95
+      );
+      PrecPlan : MANDATORY KGKCGC_FPDS2_V1_1_FR.Precision;
+      FiabPlan : MANDATORY KGKCGC_FPDS2_V1_1_FR.Fiabilite;
+      Signe : MANDATORY (
+        cheville_horizontale,
+        cheville,
+        cheville_a_fiche,
+        plaque_en_bronze,
+        cheville_a_calotte,
+        nivellement_federal,
+        mat_antenne,
+        rivet,
+        cheville_de_nivellement,
+        pyramide,
+        borne,
+        tour,
+        repere_souterrain,
+        autre
+      );
+      SigneDescription : MTEXT*250;
+      TypeProtection : (
+        sans_protection,
+        regard,
+        recouvert
+      );
+      PoseBorne : TEXT*50;
+      MaterialisationSecondaire : MTEXT*100;
+    END PointFixe_Version;
+
+    CLASS PointFixe_Action =
+      Description : MANDATORY MTEXT*60;
+      Date : MANDATORY INTERLIS.XMLDate;
+    END PointFixe_Action;
+
+    CLASS PointsFixes_MiseAJour =
+      Remarque : MTEXT*300;
+      Description : MANDATORY TEXT*30;
+      DateCloture : INTERLIS.XMLDate;
+      DateOuverture : MANDATORY INTERLIS.XMLDate;
+      Identification : MANDATORY TEXT*12;
+      IdentDN : MANDATORY KGKCGC_FPDS2_V1_1_FR.IdentDN;
+      Statut : MANDATORY (
+        en_travail,
+        terminee
+      );
+      UNIQUE IdentDN, Identification;
+    END PointsFixes_MiseAJour;
+	
+    ASSOCIATION PF_VueEnsembleGeoservice =
+      VG -- {1} VueEnsembleGeoservice;
+      PF -- {0..*} PointFixe;
+    END PF_VueEnsembleGeoservice;
+	
+    ASSOCIATION PF_VueEnsembleEchelle =
+      VE -- {1} VueEnsembleEchelle;
+      PF -- {0..*} PointFixe;
+    END PF_VueEnsembleEchelle;
+	
+    ASSOCIATION PF_Responsabilite =
+      RS -- {1} Responsabilite;
+      PF -- {0..*} PointFixe;
+    END PF_Responsabilite;
+	
+    ASSOCIATION PFVersion_PFMiseAJour =
+      PFM -- {1} PointsFixes_MiseAJour;
+      PFV -- {0..*} PointFixe_Version;
+    END PFVersion_PFMiseAJour;
+
+    ASSOCIATION PF_PFAction =
+      PF -- {1} PointFixe;
+      PFA -- {0..*} PointFixe_Action;
+    END PF_PFAction;
+
+    ASSOCIATION PF_PFVersion =
+      PFV -- {0..*} PointFixe_Version;
+      PF -- {1} PointFixe;
+    END PF_PFVersion;
+
+    CONSTRAINTS OF PointFixe_Version =
+      MANDATORY CONSTRAINT PF->Genre != #PFA2 OR DEFINED(GeomAlt);
+      MANDATORY CONSTRAINT PF->Genre != #PFA2 OR DEFINED(PrecAlt);
+      MANDATORY CONSTRAINT PF->Genre != #PFA2 OR DEFINED(FiabAlt);
+      MANDATORY CONSTRAINT PF->Genre != #PFP2 OR (DEFINED(GeomAlt) AND DEFINED(PrecAlt)) OR (NOT(DEFINED(GeomAlt)) AND NOT(DEFINED(PrecAlt)));
+      MANDATORY CONSTRAINT PF->Genre != #PFP2 OR (DEFINED(GeomAlt) AND DEFINED(FiabAlt)) OR (NOT(DEFINED(GeomAlt)) AND NOT(DEFINED(FiabAlt)));
+    END;
+
+  END FPDS2;
+
+END KGKCGC_FPDS2_V1_1_FR.

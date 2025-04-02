@@ -1,0 +1,91 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=80.1
+
+MODEL Querprofile_Flussvermessung_V1 (de)
+  AT "https://models.geo.admin.ch/BAFU/" VERSION "2019-05-27" =
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    /** Die Verwendung von Kreisbögen (ARCS) ist in diesem Modell nicht
+     *  zugelassen.
+     */
+
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    gerichtete_Linie EXTENDS Linie = DIRECTED POLYLINE;
+
+    Coord_E = 2460000.00 .. 2870000.00 [INTERLIS.m];
+
+    Coord_N = 1045000.00 .. 1310000.00 [INTERLIS.m];
+
+    Coord_H = -200.00 .. 5000.00 [INTERLIS.m];
+
+    Gerinnetypisierung = (
+      Hauptgerinne,
+      Nebengerinne);
+
+    Markierung = (
+      versichert (
+        Stein,
+        Kunststoffmarke,
+        Bolzen_Niete,
+        Schiene,
+        Marke_Farbe,
+        Schraube,
+        Eisen_Rohr,
+        Pfosten,
+        Betonsockel_mit_Niete),
+      unversichert);
+
+    Verantwortungseinheit = (
+      BAFU,
+      Kanton);
+
+  TOPIC VERM_ABSCHNITT =
+
+    CLASS Vermessungsabschnitt =
+      Vermessungsstrecke: MANDATORY Linie;
+      Verantwortung: MANDATORY Verantwortungseinheit;
+      GWLNR: MANDATORY TEXT*12;
+      Flussname: MANDATORY TEXT*30;
+      Abschnitt: MANDATORY TEXT*100;
+      Gerinnetyp: MANDATORY Gerinnetypisierung;
+      Uebersicht_Messkampagne_Link: MANDATORY URI;
+    END Vermessungsabschnitt;
+
+  END VERM_ABSCHNITT;
+
+  TOPIC QP_ACHSE = 
+
+    CLASS Querprofilachse =
+      Querprofil_Linie: MANDATORY gerichtete_Linie;
+      GWLNR: MANDATORY TEXT*12;
+      Flussname: MANDATORY TEXT*30;
+      Abschnitt: MANDATORY TEXT*100;
+      GEWISS_Adr: MANDATORY TEXT*11;
+      BWW_km: 0.000 .. 999.999;
+      lokale_km: 0.000 .. 999.999;
+      Datum: MANDATORY TEXT*7;
+      Markierung_li: MANDATORY Markierung;
+      E_li: MANDATORY Coord_E;
+      N_li: MANDATORY Coord_N;
+      Hoehe_li: MANDATORY Coord_H;
+      Azimut_li: MANDATORY 0.00 .. 399.99 [Units.Gon];
+      Foto_1_li: URI;
+      Foto_2_li: URI;
+      Markierung_re: MANDATORY Markierung;
+      E_re: MANDATORY Coord_E;
+      N_re: MANDATORY Coord_N;
+      Hoehe_re: MANDATORY Coord_H;
+      Azimut_re: MANDATORY 0.00 .. 399.99 [Units.Gon];
+      Foto_1_re: URI;
+      Foto_2_re: URI;
+    END Querprofilachse;
+
+  END QP_ACHSE;
+
+END Querprofile_Flussvermessung_V1.

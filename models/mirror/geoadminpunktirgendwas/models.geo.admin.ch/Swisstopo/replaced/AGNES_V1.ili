@@ -1,0 +1,129 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ IDGeoIV = "34.5"
+
+!! ########################################################################
+/** [DE] Minimales Geodatenmodell GeoIV Nr. 34.5 «AGNES-Stationen»
+ * [FR] Modèle de géodonnées minimal OGéo No. 34.5 « Stations AGNES »
+ * [IT] Modello minimo dei dati geografici GeoIV No. 34.2 «Stazioni AGNES»
+ * [EN] Minimal geodata model GeoIV no. 34.5 «AGNES stations»
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2014-06-23 | KOGIS | IMPORTS-statement modified (line 23)
+!! 2015-08-12 | KOGIS | TOPIC-Dependency added (line 92)
+
+MODEL AGNES_V1 (en) AT "http://models.geo.admin.ch/Swisstopo" VERSION "2015-08-12"  =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS UNQUALIFIED GeometryCHLV95_V1;
+  IMPORTS UNQUALIFIED CatalogueObjectTrees_V1;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian3D: CHTRF95;
+
+  DOMAIN
+  /** [DE] Definition Koordinatenwertebereich für CHTRF95
+   * [FR] Définition de la domaine des coordonnées pour CHTRF95
+   * [IT] Definizione del perimetro; coordinate per CHTRF95
+   * [EN] Definition of the coordinate domain for CHTRF95
+   */
+    Coord3_CHTRF95 = COORD 4200000.000..4500000.000 [m] {CHTRF95[1]},
+                            450000.000.. 800000.000 [m] {CHTRF95[2]},
+                           4500000.000..4700000.000 [m] {CHTRF95[3]};
+
+  /* ======================================================= */
+  /** [DE] Thema der AGNES-Stationsliste
+   * [FR] Thème de la liste des stations AGNES
+   * [IT] Tema della lista delle stazioni AGNES
+   * [EN] Topic of AGNES stations list
+   */
+  TOPIC Stations_Catalogue EXTENDS Catalogues =
+
+    /** [DE] Bezeichnung der AGNES-Station: Katalog
+     * [FR] Désignation de la station AGNES: catalogue
+     * [IT] Designazione della stazione AGNES: catalogo
+     * [EN] Designation of the AGNES station: catalogue
+     */
+    CLASS Station_Denomination EXTENDS Item =
+      /** [DE] Code der AGNES-Station
+       * [FR] Code de la station AGNES
+       * [IT] Codice della stazione AGNES
+       * [EN] Code of the AGNES station
+       */
+      Code : MANDATORY TEXT*4;
+      /** [DE] Name der AGNES-Station
+       * [FR] Nom de la station AGNES
+       * [IT] Nome della stazione AGNES
+       * [EN] Name of the AGNES station
+       */
+      Name : MANDATORY TEXT*50;
+    END Station_Denomination;
+
+    /** [DE] Strukturtyp zur Referenzierung des Katalogs
+     * [FR] Type de structure pour les références du catalogue
+     * [IT] Tipo di struttura per il riferimento del catalogo
+     * [EN] Structure type for referencing the catalogue
+     */
+    STRUCTURE Station_Reference EXTENDS MandatoryCatalogueReference =
+      /** [DE] Referenz auf den Katalog
+       * [FR] Référence au catalogue
+       * [IT] Riferimento al catalogo
+       * [EN] Reference to the catalogue
+       */
+      Ref: MANDATORY REFERENCE TO (EXTERNAL) Station_Denomination;
+    MANDATORY CONSTRAINT
+      Ref->IsUseable;
+    END Station_Reference;
+    
+  END Stations_Catalogue;
+
+  /* ======================================================= */
+  /** [DE] Thema der AGNES-Stationsinformationen
+   * [FR] Thème des informations sur les stations AGNES
+   * [IT] Tema delle informazioni sulle stazioni AGNES
+   * [EN] Topic of informations for AGNES stations
+   */
+  TOPIC AGNES_Stations =
+    DEPENDS ON CatalogueObjectTrees_V1.Catalogues,AGNES_V1.Stations_Catalogue;
+
+    /** [DE] Informationen über eine AGNES-Station
+     * [FR] Informations sur une station AGNES
+     * [IT] Informazioni su una stazione AGNES
+     * [EN] Informations about an AGNES station
+     */
+    CLASS AGNES_Station =
+      /** [DE] Referenz auf einen Listeneintrag der AGNES-Stationsliste
+       * [FR] Référence à une entrée de la liste des stations AGNES
+       * [IT] Riferimento a un elemento della lista di stazioni AGNES
+       * [EN] Reference to a list entry of AGNES stations
+       */
+      Station : MANDATORY AGNES_V1.Stations_Catalogue.Station_Reference;
+      /** [DE] Standort der AGNES-Station: LV95-Punktkoordinate
+       * [FR] Emplacement de la station AGNES: coordonnées point MN95
+       * [IT] Posizione della stazione AGNES: coordinate punto MN95
+       * [EN] Position of the AGNES station: point coordinate LV95
+       */
+      GeometryLV95 : MANDATORY Coord3;
+      /** [DE] Standort der AGNES-Station: CHTRF95-Punktkoordinate
+       * [FR] Emplacement de la station AGNES: coordonnées point CHTRF95
+       * [IT] Posizione della stazione AGNES: coordinate punto CHTRF95
+       * [EN] Position of the AGNES station: point coordinate CHTRF95
+       */
+      GeometryCHTRF95 : MANDATORY Coord3_CHTRF95;
+      /** [DE] Link zur Detaildokumentation der AGNES-Station
+       * [FR] Lien aux informations détaillées sur la station AGNES
+       * [IT] Link alle informazioni dettagliate sulla stazione AGNES
+       * [EN] Link to detailed information about the AGNES station
+       */
+      URL : MANDATORY URI;
+    END AGNES_Station;
+
+  END AGNES_Stations;
+
+  /* ======================================================= */
+
+END AGNES_V1.

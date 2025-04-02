@@ -1,0 +1,254 @@
+!!==============================================================================
+!! Erkas_Strassen_V1.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 112, 113
+!! Bezeichnung GeoIV                         : Eidg. Risikokataster (ERKAS)
+!! Zuständige Stelle (Fachstelle des Bundes) : 112: BAFU, 113: Kantone (BAFU)
+!! Zugangsberechtigungsstufe                 : B
+!! 
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 112.2, 113.2
+!! Bezeichnung Geobasisdatensatz             : Risikokataster gemäss Störfallverordnung (StFV), Teil Strassen
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Nr  | Änderung
+!!------------------------------------------------------------------------------
+!! 2014-11-28 | 1.0 | Fassung für Anhörung
+!! 2016-11-22 | 1.0 | Schlussfassung
+!!==============================================================================
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "112.2,113.2"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Strassen_LV03_V1 (de) AT "https://models.geo.admin.ch/BAFU" VERSION "2016-11-22" =
+
+  IMPORTS GeometryCHLV03_V1;
+
+  DOMAIN
+!!==============================================================================
+    StreckenTyp = (O, T);                          !! offene Strecke, Tunnel
+ 
+  TOPIC ERKAS_Strassen =
+!!==============================================================================
+    CLASS Datenpunkt =
+      ID                  : MANDATORY 1 .. 999999999999;
+      Inhaber             : MANDATORY TEXT*256;             
+      Ort                 : MANDATORY GeometryCHLV03_V1.Coord2;           
+      StrassenNr          :           TEXT*256;             
+      SegmentNamePers     :           TEXT*256;             
+      SegmentNameOFG      :           TEXT*256;             
+      SegmentNameGW       :           TEXT*256;             
+      Streckentyp         : MANDATORY StreckenTyp;      
+      Streckenbezeichnung :           TEXT*1024;             
+      
+      UNIQUE ID, Inhaber;
+    END Datenpunkt;
+
+    CLASS Verkehrsaufkommen  =
+      VDatum          : MANDATORY INTERLIS.XMLDate;
+      DTV             : MANDATORY 0 .. 999999999;
+      DWV             :           0 .. 999999999;
+      ASV             :           0.000 .. 1.000;
+      AGS             :           0.00  .. 1.00;
+      ASKLSBenzin     :           0.00  .. 1.00;          
+      ASKLSPropan     :           0.00  .. 1.00;          
+      ASKLSChlor      :           0.00  .. 1.00;          
+      ASKLSMineraloel :           0.00  .. 1.00;          
+      ASKLSEpi        :           0.00  .. 1.00;          
+    END Verkehrsaufkommen ;
+
+    CLASS Vollzug =
+      Datum         : MANDATORY INTERLIS.XMLDate;
+      DatumStFVUnt  :           INTERLIS.XMLDate;
+      KBfrei        : MANDATORY BOOLEAN;
+      REPflichtPers :           BOOLEAN;         
+      REPflichtOFG  :           BOOLEAN;         
+      REPflichtGW   :           BOOLEAN;         
+      DatumREPers   :           INTERLIS.XMLDate;
+      DatumREOFG    :           INTERLIS.XMLDate;
+      DatumREGW     :           INTERLIS.XMLDate;
+      KonsBereich   :           1 .. 9999 [INTERLIS.m];         
+
+      !! bedingt obligatorische Felder
+      !! Wenn KBfrei = TRUE (CONSTRAINT NOT (KBFrei)), dann muss x definiert sein (wenn = FALSE nicht relevant)
+      !! Wenn x = FALSE (CONSTRAINT x), dann muss y definiert sein (wenn = TRUE nicht relevant)
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtPers);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtOFG);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtGW);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(KonsBereich);
+      MANDATORY CONSTRAINT REPflichtPers OR DEFINED(DatumREPers);
+      MANDATORY CONSTRAINT REPflichtOFG  OR DEFINED(DatumREOFG);
+      MANDATORY CONSTRAINT REPflichtGW   OR DEFINED(DatumREGW);
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : 0.0000 .. 9999.0000;
+      AmpelCodePers : 0 .. 4;             
+      AmpelWertOFG  : 0.0000 .. 9999.0000;
+      AmpelCodeOFG  : 0 .. 4;             
+      AmpelWertGW   : 0.0000 .. 9999.0000;
+      AmpelCodeGW   : 0 .. 4;             
+
+      MANDATORY CONSTRAINT DEFINED(AmpelWertPers) OR DEFINED(AmpelCodePers);
+      MANDATORY CONSTRAINT DEFINED(AmpelWertOFG) OR DEFINED(AmpelCodeOFG);
+      MANDATORY CONSTRAINT DEFINED(AmpelWertGW) OR DEFINED(AmpelCodeGW);
+    END Ergebnis;
+
+    !! Klassenübergreifende Constraints für Verkehrsaufkommen
+    !!=============================================
+    VIEW vVA                                      !! bedingt obligatorische Felder
+      JOIN OF Verkehrsaufkommen, Vollzug; =       !! wenn KBfrei == #false, dann müssen die nachfolgenden
+      ATTRIBUTE                                   !! Felder definiert sein,
+        ALL OF Verkehrsaufkommen;                 !! KBfrei == #true ist es nicht von Bedeutung
+        ALL OF Vollzug;
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASV);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(AGS);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSBenzin);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSPropan);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSChlor);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSMineraloel);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSEpi);
+    END vVA;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Verkehrsaufkommen =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rVerkehrsaufkommen -- {1} Verkehrsaufkommen;
+    END Datenpunkt_Verkehrsaufkommen;
+    
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+    
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+    
+  END ERKAS_Strassen;
+
+END ERKAS_Strassen_LV03_V1.
+
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "112.2,113.2"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Strassen_LV95_V1 (de) AT "https://models.geo.admin.ch/BAFU" VERSION "2016-11-22" =
+
+  IMPORTS  GeometryCHLV95_V1;
+
+  DOMAIN
+!!==============================================================================
+    StreckenTyp = (O, T);                          !! offene Strecke, Tunnel
+ 
+  TOPIC ERKAS_Strassen =
+!!==============================================================================
+    CLASS Datenpunkt =
+      ID                  : MANDATORY 1 .. 999999999999;
+      Inhaber             : MANDATORY TEXT*256;             
+      Ort                 : MANDATORY GeometryCHLV95_V1.Coord2;           
+      StrassenNr          :           TEXT*256;             
+      SegmentNamePers     :           TEXT*256;             
+      SegmentNameOFG      :           TEXT*256;             
+      SegmentNameGW       :           TEXT*256;             
+      Streckentyp         : MANDATORY StreckenTyp;      
+      Streckenbezeichnung :           TEXT*1024;             
+      
+      UNIQUE ID, Inhaber;
+    END Datenpunkt;
+
+    CLASS Verkehrsaufkommen  =
+      VDatum          : MANDATORY INTERLIS.XMLDate;
+      DTV             : MANDATORY 0 .. 999999999;
+      DWV             :           0 .. 999999999;
+      ASV             :           0.000 .. 1.000;
+      AGS             :           0.00  .. 1.00;
+      ASKLSBenzin     :           0.00  .. 1.00;          
+      ASKLSPropan     :           0.00  .. 1.00;          
+      ASKLSChlor      :           0.00  .. 1.00;          
+      ASKLSMineraloel :           0.00  .. 1.00;          
+      ASKLSEpi        :           0.00  .. 1.00;          
+    END Verkehrsaufkommen ;
+
+    CLASS Vollzug =
+      Datum         : MANDATORY INTERLIS.XMLDate;
+      DatumStFVUnt  :           INTERLIS.XMLDate;
+      KBfrei        : MANDATORY BOOLEAN;
+      REPflichtPers :           BOOLEAN;         
+      REPflichtOFG  :           BOOLEAN;         
+      REPflichtGW   :           BOOLEAN;         
+      DatumREPers   :           INTERLIS.XMLDate;
+      DatumREOFG    :           INTERLIS.XMLDate;
+      DatumREGW     :           INTERLIS.XMLDate;
+      KonsBereich   :           1 .. 9999 [INTERLIS.m];         
+
+      !! bedingt obligatorische Felder
+      !! Wenn KBfrei = TRUE (CONSTRAINT NOT (KBFrei)), dann muss x definiert sein (wenn = FALSE nicht relevant)
+      !! Wenn x = FALSE (CONSTRAINT x), dann muss y definiert sein (wenn = TRUE nicht relevant)
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtPers);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtOFG);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(REPflichtGW);
+      MANDATORY CONSTRAINT NOT(KBfrei)   OR DEFINED(KonsBereich);
+      MANDATORY CONSTRAINT REPflichtPers OR DEFINED(DatumREPers);
+      MANDATORY CONSTRAINT REPflichtOFG  OR DEFINED(DatumREOFG);
+      MANDATORY CONSTRAINT REPflichtGW   OR DEFINED(DatumREGW);
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : 0.0000 .. 9999.0000;
+      AmpelCodePers : 0 .. 4;             
+      AmpelWertOFG  : 0.0000 .. 9999.0000;
+      AmpelCodeOFG  : 0 .. 4;             
+      AmpelWertGW   : 0.0000 .. 9999.0000;
+      AmpelCodeGW   : 0 .. 4;             
+
+      MANDATORY CONSTRAINT DEFINED(AmpelWertPers) OR DEFINED(AmpelCodePers);
+      MANDATORY CONSTRAINT DEFINED(AmpelWertOFG) OR DEFINED(AmpelCodeOFG);
+      MANDATORY CONSTRAINT DEFINED(AmpelWertGW) OR DEFINED(AmpelCodeGW);
+    END Ergebnis;
+
+    !! Klassenübergreifende Constraints für Verkehrsaufkommen
+    !!=============================================
+    VIEW vVA                                      !! bedingt obligatorische Felder
+      JOIN OF Verkehrsaufkommen, Vollzug; =       !! wenn KBfrei == #false, dann müssen die nachfolgenden
+      ATTRIBUTE                                   !! Felder definiert sein,
+        ALL OF Verkehrsaufkommen;                 !! KBfrei == #true ist es nicht von Bedeutung
+        ALL OF Vollzug;
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASV);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(AGS);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSBenzin);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSPropan);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSChlor);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSMineraloel);
+      MANDATORY CONSTRAINT KBfrei OR DEFINED(ASKLSEpi);
+    END vVA;
+
+    !! Beziehungen
+    !!=============================================
+    ASSOCIATION Datenpunkt_Verkehrsaufkommen =
+      rDatenpunkt        -- {1..*} Datenpunkt;
+      rVerkehrsaufkommen -- {1} Verkehrsaufkommen;
+    END Datenpunkt_Verkehrsaufkommen;
+    
+    ASSOCIATION Datenpunkt_Ergebnis =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rErgebnis   -- {1} Ergebnis;
+    END Datenpunkt_Ergebnis;
+    
+    ASSOCIATION Datenpunkt_Vollzug =
+      rDatenpunkt -- {1..*} Datenpunkt;
+      rVollzug    -- {1} Vollzug;
+    END Datenpunkt_Vollzug;
+    
+  END ERKAS_Strassen;
+
+END ERKAS_Strassen_LV95_V1.

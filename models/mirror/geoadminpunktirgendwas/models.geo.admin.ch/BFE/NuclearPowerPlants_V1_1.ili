@@ -1,0 +1,147 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 108)
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=91.1
+
+MODEL NuclearPowerPlants_V1_1 (en) AT "http://models.geo.admin.ch/BFE/" VERSION "2015-05-22"  =
+  IMPORTS LocalisationCH_V1;
+  IMPORTS WithOneState_V1;
+  IMPORTS CatalogueObjects_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS Units;
+  IMPORTS UNQUALIFIED GeometryCHLV95_V1;
+
+  DOMAIN
+
+    ElectricalPower = 1 .. 9999;
+    Text = TEXT*150;
+    ThermalPower = 1 .. 9999;
+    Year = 1900 .. 2999;
+
+!! ****************************************************
+!! ****************************************************		
+	
+  TOPIC OrganisationCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Organisation
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Website : MANDATORY INTERLIS.URI;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Organisation;
+
+    STRUCTURE OrganisationRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) Organisation;
+    END OrganisationRef;
+
+  END OrganisationCatalogue;
+
+!! ****************************************************
+!! ****************************************************	  
+  
+  TOPIC PhaseOfLifeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS PhaseOfLife
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      PhaseOfLife : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PhaseOfLife;
+
+    STRUCTURE PhaseOfLifeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) PhaseOfLife;
+    END PhaseOfLifeRef;
+
+  END PhaseOfLifeCatalogue;
+
+!! ****************************************************
+!! ****************************************************	  
+  
+  TOPIC TypeOfCoolingSystemCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS TypeOfCoolingSystem
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      CoolingSystem : MANDATORY LocalisationCH_V1.MultilingualText;
+    END TypeOfCoolingSystem;
+
+    STRUCTURE TypeOfCoolingSystemRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) TypeOfCoolingSystem;
+    END TypeOfCoolingSystemRef;
+
+  END TypeOfCoolingSystemCatalogue;
+
+!! ****************************************************
+!! ****************************************************	  
+  
+  TOPIC TypeOfReactorCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS TypeOfReactor
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Reactor : MANDATORY LocalisationCH_V1.MultilingualText;
+    END TypeOfReactor;
+
+    STRUCTURE TypeOfReactorRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) TypeOfReactor;
+    END TypeOfReactorRef;
+
+  END TypeOfReactorCatalogue;
+
+!! ****************************************************
+!! ****************************************************	  
+  
+  TOPIC NuclearPowerPlants_WithOneState =
+    DEPENDS ON NuclearPowerPlants_V1_1.TypeOfCoolingSystemCatalogue,NuclearPowerPlants_V1_1.PhaseOfLifeCatalogue,NuclearPowerPlants_V1_1.OrganisationCatalogue,NuclearPowerPlants_V1_1.TypeOfReactorCatalogue,CatalogueObjects_V1.Catalogues;
+
+    CLASS NuclearPowerPlant =
+      Location : MANDATORY Coord2;
+      Name : MANDATORY NuclearPowerPlants_V1_1.Text;
+      Abbreviation : MANDATORY NuclearPowerPlants_V1_1.Text;
+      Canton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Municipality : MANDATORY NuclearPowerPlants_V1_1.Text;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      EnforcementOfLegislation1 : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+      EnforcementOfLegislation2 : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+      EnforcementOfLegislation3 : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+      Licence : MANDATORY LocalisationCH_V1.MultilingualText;
+      Operator : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+      Owner : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+      RegulatoryBody : MANDATORY NuclearPowerPlants_V1_1.OrganisationCatalogue.OrganisationRef;
+    END NuclearPowerPlant;
+
+    CLASS NuclearPowerReactor =
+      Name : MANDATORY NuclearPowerPlants_V1_1.Text;
+      NominalThermalOutput : MANDATORY NuclearPowerPlants_V1_1.ThermalPower;
+      GrossElectricalOutput : MANDATORY NuclearPowerPlants_V1_1.ElectricalPower;
+      NetElectricalOutput : MANDATORY NuclearPowerPlants_V1_1.ElectricalPower;
+      UnderConstructionPhase : MANDATORY NuclearPowerPlants_V1_1.Text;
+      OperationPhase : MANDATORY NuclearPowerPlants_V1_1.Text;
+      DecommissioningPhase : NuclearPowerPlants_V1_1.Text;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      TypeOfCoolingSystem : MANDATORY NuclearPowerPlants_V1_1.TypeOfCoolingSystemCatalogue.TypeOfCoolingSystemRef;
+      TypeOfReactor : MANDATORY NuclearPowerPlants_V1_1.TypeOfReactorCatalogue.TypeOfReactorRef;
+      PhaseOfLife : MANDATORY NuclearPowerPlants_V1_1.PhaseOfLifeCatalogue.PhaseOfLifeRef;
+    END NuclearPowerReactor;
+
+    ASSOCIATION PlantReactorAssoc =
+      nuclearPowerReactorR -- {1..2} NuclearPowerReactor;
+      nuclearPowerPlantR1 -<#> {1} NuclearPowerPlant;
+    END PlantReactorAssoc;
+
+  END NuclearPowerPlants_WithOneState;
+
+END NuclearPowerPlants_V1_1.

@@ -1,0 +1,120 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimo "Impianti elettrici con una tensione nominale superiore a 36 kV"
+ *  Geodati di base No 219
+ */
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=219.1
+
+MODEL ImpiantiElettriciTensioneNominaleSuperiore36kV_V1 (it)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2021-03-31"
+TRANSLATION OF ElektrischeAnlagenNennspannungUeber36kV_V1 ["2021-03-31"] =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+    StatoDellEsercizio = (
+      FuoriEsercizio,
+      InEsercizio
+    );
+
+    Frequenza = (
+      F16_7Hz,
+      F50Hz,
+      CorrenteContinua
+    );
+
+    ID = TEXT*100;
+
+    Posizione = (
+      Precisa,
+      Imprecisa
+    );
+
+    TipoDiLinea = (
+      LineaAerea,
+      LineaInCavo
+    );
+
+    TipoDiSostegno = (
+      SostegnoPortante,
+      SostegnoDiAmarro,
+      SostegnoTerminale
+    );
+
+    Numerico = 0 .. 9999;
+
+    Tensione = (
+      T380kV,
+      T220kV,
+      T150kV,
+      T132kV,
+      T130kV,
+      T125kV,
+      T110kV,
+      T66kV,
+      T65kV,
+      T60kV,
+      T50kV,
+      T36kV,
+      Altro
+    );
+
+    TipoDiStazione = (
+      ConvertitoreDiFrequenza,
+      CentraleElettrica,
+      StazioneDiDistribuzione,
+      StazioneDiTrasformazione,
+      StrutturaDiTransizione,
+      Sottostazione
+    );
+
+    TipoDiReteElettrica = (
+      CorrenteGenerale,
+      CorrenteDiTrazioneFerroViaria
+    );
+
+    Testo = TEXT*500;
+
+  TOPIC ImpiantiElettrici =
+
+    CLASS ImpiantoElettrico (ABSTRACT) =
+      ID : MANDATORY ID;
+      Denominazione : Testo;
+      Proprietario : MANDATORY Testo;
+      ProprietarioUnico : MANDATORY BOOLEAN;
+      Posizione : MANDATORY Posizione;
+      TipoDiReteElettrica : MANDATORY TipoDiReteElettrica;
+    END ImpiantoElettrico;
+
+    CLASS Linea
+    EXTENDS ImpiantoElettrico =
+      Geometria : MANDATORY GeometryCHLV95_V1.Line;
+      TipoDiLinea : MANDATORY TipoDiLinea;
+      Tensione : MANDATORY Tensione;
+      AltraTensione : Numerico;
+      StatoDellEsercizio : MANDATORY StatoDellEsercizio;
+      Frequenza : MANDATORY Frequenza;
+      MANDATORY CONSTRAINT NOT (Tensione == #Altro) OR DEFINED (AltraTensione);
+    END Linea;
+
+    CLASS Sostegno
+    EXTENDS ImpiantoElettrico =
+      Geometria : MANDATORY GeometryCHLV95_V1.Coord2;
+      TipoDiSostegno : MANDATORY TipoDiSostegno;
+      Altezza : Numerico;
+    END Sostegno;
+
+    CLASS Station
+    EXTENDS ImpiantoElettrico =
+      Punto : MANDATORY GeometryCHLV95_V1.Coord2;
+      Superficie : GeometryCHLV95_V1.Surface;
+      TipoDiStazione : MANDATORY TipoDiStazione;
+    END Station;
+
+  END ImpiantiElettrici;
+
+END ImpiantiElettriciTensioneNominaleSuperiore36kV_V1.

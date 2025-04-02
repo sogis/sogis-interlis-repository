@@ -1,0 +1,264 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimale
+ *  Gradi di sensibilità al rumore (in zone d'utilizzazione)
+ *  Geodati di base No 145
+ */
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL GradiDiSensibilitaAlRumore_MN03_V1_1 (it)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"
+TRANSLATION OF Laermempfindlichkeitsstufen_LV03_V1_1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    GS = (
+      Senza_GS,
+      GS_I,
+      GS_II,
+      GS_III,
+      GS_IV
+    );
+
+    PartizioneComprensorio = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF GradiDiSensibilitaAlRumore_MN03_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_MN03_V1_1.StatoGiuridico;
+      TestoNelWeb : GradiDiSensibilitaAlRumore_MN03_V1_1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON GradiDiSensibilitaAlRumore_MN03_V1_1.PrescrizioniLegali;
+
+    CLASS SensibilitaAlRumore_SuperficieDiZoni =
+      Geometria : MANDATORY GradiDiSensibilitaAlRumore_MN03_V1_1.PartizioneComprensorio;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_MN03_V1_1.StatoGiuridico;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SensibilitaAlRumore_SuperficieDiZoni;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*10;
+      Grado : MANDATORY GradiDiSensibilitaAlRumore_MN03_V1_1.GS;
+      Declassate : BOOLEAN;
+      ForzaVincolante : MANDATORY GradiDiSensibilitaAlRumore_MN03_V1_1.ForzaVincolante;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+        NOT (Declassate == #true) OR (Grado == #GS_II OR Grado == #GS_III);
+    END Tipo;
+
+    ASSOCIATION Tipo_Documento =
+      Prescizioni (EXTERNAL) -- {0..*} GradiDiSensibilitaAlRumore_MN03_V1_1.PrescrizioniLegali.Documento;
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} SensibilitaAlRumore_SuperficieDiZoni;
+      GS -<> {1} Tipo;
+    END Tipo_Geometria;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON GradiDiSensibilitaAlRumore_MN03_V1_1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : GradiDiSensibilitaAlRumore_MN03_V1_1.MultilingualUri;
+      IDI : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END GradiDiSensibilitaAlRumore_MN03_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL GradiDiSensibilitaAlRumore_MN95_V1_1 (it)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"
+TRANSLATION OF Laermempfindlichkeitsstufen_LV95_V1_1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    GS = (
+      Senza_GS,
+      GS_I,
+      GS_II,
+      GS_III,
+      GS_IV
+    );
+
+    PartizioneComprensorio = AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF GradiDiSensibilitaAlRumore_MN95_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_MN95_V1_1.StatoGiuridico;
+      TestoNelWeb : GradiDiSensibilitaAlRumore_MN95_V1_1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON GradiDiSensibilitaAlRumore_MN95_V1_1.PrescrizioniLegali;
+
+    CLASS SensibilitaAlRumore_SuperficieDiZoni =
+      Geometria : MANDATORY GradiDiSensibilitaAlRumore_MN95_V1_1.PartizioneComprensorio;
+      StatoGiuridico : MANDATORY GradiDiSensibilitaAlRumore_MN95_V1_1.StatoGiuridico;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SensibilitaAlRumore_SuperficieDiZoni;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*10;
+      Grado : MANDATORY GradiDiSensibilitaAlRumore_MN95_V1_1.GS;
+      Declassate : BOOLEAN;
+      ForzaVincolante : MANDATORY GradiDiSensibilitaAlRumore_MN95_V1_1.ForzaVincolante;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+        NOT (Declassate == #true) OR (Grado == #GS_II OR Grado == #GS_III);
+    END Tipo;
+
+    ASSOCIATION Tipo_Documento =
+      Prescizioni (EXTERNAL) -- {0..*} GradiDiSensibilitaAlRumore_MN95_V1_1.PrescrizioniLegali.Documento;
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} SensibilitaAlRumore_SuperficieDiZoni;
+      GS -<> {1} Tipo;
+    END Tipo_Geometria;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON GradiDiSensibilitaAlRumore_MN95_V1_1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : GradiDiSensibilitaAlRumore_MN95_V1_1.MultilingualUri;
+      IDI : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END GradiDiSensibilitaAlRumore_MN95_V1_1.

@@ -1,0 +1,1000 @@
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Version:   4.2 
+!! Sprache:   Deutsch
+!! Dateiname: vektor200.ili  
+!! Datum:     22.07.2004
+!! Status:    Definitiv 
+!! History:   11.01.2007 ltflu Einführen der VEC200_ObjectOrigin 
+!!                             EBM,ERM,EGM. Achtung auch icd angepasst 
+!!            03.03.2008 ltflu VEC200_AIRPORT IAT und Hight ist OPTIONAL
+!!                       ltknz 
+!!						13.03.2008 ltlfu Bei den Railways Standseilbahn und 
+!!                       ltknz Luftseilbahn eingeführt
+!!                             Objval landcover Siedlung aus Konsistenz-
+!!                             gründen zu den anderen Produkten auf Siedl
+!!                             geändert.
+!!            10.04.2008 ltflu Anpassungen für das Produkt 2008
+!!            03.02.2009       Auswahltabelle VEC200_ObjectOrigin
+!!                             Neu Versonsnummer im Model eingeführt
+!!                             IAT, IKO von VEC200_Airport nach 
+!!                                VEC200_Terminal
+!!                             height von VEC200_Airport nach 
+!!                                VEC200_Terminal ZV3
+!!                             VEC200_Terminal hat neu OBJVAL 
+!!                                Heliport
+!!                             VEC200_Landcover hat neu OBJVAL 
+!!                                Obstanlage, Reben, Sumpf
+!!                             VEC200_POI hat neu OBJVAL 
+!!                                Kraftwerk, Verarbeitungsanlage,
+!!                                Vergnuegungspark, Rennbahn, Pumpwerk,
+!!                                Turm, Deponie
+!!                             Neue Regelung für unbekannte Werte
+!!                             siehe Releasenotes VECTOR200
+!!            12.05.2010 ltflu Anpassungen für das Produkt 2010 V3.6
+!!                             TOPIC VEC200_PointsOfInterest heisst neu 
+!!                                VEC200_Miscellaneous
+!!                             VEC200_Com_Boundary neues Feld BST und
+!!                                Domäne VEC200_Admin_BST
+!!                             VEC200_Landcover neue Felder OBJNAME1, OBJNAME2
+!!                                PPL, PPI und neue Domänen VEC200_Misc_PPL,
+!!                                VEC200_PPI
+!!                             VEC200_HydroInfo im TOPIC VEC200_Hydrography
+!!                                Domäne VEC200_Hydro_SWT
+!!                             VEC200_FlowingWater neue Felder EXS, HOC und 
+!!                                Domänen VEC200_Hydro_EXS, VEC200_Hydro_HOC
+!!                             VEC200_ConnectV25 entfernt
+!!                             VEC200_Ship neue Felder DETN, RSU, USE und 
+!!                                Domänen VEC200_Transp_RSU, VEC200_Transp_USE
+!!                             VEC200_Terminal Feld AFA und Domäne 
+!!                                VEC200_Transp_AFA
+!!                             VEC200_Road neue Felder LTN, MED, RST und 
+!!                                Domänen VEC200_Transp_MED, VEC200_Transp_RST, 
+!!                                        VEC200_Transp_LTN
+!!                             VEC200_POI OBJVAL Turm (15) gibt es nicht mehr
+!!                                OBJVAL 15 ist neu Deponie, alt 16
+!!                                neue OBJVAL Kraftwerk bis Berghuette
+!!                                neue Felder OBJNAME, PPC, PRO und Domänen
+!!                                VEC200_Misc_PPC, VEC200_Misc_PRO
+!!                             VEC200_PhysL im Topic VEC200_Miscellaneous
+!!                                Domänen VEC200_Misc_USE, VEC200_Misc_VRR
+!!                             VEC200_BuiltupP im Topic VEC200_Miscellaneous
+!!                             VEC200_Supply im Topic VEC200_Miscellaneous
+!!                                Domänen VEC200_Misc_FCO, VEC200_Misc_LOC, 
+!!                             VEC200_NAMEDLOCATION in neuem Topic VEC200_NAMES
+!!                             VEC200_Buildings neues Feld OBJNAME
+!!                             VEC200_ObjectOrigin Domäne mit dem Wert TLM erw
+!!                             VEC200_ProtectedArea neues Feld NA3 und Domäne
+!!                                 VEC200_Admin_NA3
+!!
+!!	27.09.2010 ltmec 	-- Anpassungen für das Produkt 2010 --
+!!
+!!				VEC200_Commune Featureclass: neues Attribut SeeFlaeche
+!!				VEC200_Country Domän: neue Werte (mit Abkürzungen)
+!!				VEC200_ProtectedArea Featureclass : kein Domän mehr für Name (TEXT)
+!!				VEC200_LINST Domän : neues Kode N_A für  
+!!				GTDBOID Feld : wird Uuid unbennant
+!!				YearOfOrig Feld : wird ObjOrig_Year unbennant
+!!				VEC200_GWK_FW_Node Featureclass : neues Subytpe Loop_Junction
+!!				VEC200_GeodPoint FeatureClass : seebodenpunkt wird SeebodenPunkt
+!!				VEC200_Ship Featureclass : neues Subtype Kursschiff_Linie
+!!				VEC200_POI Featureclass : neue Subtypes {}
+!!				VEC200_BuiltupP : BuiltupP ObjVal wird Ortschaft unbennant
+!!				VEC200_Buildings : Kein OBJNAME mehr
+!!				VEC200_REFERENZORTE: neues Wert (Standardpunkt)	
+!!
+!!
+!!	05.01.2012 ltmec 	-- Anpassungen für das Produkt 2011 --
+!!				VEC200_ObjectOrigin: Werte BWG, PA, TA gelöscht
+!!
+!!		
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+MODEL VECTOR200_PASS_V04_02
+   
+   DOMAIN
+
+      Integer = [-29998 .. 9999999999];
+      Double = [-29999.00 .. 999999999.00];
+      Hoehe = [-32768.000 .. 9999.000];
+      LKoord = COORD2   460000.000     40000.000
+                        2866000.000    1320000.000;
+      VEC200_Azimuth = DEGREES 0.0 360.0;
+      VEC200_Year = [0 .. 9999];
+      VEC200_FalseTrue = (False,
+                          True,
+                          no_value);
+      VEC200_ObjectOrigin = (LK25,
+                             LK50,
+                             LK100,
+                             LK200,
+                             LK500,
+                             LK1000,
+                             SK200,
+                             GG25,
+                             NDB,
+                             BFS,
+                             DTM_AV,
+                             DOM_AV,
+                             SI,
+                             GN200,
+                             V25,
+                             EBM,
+                             EGM,
+                             ERM,           !! 20
+                             AV_CH,
+                             AV_ZH,
+                             AV_BE,
+                             AV_LU,
+                             AV_UR,
+                             AV_SZ,
+                             AV_OW,
+                             AV_NW,
+                             AV_GL,
+                             AV_ZG,
+                             AV_FR,
+                             AV_SO,
+                             AV_BS,
+                             AV_BL,
+                             AV_SH,
+                             AV_AR,
+                             AV_AI,
+                             AV_SG,
+                             AV_GR,
+                             AV_AG,           !! 40
+                             AV_TG,
+                             AV_TI,
+                             AV_VD,
+                             AV_VS,
+                             AV_NE,
+                             AV_GE,
+                             AV_JU,           
+                             DGN_ZH,
+                             DGN_BE,
+                             DGN_LU,
+                             DGN_UR,
+                             DGN_SZ,
+                             DGN_OW,
+                             DGN_NW,
+                             DGN_GL,
+                             DGN_ZG,
+                             DGN_FR,
+                             DGN_SO,
+                             DGN_BS,
+                             DGN_BL,          !! 60
+                             DGN_SH,
+                             DGN_AR,
+                             DGN_AI,
+                             DGN_SG,
+                             DGN_GR,
+                             DGN_AG,
+                             DGN_TG,
+                             DGN_TI,
+                             DGN_VD,
+                             DGN_VS,
+                             DGN_NE,
+                             DGN_GE,
+                             DGN_JU,         
+                             TBA_ZH,
+                             TBA_BE,
+                             TBA_LU,
+                             TBA_UR,
+                             TBA_SZ,
+                             TBA_OW,
+                             TBA_NW,          !! 80
+                             TBA_GL,
+                             TBA_ZG,
+                             TBA_FR,
+                             TBA_SO,
+                             TBA_BS,
+                             TBA_BL,
+                             TBA_SH,
+                             TBA_AR,
+                             TBA_AI,
+                             TBA_SG,
+                             TBA_GR,
+                             TBA_AG,
+                             TBA_TG,
+                             TBA_TI,
+                             TBA_VD,
+                             TBA_VS,
+                             TBA_NE,
+                             TBA_GE,
+                             TBA_JU,           
+                             NMA_AUT,         !! 100
+                             NMA_FRA,
+                             NMA_DEU,
+                             NMA_ITA,
+                             NMA_LIE,         !! 104
+                             SPOT5,           !! Neu mit V3.04
+                             LANDSAT,
+                             PK_IT,
+                             TCI,
+                             TLM,            !! 109
+                             Divers);
+      VEC200_Country = (AT,
+                        FR,
+                        DE,
+                        IT,
+                        CH,
+                        LI,
+                        Europa);
+      VEC200_Hydro_Linst = (CH,
+                            ZH,
+                            BE,
+                            LU,
+                            UR,
+                            SZ,
+                            OW,
+                            NW,
+                            GL,
+                            ZG,
+                            FR,
+                            SO,
+                            BS,
+                            BL,
+                            SH,
+                            AR,
+                            AI,
+                            SG,
+                            GR,
+                            AG,
+                            TG,
+                            TI,
+                            VD,
+                            VS,
+                            NE,
+                            GE,
+                            JU,
+                            N_A);
+       VEC200_Hydro_Ltyp = (Hauptlauf,
+                            Nebenlauf,
+                            Seenaschluss,
+                            Seeufer,
+                            Inselufer);
+       VEC200_Hydro_LaufNr = [-29998 .. 9999];
+       VEC200_Hydro_Breite = [-29998 .. 99];
+       VEC200_Hydro_Klasse = [-29998 .. 10];
+       VEC200_HydroTopOrt = (Start_Fliessgewaesserachse,
+                             Zufluss_auf_Fliessgewaesserachse,
+                             Wegfluss_von_Fliessgewaesserachse,
+                             Ende_von_Fliessgewaesserachse,
+                             Start_Uferlinie,
+                             Zufluss_auf_Uferlinie,
+                             Wegfluss_von_Uferlinie,
+                             Ende_von_Uferlinie,
+                             Grenzpunkt,
+                             Start_Fliessgewaesserachse_im_See,
+                             Start_Fliessgewaesserachse_auf_Uferlinie,
+                             Uferlinie_kreuzt_zufliessende_Fliessgewaesserachse,
+                             Uferlinie_kreuzt_wegfliessende_Fliessgewaesserachse,
+                             Fliessgewaesserachse_kreuzt_Fliessgewaesserachse,
+			     Standardpunkt);
+       VEC200_HydroMeasure = [0 .. 999999];
+       VEC200_Hydro_EXS = (unknown,
+                           under_construction,
+                           naviguable_and_operational,
+                           not_applicable);
+       VEC200_Hydro_HOC = (unknown,
+                           man_made,
+                           natural);
+       VEC200_Transp_Construct = (Keine_Kunstbaute,
+                                  Bruecke,
+                                  Tunnel,
+                                  Galerie);
+       VEC200_Transp_Edgelevel = [-5 .. 5];
+       VEC200_Transp_Toll = (Unbekannt,
+                             Keine_Gebuehr,
+                             Gebuehrenpflichtig,
+                             Vignette);
+       VEC200_Transp_RSU = (unknown,
+                            all_year,
+                            seasonal,
+                            unpopulated,
+                            not_applicable);
+       VEC200_Transp_USE = (unknown,
+                            national,
+                            international);
+       VEC200_Transp_AFA = (unknown,
+                            main_station,
+                            secondary_station,
+                            freight_only,
+                            unpopulated,
+                            not_applicable,
+                            null_no_value);
+       VEC200_Transp_LTN = [-32768 .. 4];                          
+       VEC200_Transp_MED = (unknown,
+                            with_median,
+                            without_median,
+                            unpopulated);
+       VEC200_Transp_RST = (unknown,
+                            paved,
+                            unpaved,
+                            unpopulated,
+                            not_applicable);
+       VEC200_Transp_RoadTyp = (MainRoadNumber,
+                                FreewayRoadNumber,
+                                EuroRoadNumber);
+       VEC200_Transp_AirportUse = (Unknown,
+                                   National,
+                                   International,
+                                   Unpopulated,
+                                   NotApplicable);
+       VEC200_Admin_BST = (Definite,
+                           Indefinite,
+                           In_dispute,
+                           Null_value);
+       VEC200_Misc_PPL = [-32768 .. 1000000];
+       VEC200_PPI = (unknown,
+                     from_1_to_1999,
+                     from_2000_to_4999,
+                     from_5000_to_24999,
+                     from_25000_to_49999,
+                     from_50000_to_99999,
+                     from_100000_to_499999,
+                     from_500000_to_999999,
+                     gt_1000000,
+                     unpopulated,
+                     not_applicable,
+                     null_no_value);
+       VEC200_Misc_PPC = (unknown,
+                          hydro_electric,
+                          nuclear,
+                          solar,
+                          thermal,
+                          wind,
+                          tidal,
+                          internal_combustion,
+                          unpopulated,
+                          not_applicable,
+                          null_no_value);
+       VEC200_Misc_PRO = (unknown,
+                          chemical,
+                          gas,
+                          gasoline,
+                          heat,
+                          oil,
+                          sewage,
+                          slag,
+                          water,
+                          common_fruits_and_or_nuts,
+                          tailings,
+                          refuse,
+                          vine,
+                          hops,
+                          unpopulated,
+                          not_applicable,
+                          null_no_value);
+       VEC200_Misc_USE = (unknown,
+                          levee_dike,
+                          as_a_causeway,
+                          as_a_fill,
+                          unpopulated,
+                          null_no_value);
+       VEC200_Misc_VRR = (unknown,
+                          above_surface_does_not_cover,
+                          covers_and_uncovers,
+                          unpopulated,
+                          null_no_value);
+       VEC200_Misc_FCO = (unknown,
+                          multiple,
+                          single,
+                          double,
+                          juxtaposition,
+                          unpopulated);
+       VEC200_Misc_LOC = (unknown,
+                          on_ground_surface,
+                          suspended_or_elevated_above,
+                          underground,
+                          unpopulated);
+       
+      
+   TOPIC VEC200_AdministrativeBoundaries =
+
+      TABLE VEC200_AdmLvl1 =
+         Uuid : TEXT*40;
+         DATEOFCHNG: DATE;   
+         KantonsNr: Integer;
+         Kantonsname: TEXT*30;
+         Kuerzel: TEXT*3;
+      IDENT Uuid;
+            KantonsNr;
+            Kantonsname,Kuerzel;
+      END VEC200_AdmLvl1;  
+
+      TABLE VEC200_AdmLvl2 =
+         Uuid : TEXT*40; 
+         DATEOFCHNG: DATE;
+         BezirksNr: Integer;  
+         KantonsNr: Integer;
+         Bezirksname: TEXT*30;
+      IDENT Uuid;
+            BezirksNr;
+      END VEC200_AdmLvl2;  
+
+      TABLE VEC200_Com_Boundary =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         DATEOFCHNG: DATE;
+         ObjVal: (Landesgrenze,
+                  Kantonsgrenze,
+                  Bezirksgrenze,
+                  Gemeindegrenze,
+                  Seegrenze,
+                  Perimeterrand);
+         BST: VEC200_Admin_BST;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;
+      END VEC200_Com_Boundary;
+      
+      TABLE VEC200_Commune =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Gemeinde);
+         DATEOFCHNG: DATE;
+         Country: VEC200_Country;
+         BfsNr: Integer;
+         KantonsNr: Integer;
+         BezirksNr: Integer;
+         GemName: TEXT*50;
+         GemFlaeche: Double;
+         GemTeil: Integer;
+         SeeNr: Integer;
+	 SeeFlaeche: Double;
+         SeeName: TEXT*50;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0;
+      IDENT Uuid;
+      END VEC200_Commune;     
+
+      TABLE VEC200_ProtectedArea =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Schutzgebiet);
+         DATEOFCHNG: DATE;
+         Name: TEXT*255;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0;  
+      IDENT Uuid;     
+      END VEC200_ProtectedArea; 
+          
+   END VEC200_AdministrativeBoundaries.
+   
+   TOPIC VEC200_Buildings =
+   
+      TABLE VEC200_Building =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Gebaeude);
+         DATEOFCHNG: DATE;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0;  
+      IDENT Uuid;
+      END VEC200_Building;   
+         
+   END VEC200_Buildings.
+
+   TOPIC VEC200_Miscellaneous =
+   
+      TABLE VEC200_POI =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Antenne,
+                  Campingplatz,
+                  Denkmal,
+                  Hoehle,
+                  Kirche,
+                  Kloster,
+                  Ruine,
+                  Schloss,
+                  Stadion,
+                  Thermalbad,
+                  Kraftwerk,
+                  Verarbeitungsanlage,
+                  Vergnuegungspark,
+                  Rennbahn,
+                  Pumpwerk,
+                  Turm,
+                  Deponie,
+                  Museum,
+                  Observatorium,
+                  Schule,
+                  Friedhof,
+                  Bauernhof,
+                  Berghuette,
+                  Spital,
+                  Regierungsstelle,
+                  Leuchturm,
+                  Nichtchristlischer_Kultplatz,
+                  Polizei);
+         DATEOFCHNG: DATE;
+         ObjAzi: VEC200_Azimuth;
+         OBJNAME: TEXT*255;
+         PPC: VEC200_Misc_PPC;
+         PRO: VEC200_Misc_PRO;
+         Geometrie: LKoord;  
+      IDENT Uuid;     
+      END VEC200_POI;
+      
+      TABLE VEC200_GeodPoint =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (TerrPunkt,
+                  SeebodenPunkt);
+         DATEOFCHNG: DATE;
+         Height: Hoehe;
+         Geometrie: LKoord;  
+      IDENT Uuid;     
+      END VEC200_GeodPoint;
+
+      TABLE VEC200_PhysL =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Steilabbruch,
+                  Aufschuettung);
+         DATEOFCHNG: DATE;
+         USE: VEC200_Misc_USE;
+         VRR: VEC200_Misc_VRR;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;  
+      IDENT Uuid;     
+      END VEC200_PhysL;
+
+      TABLE VEC200_Supply =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Hochspannungsleitung,
+                  Pipeline);
+         DATEOFCHNG: DATE;
+         FCO: VEC200_Misc_FCO;
+         LOC: VEC200_Misc_LOC;
+         PRO: VEC200_Misc_PRO;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;  
+      IDENT Uuid;     
+      END VEC200_Supply;
+      
+      TABLE VEC200_BuiltupP =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Ortschaft);
+         DATEOFCHNG: DATE;
+         OBJNAME: TEXT*255;
+         PPI: VEC200_PPI;
+         Geometrie: LKoord;  
+      IDENT Uuid;     
+      END VEC200_BuiltupP;
+      
+   END VEC200_Miscellaneous.
+   
+   TOPIC VEC200_NAMES =
+      
+      TABLE VEC200_NAMEDLOCATION =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Bach,
+                  Bahnhof,
+                  Bruecke,
+                  Einzelhaus,
+                  Fels,
+                  Flugplatz,
+                  Flurname,
+                  Fluss,
+                  Fusspass,
+                  GGemeinde,
+                  GGipfel,      !! 10
+                  GOrtschaft,
+                  GSee,
+                  Gebiet,
+                  Gletscher,
+                  Graben,
+                  Grat,
+                  HGemeinde,
+                  HGipfel,
+                  Haupttal,
+                  HistOrt,      !! 20
+                  Hotel,
+                  Huegel,
+                  Huette,
+                  Industrie,
+                  KBach,
+                  KGemeinde,
+                  KGipfel,
+                  KOrtschaft,
+                  KSee,
+                  Kirche,       !! 30
+                  MGemeinde,
+                  MGipfel,
+                  MOrtschaft,
+                  Massiv,
+                  Nebental,
+                  OeffGeb,
+                  Quelle,
+                  Ruine,
+                  Schloss,
+                  Sportanl,     !! 40
+                  Stausee,
+                  Strassenpass,
+                  Streusiedl,
+                  Sumpf,
+                  Tunnel,
+                  Turm,
+                  Wald,
+                  Wasserfall,
+                  Weiher,
+                  Weiler);     !! 50
+         DATEOFCHNG: DATE;
+         OBJNAME1: TEXT*255;
+         OBJNAME2: TEXT*255;
+         NLN1: TEXT*255;
+         NLN2: TEXT*255;
+         ALTITUDE: Hoehe;
+         Geometrie: LKoord;  
+      IDENT Uuid;     
+      END VEC200_NAMEDLOCATION;
+       
+   END VEC200_NAMES.
+
+   TOPIC VEC200_Landcover =
+   
+      TABLE VEC200_Landcover =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Wald,
+                  Fels,
+                  Geroell,
+                  Gletscher,
+                  See,
+                  Siedlung,
+                  Stadtzentrum,
+                  Stausee,
+                  Obstanlage,
+                  Reben,
+                  Sumpf);
+         DATEOFCHNG: DATE;
+         OBJNAME1 : TEXT*255;
+         OBJNAME2 : TEXT*255;
+         PPL: VEC200_Misc_PPL;
+         PPI: VEC200_PPI;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;
+      END VEC200_Landcover;
+      
+   END VEC200_Landcover.
+
+   TOPIC VEC200_Hydrography =
+      TABLE VEC200_Dam =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Staudamm);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;
+      END VEC200_Dam;
+
+      TABLE VEC200_HydroInfo =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Stauwehr,
+                  Schleuse,
+                  Wasserfall,
+                  Quelle,
+                  Staudamm);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+      IDENT Uuid;
+      END VEC200_HydroInfo;
+
+      TABLE VEC200_FlowingWater =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Fluss,
+                  Fluss_U,
+                  Seeachse);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         GewissNr: Integer;
+         Name: TEXT*50;
+         LaufNr: VEC200_Hydro_LaufNr;
+         Breite: VEC200_Hydro_Breite;
+         Klasse: VEC200_Hydro_Klasse;
+         Linst: VEC200_Hydro_Linst;
+         GWLNR: TEXT*25;
+         EXS: VEC200_Hydro_EXS;
+         HOC: VEC200_Hydro_HOC;
+      IDENT Uuid;
+      END VEC200_FlowingWater;
+
+       TABLE VEC200_Lake =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (See,Stausee);
+         DATEOFCHNG: DATE;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;     
+      END VEC200_Lake; 
+
+      TABLE VEC200_StagnantWater =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Seeufer,
+                  Seeinsel);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         GewissNr: Integer;
+         Name: TEXT*50;
+         LaufNr: VEC200_Hydro_LaufNr;
+         Klasse: VEC200_Hydro_Klasse;
+         Linst: VEC200_Hydro_Linst;
+         GWLNR: TEXT*25;
+         SeeSpH: Integer;
+      IDENT Uuid;
+      END VEC200_StagnantWater;      
+      
+       TABLE VEC200_GWK_FW_NODE =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Kalibrierungspunkt_FW, Loop_Junction);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+      IDENT Uuid;     
+      END VEC200_GWK_FW_NODE;     
+
+       TABLE VEC200_Referenzorte =
+         Uuid : TEXT*40;
+         DATEOFCHNG: DATE;
+         GewissNr: Integer;
+         LaufNr: VEC200_Hydro_LaufNr;
+         Linst: VEC200_Hydro_Linst;
+         TopOrt: VEC200_HydroTopOrt;
+      GWLNR: TEXT*25;
+      Measure: VEC200_HydroMeasure;
+      GWK_FW_Node_OID: TEXT*40;
+      IDENT Uuid;     
+      END VEC200_Referenzorte;
+      
+   END VEC200_Hydrography.
+
+   TOPIC VEC200_Transportation =
+   
+      TABLE VEC200_Ramp =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Autob_Ri_Rampe,
+                  Autobahn_Rampe,
+                  Autostr_Rampe,
+                  HauptStrAB_Rampe,
+                  VerbindStr_Rampe,
+                  NebenStr_Rampe);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         Construct: VEC200_Transp_Construct;
+         Edgelevel: VEC200_Transp_Edgelevel;
+         ObjName: TEXT*30;
+         Toll: VEC200_Transp_Toll;
+         UnderConst: VEC200_Year;
+      IDENT Uuid;
+      END VEC200_Ramp;
+
+      TABLE VEC200_Road =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Autob_Ri,
+                  Autobahn,
+                  Autostr,
+                  HauptStrAB4,
+                  HauptStrAB6,
+                  VerbindStr4,
+                  VerbindStr6,
+                  NebenStr3,
+                  NebenStr6,
+                  Fahrstraes,
+                  Fussweg);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         Construct: VEC200_Transp_Construct;
+         Edgelevel: VEC200_Transp_Edgelevel;
+         Banned: VEC200_FalseTrue;
+         ObjName: TEXT*30;
+         Toll: VEC200_Transp_Toll;
+         UnderConst: VEC200_Year;
+         Restricted: TEXT*20;
+         AltTransit: VEC200_FalseTrue;
+         HibernBan: VEC200_FalseTrue;
+         LTN: VEC200_Transp_LTN;
+         MED: VEC200_Transp_MED;
+         RST: VEC200_Transp_RST;
+      IDENT Uuid;
+      END VEC200_Road;
+      
+       TABLE VEC200_Railway =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (NS_Bahn,
+                  SS_Bahn,
+                  MS_Bahn,
+                  Standseilbahn,
+                  Luftseilbahn,
+                  NS_Bahn_Auto,
+                  SS_Bahn_Auto);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         Construct: VEC200_Transp_Construct;
+         Edgelevel: VEC200_Transp_Edgelevel;
+         ObjName: TEXT*50;
+         UnderConst: VEC200_Year;
+      IDENT Uuid;
+      END VEC200_Railway;     
+      
+       TABLE VEC200_Access =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Zugang);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;
+      END VEC200_Access;        
+      
+       TABLE VEC200_Ship =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Autofaehre,Kursschiff_Linie);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+         DETN: TEXT*50;
+         RSU: VEC200_Transp_RSU;
+         USE: VEC200_Transp_USE;
+      IDENT Uuid;
+      END VEC200_Ship;       
+
+       TABLE VEC200_Runway =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Piste);
+         DATEOFCHNG: DATE;
+         Geometrie: POLYLINE WITH (STRAIGHTS) VERTEX LKoord;
+      IDENT Uuid;
+      END VEC200_Runway;           
+
+       TABLE VEC200_Airport =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Flughafen);
+         DATEOFCHNG: DATE;
+         Geometrie: SURFACE WITH (STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 0;
+         USE: VEC200_Transp_AirportUse;
+      IDENT Uuid;
+      END VEC200_Airport; 
+      
+      TABLE VEC200_Junctions =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Junction);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+      IDENT Uuid;     
+      END VEC200_Junctions;                
+
+      TABLE VEC200_TrafficInfo =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Autoverlad,
+                  Pass,
+                  Pass_WSperre,
+                  Parkplatz,
+                  RestTank,
+                  Zahlstelle);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+         ObjName: TEXT*50;
+      IDENT Uuid;     
+      END VEC200_TrafficInfo;                
+
+      TABLE VEC200_Terminal =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Haltepunkt,
+                  Regionalflugplatz,
+                  Flugfeld,
+                  Schiffstation,
+                  Landesflughafen,
+                  Militaerflugplatz,
+                  Heliport);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+         ObjName: TEXT*50;
+         IAT: TEXT*255;
+         IKO: TEXT*255;
+         ZV3: Hoehe;                    
+         AFA: VEC200_Transp_AFA;
+      IDENT Uuid;     
+      END VEC200_Terminal;
+
+      TABLE VEC200_CustomsOffice =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Offen24h,
+                  Offen24hEing,
+                  Eingeschr);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+         ObjName: TEXT*50;
+         Clearance: TEXT*30;
+      IDENT Uuid;     
+      END VEC200_CustomsOffice;
+      
+      TABLE VEC200_Interchange =
+         ObjOrig : VEC200_ObjectOrigin;
+         ObjOrig_Year : VEC200_Year;
+         Uuid : TEXT*40;
+         ObjVal: (Anschluss,
+                  Kreuz,
+                  Ende,
+                  Kreuzung);
+         DATEOFCHNG: DATE;
+         Geometrie: LKoord;
+         ObjName: TEXT*50;
+         Info: TEXT*80;
+         AccessNr: TEXT*10;
+      IDENT Uuid;     
+      END VEC200_Interchange;
+      
+      TABLE VEC200_RoadNumber =
+         Uuid : TEXT*40;
+         DATEOFCHNG: DATE;
+         Name: TEXT*10;
+         Country: VEC200_Country;
+         RoadType: VEC200_Transp_RoadTyp;         
+      IDENT Uuid;     
+      END VEC200_RoadNumber;            
+
+      TABLE VEC200_Rel_Road_RoadNr =
+         RUuid: TEXT*40;
+         RnUuid: TEXT*40;
+      NO IDENT
+      END VEC200_Rel_Road_RoadNr;            
+
+      TABLE VEC200_Rel_Ramp_RoadNr =
+         RUuid: TEXT*40;
+         RnUuid: TEXT*40;
+      NO IDENT
+      END VEC200_Rel_Ramp_RoadNr;            
+            
+   END VEC200_Transportation.
+
+   
+END VECTOR200_PASS_V04_02.
+
+FORMAT FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

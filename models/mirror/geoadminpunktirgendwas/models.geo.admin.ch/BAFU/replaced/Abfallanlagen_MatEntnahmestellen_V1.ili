@@ -1,0 +1,189 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 21 and 113)
+!! 2020-04-30 | KOGIS | Constraints in CLASS Anlage corrected (#AushubDep and #MatEntS)
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="114.1, 115.1, 115.3"
+MODEL Abfallanlagen_MatEntnahmestellen_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-30"  =
+  IMPORTS Units,GeometryCHLV03_V1,LocalisationCH_V1;
+
+  TOPIC Anlagen =
+
+    DOMAIN
+
+      BFSNummer = 1000 .. 9999;
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+      /** Aufzaehlung des Anlagetyps, codiert
+       */
+      Typ = (
+        KVA,
+        AushubDep,
+        MatEntS
+      );
+    STRUCTURE BFSNummer_ = value : MANDATORY BFSNummer; END BFSNummer_;
+
+    /** Struktur Geometrie, zur Beschreibung der Lage der Anlage
+     */
+    STRUCTURE Geometrie =
+      /** GIS-Polygone zu Beschreibung von Lage und Ausdehnung der Anlage
+       */
+      Polygon : Polygon;
+      /** Punkt zur Beschreibung der geografischen Lage der Anlage
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Polygon) OR DEFINED (Punkt);
+    END Geometrie;
+
+    STRUCTURE TypBeschreibung =
+      /** Anlagetyp
+       */
+      Typ : MANDATORY Typ;
+      /** Mehrsprachiger Name des Anlagetyps
+       */
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END TypBeschreibung;
+
+    /** Beschreibung der Anlage
+     */
+    CLASS Anlage =
+      /** Typ der Anlage: Kehrichtverbrennungsanlage, Inertstoffdeponie, Materialentnahmestelle (Auswahlliste)
+       * Die Verbindung mit Indikator 116, wo die weiteren Deponietypen (Reaktor-, Reststoff, und Inertstoffdeponien) modelliert sind, muss gewährleistet werden.
+       */
+      Anlagetyp : MANDATORY Typ;
+      /** Geografische Lage der Anlage (entweder Punkt oder Polygon, mindestens eines der beiden muss erfasst sein)
+       */
+      Geografische_Lage : MANDATORY Abfallanlagen_MatEntnahmestellen_LV03_V1.Anlagen.Geometrie;
+      /** Name der Anlage
+       */
+      Anlagebezeichung : MANDATORY TEXT*50;
+      /** BFS-Nummer der Standortgemeinde(n), es können mehrere Gemeinden angegeben werden.
+       */
+      BFS_Nr : BAG {1..*} OF BFSNummer_;
+      /** URI der zuständigen kommunalen Bewilligunsbehoerde
+       */
+      URL_Behoerde : MANDATORY INTERLIS.URI;
+      /** Gesamtes nutzbares Ablagerungs- resp. Verwertungsvolumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen gemaess Errichtungsbewilligung zwingend zu erheben.
+       */
+      Kubatur_gesamt : 0.000 .. 999999999.000 [Units.m3];
+      /** Kurzfristig nutzbares Volumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen zwingend zu erheben. Kurzfristig bedeutet innerhalb der kommenden 5 Jahre.
+       */
+      Kubatur_kfr : 0.000 .. 999999999.999 [Units.m3];
+      /** Langfristig nutzbares Volumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen zwingend zu erheben. Langfristig bedeutet innerhalb der kommenden 10 – 20 Jahre.
+       */
+      Kubatur_lfr : 0.000 .. 999999999.000 [Units.m3];
+      /** Jahr der letzten Anpassung der kurzfristig und langfristig nutzbaren Kubaturen. Muss erfasst werden, falls kurzfristig und/oder langfristig nutzbare Kubaturen erfasst sind.
+       */
+      Erfassungsjahr : 1900 .. 2999;
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_gesamt)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_gesamt)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_kfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_lfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_kfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_lfr)));
+      MANDATORY CONSTRAINT (NOT (DEFINED (Kubatur_kfr)) OR (DEFINED (Erfassungsjahr)));
+      MANDATORY CONSTRAINT (NOT (DEFINED (Kubatur_lfr)) OR (DEFINED (Erfassungsjahr)));
+    END Anlage;
+
+  END Anlagen;
+
+END Abfallanlagen_MatEntnahmestellen_LV03_V1.
+
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="114.1, 115.1, 115.3"
+MODEL Abfallanlagen_MatEntnahmestellen_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-30"  =
+  IMPORTS Units,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  TOPIC Anlagen =
+
+    DOMAIN
+
+      BFSNummer = 1000 .. 9999;
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+      /** Aufzaehlung des Anlagetyps, codiert
+       */
+      Typ = (
+        KVA,
+        AushubDep,
+        MatEntS
+      );
+    STRUCTURE BFSNummer_ = value : MANDATORY BFSNummer; END BFSNummer_;
+
+    /** Struktur Geometrie, zur Beschreibung der Lage der Anlage
+     */
+    STRUCTURE Geometrie =
+      /** GIS-Polygone zu Beschreibung von Lage und Ausdehnung der Anlage
+       */
+      Polygon : Polygon;
+      /** Punkt zur Beschreibung der geografischen Lage der Anlage
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Polygon) OR DEFINED (Punkt);
+    END Geometrie;
+
+    STRUCTURE TypBeschreibung =
+      /** Anlagetyp
+       */
+      Typ : MANDATORY Typ;
+      /** Mehrsprachiger Name des Anlagetyps
+       */
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END TypBeschreibung;
+
+    /** Beschreibung der Anlage
+     */
+    CLASS Anlage =
+      /** Typ der Anlage: Kehrichtverbrennungsanlage, Inertstoffdeponie, Materialentnahmestelle (Auswahlliste)
+       * Die Verbindung mit Indikator 116, wo die weiteren Deponietypen (Reaktor-, Reststoff, und Inertstoffdeponien) modelliert sind, muss gewährleistet werden.
+       */
+      Anlagetyp : MANDATORY Typ;
+      /** Geografische Lage der Anlage (entweder Punkt oder Polygon, mindestens eines der beiden muss erfasst sein)
+       */
+      Geografische_Lage : MANDATORY Abfallanlagen_MatEntnahmestellen_LV95_V1.Anlagen.Geometrie;
+      /** Name der Anlage
+       */
+      Anlagebezeichung : MANDATORY TEXT*50;
+      /** BFS-Nummer der Standortgemeinde(n), es können mehrere Gemeinden angegeben werden.
+       */
+      BFS_Nr : BAG {1..*} OF BFSNummer_;
+      /** URI der zuständigen kommunalen Bewilligunsbehoerde
+       */
+      URL_Behoerde : MANDATORY INTERLIS.URI;
+      /** Gesamtes nutzbares Ablagerungs- resp. Verwertungsvolumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen gemaess Errichtungsbewilligung zwingend zu erheben.
+       */
+      Kubatur_gesamt : 0.000 .. 999999999.000 [Units.m3];
+      /** Kurzfristig nutzbares Volumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen zwingend zu erheben. Kurzfristig bedeutet innerhalb der kommenden 5 Jahre.
+       */
+      Kubatur_kfr : 0.000 .. 999999999.999 [Units.m3];
+      /** Langfristig nutzbares Volumen in m3 Festmass, fuer Aushubdeponien oder Materialentnahmestellen sind die Kubaturen zwingend zu erheben. Langfristig bedeutet innerhalb der kommenden 10 – 20 Jahre.
+       */
+      Kubatur_lfr : 0.000 .. 999999999.000 [Units.m3];
+      /** Jahr der letzten Anpassung der kurzfristig und langfristig nutzbaren Kubaturen. Muss erfasst werden, falls kurzfristig und/oder langfristig nutzbare Kubaturen erfasst sind.
+       */
+      Erfassungsjahr : 1900 .. 2999;
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_gesamt)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_gesamt)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_kfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #AushubDep) OR (DEFINED (Kubatur_lfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_kfr)));
+      MANDATORY CONSTRAINT ((Anlagetyp != #MatEntS) OR (DEFINED (Kubatur_lfr)));
+      MANDATORY CONSTRAINT (NOT (DEFINED (Kubatur_kfr)) OR (DEFINED (Erfassungsjahr)));
+      MANDATORY CONSTRAINT (NOT (DEFINED (Kubatur_lfr)) OR (DEFINED (Erfassungsjahr)));
+    END Anlage;
+
+  END Anlagen;
+
+END Abfallanlagen_MatEntnahmestellen_LV95_V1.

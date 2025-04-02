@@ -1,0 +1,333 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-22 | KOGIS | TOPIC hpm_base declared as ABSTRACT
+
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ IDGeoIV="67.1,79.1"
+!!@ furtherInformation=https://www.astra.admin.ch/
+MODEL hpm_network_V1 (en)
+AT "https://models.geo.admin.ch/ASTRA/"
+VERSION "2019-08-22"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV03_V1,GeometryCHLV95_V1;
+
+  TOPIC hpm_catalogues =
+
+    CLASS hpm_catalog_item
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ItemId : MANDATORY 0 .. 99;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END hpm_catalog_item;
+
+    CLASS direction_of_signalisation
+    EXTENDS hpm_catalog_item =
+    END direction_of_signalisation;
+
+    CLASS hiking_segment_type
+    EXTENDS hpm_catalog_item =
+    END hiking_segment_type;
+
+    CLASS hpm_route_type
+    EXTENDS hpm_catalog_item =
+    END hpm_route_type;
+
+    CLASS hpm_type
+    EXTENDS hpm_catalog_item =
+    END hpm_type;
+
+    CLASS location_category
+    EXTENDS hpm_catalog_item =
+    END location_category;
+
+    CLASS mtb_segment_type
+    EXTENDS hpm_catalog_item =
+    END mtb_segment_type;
+
+    CLASS obliging_authorities
+    EXTENDS hpm_catalog_item =
+    END obliging_authorities;
+
+    CLASS obliging_land_owner
+    EXTENDS hpm_catalog_item =
+    END obliging_land_owner;
+
+    CLASS public_transport_section
+    EXTENDS hpm_catalog_item =
+    END public_transport_section;
+
+    CLASS route_category
+    EXTENDS hpm_catalog_item =
+    END route_category;
+
+    CLASS route_type
+    EXTENDS hpm_catalog_item =
+    END route_type;
+
+    CLASS state
+    EXTENDS hpm_catalog_item =
+    END state;
+
+    CLASS quality_of_way
+    EXTENDS hpm_catalog_item =
+    END quality_of_way;
+
+    CLASS surface
+    EXTENDS hpm_catalog_item =
+    END surface;
+
+    STRUCTURE direction_of_signalisation_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) direction_of_signalisation;
+    END direction_of_signalisation_ref;
+
+    STRUCTURE hiking_segment_type_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) hiking_segment_type;
+    END hiking_segment_type_ref;
+
+    STRUCTURE hpm_route_type_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) hpm_route_type;
+    END hpm_route_type_ref;
+
+    STRUCTURE hpm_type_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) hpm_type;
+    END hpm_type_ref;
+
+    STRUCTURE location_category_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) location_category;
+    END location_category_ref;
+
+    STRUCTURE mtb_segment_type_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) mtb_segment_type;
+    END mtb_segment_type_ref;
+
+    STRUCTURE obliging_authorities_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) obliging_authorities;
+    END obliging_authorities_ref;
+
+    STRUCTURE obliging_land_owner_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) obliging_land_owner;
+    END obliging_land_owner_ref;
+
+    STRUCTURE public_transport_section_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) public_transport_section;
+    END public_transport_section_ref;
+
+    STRUCTURE route_category_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) route_category;
+    END route_category_ref;
+
+    STRUCTURE route_type_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) route_type;
+    END route_type_ref;
+
+    STRUCTURE quality_of_way_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) quality_of_way;
+    END quality_of_way_ref;
+
+    STRUCTURE state_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) state;
+    END state_ref;
+
+    STRUCTURE surface_ref
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) surface;
+    END surface_ref;
+
+  END hpm_catalogues;
+
+  TOPIC hpm_base (ABSTRACT) =
+    DEPENDS ON hpm_network_V1.hpm_catalogues;
+
+    /** Sie ist nicht Bestandteil des MGDM, sondern soll veranschaulichen, dass durch einen zusätzlichen Schlüssel («id_geometry» der Klasse «hpm_way») auf einen vorzugsweise amtlichen, gepflegten Datensatz der Datenaustausch weiter verbessert werden kann.
+     */
+    CLASS base_geometry =
+      id_base_geometry : MANDATORY OID TEXT*50;
+      base_geometry_version : MANDATORY TEXT*100;
+    END base_geometry;
+
+    CLASS metadata =
+      owner : MANDATORY TEXT*100;
+      version : TEXT*20;
+      last_updated : TEXT*100;
+      contact_information : MTEXT*500;
+    END metadata;
+
+    CLASS route =
+      id_route : MANDATORY OID TEXT*50;
+      technical_route_number : MANDATORY TEXT*20;
+      technical_route_name : MANDATORY TEXT*200;
+      touristic_route_number : TEXT*10;
+      touristic_route_name : TEXT*200;
+      route_description : MTEXT*1000;
+      route_type : hpm_network_V1.hpm_catalogues.route_type_ref;
+      route_category : hpm_network_V1.hpm_catalogues.route_category_ref;
+      hpm_route_type : MANDATORY hpm_network_V1.hpm_catalogues.hpm_route_type_ref;
+      route_state : hpm_network_V1.hpm_catalogues.state_ref;
+      starting_point : MANDATORY TEXT*100;
+      destination : MANDATORY TEXT*100;
+      direction_of_signalisation : hpm_network_V1.hpm_catalogues.direction_of_signalisation_ref;
+    END route;
+
+    CLASS signalisation_base (ABSTRACT) =
+      id_signalisation : MANDATORY OID TEXT*50;
+      field_name : TEXT*100;
+      altitude : 0 .. 4500;
+      signalisation_state : hpm_network_V1.hpm_catalogues.state_ref;
+    END signalisation_base;
+
+    CLASS route_signalisation =
+      location_category : hpm_network_V1.hpm_catalogues.location_category_ref;
+      position_number : 1 .. 1000;
+    END route_signalisation;
+
+    CLASS way_base (ABSTRACT) =
+      id_hpm_way : MANDATORY OID TEXT*50;
+      hpm_type : MANDATORY hpm_network_V1.hpm_catalogues.hpm_type_ref;
+      surface : MANDATORY hpm_network_V1.hpm_catalogues.surface_ref;
+      obliging_authorities : hpm_network_V1.hpm_catalogues.obliging_authorities_ref;
+      source_obliging_authorities : TEXT*500;
+      state_of_way : hpm_network_V1.hpm_catalogues.state_ref;
+      id_base_geometry : OID TEXT*100;
+      public_transport_section : hpm_network_V1.hpm_catalogues.public_transport_section_ref;
+      quality_of_way : hpm_network_V1.hpm_catalogues.quality_of_way_ref;
+      obliging_land_owner : hpm_network_V1.hpm_catalogues.obliging_land_owner_ref;
+      obliging_land_owner_comment : MTEXT*1000;
+      is_suitable_for_handicap_route : BOOLEAN;
+      is_black_spot : BOOLEAN;
+      black_spot_comment : MTEXT*1000;
+      is_network_gap : BOOLEAN;
+      network_gap_comment : MTEXT*1000;
+    END way_base;
+
+    CLASS way_route =
+      sort_order : 0 .. 100000;
+      belongs_to_stage : 0 .. 100;
+    END way_route;
+
+    ASSOCIATION Association_route_route_signalisation =
+      each_route_signalisation_entry_has_one_route -- {1} route;
+      each_route_entry_can_be_part_of_n_route_signalisation_entries -- {0..*} route_signalisation;
+    END Association_route_route_signalisation;
+
+    ASSOCIATION Association_route_signalisation_signalisation_base =
+      each_signalisation_base_entry_can_be_part_of_n_route_signalisation_entries -- {0..*} route_signalisation;
+      each_route_signalisation_entry_has_one_signalisation_base_entry -- {1} signalisation_base;
+    END Association_route_signalisation_signalisation_base;
+
+    ASSOCIATION Association_way_base_base_geometry =
+      each_base_geometry_entry_can_be_part_of_one_to_5_way_base_entries -- {0..5} way_base;
+      each_way_base_entry_can_have_one_base_geometry -- {0..1} base_geometry;
+    END Association_way_base_base_geometry;
+
+    ASSOCIATION Association_way_route_route =
+      each_route_entry_can_be_part_of_nway_route_entries -- {0..*} way_route;
+      each_way_route_entry_has_one_route_entry -- {1} route;
+    END Association_way_route_route;
+
+    ASSOCIATION Association_way_base_way_route =
+      each_way_route_entry_has_one_way_base_entry -- {1} way_base;
+      each_way_base_entry_can_be_part_of_n_way_route_entries -- {0..*} way_route;
+    END Association_way_base_way_route;
+
+  END hpm_base;
+
+  TOPIC hpm_bike_lv03
+  EXTENDS hpm_network_V1.hpm_base =
+    DEPENDS ON hpm_network_V1.hpm_catalogues;
+
+    CLASS signalisation
+    EXTENDS hpm_network_V1.hpm_base.signalisation_base =
+      geometry : MANDATORY GeometryCHLV03_V1.Coord3;
+    END signalisation;
+
+    CLASS way
+    EXTENDS hpm_network_V1.hpm_base.way_base =
+      geometry : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3;
+    END way;
+
+    CLASS mtb_way
+    EXTENDS way =
+      is_singletrail : MANDATORY BOOLEAN;
+      mtb_segment_type : hpm_network_V1.hpm_catalogues.mtb_segment_type_ref;
+    END mtb_way;
+
+  END hpm_bike_lv03;
+
+  TOPIC hpm_bike_lv95
+  EXTENDS hpm_network_V1.hpm_base =
+    DEPENDS ON hpm_network_V1.hpm_catalogues;
+
+    CLASS signalisation
+    EXTENDS hpm_network_V1.hpm_base.signalisation_base =
+      geometry : MANDATORY GeometryCHLV95_V1.Coord3;
+    END signalisation;
+
+    CLASS way
+    EXTENDS hpm_network_V1.hpm_base.way_base =
+      geometry : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3;
+    END way;
+
+    CLASS mtb_way
+    EXTENDS way =
+      is_singletrail : MANDATORY BOOLEAN;
+      mtb_segment_type : hpm_network_V1.hpm_catalogues.mtb_segment_type_ref;
+    END mtb_way;
+
+  END hpm_bike_lv95;
+
+  TOPIC hpm_walk_lv03
+  EXTENDS hpm_network_V1.hpm_base =
+    DEPENDS ON hpm_network_V1.hpm_catalogues;
+
+    CLASS signalisation
+    EXTENDS hpm_network_V1.hpm_base.signalisation_base =
+      geometry : MANDATORY GeometryCHLV03_V1.Coord3;
+    END signalisation;
+
+    CLASS way
+    EXTENDS hpm_network_V1.hpm_base.way_base =
+      geometry : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3;
+    END way;
+
+    CLASS hiking_way
+    EXTENDS way =
+      hiking_segment_type : MANDATORY hpm_network_V1.hpm_catalogues.hiking_segment_type_ref;
+    END hiking_way;
+
+  END hpm_walk_lv03;
+
+  TOPIC hpm_walk_lv95
+  EXTENDS hpm_network_V1.hpm_base =
+    DEPENDS ON hpm_network_V1.hpm_catalogues;
+
+    CLASS signalisation
+    EXTENDS hpm_network_V1.hpm_base.signalisation_base =
+      geometry : MANDATORY GeometryCHLV95_V1.Coord3;
+    END signalisation;
+
+    CLASS way
+    EXTENDS hpm_network_V1.hpm_base.way_base =
+      geometry : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3;
+    END way;
+
+    CLASS hiking_way
+    EXTENDS way =
+      hiking_segment_type : MANDATORY hpm_network_V1.hpm_catalogues.hiking_segment_type_ref;
+    END hiking_way;
+
+  END hpm_walk_lv95;
+
+END hpm_network_V1.

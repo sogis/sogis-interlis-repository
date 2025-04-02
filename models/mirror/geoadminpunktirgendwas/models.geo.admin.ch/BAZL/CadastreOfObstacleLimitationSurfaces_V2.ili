@@ -1,0 +1,401 @@
+INTERLIS 2.3;
+
+!! Version | Date       | Who  | Modification
+!! -------------------------------------------------------------------------------------------------------------
+!! 2.0     | 2024-01-19 | BAZL | Attribute Document in the class OlsCadastre added
+
+/** #############################################################################################################
+ * # DE: Minimales Geodatenmodell "Hindernisbegrenzungsflächen-Kataster"                                     
+ * # FR: Modèle de géodonnées minimal "Cadastres des surfaces de limitation d’obstacles à la navigation aérienne"
+ * ##############################################################################################################
+ */
+!!@ IDGeoIV=106.1
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+MODEL CadastreOfObstacleLimitationSurfaces_V2 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2024-01-19"  =
+  IMPORTS INTERLIS_ext,GeometryCHLV95_V1,WithLatestModification_V1;
+
+  /** -------------------------------------------------------------------------------------------------------------------
+   * DE: Thema für Hindernisbegrenzungsflächen, Referenzpunkte und Linienelemente
+   * FR: Thème en relation avec les surfaces de limitation d’obstacles, les points de référence et les éléments linéaires 
+   * --------------------------------------------------------------------------------------------------------------------
+   */
+  TOPIC CadastreOfObstacleLimitationSurfaces_WithLatestModification =
+    OID AS INTERLIS.UUIDOID;
+
+    /** DE: Massgebende 2D-Gesamtfläche
+     * FR: Surface totale déterminante en 2D
+     */
+    CLASS DeterminingArea =
+      /** DE: 2D-Gebietseinteilungsfläche
+       * FR: Partition du territoire en 2D
+       */
+      Area2D : MANDATORY AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.001;
+      /** DE: Bei einer Geländedurchstossung; zulässige Objekthöhe über Grund in Metern
+       * FR: En cas de pénétration du terrain; hauteur autorisée de l’objet au-dessus du sol en mètres
+       */
+      HeightAboveGround : 1 .. 100 [INTERLIS.m];
+      /** DE: Bei einer Geländedurchstossung; falls wahr, Anwendung der zulässigen Höhen gemäss VIL
+       * FR: En cas de pénétration du terrain; si vrai, application des hauteurs admissibles selon l’OSIA
+       */
+      HeightAccordingVIL : BOOLEAN;
+      /** DE: Ausschlussbedingung wenn "HeightAboveGround" definiert ist
+       * FR: Condition d’exclusion si "HeightAboveGround" est défini
+       */
+      MANDATORY CONSTRAINT NOT (DEFINED (HeightAboveGround)) OR (HeightAccordingVIL == #false);
+      /** DE: Ausschlussbedingung wenn "HeightAccordingVIL" wahr ist
+       * FR: Condition d’exclusion si "HeightAccordingVIL" est vrai
+       */
+      MANDATORY CONSTRAINT NOT (HeightAccordingVIL == #true) OR (NOT (DEFINED (HeightAboveGround)));
+    END DeterminingArea;
+
+    /** DE: Hindernisbegrenzungsflächen-Kataster für Flugplatz bzw. Heliport, Flugsicherungsanlage oder Flugweg
+     * FR: Cadastre des surfaces de limitation d’obstacles pour aérodrome, hélistation, installation de la navigation aérienne ou trajectoire de vol
+     */
+    CLASS OlsCadastre =
+      /** DE: Eindeutige Bezeichnung des Hindernisbegrenzungsflächen-Katasters (z.B. "HBK_LSZH")
+       * FR: Désignation unique du cadastre des surfaces de limitation d’obstacles (p. ex. "CAD_LSZH")
+       */
+      CadastreName : MANDATORY TEXT*30;
+      /** DE: Bezugstyp des Katasters gemäss Art. 2m VIL
+       * FR: Type de cadastre au sens de l’art. 2, let. m OSIA
+       */
+      CadastreType : MANDATORY (
+        /** DE: Flugplatz oder Heliport
+         * FR: Aérodrome ou hélistation
+         */
+        AerodromeHeliport,
+        /** DE: Flugsicherungsanlage
+         * FR: Installation de navigation aérienne
+         */
+        AirNavigationFacility,
+        /** DE: Flugweg
+         * FR: Trajectoire de vol
+         */
+        FlightPath
+      );
+      /** DE: Offizieller ICAO-Code für Flug- und Helikopterlandeplätze
+       * FR: Code OACI officiel de l’aérodrome ou de l’hélistation
+       */
+      IcaoLocationIndicator : TEXT*4;
+      /** DE: URL zum PDF-Plan
+       * FR: URL du plan PDF
+       */
+      Document : URI;
+      /** DE: Gültigkeit und letzte Änderung des Hindernisbegrenzungsflächen-Katasters
+       * FR: Durée de validité et dernière modification du cadastre des surfaces de limitation d’obstacles
+       */
+      Validity : MANDATORY WithLatestModification_V1.ModInfo;
+      /** DE: Eindeutigkeitsbedingung für "CadastreName"
+       * FR: Condition d’unicité pour "CadastreName"
+       */
+      UNIQUE CadastreName;
+    END OlsCadastre;
+
+    /** DE: Linienelemente der OLS
+     * FR: Éléments linéaires des OLS
+     */
+    CLASS OlsLine =
+      /** DE: Typ der OLS-Linie
+       * FR: Type de ligne OLS
+       */
+      LineType : MANDATORY (
+        /** DE: Graphische Hilfslinie, z.B. Linie zu einer nicht massgebenden Fläche
+         * FR: Trait de rappel, p. ex. ligne d’une surface non déterminante
+         */
+        Auxiliary_line,
+        /** DE: Normale Umrandungslinie einer einzelnen OLS
+         * FR: Ligne de délimitation normale d’une seule OLS
+         */
+        Boundary_line,
+        /** DE: Achse der Pisten sowie der An- und Abflugwege
+         * FR: Axe des pistes et des trajectoires d’approche et de départ
+         */
+        Center_line,
+        /** DE: Höhenlinie / Höhenschichtlinie
+         * FR: Courbe de niveau
+         */
+        Contour_line,
+        /** DE: Horizontale Umrandungslinie einer einzelnen OLS
+         * FR: Ligne de délimitation horizontale d’une seule OLS
+         */
+        HzBoundary_line,
+        /** DE: Schnittlinie zweier Flächen
+         * FR: Ligne d’intersection de deux surfaces
+         */
+        Intersection_line
+      );
+      /** DE: Höhenangabe in Meter (für Höhenschichtlinien und horizonale Umrandungslinien zwingend)
+       * FR: Indication de la hauteur en mètres (obligatoire pour les courbes de niveau et les lignes de délimitation horizontales)
+       */
+      Elevation : 0 .. 5000 [INTERLIS.M];
+      /** DE: Zweidimensionale Linie (Polylinie mit Geraden, ohne Kreisbögen)
+       * FR: Ligne bidimensionnelle (polyligne avec segments de droite, sans arcs de cercle)
+       */
+      Line2D : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+      /** DE: Existenzbedingung für "Elevation"
+       * FR: Condition d’existence pour "Elevation"
+       */
+      MANDATORY CONSTRAINT NOT (LineType == #HzBoundary_line OR LineType == #Contour_line) OR (DEFINED (Elevation));
+    END OlsLine;
+
+    /** DE: Räumliche Bezugspunkte der Hindernisbegrenzungsflächen (OLS)
+     * FR: Points de référence spatiaux des surfaces de limitation d’obstacles (OLS)
+     */
+    CLASS ReferencePoint =
+      /** DE: Typ des Referenzpunkts
+       * FR: Type du point de référence
+       */
+      PointType : MANDATORY (
+        /** DE: Flugplatzbezugspunkt (Aerodrome Reference Point)
+         * FR: Point de référence d’aérodrome (Aerodrome Reference Point)
+         */
+        ARP,
+        /** DE: Achspunkt (Centerline Point)
+         * FR: Point d’axe de piste (Centerline Point)
+         */
+        CLP,
+        /** DE: Operationelles Pistenende (Departure End of Runway)
+         * FR: Fin de la piste de décollage (Departure End of Runway)
+         */
+        DER,
+        /** DE: Mittelpunkt der FATO
+         * FR: Point central du FATO
+         */
+        FATO,
+        /** DE: Punkt auf Pistenschwelle (Threshold Point)
+         * FR: Point de seuil de piste (Threshold Point)
+         */
+        THR
+      );
+      /** DE: 3D-Punktgeometrie
+       * FR: Géométrie des points 3D
+       */
+      Point3D : MANDATORY GeometryCHLV95_V1.Coord3;
+    END ReferencePoint;
+
+    /** DE: Einzelnes Element einer Dreiecksvermaschung; Dreieck
+     * FR: Élément unitaire d’un maillage triangulaire; triangle
+     */
+    STRUCTURE TinElement =
+      /** DE: Dreidimensionale Dreiecksfläche (mit Geraden, ohne Kreisbögen)
+       * FR: Surface triangulaire tridimensionnelle (avec segments de droite, sans arcs de cercle)
+       */
+      Surface3D : MANDATORY SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS>0.001;
+    END TinElement;
+
+    /** DE: Verbund von unregelmässigen Dreiecken / Dreiecksvermaschung (TIN)
+     * FR: Ensemble de triangles irréguliers / maillage triangulaire (TIN)
+     */
+    STRUCTURE Tin =
+      /** DE: Einzelnes Dreieck
+       * FR: Triangle unitaire
+       */
+      Triangle : BAG {1..*} OF TinElement;
+    END Tin;
+
+    /** DE: Einzelne Hindernisbegrenzungsfläche (OLS)
+     * FR: Surface de limitation d’obstacles (OLS) indépendante
+     */
+    CLASS Ols =
+      /** DE: Eindeutige Bezeichnung der OLS
+       * FR: Désignation unique de l’OLS
+       */
+      SurfaceName : MANDATORY TEXT*60;
+      /** DE: Typ der OLS
+       * FR: Type d’OLS
+       */
+      SurfaceType : MANDATORY (
+        /** DE: Anflugfläche
+         * FR: Surface d’approche
+         */
+        Approach_surface,
+        /** DE: Anflugfläche für Helikopter
+         * FR: Surface d’approche pour hélicoptères
+         */
+        Approach_surface_heli,
+        /** DE: Durchstartfläche
+         * FR: Surface d’atterrrissage interrompu
+         */
+        Balked_landing_surface,
+        /** DE: Anomalie (Kalotte)
+         * FR: Anomalie (Calotte)
+         */
+        Calotte_area,
+        /** DE: Konische Fläche
+         * FR: Surface conique
+         */
+        Conical_surface,
+        /** DE: Schutzfläche für Navigationsanlagen
+         * FR: Surface de protection des installations de navigation aérienne
+         */
+        Critical_sensitive_area,
+        /** DE: Endanflug- und Startfläche für Helikopter
+         * FR: Aire d’approche finale et de décollage pour hélicoptères
+         */
+        FATO_area_heli,
+        /** DE: Innere Anflugfläche
+         * FR: Surface intérieure d’approche
+         */
+        Inner_approach_surface,
+        /** DE: Innere Horizontalfläche
+         * FR: Surface horizontale intérieure
+         */
+        Inner_horizontal_surface,
+        /** DE: Innere seitliche Übergangsfläche
+         * FR: Surface intérieure de transition
+         */
+        Inner_transitional_surface,
+        /** DE: VASIS-Schutzfläche
+         * FR: Surface de protection du dispositif VASIS
+         */
+        Obstacle_protection_surface,
+        /** DE: OEI-Fläche (One Engine Inoperative)
+         * FR: Surface OEI (One Engine Inoperative)
+         */
+        One_engine_out_surface,
+        /** DE: PANS-OPS-Fläche
+         * FR: Surface PANS-OPS
+         */
+        PANS_OPS_surface,
+        /** DE: Geschützte seitliche Neigung für Helikopter
+         * FR: Pente latérale protégée pour hélicoptères
+         */
+        Protected_side_slope_heli,
+        /** DE: Pistenstreifen
+         * FR: Bande de piste
+         */
+        Runway_strip,
+        /** DE: Sicherheitsbereich für Helikopter
+         * FR: Aire de sécurité pour hélicoptères
+         */
+        Safety_area_heli,
+        /** DE: Abflugfläche
+         * FR: Surface de montée au décollage
+         */
+        Takeoff_climb_surface,
+        /** DE: Abflugfläche für Helikopter
+         * FR: Surface de montée au décollage pour hélicoptères
+         */
+        Takeoff_climb_surface_heli,
+        /** DE: AOC-Fläche
+         * FR: Surface AOC
+         */
+        Takeoff_flightpath_area,
+        /** DE: Seitliche Übergangsfläche
+         * FR: Surface de transition
+         */
+        Transitional_surface
+      );
+      /** DE: Dreiecksvermaschung (TIN)
+       * FR: Maillage triangulaire irrégulier (TIN)
+       */
+      Triangulation : MANDATORY Tin;
+      /** DE: Angabe der Pistenzugehörigkeit (falls vorhanden)
+       * FR: Indication de la catégorie de piste (si disponible)
+       */
+      RunwayDesignator : TEXT*20;
+      /** DE: Pistenklassifizierung nach ICAO (relevant in Kombination mit "Operation" und "SurfaceType")
+       * FR: Classification OACI de la piste (information pertinente en relation avec "Operation" et "SurfaceType")
+       */
+      RunwayCodeNumber : 1 .. 4;
+      /** DE: Flugoperation (relevant in Kombination mit "RunwayCodeNumber" und "SurfaceType")
+       * FR: Opération aérienne (information pertinente en relation avec "RunwayCodeNumber" et "SurfaceType")
+       */
+      Operation : (
+        /** DE: Voltenflug
+         * FR: Circuit d’aérodrome
+         */
+        Circuit,
+        /** DE: Sichtanflug
+         * FR: Approche à vue
+         */
+        Non_instrument_approach,
+        /** DE: Nicht-Präzisionsanflug
+         * FR: Approche classique
+         */
+        Non_precision_approach,
+        /** DE: Präzisionsanflug
+         * FR: Approche de précision
+         */
+        Precision_approach,
+        /** DE: Abflug
+         * FR: Montée au décollage
+         */
+        Take_off_climb
+      );
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : INTERLIS.XMLDate;
+      /** DE: Eindeutigkeitsbedingung für "SurfaceName"
+       * FR: Condition d’unicité pour "SurfaceName"
+       */
+      UNIQUE SurfaceName;
+      /** DE: Aufruf der Funktion "areAreas2"
+       * FR: Appel de la fonction "areAreas2"
+       */
+      MANDATORY CONSTRAINT INTERLIS_ext.areAreas2(THIS,UNDEFINED,"Triangulation->Triangle->Surface3D");
+    END Ols;
+
+    /** DE: Ein OLS-Kataster umfasst eine oder mehrere OLS
+     * FR: Un cadastre des surfaces de limitation d’obstacles est formé d’une ou de plusieurs OLS
+     */
+    ASSOCIATION CadastreObstacleLimitation =
+      /** DE: Übergeordneter OLS-Kataster
+       * FR: Cadastre des surfaces de limitation d’obstacles
+       */
+      Cadastre -<#> {1} OlsCadastre;
+      /** DE: Zugehörige OLS
+       * FR: OLS associée
+       */
+      ObstacleLimitation -- {1..*} Ols;
+    END CadastreObstacleLimitation;
+
+    /** DE: Lineare Elemente werden genau einer OLS zugeordnet
+     * FR: Les éléments linéaires se rapportent à une seule OLS
+     */
+    ASSOCIATION OlsLineElement =
+      /** DE: Bezug zu OLS-Linien
+       * FR: Référence aux lignes OLS
+       */
+      LineElement -- {1..*} OlsLine;
+      /** DE: Bezug zur OLS
+       * FR: Référence à l’OLS
+       */
+      OlsRef -<#> {1} Ols;
+    END OlsLineElement;
+
+    /** DE: Restriktivste 2D-Teilfläche einer OLS
+     * FR: Surface restrictive partielle en 2D d’une OLS
+     */
+    ASSOCIATION OlsRestrictivePart =
+      /** DE: Massgebender OLS-Anteil
+       * FR: Part déterminante de l’OLS
+       */
+      RelevantPart -- {0..*} DeterminingArea;
+      /** DE: Bezug zur OLS
+       * FR: Référence à l’OLS
+       */
+      OlsRef -<#> {1} Ols;
+    END OlsRestrictivePart;
+
+    /** DE: Eine OLS bezieht sich auf einen oder mehrere Referenzpunkte
+     * FR: Une OLS se rapporte à un ou à plusieurs point(s) de référence(s)
+     */
+    ASSOCIATION OlsSpatialReference =
+      /** DE: Bezugspunkte der OLS
+       * FR: Points de référence de l’OLS
+       */
+      SpatialReference -- {0..*} ReferencePoint;
+      /** DE: Bezug zu OLS
+       * FR: Référence à l’OLS
+       */
+      OlsRef -- {1..*} Ols;
+    END OlsSpatialReference;
+
+  END CadastreOfObstacleLimitationSurfaces_WithLatestModification;
+
+END CadastreOfObstacleLimitationSurfaces_V2.

@@ -1,0 +1,901 @@
+INTERLIS 2.3;
+
+!!======================================
+!! Version:   5
+!! DateiName: swissTLMRegio.ili
+!! Datum:     07.09.2022
+!! Status:    Definitiv
+!! History:   27.09.2018 min Creation interlis2 model for swissTLMRegio based on existing interlis1 model
+!!            10.09.2019 min Setting of accurate bounding box limits, addition of attributes that were missing in older versions
+!!            08.09.2020 min Scheme change: major changes in topic Names, including new feature class NamedLocation_PLY
+!!            13.09.2021 min LKoord adapted to new production perimeter
+!!            07.09.2022 min INTERLIS.UUIDOID used instead of OID TEXT*38 for UUID
+!!======================================
+
+!!@ technicalContact=mailto:geodata@swisstopo.ch
+!!@ furtherInformation=https://www.swisstopo.admin.ch
+!!@ IDGeoIV="38.11"
+MODEL swissTLMRegio_LV95_V5 (de) AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2022-09-07" =
+
+  IMPORTS CoordSys;
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D : CHLV95
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+
+  DOMAIN
+
+  LKoord = COORD 2443000.000 .. 2895000.000 [INTERLIS.m], !!{CHLV95[1]},
+                 1024000.000 .. 1360500.000 [INTERLIS.m], !!{CHLV95[2]},
+           ROTATION 2 -> 1;
+  D_POLYLINE = POLYLINE WITH (STRAIGHTS,ARCS) VERTEX LKoord;
+  D_SURFACE = SURFACE WITH (STRAIGHTS,ARCS) VERTEX LKoord WITHOUT OVERLAPS > 0.001;
+
+  Integer = -32768 .. 9999999999;
+  Double = -29999.00 .. 999999999.00;
+  Hoehe = -32768.000 .. 9999.000 [INTERLIS.m];
+  swissTLMRegio_Azimuth = 0.0 .. 360.0;
+
+  swissTLMRegio_FalseTrue = (False,
+                             True,
+                             no_value,
+                             UNK);
+  swissTLMRegio_Year = 0 .. 2099;
+  swissTLMRegio_ObjectOrigin = (LK25,
+                                LK50,
+                                LK100,
+                                LK200,
+                                LK500,
+                                LK1000,
+                                SK200,
+                                GG25,
+                                NDB,
+                                BFS,
+                                DTM_AV,
+                                DOM_AV,
+                                SI,
+                                GN200,
+                                V25,
+                                EBM,
+                                EGM,
+                                ERM,             !! 20
+                                AV_CH,
+                                AV_ZH,
+                                AV_BE,
+                                AV_LU,
+                                AV_UR,
+                                AV_SZ,
+                                AV_OW,
+                                AV_NW,
+                                AV_GL,
+                                AV_ZG,
+                                AV_FR,
+                                AV_SO,
+                                AV_BS,
+                                AV_BL,
+                                AV_SH,
+                                AV_AR,
+                                AV_AI,
+                                AV_SG,
+                                AV_GR,
+                                AV_AG,           !! 40
+                                AV_TG,
+                                AV_TI,
+                                AV_VD,
+                                AV_VS,
+                                AV_NE,
+                                AV_GE,
+                                AV_JU,
+                                DGN_ZH,
+                                DGN_BE,
+                                DGN_LU,
+                                DGN_UR,
+                                DGN_SZ,
+                                DGN_OW,
+                                DGN_NW,
+                                DGN_GL,
+                                DGN_ZG,
+                                DGN_FR,
+                                DGN_SO,
+                                DGN_BS,
+                                DGN_BL,          !! 60
+                                DGN_SH,
+                                DGN_AR,
+                                DGN_AI,
+                                DGN_SG,
+                                DGN_GR,
+                                DGN_AG,
+                                DGN_TG,
+                                DGN_TI,
+                                DGN_VD,
+                                DGN_VS,
+                                DGN_NE,
+                                DGN_GE,
+                                DGN_JU,
+                                TBA_ZH,
+                                TBA_BE,
+                                TBA_LU,
+                                TBA_UR,
+                                TBA_SZ,
+                                TBA_OW,
+                                TBA_NW,          !! 80
+                                TBA_GL,
+                                TBA_ZG,
+                                TBA_FR,
+                                TBA_SO,
+                                TBA_BS,
+                                TBA_BL,
+                                TBA_SH,
+                                TBA_AR,
+                                TBA_AI,
+                                TBA_SG,
+                                TBA_GR,
+                                TBA_AG,
+                                TBA_TG,
+                                TBA_TI,
+                                TBA_VD,
+                                TBA_VS,
+                                TBA_NE,
+                                TBA_GE,
+                                TBA_JU,
+                                NMA_AUT,         !! 100
+                                NMA_FRA,
+                                NMA_DEU,
+                                NMA_ITA,
+                                NMA_LIE,         !! 104
+                                SPOT5,           !! Neu mit V3.04
+                                LANDSAT,
+                                PK_IT,
+                                TCI,
+                                TLM,             !! 109
+                                Divers);
+
+  swissTLMRegio_Hydro_Linst = (CH,
+                               ZH,
+                               BE,
+                               LU,
+                               UR,
+                               SZ,
+                               OW,
+                               NW,
+                               GL,
+                               ZG,
+                               FR,
+                               SO,
+                               BS,
+                               BL,
+                               SH,
+                               AR,
+                               AI,
+                               SG,
+                               GR,
+                               AG,
+                               TG,
+                               TI,
+                               VD,
+                               VS,
+                               NE,
+                               GE,
+                               JU,
+                               N_A);
+  swissTLMRegio_Hydro_LaufNr = -29998 .. 9999;
+  swissTLMRegio_Hydro_Klasse = -29998 .. 10;
+  swissTLMRegio_Hydro_Breite = -29998 .. 99;
+  swissTLMRegio_Hydro_EXS = (unknown,
+                             under_construction,
+                             naviguable_and_operational,
+                             not_applicable);
+  swissTLMRegio_Hydro_HOC = (unknown,
+                             man_made,
+                             natural);
+  swissTLMRegio_HydroMeasure = -999999 .. 999999;
+
+  swissTLMRegio_Misc_FCO = (unknown,
+                            multiple,
+                            single,
+                            double,
+                            juxtaposition,
+                            unpopulated);
+  swissTLMRegio_Misc_LOC = (unknown,
+                            on_ground_surface,
+                            suspended_or_elevated_above,
+                            underground,
+                            unpopulated);
+  swissTLMRegio_Misc_PRO = (unknown,
+                            chemical,
+                            gas,
+                            gasoline,
+                            heat,
+                            oil,
+                            sewage,
+                            slag,
+                            water,
+                            common_fruits_and_or_nuts,
+                            tailings,
+                            refuse,
+                            vine,
+                            hops,
+                            unpopulated,
+                            not_applicable,
+                            null_no_value);
+  swissTLMRegio_Misc_USE = (unknown,
+                            levee_dike,
+                            as_a_causeway,
+                            as_a_fill,
+                            unpopulated,
+                            null_no_value);
+  swissTLMRegio_Misc_VRR = (unknown,
+                            above_surface_does_not_cover,
+                            covers_and_uncovers,
+                            unpopulated,
+                            null_no_value);
+  swissTLMRegio_Misc_PPC = (unknown,
+                            hydro_electric,
+                            nuclear,
+                            solar,
+                            thermal,
+                            wind,
+                            tidal,
+                            internal_combustion,
+                            unpopulated,
+                            not_applicable,
+                            null_no_value);
+
+  swissTLMRegio_Misc_NA3 = (Habitat_species_management_area,
+                            National_park,
+                            Protected_landscape_seascape,
+                            Strict_nature_reserve_wilderness_area,
+                            Unknown);
+
+  swissTLMRegio_Misc_TTC = (chimney_smokestack,
+                            cooling_tower,
+                            null_no_value,
+                            other,
+                            unknown,
+                            water_tower);
+
+  swissTLMRegio_Transp_AirportUse = (Unknown,
+                                     National,
+                                     International,
+                                     Unpopulated,
+                                     NotApplicable);
+  swissTLMRegio_Transp_Construct = (Keine_Kunstbaute,
+                                    Bruecke,
+                                    Tunnel,
+                                    Galerie);
+  swissTLMRegio_Transp_Edgelevel = -5 .. 5;
+  swissTLMRegio_Transp_Toll = (Unbekannt,
+                               Keine_Gebuehr,
+                               Gebuehrenpflichtig,
+                               Vignette);
+  swissTLMRegio_Transp_LTN = -32768 .. 8;
+  swissTLMRegio_Transp_MED = (unknown,
+                              with_median,
+                              without_median,
+                              unpopulated);
+  swissTLMRegio_Transp_RST = (unknown,
+                              paved,
+                              unpaved,
+                              unpopulated,
+                              not_applicable);
+  swissTLMRegio_Transp_RSU = (unknown,
+                              all_year,
+                              seasonal,
+                              unpopulated,
+                              not_applicable);
+  swissTLMRegio_Transp_USE = (unknown,
+                              national,
+                              international);
+  swissTLMRegio_Transp_AFA = (unknown,
+                              main_station,
+                              secondary_station,
+                              freight_only,
+                              unpopulated,
+                              not_applicable,
+                              null_no_value);
+  swissTLMRegio_Transp_RoadTyp = (MainRoadNumber,
+                                  FreewayRoadNumber,
+                                  EuroRoadNumber);
+  swissTLMRegio_Transp_MobilityTyp = (Hiking_national_route,
+                                      Hiking_regional_route,
+                                      Cycling_national_route,
+                                      Cycling_regional_route,
+                                      Mountainbiking_national_route,
+                                      Mountainbiking_regional_route,
+                                      Skating_national_route,
+                                      Skating_regional_route);
+
+  swissTLMRegio_Transp_FCO = (unknown,
+                            single,
+                            null_no_value,
+                            multiple,
+                            double);
+
+  swissTLMRegio_Country = (AT_,
+                           FR,
+                           DE,
+                           IT,
+                           CH,
+                           LI,
+                           Europa);
+
+  CLASS swissTLMRegio_OBJEKT (ABSTRACT) =
+    UUID: INTERLIS.UUIDOID;
+    UNIQUE UUID;
+  END swissTLMRegio_OBJEKT;
+
+  TOPIC swissTLMRegio_Buildings =
+
+    CLASS swissTLMRegio_Building EXTENDS swissTLMRegio_OBJEKT =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Gebaeude);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: D_SURFACE;
+    END swissTLMRegio_Building;
+
+  END swissTLMRegio_Buildings;
+
+  TOPIC swissTLMRegio_Hydrography =
+
+    CLASS swissTLMRegio_HydroInfo =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Stauwehr,
+               Schleuse,
+               Wasserfall,
+               Quelle,
+               Staudamm);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: MANDATORY LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_HydroInfo;
+
+    CLASS swissTLMRegio_Dam =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Staudamm);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Dam;
+
+    CLASS swissTLMRegio_Lake =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (See,
+               Stausee);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: MANDATORY D_SURFACE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Lake;
+
+    CLASS swissTLMRegio_StagnantWater =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Seeufer,
+               Seeinsel);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      GewissNr: -32768 .. 999999;
+      Namn: TEXT*255;
+      LaufNr: swissTLMRegio_Hydro_LaufNr;
+      Klasse: swissTLMRegio_Hydro_Klasse;
+      Linst: swissTLMRegio_Hydro_Linst;
+      GWLNR: TEXT*255;
+      SeeSpH: -32768 .. 99999;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_StagnantWater;
+
+    CLASS swissTLMRegio_FlowingWater =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Fluss,
+               Fluss_U,
+               Seeachse);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      GewissNr: Integer;
+      Namn: TEXT*255;
+      LaufNr: swissTLMRegio_Hydro_LaufNr;
+      Breite: swissTLMRegio_Hydro_Breite;
+      Klasse: swissTLMRegio_Hydro_Klasse;
+      Linst: swissTLMRegio_Hydro_Linst;
+      GWLNR: TEXT*255;
+      EXS: swissTLMRegio_Hydro_EXS;
+      HOC: swissTLMRegio_Hydro_HOC;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_FlowingWater;
+
+    CLASS swissTLMRegio_GWK_FW_NODE =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Kalibrierungspunkt_FW,
+               Loop_Junction);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_GWK_FW_NODE;
+
+    CLASS swissTLMRegio_Referenzorte =
+      DATEOFCHNG: INTERLIS.XMLDate;
+      GewissNr: Integer;
+      LaufNr: swissTLMRegio_Hydro_LaufNr;
+      Linst: swissTLMRegio_Hydro_Linst;
+      TopOrt: TEXT*255;
+      GWLNR: TEXT*255;
+      Measure: swissTLMRegio_HydroMeasure;
+      GWK_FW_Node_OID: TEXT*40;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Referenzorte;
+
+  END swissTLMRegio_Hydrography;
+
+  TOPIC swissTLMRegio_Landcover =
+
+    CLASS swissTLMRegio_Landcover =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Wald,
+               Fels,
+               Geroell,
+               Gletscher,
+               See,
+               Siedlung,
+               Stadtzentrum,
+               Stausee,
+               Obstanlage,
+               Reben,
+               Sumpf,
+               Kulturland);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn1 : TEXT*255;
+      Namn2 : TEXT*255;
+      NLN1 : TEXT*255;
+      NLN2 : TEXT*255;
+      Shape: MANDATORY D_SURFACE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Landcover;
+
+  END swissTLMRegio_Landcover;
+
+  TOPIC swissTLMRegio_Miscellaneous =
+
+    CLASS swissTLMRegio_Supply =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Hochspannungsleitung,
+               Pipeline);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      FCO: swissTLMRegio_Misc_FCO;
+      LOC: swissTLMRegio_Misc_LOC;
+      PRO: swissTLMRegio_Misc_PRO;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Supply;
+
+    CLASS swissTLMRegio_PhysL =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Steilabbruch,
+               Aufschuettung);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      USE: swissTLMRegio_Misc_USE;
+      VRR: swissTLMRegio_Misc_VRR;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_PhysL;
+
+    CLASS swissTLMRegio_ProtectedArea =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Schutzgebiet);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      NA3: swissTLMRegio_Misc_NA3;
+      Shape: MANDATORY D_SURFACE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_ProtectedArea;
+
+    CLASS swissTLMRegio_BuiltupP =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Ortschaft);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn1: TEXT*255;
+      Namn2: TEXT*255;
+      Nln1: TEXT*255;
+      Nln2: TEXT*255;
+      POPULATIONPLACEID: TEXT*50;
+      PPL: Integer;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_BuiltupP;
+
+    CLASS swissTLMRegio_GeodPoint =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (TerrPunkt,
+               SeebodenPunkt);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Height: Hoehe;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_GeodPoint;
+
+    CLASS swissTLMRegio_POI =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Antenne,
+               Campingplatz,
+               Denkmal,
+               Hoehle,
+               Kirche,
+               Kloster,
+               Ruine,
+               Schloss,
+               Stadion,
+               Thermalbad,
+               Kraftwerk,
+               Verarbeitungsanlage,
+               Vergnuegungspark,
+               Rennbahn,
+               Pumpwerk,
+               Turm,
+               Deponie,
+               Museum,
+               Observatorium,
+               Schule,
+               Friedhof,
+               Bauernhof,
+               Berghuette,
+               Spital,
+               Regierungsstelle,
+               Leuchtturm,
+               nichtchristlicher_Kultplatz,
+               Polizei,
+               Golf);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      ObjAzi: swissTLMRegio_Azimuth;
+      Namn1: TEXT*255;
+      Namn2: TEXT*255;
+      Nln1: TEXT*255;
+      Nln2: TEXT*255;
+      PPC: swissTLMRegio_Misc_PPC;
+      PRO: swissTLMRegio_Misc_PRO;
+      TTC: swissTLMRegio_Misc_TTC;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_POI;
+
+  END swissTLMRegio_Miscellaneous;
+
+  TOPIC swissTLMRegio_Names =
+
+    CLASS swissTLMRegio_NamedLocation =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Bach,
+               Bahnhof,
+               Bruecke,
+               Einzelhaus,
+               Flugplatz,
+               Flurname,
+               Fluss,
+               Fusspass,
+               GGipfel,
+               GOrtschaft,
+               HGipfel,
+               HistOrt,
+               HOrtschaft1,
+               HOrtschaft2,
+               HOrtschaft3,
+               HOrtschaft4,
+               Hotel,
+               Huegel,
+               Huette,
+               Industrie,
+               KBach,
+               KGipfel,
+               KOrtschaft,
+               Kirche,
+               MGipfel,
+               MOrtschaft,
+               OeffGeb,
+               Quelle,
+               Ruine,
+               Schloss,
+               Sportanl,
+               Strassenpass,
+               Streusiedl,
+               Tunnel,
+               Turm,
+               Wasserfall,
+               Weiler);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn1: TEXT*255;
+      Namn2: TEXT*255;
+      NLN1: TEXT*255;
+      NLN2: TEXT*255;
+      ALTITUDE: Hoehe;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_NamedLocation;
+
+    CLASS swissTLMRegio_NamedLocation_PLY =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Wald,
+               Sumpf,
+               Fels,
+               Gletscher,
+               GSee,
+               KSee,
+               Stausee,
+               Gebiet,
+               Graben,
+               Nebental,
+               Haupttal,
+               Grat,
+               Massiv);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn1: TEXT*255;
+      Namn2: TEXT*255;
+      NLN1: TEXT*255;
+      NLN2: TEXT*255;
+      Shape: MANDATORY D_SURFACE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_NamedLocation_PLY;
+
+  END swissTLMRegio_Names;
+
+  TOPIC swissTLMRegio_Transportation =
+
+    CLASS swissTLMRegio_Airport =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Flughafen);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      USE: swissTLMRegio_Transp_AirportUse;
+      Shape: MANDATORY D_SURFACE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Airport;
+
+    CLASS swissTLMRegio_Railway =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (NS_Bahn,
+               SS_Bahn,
+               MS_Bahn,
+               Standseilbahn,
+               Luftseilbahn,
+               NS_Bahn_Auto,
+               SS_Bahn_Auto);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Construct: swissTLMRegio_Transp_Construct;
+      Edgelevel: swissTLMRegio_Transp_Edgelevel;
+      Namn: TEXT*255;
+      UnderConst: swissTLMRegio_Year;
+      FCO: swissTLMRegio_Transp_FCO;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Railway;
+
+    CLASS swissTLMRegio_Runway =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Piste);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Runway;
+
+    CLASS swissTLMRegio_Junctions =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Junction,
+               Level_Crossing);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Junctions;
+
+    CLASS swissTLMRegio_Road =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Autob_Ri,
+               Autobahn,
+               Autostr,
+               HauptStrAB4,
+               HauptStrAB6,
+               VerbindStr4,
+               VerbindStr6,
+               NebenStr3,
+               NebenStr6,
+               Fahrstraes,
+               Fussweg);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Construct: swissTLMRegio_Transp_Construct;
+      Edgelevel: swissTLMRegio_Transp_Edgelevel;
+      Banned: swissTLMRegio_FalseTrue;
+      Namn: TEXT*255;
+      Toll: swissTLMRegio_Transp_Toll;
+      UnderConst: swissTLMRegio_Year;
+      Restricted: TEXT*255;
+      AltTransit: swissTLMRegio_FalseTrue;
+      HibernBan: swissTLMRegio_FalseTrue;
+      LTN: swissTLMRegio_Transp_LTN;
+      MED: swissTLMRegio_Transp_MED;
+      RST: swissTLMRegio_Transp_RST;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Road;
+
+    CLASS swissTLMRegio_Ramp =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Autob_Ri_Rampe,
+               Autobahn_Rampe,
+               Autostr_Rampe,
+               HauptStrAB_Rampe,
+               VerbindStr_Rampe,
+               NebenStr_Rampe);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Construct: swissTLMRegio_Transp_Construct;
+      Edgelevel: swissTLMRegio_Transp_Edgelevel;
+      Namn: TEXT*255;
+      Toll: swissTLMRegio_Transp_Toll;
+      UnderConst: swissTLMRegio_Year;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Ramp;
+
+    CLASS swissTLMRegio_TrafficInfo =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      Uuid : TEXT*2550;
+      ObjVal: (Autoverlad,
+               Pass,
+               Pass_WSperre,
+               Parkplatz,
+               RestTank,
+               Zahlstelle);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_TrafficInfo;
+
+    CLASS swissTLMRegio_Access =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Zugang);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Access;
+
+    CLASS swissTLMRegio_Ship =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Autofaehre,
+               Kursschiff_Linie);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      DETN: TEXT*255;
+      RSU: swissTLMRegio_Transp_RSU;
+      USE: swissTLMRegio_Transp_USE;
+      Namn: TEXT*255;
+      Shape: MANDATORY D_POLYLINE;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Ship;
+
+    CLASS swissTLMRegio_Terminal =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Haltepunkt,
+               Regionalflugplatz,
+               Flugfeld,
+               Schiffstation,
+               Landesflughafen,
+               Militaerflugplatz,
+               Heliport);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      IAT: TEXT*255;
+      IKO: TEXT*255;
+      ZV3: Hoehe;
+      AFA: swissTLMRegio_Transp_AFA;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Terminal;
+
+    CLASS swissTLMRegio_CustomsOffice =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Offen24h,
+               Offen24hEing,
+               Eingeschr);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      Clearance: TEXT*30;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_CustomsOffice;
+
+    CLASS swissTLMRegio_Interchange =
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      ObjOrig_Year : swissTLMRegio_Year;
+      ObjVal: (Anschluss,
+               Kreuz,
+               Ende,
+               Kreuzung);
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      Info: TEXT*80;
+      AccessNr: TEXT*10;
+      Shape: LKoord;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_Interchange;
+
+    CLASS swissTLMRegio_RoadNumber =
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      Country: swissTLMRegio_Country;
+      RoadType: swissTLMRegio_Transp_RoadTyp;
+      UUID: INTERLIS.UUIDOID;
+    END swissTLMRegio_RoadNumber;
+
+    CLASS swissTLMRegio_Rel_Road_RoadNr =
+      RUuid: TEXT*255;
+      RnUuid: TEXT*255;
+    END swissTLMRegio_Rel_Road_RoadNr;
+
+    CLASS swissTLMRegio_Rel_Ramp_RoadNr =
+      RUuid: TEXT*255;
+      RnUuid: TEXT*255;
+    END swissTLMRegio_Rel_Ramp_RoadNr;
+
+    CLASS swissTLMRegio_MOBILITY_ROUTE =
+      DATEOFCHNG: INTERLIS.XMLDate;
+      Namn: TEXT*255;
+      MobilityType: swissTLMRegio_Transp_MobilityTyp;
+      ObjOrig : swissTLMRegio_ObjectOrigin;
+      UUID: INTERLIS.UUIDOID;
+      UNIQUE UUID;
+    END swissTLMRegio_MOBILITY_ROUTE;
+
+    CLASS swissTLMRegio_Rel_Road_MobilityRoute =
+      RUuid: TEXT*255;
+      RnUuid: TEXT*255;
+    END swissTLMRegio_Rel_Road_MobilityRoute;
+
+  END swissTLMRegio_Transportation;
+
+END swissTLMRegio_LV95_V5.

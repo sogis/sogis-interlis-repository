@@ -1,0 +1,239 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimo "Zone di pianificazione"
+ * Geodati di base No 76
+ */
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=76
+MODEL ZoneDiPianificazione_MN03_V1 (it)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"
+TRANSLATION OF Planungszonen_LV03_V1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    SuperficieIndividuale = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    DispozioneLivello = (
+      Cantone,
+      Comune,
+      altri
+    );
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF ZoneDiPianificazione_MN03_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : MANDATORY TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY ZoneDiPianificazione_MN03_V1.StatoGiuridico;
+      TestoNelWeb : ZoneDiPianificazione_MN03_V1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON ZoneDiPianificazione_MN03_V1.PrescrizioniLegali;
+
+    CLASS ZonaDiPianificazione =
+      Geometria : MANDATORY ZoneDiPianificazione_MN03_V1.SuperficieIndividuale;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      validoFino : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY ZoneDiPianificazione_MN03_V1.StatoGiuridico;
+      Osservazioni : MTEXT;
+    END ZonaDiPianificazione;
+
+    CLASS Tipo_ZonaDiPianificazione =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      DispozioneLivello : MANDATORY ZoneDiPianificazione_MN03_V1.DispozioneLivello;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+    END Tipo_ZonaDiPianificazione;
+
+    ASSOCIATION TipoZP_Documento =
+      TipoZP (EXTERNAL) -- {0..*} Tipo_ZonaDiPianificazione;
+      Disposizione (EXTERNAL) -- {0..*} ZoneDiPianificazione_MN03_V1.PrescrizioniLegali.Documento;
+    END TipoZP_Documento;
+
+    ASSOCIATION TipoZP_ZonaDiPianificazione =
+      ZonaDiPianificazione -- {0..*} ZonaDiPianificazione;
+      TipoZP -<> {1} Tipo_ZonaDiPianificazione;
+    END TipoZP_ZonaDiPianificazione;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON ZoneDiPianificazione_MN03_V1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : ZoneDiPianificazione_MN03_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END ZoneDiPianificazione_MN03_V1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=76
+MODEL ZoneDiPianificazione_MN95_V1 (it)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"
+TRANSLATION OF Planungszonen_LV95_V1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    SuperficieIndividuale = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    DispozioneLivello = (
+      Cantone,
+      Comune,
+      altri
+    );
+
+    StatoGiuridico = (
+      inVigore,
+      modificaInCorso
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF ZoneDiPianificazione_MN95_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Titolo : MANDATORY TEXT*80;
+      TitoloUfficiale : TEXT;
+      Abbreviazione : TEXT*12;
+      NoUfficiale : MANDATORY TEXT*20;
+      Cantone : CHAdminCodes_V1.CHCantonCode;
+      Comune : CHAdminCodes_V1.CHMunicipalityCode;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY ZoneDiPianificazione_MN95_V1.StatoGiuridico;
+      TestoNelWeb : ZoneDiPianificazione_MN95_V1.MultilingualUri;
+      Osservazioni : MTEXT;
+    END Documento;
+
+    CLASS PrescrizioniLegali
+    EXTENDS Documento =
+    END PrescrizioniLegali;
+
+    ASSOCIATION RiferimentoAltriDocumenti =
+      Origine -- {0..*} Documento;
+      Riferimento -- {0..*} Documento;
+    END RiferimentoAltriDocumenti;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    DEPENDS ON ZoneDiPianificazione_MN95_V1.PrescrizioniLegali;
+
+    CLASS ZonaDiPianificazione =
+      Geometria : MANDATORY ZoneDiPianificazione_MN95_V1.SuperficieIndividuale;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      validoFino : MANDATORY INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY ZoneDiPianificazione_MN95_V1.StatoGiuridico;
+      Osservazioni : MTEXT;
+    END ZonaDiPianificazione;
+
+    CLASS Tipo_ZonaDiPianificazione =
+      Codice : MANDATORY TEXT*12;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*12;
+      DispozioneLivello : MANDATORY ZoneDiPianificazione_MN95_V1.DispozioneLivello;
+      Osservazioni : MTEXT;
+      Simbolo : BLACKBOX BINARY;
+    END Tipo_ZonaDiPianificazione;
+
+    ASSOCIATION TipoZP_Documento =
+      TipoZP (EXTERNAL) -- {0..*} Tipo_ZonaDiPianificazione;
+      Disposizione (EXTERNAL) -- {0..*} ZoneDiPianificazione_MN95_V1.PrescrizioniLegali.Documento;
+    END TipoZP_Documento;
+
+    ASSOCIATION TipoZP_ZonaDiPianificazione =
+      ZonaDiPianificazione -- {0..*} ZonaDiPianificazione;
+      TipoZP -<> {1} Tipo_ZonaDiPianificazione;
+    END TipoZP_ZonaDiPianificazione;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON ZoneDiPianificazione_MN95_V1.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY TEXT*80;
+      ServizioNelWeb : ZoneDiPianificazione_MN95_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Servizio;
+
+    CLASS SetDiDati =
+      BasketID : MANDATORY TEXT*20;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END ZoneDiPianificazione_MN95_V1.

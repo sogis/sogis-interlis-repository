@@ -1,0 +1,203 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.3
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_LimitesTerritorialesMO_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-09-20"
+  TRANSLATION OF DMAV_HoheitsgrenzenAV_V1_0 ["2024-09-20"]
+  =
+  IMPORTS GeometryCHLV95_V2; 
+  IMPORTS CHAdminCodes_V2;
+  IMPORTS DMAVTYM_Topologie_V1_0;
+
+  TOPIC LimitesTerritorialesMO =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS MiseAJourLT =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      ApprouveeLe : DATETIME;
+      UNIQUE CH030101: IdentDN, Identification;
+    END MiseAJourLT;
+
+    CLASS Commune =
+      Nom : MANDATORY TEXT*60;
+      NumeroOFS : MANDATORY CHAdminCodes_V2.CHMunicipalityCode;
+      Fictif : MANDATORY BOOLEAN;
+    END Commune;
+
+    ASSOCIATION Origine_Commune =
+      Origine -- {1} MiseAJourLT;
+      Commune_bientotcreee -- {0..*} Commune;
+    END Origine_Commune;
+
+    ASSOCIATION Caducite_Commune =
+      Caducite  -- {0..1} MiseAJourLT;
+      Commune_bientotcaduque -- {0..*} Commune;
+    END Caducite_Commune;
+
+    ASSOCIATION Predecesseur_Successeur_Commune =
+      Predecesseur -- {0..1} Commune;
+      Successeur -- {0..*} Commune;
+    END Predecesseur_Successeur_Commune;
+
+    VIEW Commune_Valable
+      PROJECTION OF Commune;
+      WHERE
+        DEFINED(Commune->Origine) AND DEFINED(Commune->Origine->ApprouveeLe) AND (NOT (DEFINED(Commune->Caducite )) OR NOT (DEFINED(Commune->Caducite ->ApprouveeLe)));
+      =
+      ALL OF Commune;
+      UNIQUE CH030601: NumeroOFS;
+    END Commune_Valable;
+
+    CLASS LimiteCommune =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      Fictif : MANDATORY BOOLEAN;
+      Litigieux : GeometryCHLV95_V2.MultiLine;
+      Provisoire : GeometryCHLV95_V2.MultiLine;
+      Indefinie : GeometryCHLV95_V2.MultiLine;
+      MANDATORY CONSTRAINT CH030701: NOT (DEFINED(Litigieux)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Litigieux);
+      MANDATORY CONSTRAINT CH030702: NOT (DEFINED(Provisoire)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Provisoire);
+      MANDATORY CONSTRAINT CH030703: NOT (DEFINED(Indefinie)) OR DMAVTYM_Topologie_V1_0.covers(THIS, >>Geometrie, THIS, >>Indefinie);
+    END LimiteCommune;
+
+    ASSOCIATION Origine_LimiteCommune =
+      Origine -- {1} MiseAJourLT;
+      LimiteCommune_bientotcreee -- {0..*} LimiteCommune;
+    END Origine_LimiteCommune;
+
+    ASSOCIATION Caducite_LimiteCommune =
+      Caducite  -- {0..1} MiseAJourLT;
+      LimiteCommune_bientotcaduque -- {0..*} LimiteCommune;
+    END Caducite_LimiteCommune;
+
+    ASSOCIATION Predecesseur_Successeur_LimiteCommune =
+      Predecesseur -- {0..1} LimiteCommune;
+      Successeur -- {0..*} LimiteCommune;
+    END Predecesseur_Successeur_LimiteCommune;
+
+    VIEW LimiteCommune_Valable
+      PROJECTION OF LimiteCommune;
+      WHERE
+        DEFINED(LimiteCommune->Origine) AND DEFINED(LimiteCommune->Origine->ApprouveeLe) AND (NOT (DEFINED(LimiteCommune->Caducite )) OR NOT (DEFINED(LimiteCommune->Caducite ->ApprouveeLe)));
+      =
+      ALL OF LimiteCommune;
+      SET CONSTRAINT CH031101:
+        INTERLIS.areAreas(ALL, UNDEFINED, >>Geometrie);
+    END LimiteCommune_Valable;
+
+    ASSOCIATION CommuneLimiteCommune =
+      Commune -- {1} Commune;
+      LimiteCommune -- {1..*} LimiteCommune;
+      MANDATORY CONSTRAINT CH031201: LimiteCommune->Fictif == Commune->Fictif;
+    END CommuneLimiteCommune;
+
+    CLASS PartieLimiteCommuneProj =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+    END PartieLimiteCommuneProj;
+
+    ASSOCIATION Origine_PartieLimiteCommuneProj =
+      Origine -- {1} MiseAJourLT;
+      PartieLimiteCommuneProj_bientotcreee -- {0..*} PartieLimiteCommuneProj;
+    END Origine_PartieLimiteCommuneProj;
+
+    ASSOCIATION Caducite_PartieLimiteCommuneProj =
+      Caducite  -- {0..1} MiseAJourLT;
+      PartieLimiteCommuneProj_bientotcaduque -- {0..*} PartieLimiteCommuneProj;
+    END Caducite_PartieLimiteCommuneProj;
+
+    ASSOCIATION CommunePartieLimiteCommuneProj =
+      Commune -- {1} Commune;
+      PartieLimiteCommuneProj -- {0..*} PartieLimiteCommuneProj;
+    END CommunePartieLimiteCommuneProj;
+
+    ASSOCIATION Predecesseur_Successeur_PartieLimiteCommuneProj =
+      Predecesseur -- {0..1} PartieLimiteCommuneProj;
+      Successeur -- {0..*} PartieLimiteCommuneProj;
+    END Predecesseur_Successeur_PartieLimiteCommuneProj;
+
+    VIEW PartieLimiteCommune_Proj_projetee
+      PROJECTION OF PartieLimiteCommuneProj;
+      WHERE
+        DEFINED(PartieLimiteCommuneProj->Origine) AND NOT (DEFINED(PartieLimiteCommuneProj->Origine->ApprouveeLe));
+      =
+      ALL OF PartieLimiteCommuneProj;
+    END PartieLimiteCommune_Proj_projetee;
+
+    CLASS PartieLimiteDistrict =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+      Validite : MANDATORY (
+        en_vigueur,
+        Litigieux,
+        provisoire,
+        indefinie
+      );
+    END PartieLimiteDistrict;
+
+    ASSOCIATION Origine_PartieLimiteDistrict =
+      Origine -- {1} MiseAJourLT;
+      PartieLimiteDistrict_bientotcreee -- {0..*} PartieLimiteDistrict;
+    END Origine_PartieLimiteDistrict;
+
+    ASSOCIATION Caducite_PartieLimiteDistrict =
+      Caducite  -- {0..1} MiseAJourLT;
+      PartieLimiteDistrict_bientotcaduque -- {0..*} PartieLimiteDistrict;
+    END Caducite_PartieLimiteDistrict;
+
+    ASSOCIATION Predecesseur_Successeur_PartieLimiteDistrict =
+      Predecesseur -- {0..1} PartieLimiteDistrict;
+      Successeur -- {0..*} PartieLimiteDistrict;
+    END Predecesseur_Successeur_PartieLimiteDistrict;
+
+    VIEW PartieLimiteDistrict_Valable
+      PROJECTION OF PartieLimiteDistrict;
+      WHERE
+        DEFINED(PartieLimiteDistrict->Origine) AND DEFINED(PartieLimiteDistrict->Origine->ApprouveeLe) AND (NOT (DEFINED(PartieLimiteDistrict->Caducite )) OR NOT (DEFINED(PartieLimiteDistrict->Caducite ->ApprouveeLe)));
+      =
+      ALL OF PartieLimiteDistrict;
+    END PartieLimiteDistrict_Valable;
+
+    CLASS PartieLimiteCanton =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Line;
+      Validite : MANDATORY (
+        en_vigueur,
+        Litigieux,
+        provisoire,
+        indefinie
+      );
+    END PartieLimiteCanton;
+
+    ASSOCIATION Origine_PartieLimiteCanton =
+      Origine -- {1} MiseAJourLT;
+      PartieLimiteCanton_bientotcreee -- {0..*} PartieLimiteCanton;
+    END Origine_PartieLimiteCanton;
+
+    ASSOCIATION Caducite_PartieLimiteCanton =
+      Caducite  -- {0..1} MiseAJourLT;
+      PartieLimiteCanton_bientotcaduque -- {0..*} PartieLimiteCanton;
+    END Caducite_PartieLimiteCanton;
+
+    ASSOCIATION Predecesseur_Successeur_PartieLimiteCanton =
+      Predecesseur -- {0..1} PartieLimiteCanton;
+      Successeur -- {0..*} PartieLimiteCanton;
+    END Predecesseur_Successeur_PartieLimiteCanton;
+
+    VIEW PartieLimiteCanton_Valable
+      PROJECTION OF PartieLimiteCanton;
+      WHERE
+        DEFINED(PartieLimiteCanton->Origine) AND DEFINED(PartieLimiteCanton->Origine->ApprouveeLe) AND (NOT (DEFINED(PartieLimiteCanton->Caducite )) OR NOT (DEFINED(PartieLimiteCanton->Caducite ->ApprouveeLe)));
+      =
+      ALL OF PartieLimiteCanton;
+    END PartieLimiteCanton_Valable;
+
+  END LimitesTerritorialesMO;
+
+END DMAV_LimitesTerritorialesMO_V1_0.

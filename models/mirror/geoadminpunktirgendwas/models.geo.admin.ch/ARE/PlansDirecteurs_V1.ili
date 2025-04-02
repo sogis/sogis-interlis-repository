@@ -1,0 +1,157 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal "Plans directeurs des cantons"
+ * Jeu de géodonnées de base No 69
+ */
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ IDGeoIV=69
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+MODEL PlansDirecteurs_V1 (fr)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2022-07-01" 
+TRANSLATION OF Richtplaene_V1 ["2022-07-01"] =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,LocalisationCH_V1,CatalogueObjectTrees_V1,InternationalCodes_V1;
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF PlansDirecteurs_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  STRUCTURE PointStructure =
+    Point : GeometryCHLV95_V1.Coord2;
+  END PointStructure;
+
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF PlansDirecteurs_V1.PointStructure;
+  END MultiPoint;
+
+  TOPIC PlansDirecteurs_Catalogues
+  EXTENDS CatalogueObjectTrees_V1.Catalogues =
+
+    CLASS Theme
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.Item =
+      ThemeID : MANDATORY 1 .. 9999;
+      ThemeName : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE ThemeID;
+    END Theme;
+
+    CLASS CoordLevel
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.Item =
+      CoordLevelID : MANDATORY 1 .. 99;
+      CoordLevelName : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE CoordLevelID;
+    END CoordLevel;
+
+    CLASS MapType
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.Item =
+      MapTypeID : MANDATORY 1 .. 99;
+      MapTypeName : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE MapTypeID;
+    END MapType;
+
+    CLASS ObjectType
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.Item =
+      ObjectTypeID : MANDATORY 1 .. 99;
+      ObjectTypeName : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE ObjectTypeID;
+    END ObjectType;
+
+    STRUCTURE Theme_CatRef
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Theme;
+    END Theme_CatRef;
+
+    STRUCTURE CoordLevel_CatRef
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) CoordLevel;
+    END CoordLevel_CatRef;
+
+    STRUCTURE MapType_CatRef
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MapType;
+    END MapType_CatRef;
+
+    STRUCTURE ObjectType_CatRef
+    EXTENDS CatalogueObjectTrees_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ObjectType;
+    END ObjectType_CatRef;
+
+  END PlansDirecteurs_Catalogues;
+
+  TOPIC PlansDirecteurs =
+    DEPENDS ON PlansDirecteurs_V1.PlansDirecteurs_Catalogues;
+
+    CLASS Carte =
+      Code : TEXT*50;
+      Titre : MANDATORY TEXT*200;
+      TypeDeCarte : MANDATORY PlansDirecteurs_V1.PlansDirecteurs_Catalogues.MapType_CatRef;
+      Echelle_Impression : MANDATORY 1000 .. 1000000;
+      Echelle_CarteDeBase : 1000 .. 1000000;
+      Remarque : MTEXT*255;
+    END Carte;
+
+    CLASS Objet (ABSTRACT) =
+      Code : TEXT*50;
+      DesignationOriginale : MANDATORY TEXT*200;
+      Abreviation : TEXT*25;
+      Chapitre : TEXT*200;
+      Theme : MANDATORY PlansDirecteurs_V1.PlansDirecteurs_Catalogues.Theme_CatRef;
+      EtatDeCoordination : MANDATORY PlansDirecteurs_V1.PlansDirecteurs_Catalogues.CoordLevel_CatRef;
+      TypeDObjet : MANDATORY PlansDirecteurs_V1.PlansDirecteurs_Catalogues.ObjectType_CatRef;
+      Date_Decision : MANDATORY INTERLIS.XMLDate;
+      Echelle_Saisie : 100 .. 1000000;
+      Canton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      LienWeb : PlansDirecteurs_V1.MultilingualUri;
+      Remarque : MTEXT*255;
+    END Objet;
+
+    CLASS Point
+    EXTENDS Objet =
+      Geometrie : MANDATORY PlansDirecteurs_V1.MultiPoint;
+    END Point;
+
+    CLASS Ligne
+    EXTENDS Objet =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiLine;
+    END Ligne;
+
+    CLASS Surface
+    EXTENDS Objet =
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Surface;
+
+    ASSOCIATION Objet_Carte =
+      Objet -- {1..*} Objet;
+      Carte -- {1..*} Carte;
+    END Objet_Carte;
+
+  END PlansDirecteurs;
+
+  TOPIC MetadonneesTransfert =
+
+    CLASS Office =
+      Nom : MANDATORY LocalisationCH_V1.MultilingualText;
+      GuichetEnLigne : PlansDirecteurs_V1.MultilingualUri;
+      DIE : TEXT*12;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      BasketID : MANDATORY TEXT*20;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarque : MTEXT*255;
+    END JeuDeDonnees;
+
+    ASSOCIATION ServiceCompetent_Donnees =
+      ServiceCompetent -<> {1} Office;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END ServiceCompetent_Donnees;
+
+  END MetadonneesTransfert;
+
+END PlansDirecteurs_V1.

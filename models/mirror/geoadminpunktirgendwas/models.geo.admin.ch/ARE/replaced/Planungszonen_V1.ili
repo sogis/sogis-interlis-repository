@@ -1,0 +1,242 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell "Planungszonen"
+ *  Geobasisdatensatz Nr. 76
+ *  TRANSLATION OF-Modelle: Zones_reservees_V1.ili, ZoneDiPianificazione_V1.ili
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-09 | KOGIS | Association TypPZ_Dokument adapted (both roles defined as EXTERNAL)
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=76
+MODEL Planungszonen_LV03_V1 (de)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"  =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    Einzelflaeche = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    Festlegung_Stufe = (
+      Kanton,
+      Gemeinde,
+      andere
+    );
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderung
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Planungszonen_LV03_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : MANDATORY TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Planungszonen_LV03_V1.Rechtsstatus;
+      TextImWeb : Planungszonen_LV03_V1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweisWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Planungszonen_LV03_V1.Rechtsvorschriften;
+
+    CLASS Planungszone =
+      Geometrie : MANDATORY Planungszonen_LV03_V1.Einzelflaeche;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      gueltigBis : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Planungszonen_LV03_V1.Rechtsstatus;
+      Bemerkungen : MTEXT;
+    END Planungszone;
+
+    CLASS Typ_Planungszone =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*12;
+      Festlegung_Stufe : MANDATORY Planungszonen_LV03_V1.Festlegung_Stufe;
+      Bemerkungen : MTEXT;
+      Symbol : BLACKBOX BINARY;
+    END Typ_Planungszone;
+
+    ASSOCIATION TypPZ_Dokument =
+      TypPZ (EXTERNAL) -- {0..*} Typ_Planungszone;
+      Vorschrift (EXTERNAL) -- {0..*} Planungszonen_LV03_V1.Rechtsvorschriften.Dokument;
+    END TypPZ_Dokument;
+
+    ASSOCIATION TypPZ_Planungszone =
+      Planungszone -- {0..*} Planungszone;
+      TypPZ -<> {1} Typ_Planungszone;
+    END TypPZ_Planungszone;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Planungszonen_LV03_V1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Planungszonen_LV03_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION zustStelle_Daten =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END zustStelle_Daten;
+
+  END TransferMetadaten;
+
+END Planungszonen_LV03_V1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=76
+MODEL Planungszonen_LV95_V1 (de)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    Einzelflaeche = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    Festlegung_Stufe = (
+      Kanton,
+      Gemeinde,
+      andere
+    );
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderung
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Planungszonen_LV95_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : MANDATORY TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Planungszonen_LV95_V1.Rechtsstatus;
+      TextImWeb : Planungszonen_LV95_V1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweisWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Planungszonen_LV95_V1.Rechtsvorschriften;
+
+    CLASS Planungszone =
+      Geometrie : MANDATORY Planungszonen_LV95_V1.Einzelflaeche;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      gueltigBis : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Planungszonen_LV95_V1.Rechtsstatus;
+      Bemerkungen : MTEXT;
+    END Planungszone;
+
+    CLASS Typ_Planungszone =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*12;
+      Festlegung_Stufe : MANDATORY Planungszonen_LV95_V1.Festlegung_Stufe;
+      Bemerkungen : MTEXT;
+      Symbol : BLACKBOX BINARY;
+    END Typ_Planungszone;
+
+    ASSOCIATION TypPZ_Dokument =
+      TypPZ (EXTERNAL) -- {0..*} Typ_Planungszone;
+      Vorschrift (EXTERNAL) -- {0..*} Planungszonen_LV95_V1.Rechtsvorschriften.Dokument;
+    END TypPZ_Dokument;
+
+    ASSOCIATION TypPZ_Planungszone =
+      Planungszone -- {0..*} Planungszone;
+      TypPZ -<> {1} Typ_Planungszone;
+    END TypPZ_Planungszone;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Planungszonen_LV95_V1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Planungszonen_LV95_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION zustStelle_Daten =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END zustStelle_Daten;
+
+  END TransferMetadaten;
+
+END Planungszonen_LV95_V1.

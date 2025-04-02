@@ -1,0 +1,93 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ IDGeoIV = "49.1,49.2"
+
+!! ########################################################################
+/** [DE] Minimales Geodatenmodell GeoIV Nr. 49.1 "Topographischer Atlas der
+         Schweiz (Siegfriedkarte)"
+ * [FR] Modèle de géodonnées minimal OGéo No. 49.1
+ * [IT] Modello minimo dei dati geografici GeoIV No. 49.1
+ * [EN] Minimal geodata model GeoIV no. 49.1
+ */
+MODEL Siegfriedkarten_V1 (de) 
+  AT "http://models.geo.admin.ch/Swisstopo/" 
+  VERSION "20110524" =
+
+  IMPORTS UNQUALIFIED NonVector_Base_V2;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1; !! from CHBase
+  IMPORTS Units;
+
+  TOPIC Siegfriedkarten EXTENDS NonVector =
+  
+    CLASS Siegfriedkarte EXTENDS NonVector_Dataset =
+      Massstab: MANDATORY (Siegfriedkarte_25000,Siegfriedkarte_50000);
+    END Siegfriedkarte;
+
+    STRUCTURE NachfuehrungInfo =
+      Gesamtnachfuehrung: MANDATORY 1870..1949;
+    END NachfuehrungInfo;
+    
+    CLASS SiegfriedkarteBlatt EXTENDS ImageGraphicRasterObject =
+      BlattName: TEXT*50; !! e.g. TÖDI
+      BlattNummer: MANDATORY 0..9999; !! z.B. 1011
+      BlattNachfuehrungen: LIST {5} OF NachfuehrungInfo;
+      BlattSchnitt: MANDATORY Surface;
+      BlattAusdehnungH: MANDATORY 1..10000 [Units.mm];
+      BlattAusdehnungB: MANDATORY 1..10000 [Units.mm];
+      Aufloesung: MANDATORY (dpi508);
+      Farbraum: MANDATORY (RGB);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+    END SiegfriedkarteBlatt;
+    
+    CLASS Ausschnitt EXTENDS Clipping =
+    END Ausschnitt;
+  
+  END Siegfriedkarten;
+  
+END Siegfriedkarten_V1.
+
+!! ########################################################################
+/** [DE] Minimales Geodatenmodell GeoIV Nr. 49.2 "Topographische Karte der
+         Schweiz (Dufourkarte)"
+ * [FR] Modèle de géodonnées minimal OGéo No. 49.2
+ * [IT] Modello minimo dei dati geografici GeoIV No. 49.2
+ * [EN] Minimal geodata model GeoIV no. 49.2
+ */
+MODEL Dufourkarten_V1 (de) 
+  AT "http://models.geo.admin.ch/Swisstopo/" 
+  VERSION "20110524" =
+
+  IMPORTS UNQUALIFIED NonVector_Base_V2;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1; !! from CHBase
+  IMPORTS Units;
+
+  TOPIC Dufourkarten EXTENDS NonVector =
+  
+    CLASS Dufourkarte EXTENDS NonVector_Dataset =
+      Massstab: MANDATORY (Dufourkarte_100000);
+    END Dufourkarte;
+
+    STRUCTURE NachfuehrungInfo =
+      Gesamtnachfuehrung: MANDATORY 1845..1939;
+    END NachfuehrungInfo;
+    
+    CLASS DufourkarteBlatt EXTENDS ImageGraphicRasterObject =
+      BlattNummer: MANDATORY 0..9999; !! z.B. 13
+      BlattNachfuehrungen: LIST {5} OF NachfuehrungInfo;
+      BlattSchnitt: MANDATORY Surface;
+      BlattAusdehnungH: MANDATORY 1..10000 [Units.mm];
+      BlattAusdehnungB: MANDATORY 1..10000 [Units.mm];
+      Aufloesung: MANDATORY (dpi508);
+      Farbraum: MANDATORY (RGB,Grayscale);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+    END DufourkarteBlatt;
+    
+    CLASS Ausschnitt EXTENDS Clipping =
+    END Ausschnitt;
+  
+  END Dufourkarten;
+  
+END Dufourkarten_V1.

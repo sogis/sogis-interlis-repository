@@ -1,0 +1,268 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell
+ *  Statische Waldgrenzen
+ *  Geobasisdatensatz Nr. 157
+ *  TRANSLATION OF-Modelle: LimitesDeLaForet_V1_1.ili, MarginiDellaForesta_V1_1.ili
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-09 | KOGIS | Association Typ_Dokument adapted (both roles defined as EXTERNAL)
+!!------------------------------------------------------------------------------
+!! 2017-02-16 | ARE   | Version 1.1
+!!                    | (Folge des geänderten ÖREB-Rahmenmodells V1.1 vom 20.08.2016)
+!!                    | - MODEL Waldgrenzen_LV03_V1_1: Bezugsrahmen LV03
+!!                    | - MODEL Waldgrenzen_LV95_V1_1: Bezugsrahmen LV95
+!!                    | - STRUCTURE LocalisedUri: neue Struktur für mehrsprachige URI
+!!                    | - STRUCTURE MultilingualUri: neue Struktur für mehrsprachige URI
+!!                    | - DOMAIN Art_Waldgrenze: neuer Wertebereich für Art der Waldgrenze
+!!                    | - CLASS Dokument: Attribut TextImWeb neu vom Typ MultilingualUri
+!!                    | - CLASS Typ: neues Attribut Art
+!!                    | - CLASS Typ: neues Attribut Symbol
+!!                    | - CLASS Amt: neues Attribut UID
+!!                    | - CLASS Amt: Attribut TextImWeb neu vom Typ MultilingualUri
+!!                    | - CLASS Datenbestand: neues Attribut BasketID
+!!------------------------------------------------------------------------------
+!! 2011-12-12 | ARE   | Version 1.0
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=157
+MODEL Waldgrenzen_LV03_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    Art_Waldgrenze = (
+      in_Bauzonen,
+      ausserhalb_Bauzonen
+    );
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderungen
+    );
+
+    Verbindlichkeit = (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Waldgrenzen_LV03_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Waldgrenzen_LV03_V1_1.Rechtsstatus;
+      TextImWeb : Waldgrenzen_LV03_V1_1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweiseWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweiseWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Waldgrenzen_LV03_V1_1.Rechtsvorschriften;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*10;
+      Verbindlichkeit : MANDATORY Waldgrenzen_LV03_V1_1.Verbindlichkeit;
+      Bemerkungen : MTEXT;
+      Art : MANDATORY Waldgrenzen_LV03_V1_1.Art_Waldgrenze;
+      Symbol : BLACKBOX BINARY;
+    END Typ;
+
+    CLASS Waldgrenze_Linie =
+      Geometrie : MANDATORY GeometryCHLV03_V1.Line;
+      Rechtsstatus : MANDATORY Waldgrenzen_LV03_V1_1.Rechtsstatus;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Waldgrenze_Linie;
+
+    ASSOCIATION Typ_Dokument =
+      Vorschrift (EXTERNAL) -- {0..*} Waldgrenzen_LV03_V1_1.Rechtsvorschriften.Dokument;
+      Typ (EXTERNAL) -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Waldgrenze_Linie;
+      WG -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Waldgrenzen_LV03_V1_1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Waldgrenzen_LV03_V1_1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION Datenbestand_zustStelle =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END Datenbestand_zustStelle;
+
+  END TransferMetadaten;
+
+END Waldgrenzen_LV03_V1_1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=157
+MODEL Waldgrenzen_LV95_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2019-08-09"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    Art_Waldgrenze = (
+      in_Bauzonen,
+      ausserhalb_Bauzonen
+    );
+
+    Rechtsstatus = (
+      inKraft,
+      laufendeAenderungen
+    );
+
+    Verbindlichkeit = (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Waldgrenzen_LV95_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*12;
+      OffizielleNr : TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Rechtsstatus : MANDATORY Waldgrenzen_LV95_V1_1.Rechtsstatus;
+      TextImWeb : Waldgrenzen_LV95_V1_1.MultilingualUri;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweiseWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweiseWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Waldgrenzen_LV95_V1_1.Rechtsvorschriften;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*10;
+      Verbindlichkeit : MANDATORY Waldgrenzen_LV95_V1_1.Verbindlichkeit;
+      Bemerkungen : MTEXT;
+      Art : MANDATORY Waldgrenzen_LV95_V1_1.Art_Waldgrenze;
+      Symbol : BLACKBOX BINARY;
+    END Typ;
+
+    CLASS Waldgrenze_Linie =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+      Rechtsstatus : MANDATORY Waldgrenzen_LV95_V1_1.Rechtsstatus;
+      publiziertAb : MANDATORY INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Waldgrenze_Linie;
+
+    ASSOCIATION Typ_Dokument =
+      Vorschrift (EXTERNAL) -- {0..*} Waldgrenzen_LV95_V1_1.Rechtsvorschriften.Dokument;
+      Typ (EXTERNAL) -- {0..*} Typ;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Waldgrenze_Linie;
+      WG -<> {1} Typ;
+    END Typ_Geometrie;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Waldgrenzen_LV95_V1_1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : Waldgrenzen_LV95_V1_1.MultilingualUri;
+      UID : TEXT*12;
+    END Amt;
+
+    CLASS Datenbestand =
+      BasketID : MANDATORY TEXT*20;
+      Stand : MANDATORY INTERLIS.XMLDate;
+      Lieferdatum : INTERLIS.XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION Datenbestand_zustStelle =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END Datenbestand_zustStelle;
+
+  END TransferMetadaten;
+
+END Waldgrenzen_LV95_V1_1.

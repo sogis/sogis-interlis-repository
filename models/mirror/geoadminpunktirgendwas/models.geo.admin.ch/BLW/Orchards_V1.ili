@@ -1,0 +1,77 @@
+INTERLIS 2.3;
+
+/** Katalog der Obstkulturen (fruitTypes)
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL fruitType_Catalogue_V1 (en)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2019-08-26"  =
+  IMPORTS LocalisationCH_V1,CatalogueObjects_V1;
+
+  TOPIC Codelists =
+
+    CLASS fruitType_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Code gemäss Obstsortenkatalog
+       */
+      Code : MANDATORY 1000 .. 9999;
+      /** Obstsorte mehrsprachig
+       */
+      fruitType : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Obstklasse mehrsprachig
+       */
+      fruitClass : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Gültigkeitsbereich seit welchem Jahr der Code verwendet wird
+       */
+      valid_since : 1899 .. 2199 [INTERLIS.Y];
+      /** Gültigkeitsbereich bis in welchem Jahr der Code verwendet wurde
+       */
+      valid_until : 1899 .. 2199 [INTERLIS.Y];
+      UNIQUE Code;
+    END fruitType_Catalogue;
+
+    STRUCTURE fruitType_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) fruitType_Catalogue;
+    END fruitType_CatRef;
+
+  END Codelists;
+
+END fruitType_Catalogue_V1.
+
+/** Minimales Geodatenmodell Orchards
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ furtherInformation=https://www.blw.admin.ch/blw/de/home/politik/datenmanagement/geografisches-informationssystem-gis/minimale-geodatenmodelle.html
+MODEL Orchards_V1 (en)
+AT "https://models.geo.admin.ch/BLW/"
+VERSION "2019-08-26"  =
+  IMPORTS GeometryCHLV95_V1,fruitType_Catalogue_V1;
+
+  TOPIC Orchards =
+    DEPENDS ON fruitType_Catalogue_V1.Codelists;
+
+    CLASS Orchard =
+      /** Eineindeutige Nr. pro Bestand und Kanton z. B. Universally Unique Identifier (UUID)
+       * Der gleiche identifier muss im Knoten Obstanlagen bei Attribut cultureId mit den AGIS-Strukturdaten übermittelt werden, damit die Verbindung der Geodaten mit den nummerischen Daten gemacht werden kann.
+       */
+      identifier : MANDATORY TEXT*40;
+      /** Geometrie vom Typ Multisurface.
+       */
+      geo_obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Jahr, für welches die Daten gelten.
+       */
+      year : MANDATORY 1899 .. 2199 [INTERLIS.Y];
+      /** UUID der übergeordneten Nutzungsfläche, resp. Obstanlage aus Modell 153.1.
+       * Ein Obstsortenbestand muss innerhalb einer Obstanlage (Codes 702, 703, 704, 731, resp. 730) gemäss Modell 153.1 liegen.
+       */
+      fruitPlot : MANDATORY TEXT*40;
+      /** Code gemäss Obstsorten_Katalog
+       */
+      fruitType : MANDATORY fruitType_Catalogue_V1.Codelists.fruitType_CatRef;
+    END Orchard;
+
+  END Orchards;
+
+END Orchards_V1.

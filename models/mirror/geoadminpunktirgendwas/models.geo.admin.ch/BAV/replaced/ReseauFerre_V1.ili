@@ -1,0 +1,185 @@
+!!==============================================================================
+!! Réseau Ferré
+!!------------------------------------------------------------------------------
+!!
+!! OGéo, Annexe 1
+!! ==============
+!! Identificateur OGéo                       : 98
+!! Désignation OGéo                          : Réseau Ferré
+!! Sammlung-Nr.                              : 98.1
+!! Service compétent                         : OFT
+!! Niveau d’autorisation d'accès             : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 0.90    | 2012-09-11 | LS    | Draft 
+!! 0.92    | 2012-11-16 | LS    | Draft  Verweise auf TU und Dst als Strukturattribut
+!! 0.95    | 2013-11-27 | LS    | Draft (release candidate): Anpassung nach Anhörung
+!! 1.00    | 2014-10-30 | EMS   | Anpassung an publizierte deutsche Version
+!! 1.00    | 2014-12-03 | EMS   | Korrektur: IMPORTS GeometryCHLV03_V1 , POLYLINE WITH (STRAIGHTS, ARCS)
+!! 1.00    | 2015-08-12 | KOGIS | UNIQUE-Constraint specified (line 96, 105, 145)
+
+INTERLIS 2.3;
+!!@ IDGeoIV = "98.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = http://www.bav.admin.ch/dokumentation/04523/04524/04542/index.html
+
+
+MODEL ReseauFerre_V1 (fr)
+ AT "http://models.geo.admin.ch/BAV/" VERSION "2015-08-12" TRANSLATION OF Schienennetz_V1 ["2015-08-12"]=
+
+ IMPORTS GeometryCHLV03_V1;      !! CHBase_Part1_GEOMETRY_20110830.ili; imports Units, Coordsys
+ IMPORTS ArretsTP_V1;
+
+  TOPIC ReseauFerre =
+    DEPENDS ON ArretsTP_V1.ArretsTP;
+
+    DOMAIN
+      Ecartement = (
+        mm600,
+        mm750,
+        mm800,
+        mm1000,
+        mm1200,
+        mm1435,
+        mm1000_1435,
+        autres);
+
+      Electrification =(
+        CourantContinu, 
+        CourantMonophase_50Hz,
+        CourantMonophase_16_7Hz,
+        CourantTriphase);
+
+      Polyline = POLYLINE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2;
+
+    STRUCTURE PointExploitation =
+      Numero :       MANDATORY 0 .. 9999999;
+      Nom :                    TEXT*50;       !! redondant à Numero
+      Abreviation :            TEXT*6;        !! redondant à Numero
+      RespDonneesAbreviation : TEXT*10;
+
+      !!PointExploitation doit exister dans ArretsTP (doit être définit dans la liste DIDOK)
+      EXISTENCE CONSTRAINT Numero REQUIRED IN ArretsTP_V1.ArretsTP.PointExploitation:Numero;
+      EXISTENCE CONSTRAINT Nom  REQUIRED IN ArretsTP_V1.ArretsTP.PointExploitation:Nom;
+      EXISTENCE CONSTRAINT Abreviation REQUIRED IN ArretsTP_V1.ArretsTP.PointExploitation:Abreviation;
+      EXISTENCE CONSTRAINT RespDonneesAbreviation REQUIRED IN ArretsTP_V1.ArretsTP.PointExploitation:RespDonneesAbreviation;
+
+    END PointExploitation;
+
+    STRUCTURE ET =
+      NumeroET :      MANDATORY TEXT*6;
+      AbreviationET :           TEXT*10;    !!redondant à NumeroET
+
+      !!ETNumero doit exister dans la liste ET de l'OFT. 
+      !!EXISTENCE CONSTRAINT ETNumero REQUIRED IN ET.ET.Entreprise.ETNumero;
+      !!EXISTENCE CONSTRAINT ETAbreviation REQUIRED IN ET.ET.Entreprise.ETAbreviation;
+
+    END ET;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      DateTraitement: MANDATORY INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+
+    CLASS LigneKm =
+      ResponsableDonnees : MANDATORY ET;
+      Numero :             MANDATORY TEXT*4;
+      Nom :                          TEXT*40;
+      Validite :           MANDATORY Validite;
+
+      UNIQUE ResponsableDonnees->NumeroET, Numero;
+
+    END LigneKm;
+
+    CLASS NoeudReseau =
+      PointExploitation: MANDATORY PointExploitation;
+      Geometrie :        MANDATORY GeometryCHLV03_V1.Coord2;
+      Validite :         MANDATORY Validite;
+
+      UNIQUE PointExploitation->Numero;
+
+    END NoeudReseau;
+
+    CLASS Segment =
+      Nom :                       MANDATORY TEXT*16;
+      KmDebut :                   MANDATORY -999.999 .. 999.999;
+      KmFin :                     MANDATORY -999.999 .. 999.999;
+      Geometrie :                 MANDATORY Polyline;
+      GestionnaireInfrastructure: MANDATORY ET;
+      NombreVoies:                MANDATORY 0 .. 9;
+      Ecartement :                MANDATORY Ecartement;
+      Electrification:            MANDATORY Electrification;
+      Validite :                  MANDATORY Validite;
+
+
+    END Segment;
+
+
+    ASSOCIATION NoeudReseau_NoeudReseauAssoc =
+      rSuperieur -- {0..1} NoeudReseau;
+      rSubordonne -- {0..*} NoeudReseau;
+    END NoeudReseau_NoeudReseauAssoc;
+
+    ASSOCIATION LigneKm_SegmentAssoc =
+      rLigneKm -- {1} LigneKm;
+      rSegmente -- {0..*} Segment;
+    END LigneKm_SegmentAssoc;
+
+    ASSOCIATION NoeudReseauDebut_SegmentAssoc =
+      rNoeudDebut -- {1} NoeudReseau;
+      rSegmentsDebut -- {0..*} Segment;
+    END NoeudReseauDebut_SegmentAssoc;
+
+    ASSOCIATION NoeudReseauFin_SegmentAssoc =
+      rNoeudFin -- {1} NoeudReseau;
+      rSegmentsFin -- {0..*} Segment;
+    END NoeudReseauFin_SegmentAssoc;
+
+    CONSTRAINTS OF Segment =
+      UNIQUE rLigneKm -> ResponsableDonnees->NumeroET, Nom;
+    END;
+
+
+  END ReseauFerre ;     !! TOPIC
+
+
+
+  !!
+  !!    Vues dénormalisées sur NoeudReseau et Segment
+  !!
+
+  VIEW TOPIC V_ReseauFerre =
+  DEPENDS ON ReseauFerre_V1.ReseauFerre;
+
+    VIEW V_NoeudReseau
+      PROJECTION OF NoeudReseau ~ ReseauFerre_V1.ReseauFerre.NoeudReseau ;
+      =
+      ATTRIBUTE
+        ALL OF NoeudReseau;
+        NoeudReseauSuperieur := NoeudReseau -> rSuperieur -> PointExploitation;
+
+    END V_NoeudReseau;
+
+
+    VIEW V_Segment
+      PROJECTION OF Segment ~ ReseauFerre_V1.ReseauFerre.Segment ;
+      =
+      ATTRIBUTE
+        ALL OF Segment;
+        LigneKm            := Segment -> rLigneKm -> Numero;
+        ResponsableDonnees := Segment -> rLigneKm -> ResponsableDonnees;
+        NoeudReseauDebut   := Segment -> rNoeudDebut -> PointExploitation;
+        NoeudReseauFin     := Segment -> rNoeudFin -> PointExploitation;
+
+    END V_Segment;
+
+  END V_ReseauFerre;       !! TOPIC
+
+
+END ReseauFerre_V1 .

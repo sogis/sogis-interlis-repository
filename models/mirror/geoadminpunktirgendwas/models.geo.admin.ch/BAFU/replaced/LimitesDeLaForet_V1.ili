@@ -1,0 +1,107 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal Limites de la forêt (dans des zones à bâtir)
+ *  Jeu de géodonnées No. 157
+ */
+ 
+!!@ technicalContact = mailto:info@are.admin.ch;
+!!@ IDGeoIV = "157";
+!!@ furtherInformation = http://www.are.admin.ch/mmg; 
+
+MODEL LimitesDeLaForet_V1 (fr) AT "http://models.geo.admin.ch/ARE" VERSION "2011-12-12" TRANSLATION OF Waldgrenzen_V1 ["2011-12-12"] =
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED INTERLIS;
+
+  DOMAIN
+
+    StatutJuridique = MANDATORY (
+      En_vigueur,
+      En_cours_modification
+    );
+
+    ForceObligatoire = MANDATORY (
+      Contenu_contraignant,
+      Contenu_informatif,
+      Contenu_indicatif,
+      Contenu_dAideALaMiseEnOeuvre
+    );
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : MANDATORY TEXT*12;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY XMLDate;
+      StatutJuridique : MANDATORY LimitesDeLaForet_V1.StatutJuridique;
+      TexteEnLigne : URI;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON LimitesDeLaForet_V1.DispositionsJuridiques;
+
+    CLASS Type =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*10;
+      ForceObligatoire : MANDATORY LimitesDeLaForet_V1.ForceObligatoire;
+      Remarques : MTEXT;
+    END Type;
+
+    CLASS LimiteDeLaForet_Ligne =
+      Geometrie : MANDATORY Line;
+      StatutJuridique : MANDATORY LimitesDeLaForet_V1.StatutJuridique;
+      publieeDepuis : MANDATORY XMLDate;
+      Remarques : MTEXT;
+    END LimiteDeLaForet_Ligne;
+
+    ASSOCIATION Type_Document =
+      Disposition (EXTERNAL) -- {0..*} LimitesDeLaForet_V1.DispositionsJuridiques.Document;
+      Type -- {0..*} Type;
+    END Type_Document;
+
+    ASSOCIATION Type_Geometrie =
+      Geometrie -- {0..*} LimiteDeLaForet_Ligne;
+      LF -<> {1} Type;
+    END Type_Geometrie;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON LimitesDeLaForet_V1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      GuichetEnLigne : URI;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      Version : MANDATORY XMLDate;
+      DateDeLivraison : XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_orgResp =
+      OrganismeResponsable -<> {1} Office;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END Donnees_orgResp;
+
+  END MetadonneesTransfer;
+
+END LimitesDeLaForet_V1.

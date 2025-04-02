@@ -1,0 +1,130 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Version    | Who   | Modification
+!! -----------------------------------------------------------------------------
+!! 2022-01-04 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ IDGeoIV=221.1
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL ElectricityProductionPlants_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2022-01-04"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,CHAdminCodes_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Angle = 0 .. 90;
+    Numeric = 0.00 .. 999999999.99;
+    PostCode = 1000 .. 9999;
+    Text = TEXT*500;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC MainCategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS MainCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      MainCategory : MANDATORY LocalisationCH_V1.MultilingualText;
+    END MainCategory;
+
+    STRUCTURE MainCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MainCategory;
+    END MainCategoryRef;
+
+  END MainCategoryCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC SubCategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS SubCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      SubCategory : MANDATORY LocalisationCH_V1.MultilingualText;
+    END SubCategory;
+
+    STRUCTURE SubCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) SubCategory;
+    END SubCategoryRef;
+
+  END SubCategoryCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC PlantCategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS PlantCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      PlantType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END PlantCategory;
+
+    STRUCTURE PlantCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) PlantCategory;
+    END PlantCategoryRef;
+
+  END PlantCategoryCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC OrientationCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Orientation
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Orientation : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Orientation;
+
+    STRUCTURE OrientationRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Orientation;
+    END OrientationRef;
+
+  END OrientationCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ElectricityProductionPlants =
+    DEPENDS ON ElectricityProductionPlants_V1.MainCategoryCatalogue,ElectricityProductionPlants_V1.SubCategoryCatalogue,ElectricityProductionPlants_V1.PlantCategoryCatalogue,ElectricityProductionPlants_V1.OrientationCatalogue;
+
+    CLASS ElectricityProductionPlant =
+      Address : ElectricityProductionPlants_V1.Text;
+      PostCode : MANDATORY ElectricityProductionPlants_V1.PostCode;
+      Municipality : MANDATORY ElectricityProductionPlants_V1.Text;
+      Canton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Geometry : GeometryCHLV95_V1.Coord2;
+      BeginningOfOperation : MANDATORY INTERLIS.XMLDate;
+      InitialPower : MANDATORY ElectricityProductionPlants_V1.Numeric;
+      TotalPower : MANDATORY ElectricityProductionPlants_V1.Numeric;
+      MainCategory : MANDATORY ElectricityProductionPlants_V1.MainCategoryCatalogue.MainCategoryRef;
+      SubCategory : MANDATORY ElectricityProductionPlants_V1.SubCategoryCatalogue.SubCategoryRef;
+      PlantCategory : ElectricityProductionPlants_V1.PlantCategoryCatalogue.PlantCategoryRef;
+      MANDATORY CONSTRAINT DEFINED(Address) OR DEFINED(Geometry);
+    END ElectricityProductionPlant;
+
+    CLASS PlantDetail =
+      Date : INTERLIS.XMLDate;
+      Power : ElectricityProductionPlants_V1.Numeric;
+      PlantCategory : ElectricityProductionPlants_V1.PlantCategoryCatalogue.PlantCategoryRef;
+      Inclination : ElectricityProductionPlants_V1.Angle;
+      Orientation : ElectricityProductionPlants_V1.OrientationCatalogue.OrientationRef;
+      MANDATORY CONSTRAINT DEFINED(Date) OR DEFINED(Power) OR DEFINED(PlantCategory) OR DEFINED(Inclination) OR DEFINED(Orientation);
+    END PlantDetail;
+
+    ASSOCIATION ElectricityProductionPlantPlantExtension =
+      PlantDetailR -- {0..*} PlantDetail;
+      ElectricityProductionPlantR -<#> {1} ElectricityProductionPlant;
+    END ElectricityProductionPlantPlantExtension;
+
+  END ElectricityProductionPlants;
+
+END ElectricityProductionPlants_V1.

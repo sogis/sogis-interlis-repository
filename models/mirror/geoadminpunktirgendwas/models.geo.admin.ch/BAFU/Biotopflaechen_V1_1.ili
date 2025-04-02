@@ -1,0 +1,81 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-02-08 | BAFU  | Korrektur Schreibfehler in Attribut "Mutationsgrund"; Anpassung auf LV95; Textlängen definiert
+
+!!@ IDGeoIV=23.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Biotopflaechen_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-02-08"  =
+  IMPORTS CatalogueObjects_V1,CHAdminCodes_V1,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS BIO_Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_Bedeutung_Catalogue;
+
+    CLASS BIO_Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_Kartierungsgrundlage_Catalogue;
+
+    CLASS BIO_TYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*9;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BIO_TYP_Catalogue;
+
+    STRUCTURE BIO_Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BIO_Bedeutung_Catalogue;
+    END BIO_Bedeutung_CatRef;
+
+    STRUCTURE BIO_Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BIO_Kartierungsgrundlage_Catalogue;
+    END BIO_Kartierungsgrundlage_CatRef;
+
+    STRUCTURE BIO_TYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BIO_TYP_Catalogue;
+    END BIO_TYP_CatRef;
+
+  END Codelisten;
+
+  TOPIC Biotopflaechen =
+    DEPENDS ON Biotopflaechen_V1_1.Codelisten;
+
+    CLASS Biotopflaeche =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      BIO_TYP : MANDATORY Biotopflaechen_V1_1.Codelisten.BIO_TYP_CatRef;
+      Bio_Typ_KT : TEXT*80;
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY Biotopflaechen_V1_1.Codelisten.BIO_Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY Biotopflaechen_V1_1.Codelisten.BIO_Bedeutung_CatRef;
+    END Biotopflaeche;
+
+    CLASS Biotopflaeche_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*30;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Biotopflaeche_Teilobjekt;
+
+    ASSOCIATION TeilobjektBiotopflaeche =
+      Biotop_Teilobjekt -- {1..*} Biotopflaeche_Teilobjekt;
+      Biotop -<#> {1} Biotopflaeche;
+    END TeilobjektBiotopflaeche;
+
+  END Biotopflaechen;
+
+END Biotopflaechen_V1_1.

@@ -1,0 +1,223 @@
+
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Modello dei dati delle CAPLocalita "Confederazione" (CAPL-CH-MN03)
+!! decrizione in INTERLIS versione 1 (SN 612030).
+!! IDGeoIV = "181.1"
+!! 
+!! Ufficio federale di topografia (swisstopo)
+!! Direzione federale delle misurazioni catastali (D+M)
+!! CH-3084 Wabern
+!! www.cadastre.ch/plz
+!!
+!! Versione: 1 italiano 
+!! Nome del file: PLZO-CH_LV03_1i_ili1.ili (data: 27 agosto 2012)
+!!
+!! Il presente modello dei dati e valido nel quadro di riferimento "Misurazione
+!! Nazionale 1903 (MN03)". Per il quadro di riferimento "Misurazione Nazionale 1995 
+!! (MN95)", esiste un modello dei dati CAPL-MN95-CH che si differenzia dal 
+!! presente modello dei dati unicamente per la definizione del DOMAIN (estensione 
+!! delle coordinate).
+!!
+!! Questo modello dati è basato sul modello MD.01-MU-CH-24i, ma contiene unicamente il TOPIC 
+!! CAP_Localita. L’identificatore univoco della tabella CAP6, che comprendeva l’attributo 
+!! Cifre_supplementari, è stato soppresso a causa della presenza di più geometrie per un codice 
+!! postale, non permettendo di adempiere alla condizione IDENT univoca.
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+MODEL CAPLCH1MN03I
+
+DOMAIN
+
+  CoordP = COORD2    480000.000     70000.000
+                     850000.000    310000.000;
+
+  Stato = (
+    in_progetto,
+    valevole);
+
+  Rotazione = GRADS 0.0 399.9;
+
+  DimensioneCarattere  = (
+    piccolo,
+    medio,
+    grande);
+ 
+
+    Stato_IE = ( !!  Per indirizzi degli edifici, vedi SN 612040
+        in_progetto,    !! nuovo oggetto in elaborazione
+                        !! Stato provvisorio o non riconosciuto
+        reale,          !! L'oggetto esiste veramente
+        passato);       !! L'oggetto non esiste piu
+
+
+    TipoLingua = ( !! Per indirizzo degli edifici, vedi SN 612040
+          de,  !! deutsch
+          fr,  !! francais
+          it,  !! italiano
+          rm,  !! rhaeto rumantsch
+          en);  !! english
+
+
+ 
+
+  TOPIC Aree_di_numerazione =
+
+    DOMAIN
+      Abbreviazione_cantonale = ( !! ordine dell'UFS, completato con FL e CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! La chiave-utilizzatore qui definita e le superfici associate possono 
+    !! corrispondere a un comune, a une parte o a una aggregazione di piu comuni; e
+    !! in piu eventualmente il cantone e/o la Svizzera (risp. il FL) nel loro 
+    !! insieme (vedi commento).
+    TABLE Area_di_numerazione =
+      Ct: Abbreviazione_cantonale; !! univoca per tutta la Svizzera (incluso il FL)
+      NumeroAN: TEXT*10;
+      IncartoTecnico: TEXT*12;
+      In_vigore: OPTIONAL DATE;
+    IDENT Ct, NumeroAN; !! fornisce la chiave-utilizzatore IdentAN
+    END Area_di_numerazione;
+
+    !! La geometria delle aree di numerazione che dividono il territorio
+    !! secondo la stessa unita logica (per es: perimetro dei comuni), devono
+    !! creare tra di loro una ripartizione del territorio senza buchi e senza 
+    !! sovrapposizioni (deve essere del tipo AREA).
+    TABLE GeometriaAN =
+      GeometriaAN_di: -> Area_di_numerazione; !! relazione 1-m
+      Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END GeometriaAN;
+
+    TABLE PosArea_di_numerazione =
+      PosAN_di: -> Area_di_numerazione; !! relazione 1-mc; 
+                                 !! iscrizione del NumeroAN
+      Pos: CoordP // Pos interna alla GeometriaAN //;
+      Ori: OPTIONAL Rotazione // non_definito= 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // non_definito= Center //;
+      VAli: OPTIONAL VALIGNMENT // non_definito= Half //;
+      Dimensione: OPTIONAL DimensioneCarattere  // non_definito= medio //;
+    NO IDENT
+    END PosArea_di_numerazione;
+
+  END Aree_di_numerazione.
+
+ 
+
+ TOPIC CAP_localita =  !! vedi norma SN 612040; 
+                       !! Localita sotto la responsabilita dei cantoni
+                       !! CAP sotto la responsabilita della Posta
+
+   TABLE Tenuta_a_giornoLocalita = !! Norma SN = CosaAttualizzabile
+     IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+                       !! MD01: in aggiunta a SN
+     Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+                               !! MD01: in aggiunta a SN
+     Descrizione: TEXT*30;
+     Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+       WITHOUT OVERLAPS > 0.500; !! MD01: in aggiunta a SN
+     Validita: Stato;
+     In_vigore: DATE; 
+   IDENT IdentAN, Identificatore;
+   END Tenuta_a_giornoLocalita;
+
+   TABLE Insieme_di_localita = !! Norma SN 612040: Insieme_di_localita
+     Vuoto: OPTIONAL TEXT*1; !! Questo attributo e necessario unicamente
+                             !! per rispettare le regole sintattiche di INTERLIS 1
+   NO IDENT
+   END Insieme_di_localita;
+
+   TABLE TestoInsieme_di_localita =
+     TestoInsieme_di_Loc_di: -> Insieme_di_localita; !! relazione 1-m
+     Testo: TEXT*200;
+     Lingua: TipoLingua;
+   IDENT TestoInsieme_di_Loc_di, Lingua;
+   END TestoInsieme_di_localita;
+
+   !! Le localita reali formano un'AREA
+   TABLE Localita =
+     Origine: -> Tenuta_a_giornoLocalita; !! relazione 1-mc
+     Localita_di: OPTIONAL -> Insieme_di_localita; !! relazione c-m
+     Validita: Stato_IE;
+     Modifiche_in_corso: (si,no);
+     Geometria: SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500;
+   NO IDENT
+   END Localita;
+
+   !! Esempio per Testo, Testo_Abbreviato e Testo_Indicizzato:
+   !! Testo (Nome completo): La Chaux-de-Fonds
+   !! Testo_abbreviato (utilizzato per indirizzo postale): La Chx-de-Fds
+   !! Testo_indicizzato (per Indice): Chaux-de-Fonds
+   TABLE Nome_localita =
+     Nome_localita_di: -> Localita; !! relazione 1-m
+     Testo: TEXT*40;
+     Testo_abbreviato: OPTIONAL TEXT*18;
+     Testo_indicizzato: OPTIONAL TEXT*16;
+     Lingua: TipoLingua;
+   IDENT Nome_localita_di, Lingua;
+   END Nome_localita;
+ 
+
+   TABLE PosNome_localita = !! MD01: in aggiunta a SN
+     PosNome_localita_di: -> Nome_localita; !! relazione 1-mc; Iscrizione del testo
+     Pos: CoordP;
+     Ori: OPTIONAL Rotazione // non_definito = 100.0 //;
+     HAli: OPTIONAL HALIGNMENT // non_definito = Center //;
+     VAli: OPTIONAL VALIGNMENT // non_definito = Half //;
+     Dimensione: OPTIONAL DimensioneCarattere // non_definito = medio //;
+   NO IDENT
+   END PosNome_localita;
+
+   TABLE Tenuta_a_giornoCAP6 = !! Norma SN = CosaAttualizzabile
+     IdentAN: TEXT*12; !! relazione 1-m con Area_di_numerazione
+                       !! MD01: in aggiunta a SN
+     Identificatore: TEXT*12;  !! per es. numero dell'incarto tecnico
+                               !! MD01: in aggiunta a SN
+     Descrizione: TEXT*30;
+     Perimetro: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+       WITHOUT OVERLAPS > 0.500; !! MD01: in aggiunta a SN
+     Validita: Stato;
+     In_vigore: DATE; 
+   IDENT IdentAN, Identificatore;
+   END Tenuta_a_giornoCAP6;
+
+   !! Bisogna evitare di avere un CAP6 con Validita=reale su di una localita con
+   !! Validita<>reale.
+   TABLE CAP6 =
+     Origine: -> Tenuta_a_giornoCAP6; !! relazione 1-mc
+     CAP6_di: -> Localita; !! relazione 1-m
+     !! Se piu codici di avviamento postale a sei cifre sono assegnati alla medesima 
+     !! localita, bisogna assegnare una superficie ad ognuno di essi. Queste superfici 
+     !! devono essere incluse nella superficie della localita.
+     !! i CAP6 reali sono di tipo AREA
+     Geometria: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.500 ;
+     Validita: Stato_IE;
+     Modifiche_in_corso: (si,no);
+     CAP: [1000..9999];
+     Cifre_supplementari: [0..99];
+   NO IDENT
+   END CAP6;
+
+ END CAP_localita.
+
+ 
+
+END CAPLCH1MN03I.
+
+
+FORMAT FREE;  
+!! FORMAT FIX WITH LINESIZE = 107, TIDSIZE = 16; 
+
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+

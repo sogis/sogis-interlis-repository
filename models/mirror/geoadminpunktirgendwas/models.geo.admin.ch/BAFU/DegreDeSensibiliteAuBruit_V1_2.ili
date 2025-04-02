@@ -1,0 +1,184 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal
+ * Degré de sensibilité au bruit (dans les zones d'affectation)
+ * Jeu de géodonnées de base No. 145
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2023-03-20 | ARE   | - DOMAIN SurfacePartition remplacé par SurfaceUnique
+!!                    | - CLASS Zone_SensibiliteAuBruit: Geometrie du type SurfaceUnique (SURFACE)
+!!                    | - CLASS Zone_SensibiliteAuBruit: CONSTRAINT pour garantir la topologie AREA
+!!                    | - CLASS Type: Attribut Code, Longeur de champ 40 caractères
+!!------------------------------------------------------------------------------
+!! 2021-11-19 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!!------------------------------------------------------------------------------
+!! 2021-09-01 | ARE   | Version 1.2
+!!                    | Adaption au modèle-cadre RDPPF version 2.0 du 14 avril 2021 :
+!!                    | - DOMAIN StatutJuridique adapté, TypeDocument nouveau
+!!                    | - STRUCTURE LocalisedBlob et MultilingualBlob nouveaux
+!!                    | - CLASS Zone_SensibiliteAuBruit : nouvel attribut publieJusque
+!!                    | - CLASS Document adapté au modèle-cadre RDPPF
+!!                    | - CLASS Service adapté au modèle-cadre RDPPF
+!!                    | Modifications techniques ultérieures
+!!                    | - ASSOCIATION Geometrie_Document inséré additionellement pour permettre un lien direct entre les classes Geometrie et Document
+!!                    | - TOPIC GeodonneesDeBase maintenant avec BASKET OID du type TypeID
+!!                    | - CLASS JeuDeDonnees : Attribut BasketID maintenant du type TypeID, nouvel méta-attribut pour la vérification de l’ID
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=145
+MODEL DegreDeSensibiliteAuBruit_V1_2 (fr)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-03-20"
+TRANSLATION OF Laermempfindlichkeitsstufen_V1_2 ["2023-03-20"] =
+  IMPORTS CHAdminCodes_V1,InternationalCodes_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    DS = (
+      Aucun_DS,
+      DS_I,
+      DS_II,
+      DS_III,
+      DS_IV
+    );
+
+    SurfaceUnique = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    TypeID = OID TEXT*60;
+
+    ForceObligatoire = (
+      Contenu_contraignant,
+      Contenu_informatif,
+      Contenu_indicatif,
+      Contenu_dAideALaMiseEnOeuvre
+    );
+
+    StatutJuridique = (
+      enVigueur,
+      ModificationAvecEffetAnticipe,
+      ModificationSansEffetAnticipe
+    );
+
+    TypeDocument = (
+      DispositionJuridique,
+      BaseLegale,
+      Renvoi
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF DegreDeSensibiliteAuBruit_V1_2.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  STRUCTURE LocalisedBlob =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Blob : MANDATORY BLACKBOX BINARY;
+  END LocalisedBlob;
+
+  STRUCTURE MultilingualBlob =
+    LocalisedBlob : BAG {1..*} OF DegreDeSensibiliteAuBruit_V1_2.LocalisedBlob;
+    UNIQUE (LOCAL) LocalisedBlob: Language;
+  END MultilingualBlob;
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Type : MANDATORY DegreDeSensibiliteAuBruit_V1_2.TypeDocument;
+      Titre : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abreviation : LocalisationCH_V1.MultilingualText;
+      NoOfficiel : LocalisationCH_V1.MultilingualText;
+      SeulementCommune : CHAdminCodes_V1.CHMunicipalityCode;
+      TexteSurInternet : DegreDeSensibiliteAuBruit_V1_2.MultilingualUri;
+      Document : DegreDeSensibiliteAuBruit_V1_2.MultilingualBlob;
+      IndexExtrait : MANDATORY -1000 .. 1000;
+      StatutJuridique : MANDATORY DegreDeSensibiliteAuBruit_V1_2.StatutJuridique;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      publieJusque : INTERLIS.XMLDate;
+    END Document;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    BASKET OID AS TypeID;
+    DEPENDS ON DegreDeSensibiliteAuBruit_V1_2.DispositionsJuridiques;
+
+    CLASS Zone_SensibiliteAuBruit =
+      Geometrie : MANDATORY DegreDeSensibiliteAuBruit_V1_2.SurfaceUnique;
+      StatutJuridique : MANDATORY DegreDeSensibiliteAuBruit_V1_2.StatutJuridique;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      publieJusque : INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    SET CONSTRAINT WHERE StatutJuridique == #enVigueur:
+      INTERLIS.areAreas(ALL, UNDEFINED, >> Geometrie);
+    END Zone_SensibiliteAuBruit;
+
+    CLASS Type =
+      Code : MANDATORY TEXT*40;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*10;
+      Degre : MANDATORY DegreDeSensibiliteAuBruit_V1_2.DS;
+      Declassement : BOOLEAN;
+      ForceObligatoire : MANDATORY DegreDeSensibiliteAuBruit_V1_2.ForceObligatoire;
+      Remarques : MTEXT;
+      Symbole : BLACKBOX BINARY;
+      MANDATORY CONSTRAINT
+        NOT (Declassement == #true) OR (Degre == #DS_II OR Degre == #DS_III);
+    END Type;
+
+    ASSOCIATION Geometrie_Document =
+      Geometrie (EXTERNAL) -- {0..*} Zone_SensibiliteAuBruit;
+      Document (EXTERNAL) -- {0..*} DegreDeSensibiliteAuBruit_V1_2.DispositionsJuridiques.Document;
+    END Geometrie_Document;
+
+    ASSOCIATION Type_Document =
+      Type (EXTERNAL) -- {0..*} Type;
+      Document (EXTERNAL) -- {0..*} DegreDeSensibiliteAuBruit_V1_2.DispositionsJuridiques.Document;
+    END Type_Document;
+
+    ASSOCIATION Type_Geometrie =
+      Geometrie -- {0..*} Zone_SensibiliteAuBruit;
+      Type -<> {1} Type;
+    END Type_Geometrie;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfert =
+
+    CLASS Service =
+      Nom : MANDATORY LocalisationCH_V1.MultilingualText;
+      ServiceSurInternet : DegreDeSensibiliteAuBruit_V1_2.MultilingualUri;
+      DEI : TEXT*12;
+      Ligne1 : TEXT*80;
+      Ligne2 : TEXT*80;
+      Rue : TEXT*100;
+      Numero : TEXT*7;
+      NPA : TEXT*4;
+      Localite : TEXT*40;
+      UNIQUE DEI;
+    END Service;
+
+    CLASS JeuDeDonnees =
+      !!@ basketRef=DegreDeSensibiliteAuBruit_V1_2.GeodonneesDeBase
+      BasketID : MANDATORY TypeID;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarques : TEXT*20;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_orgResp =
+      OrganismeResponsable (EXTERNAL) -<> {1} Service;
+      JeuDeDonnees -- {0..*} JeuDeDonnees;
+    END Donnees_orgResp;
+
+  END MetadonneesTransfert;
+
+END DegreDeSensibiliteAuBruit_V1_2.
