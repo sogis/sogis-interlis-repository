@@ -1,0 +1,122 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-03-27 | MS  | Ersterfassung
+ * !!===================================
+ */
+!!@ technicalContact=martin.schweizer@bd.so.ch
+MODEL SO_SGV_Schadenkarte_Publikation_20250327 (de)
+AT "https://geo.so.ch/models/SGV"
+VERSION "2025-03-27"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  /** Die SGV erfasst Schadensfälle an ihren versicherten Objekten. Diese werden vom AGI importiert.
+   */
+  TOPIC Schadenkarte =
+
+    /** Schaden an Objekten
+     */
+    CLASS Objekt =
+      /** Schadenart
+       */
+      Schadenart : MANDATORY (
+        !!@ ili2db.dispName=Erdbeben
+        Erdbeben,
+        !!@ ili2db.dispName=Elementar
+        Elementar,
+        !!@ ili2db.dispName="Schneedruck, Schneerutsch"
+        Schnee,
+        !!@ ili2db.dispName="Steinschlag, Erdrutsch"
+        Steinschlag,
+        !!@ ili2db.dispName=Blitz
+        Blitz,
+        !!@ ili2db.dispName="Feuer, Rauch"
+        Feuer,
+        !!@ ili2db.dispName=Sturm
+        Sturm,
+        !!@ ili2db.dispName=Hagel
+        Hagel,
+        !!@ ili2db.dispName="Überschwemmung, Hochwasser"
+        Ueberschwemmung
+      );
+      /** Detailiertere Ausführung der Art des Schadens.
+       */
+      SchadenartDetail : MANDATORY TEXT*50;
+      /** Eidgenössischer Grundstücks-Identifikator
+       */
+      EGRID : MANDATORY TEXT*15;
+      /** Eidgenössischer Gebäude-Identifikator
+       */
+      EGID : 0 .. 9999999999;
+      /** Grundstücknummer
+       */
+      Grundstuecknummer : MANDATORY 0 .. 999999999;
+      /** Geometrie (Punkt-Koordinate)
+       */
+      Geometrie : MANDATORY COORD NUMERIC, NUMERIC;
+      /** Schadenssumme in CHFr.
+       */
+      Schadenssumme : MANDATORY 0 .. 50000000000;
+      /** Schadendatum
+       */
+      Schadendatum : MANDATORY FORMAT INTERLIS.XMLDate "1950-01-01" .. "2500-01-01";
+      /** Bei der SGV hinterlegte Adresse des versicherten Objekts.
+       */
+      Beschreibung : MTEXT*2000;
+      /** Kantonale Versicherungsnummer des Gebäudes
+       */
+      Gebaeudenummer : MANDATORY TEXT*50;
+      /** Status des Schadens
+       */
+      Schadenstatus : MANDATORY (
+        !!@ ili2db.dispName=Pendent
+        EnumElement177,
+        !!@ ili2db.dispName="Falsch erfasst"
+        Falsch_erfasst,
+        !!@ ili2db.dispName=Erledigt
+        Erledigt,
+        !!@ ili2db.dispName=Zurückgezogen
+        Zurueckgezogen,
+        !!@ ili2db.dispName=Abgelehnt
+        Abgelehnt,
+        !!@ ili2db.dispName="Nicht betroffen"
+        Nicht_Betroffen
+      );
+      /** Schadennummer der SGV
+       */
+      Schadennummer : MANDATORY TEXT*15;
+      /** Link zur SGV-Applikation
+       */
+      Link : MANDATORY TEXT*500;
+      /** Status des Gebäudes hinsichtlich Versicherung
+       */
+      Gebaeudestatus : MANDATORY (
+        !!@ ili2db.dispName=Fremdversichert
+        EnumElement226,
+        !!@ ili2db.dispName=Ausgeschlossen
+        Ausgeschlossen,
+        !!@ ili2db.dispName="Nicht gebaut"
+        Nicht_gebaut,
+        !!@ ili2db.dispName="Im Bau"
+        Im_Bau,
+        !!@ ili2db.dispName=Projektiert
+        Projektiert,
+        !!@ ili2db.dispName=Abgebrochen
+        Abgebrochen,
+        !!@ ili2db.dispName="Nicht versichert"
+        Nicht_versichert,
+        !!@ ili2db.dispName=Versichert
+        Versichert
+      );
+      /** Versicherungswert
+       */
+      Versicherungswert : 0 .. 50000000000;
+      MANDATORY CONSTRAINT
+      DEFINED (EGRID) OR DEFINED (EGID);
+    END Objekt;
+
+  END Schadenkarte;
+
+END SO_SGV_Schadenkarte_Publikation_20250327.
