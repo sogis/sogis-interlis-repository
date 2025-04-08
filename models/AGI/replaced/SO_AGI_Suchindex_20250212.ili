@@ -1,0 +1,106 @@
+INTERLIS 2.3;
+
+/** !
+ * !! Definiert das Schema der Index-Tabellen für den Such-Service.
+ * !! Json-Felder wurden der einfachheit halber als Strings modelliert.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-04-15 | Jek | Erstellt
+ * !! 2024-08-06 | Chb | Anpassungen Featuretabelle
+ * !! 2025-02-12 | Chb | Erweiterung Featuretabelle: Rangbegriffe
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AGI_Suchindex_20250212 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2025-02-12"  =
+
+  TOPIC Indexe =
+
+
+    DOMAIN
+
+    /** Gemeinsamer GDI-weiter Index aller suchbaren Features.
+     *  Bei Features ohne Geometrie ist das Attribut "Ausdehnung" null.
+     */
+    CLASS Feature =
+
+      /** Spaltenname der "ID" des Feature (z.B. "t_id")
+      */
+      ID_Spalten_Name : MANDATORY TEXT*255;
+
+      /** Innerhalb Layer eindeutige und stabile "ID" des Feature (z.B. Value von t_id)
+      */
+      ID_Feature : MANDATORY TEXT*255;
+
+      /** Muss die Feature-ID dem Dataservice in Hochkomma übergeben werden?
+      */
+      ID_in_Hochkomma : MANDATORY BOOLEAN;
+
+      /** Identifier des Layers (Bsp. ch.so.agi.gemeindegrenzen)
+      */
+      Layer_Ident : MANDATORY TEXT*255;
+
+      /** Trigram indexierte Begriffe, über welche das Feature gesucht wird
+      */
+      Suchbegriffe : MANDATORY MTEXT;
+
+      /** Trigram indexierte Begriffe, über welche das Feature sortiert / bewertet wird.
+       *  Wenn NULL, wird nach 'Suchbegriffe' bewertet.
+       */
+      Rangbegriffe : MTEXT;
+
+      /** Anzeige des Features im Suchresultat
+      */
+      Anzeige : MANDATORY TEXT*255;
+
+      /** Ausdehnung notiert als Json-Array.
+      * Gemäss Geojson-Spez für bbox, aber in EPSG:2056.
+      * Beispiel: [2630403,1237579,2633431,1240412]
+      */
+      Ausdehnung : TEXT*255;
+
+    END Feature;
+
+     /** Gemeinsamer GDI-weiter Index aller suchbaren Ebenen.
+     */
+    CLASS Ebene =
+      /** Identifier. Bsp. ch.so.agi.gemeindegrenzen
+      */
+      Identifier : MANDATORY TEXT*255;
+
+      /** Anzeige der Ebene im Suchresultat (Titel der Ebene)
+      */
+      Anzeige : MANDATORY TEXT*255;
+
+      /** Bei Ebenengruppen: Json-Array der Kind-Ebenen.
+      * NULL Ebenen ohne explizite Unter-Ebenen (Datasetview, Facadelayer)
+      */
+      Unter_Ebenen : MTEXT;
+
+      /** Ist die Ebene im Web GIS nicht angebotene eine Hintegrundebene?
+      */
+      Ist_Hintergrund :  MANDATORY BOOLEAN;
+
+      /** Falsch, falls die Ebene (noch) nicht beschrieben ist.
+      */
+      Hat_Beschreibung : MANDATORY BOOLEAN;
+
+      /** Trigram indexierte Begriffe der Priorität 1
+      */
+      Suchbegriffe_P1 : MANDATORY MTEXT;
+
+      /** Trigram indexierte Begriffe der Priorität 2
+      */
+      Suchbegriffe_P2 : MANDATORY MTEXT;
+
+      /** Trigram indexierte Begriffe der Priorität 3
+      */
+      Suchbegriffe_P3 : MANDATORY MTEXT;
+
+    END Ebene;
+
+  END Indexe;
+
+END SO_AGI_Suchindex_20250212.

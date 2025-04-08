@@ -1,0 +1,399 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected
+!! 2020-04-29 | KOGIS | Constraint in ASSOCIATION StandortWerterhebung corrected
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.3, 134.1"
+MODEL DBGZ_NADUF_Codelisten_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2016-03-17"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Art_Gruppierung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Art_Gruppierung_Catalogue;
+
+    CLASS Erhebung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Erhebung_Catalogue;
+
+    CLASS Gewaessertyp_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gewaessertyp_Catalogue;
+
+    CLASS Kurzbezeichnung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kurzbezeichnung_Catalogue;
+
+    CLASS Name_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Name_Catalogue;
+
+    CLASS Parameter_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Parameter_Catalogue;
+
+    CLASS Periodizitaet_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Periodizitaet_Catalogue;
+
+    CLASS Tel_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tel_Typ_Catalogue;
+
+    STRUCTURE Art_Gruppierung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Art_Gruppierung_Catalogue;
+    END Art_Gruppierung_CatRef;
+
+    STRUCTURE Erhebung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Erhebung_Catalogue;
+    END Erhebung_CatRef;
+
+    STRUCTURE Gewaessertyp_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Gewaessertyp_Catalogue;
+    END Gewaessertyp_CatRef;
+
+    STRUCTURE Kurzbezeichung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Kurzbezeichnung_Catalogue;
+    END Kurzbezeichung_CatRef;
+
+    STRUCTURE Name_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Name_Catalogue;
+    END Name_CatRef;
+
+    STRUCTURE Parameter_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Parameter_Catalogue;
+    END Parameter_CatRef;
+
+    STRUCTURE Periodizitaet_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Periodizitaet_Catalogue;
+    END Periodizitaet_CatRef;
+
+  STRUCTURE Tel_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Tel_Typ_Catalogue;
+    END Tel_Typ_CatRef;
+
+  END Codelisten;
+
+END DBGZ_NADUF_Codelisten_V1_1.
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.3,134.1"
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL DBGZ_NADUF_LV03_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29" =
+  IMPORTS CHAdminCodes_V1,CodeISO,GeometryCHLV03_V1,Units,DBGZ_NADUF_Codelisten_V1_1,LocalisationCH_V1;
+
+  TOPIC Messort =
+    DEPENDS ON DBGZ_NADUF_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT;
+      Hausnummer : TEXT;
+      Adresszusatz : TEXT;
+      Postfach : TEXT;
+      PLZ : MANDATORY TEXT;
+      Ort : MANDATORY TEXT;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Messgruppierung =
+      Gewaessername : MANDATORY TEXT;
+      Ortsbezeichnung : MANDATORY TEXT;
+      Code : MANDATORY TEXT;
+      ID_TREND : 1 .. 999999;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Art_Gruppierung_CatRef;
+      Gewaessertyp : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Gewaessertyp_CatRef;
+      Einzugsgebietsgroesse : 0.01 .. 999999999.00 [Units.km2];
+      Mittlere_Hoehe : 1.00 .. 5000.00 [INTERLIS.m];
+      Vergletscherungsgrad : 0 .. 100;
+      URL_Datenblatt_Kanton : INTERLIS.URI;
+      URL_Datenblatt_Bund : INTERLIS.URI;
+    END Messgruppierung;
+
+    CLASS Messnetz =
+      Name : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Name_CatRef;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung);
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Parameter : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Parameter_CatRef;
+      Kurzbezeichnung : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Kurzbezeichung_CatRef;
+      CAS : TEXT*20;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Erhebung : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Erhebung_CatRef;
+      Periodizitaet : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Periodizitaet_CatRef;
+      Vorgaenger : TEXT;
+    END Werterhebung;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV03_V1.Coord3;
+      Polygon : Polygon;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Polygon);
+    END Standort;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {1..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    CLASS Telefon =
+      Nummer : TEXT*20;
+      Typ : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1..*} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END StandortMessgruppierung;
+
+    ASSOCIATION StandortWerterhebung =
+      Standort -- {1} Standort;
+      Werterhebung -<#> {0..1} Werterhebung;
+      MANDATORY CONSTRAINT (DEFINED (Standort -> Werterhebung) AND NOT (DEFINED (Standort -> Messgruppierung))) OR (NOT (DEFINED (Standort -> Werterhebung)) AND DEFINED (Standort -> Messgruppierung));
+    END StandortWerterhebung;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+  END Messort;
+
+END DBGZ_NADUF_LV03_V1_1.
+
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.3,134.1"
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL DBGZ_NADUF_LV95_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29" =
+  IMPORTS CHAdminCodes_V1,CodeISO,GeometryCHLV95_V1,Units,DBGZ_NADUF_Codelisten_V1_1,LocalisationCH_V1;
+
+  TOPIC Messort =
+    DEPENDS ON DBGZ_NADUF_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT;
+      Hausnummer : TEXT;
+      Adresszusatz : TEXT;
+      Postfach : TEXT;
+      PLZ : MANDATORY TEXT;
+      Ort : MANDATORY TEXT;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Messgruppierung =
+      Gewaessername : MANDATORY TEXT;
+      Ortsbezeichnung : MANDATORY TEXT;
+      Code : MANDATORY TEXT;
+      ID_TREND : 1 .. 999999;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Art_Gruppierung_CatRef;
+      Gewaessertyp : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Gewaessertyp_CatRef;
+      Einzugsgebietsgroesse : 0.01 .. 999999999.00 [Units.km2];
+      Mittlere_Hoehe : 1.00 .. 5000.00 [INTERLIS.m];
+      Vergletscherungsgrad : 0 .. 100;
+      URL_Datenblatt_Kanton : INTERLIS.URI;
+      URL_Datenblatt_Bund : INTERLIS.URI;
+    END Messgruppierung;
+
+    CLASS Messnetz =
+      Name : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Name_CatRef;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung);
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Parameter : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Parameter_CatRef;
+      Kurzbezeichnung : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Kurzbezeichung_CatRef;
+      CAS : TEXT*20;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Erhebung : MANDATORY DBGZ_NADUF_Codelisten_V1_1.Codelisten.Erhebung_CatRef;
+      Periodizitaet : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Periodizitaet_CatRef;
+      Vorgaenger : TEXT;
+    END Werterhebung;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV95_V1.Coord3;
+      Polygon : Polygon;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Polygon);
+    END Standort;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {1..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    CLASS Telefon =
+      Nummer : TEXT*20;
+      Typ : DBGZ_NADUF_Codelisten_V1_1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1..*} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END StandortMessgruppierung;
+
+    ASSOCIATION StandortWerterhebung =
+      Standort -- {1} Standort;
+      Werterhebung -<#> {0..1} Werterhebung;
+      MANDATORY CONSTRAINT (DEFINED (Standort -> Werterhebung) AND NOT (DEFINED (Standort -> Messgruppierung))) OR (NOT (DEFINED (Standort -> Werterhebung)) AND DEFINED (Standort -> Messgruppierung));
+    END StandortWerterhebung;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+  END Messort;
+
+END DBGZ_NADUF_LV95_V1_1.

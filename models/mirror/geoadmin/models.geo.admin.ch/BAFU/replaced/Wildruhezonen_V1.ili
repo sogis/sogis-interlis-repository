@@ -1,0 +1,157 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 58 and 116)
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="195.1, 195.2"
+MODEL Wildruhezonen_Codelisten_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-02-04"  =
+  IMPORTS LocalisationCH_V1,CatalogueObjects_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Bestimmungen_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*5;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bestimmungen_Catalogue;
+
+    CLASS Schutzkategorie_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schutzkategorie_Catalogue;
+
+    STRUCTURE Bestimmungen_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Bestimmungen_Catalogue;
+    END Bestimmungen_CatRef;
+
+    STRUCTURE Schutzkategorie_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Schutzkategorie_Catalogue;
+    END Schutzkategorie_CatRef;
+
+  END Codelisten;
+
+END Wildruhezonen_Codelisten_V1.
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="195.1, 195.2"
+MODEL Wildruhezonen_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,LocalisationCH_V1,Units,Wildruhezonen_Codelisten_V1;
+
+  TOPIC Wildruhezonen =
+    DEPENDS ON Wildruhezonen_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Wildruhezone =
+      ObjNummer : MANDATORY 0 .. 9999;
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Name : MANDATORY TEXT*30;
+      Schutzstatus : MANDATORY Wildruhezonen_Codelisten_V1.Codelisten.Schutzkategorie_CatRef;
+      Bestimmungen : MANDATORY Wildruhezonen_Codelisten_V1.Codelisten.Bestimmungen_CatRef;
+      Bestimmungen_Kt : LocalisationCH_V1.MultilingualMText;
+      Schutzzeit : MANDATORY TEXT*250;
+      Grundlage : MANDATORY TEXT*250;
+      Beschlussjahr : MANDATORY INTERLIS.GregorianYear;
+      Obj_GISFlaeche : MANDATORY 0.0 .. 999999.9 [Units.ha];
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      UNIQUE ObjNummer, Kanton;
+    END Wildruhezone;
+
+    CLASS Routennetz =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Geo_Obj : MANDATORY Linie;
+    END Routennetz;
+
+    CLASS Wildruhezone_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Zusatzinformationen : TEXT*500;
+      Geo_Obj : MANDATORY Polygon;
+    END Wildruhezone_Teilobjekt;
+
+    ASSOCIATION RoutennetzWildruhezone =
+      WRZ_Routennetz -- {0..*} Routennetz;
+      WRZ -<#> {1} Wildruhezone;
+    END RoutennetzWildruhezone;
+
+    ASSOCIATION Wildruhezone_TeilobjektWildruhezone =
+      WRZ_Teilobjekt -- {1..*} Wildruhezone_Teilobjekt;
+      WRZ -<#> {1} Wildruhezone;
+    END Wildruhezone_TeilobjektWildruhezone;
+
+  END Wildruhezonen;
+
+END Wildruhezonen_LV03_V1.
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="195.1, 195.2"
+MODEL Wildruhezonen_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,LocalisationCH_V1,Units,Wildruhezonen_Codelisten_V1;
+
+  TOPIC Wildruhezonen =
+    DEPENDS ON Wildruhezonen_Codelisten_V1.Codelisten;
+
+    DOMAIN
+
+      Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Wildruhezone =
+      ObjNummer : MANDATORY 0 .. 9999;
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      Name : MANDATORY TEXT*30;
+      Schutzstatus : MANDATORY Wildruhezonen_Codelisten_V1.Codelisten.Schutzkategorie_CatRef;
+      Bestimmungen : MANDATORY Wildruhezonen_Codelisten_V1.Codelisten.Bestimmungen_CatRef;
+      Bestimmungen_Kt : LocalisationCH_V1.MultilingualMText;
+      Schutzzeit : MANDATORY TEXT*250;
+      Grundlage : MANDATORY TEXT*250;
+      Beschlussjahr : MANDATORY INTERLIS.GregorianYear;
+      Obj_GISFlaeche : MANDATORY 0.0 .. 999999.9 [Units.ha];
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      UNIQUE ObjNummer, Kanton;
+    END Wildruhezone;
+
+    CLASS Routennetz =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Geo_Obj : MANDATORY Linie;
+    END Routennetz;
+
+    CLASS Wildruhezone_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      Zusatzinformationen : TEXT*500;
+      Geo_Obj : MANDATORY Polygon;
+    END Wildruhezone_Teilobjekt;
+
+    ASSOCIATION RoutennetzWildruhezone =
+      WRZ_Routennetz -- {0..*} Routennetz;
+      WRZ -<#> {1} Wildruhezone;
+    END RoutennetzWildruhezone;
+
+    ASSOCIATION Wildruhezone_TeilobjektWildruhezone =
+      WRZ_Teilobjekt -- {1..*} Wildruhezone_Teilobjekt;
+      WRZ -<#> {1} Wildruhezone;
+    END Wildruhezone_TeilobjektWildruhezone;
+
+  END Wildruhezonen;
+
+END Wildruhezonen_LV95_V1.

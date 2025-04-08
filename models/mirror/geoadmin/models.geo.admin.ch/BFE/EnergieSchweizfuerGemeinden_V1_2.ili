@@ -1,0 +1,122 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL EnergieSchweizfuerGemeinden_V1_2 (de) AT "https://models.geo.admin.ch/BFE/" VERSION "2019-02-22"  =
+
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    AnzahlAudits = 1 .. 500;
+    BFSNummer = 1 .. 99999;
+    Einwohner = 1 .. 9000000;
+    EnergiestadtGold = 0 .. 1;
+    ID = 1 .. 999999;
+    Punktezahl = 1 .. 100;
+    Text = TEXT*500;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC EnergieRegionKategorieKatalog
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS EnergieRegion
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Kategorie : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EnergieRegion;
+
+    STRUCTURE EnergieRegionRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) EnergieRegion;
+    END EnergieRegionRef;
+
+  END EnergieRegionKategorieKatalog;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC EnergiestadtKategorieKatalog
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Energiestadt
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Kategorie : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Energiestadt;
+
+    STRUCTURE EnergiestadtRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Energiestadt;
+    END EnergiestadtRef;
+
+  END EnergiestadtKategorieKatalog;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC ZweitausendWattArealKategorieKatalog =
+
+    CLASS ZweitausendWattAreal
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Kategorie : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ZweitausendWattAreal;
+
+    STRUCTURE ZweitausendWattArealRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ZweitausendWattAreal;
+    END ZweitausendWattArealRef;
+
+  END ZweitausendWattArealKategorieKatalog;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC EnergieSchweizfuerGemeinden =
+    DEPENDS ON EnergieSchweizfuerGemeinden_V1_2.EnergiestadtKategorieKatalog,EnergieSchweizfuerGemeinden_V1_2.EnergieRegionKategorieKatalog,EnergieSchweizfuerGemeinden_V1_2.ZweitausendWattArealKategorieKatalog;
+
+    CLASS EnergieRegion =
+      BFSNummer : EnergieSchweizfuerGemeinden_V1_2.BFSNummer;
+      Name : MANDATORY EnergieSchweizfuerGemeinden_V1_2.Text;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Berater : EnergieSchweizfuerGemeinden_V1_2.Text;
+      MailBerater : EnergieSchweizfuerGemeinden_V1_2.Text;
+      Kategorie : MANDATORY EnergieSchweizfuerGemeinden_V1_2.EnergieRegionKategorieKatalog.EnergieRegionRef;
+      BeteiligteGemeinden : MANDATORY EnergieSchweizfuerGemeinden_V1_2.Text;
+      LinkEnergieRegion : INTERLIS.URI;
+      Projektportrait : BAG {0..4} OF LocalisationCH_V1.MultilingualText;
+      ProjektportraitLink : BAG {0..4} OF LocalisationCH_V1.MultilingualText;
+    END EnergieRegion;
+
+    CLASS Energiestadt =
+      BFSNummer : MANDATORY EnergieSchweizfuerGemeinden_V1_2.BFSNummer;
+      Name : MANDATORY EnergieSchweizfuerGemeinden_V1_2.Text;
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      EnergiestadtSeit : INTERLIS.XMLDate;
+      BeteiligteGemeinden : EnergieSchweizfuerGemeinden_V1_2.Text;
+      Punktezahl : MANDATORY EnergieSchweizfuerGemeinden_V1_2.Punktezahl;
+      AnzahlAudits : EnergieSchweizfuerGemeinden_V1_2.AnzahlAudits;
+      Einwohner : EnergieSchweizfuerGemeinden_V1_2.Einwohner;
+      Berater : EnergieSchweizfuerGemeinden_V1_2.Text;
+      LinkEnergiestadtWeb : INTERLIS.URI;
+      Kategorie : MANDATORY EnergieSchweizfuerGemeinden_V1_2.EnergiestadtKategorieKatalog.EnergiestadtRef;
+    END Energiestadt;
+
+    CLASS ZweitausendWattAreal =
+      BFSNummer : MANDATORY EnergieSchweizfuerGemeinden_V1_2.BFSNummer;
+      Name : MANDATORY EnergieSchweizfuerGemeinden_V1_2.Text;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Gemeinde : EnergieSchweizfuerGemeinden_V1_2.Text;
+      Berater : EnergieSchweizfuerGemeinden_V1_2.Text;
+      LinkBerater : INTERLIS.URI;
+      LinkFaktenblattDE : INTERLIS.URI;
+      Kategorie : MANDATORY EnergieSchweizfuerGemeinden_V1_2.ZweitausendWattArealKategorieKatalog.ZweitausendWattArealRef;
+      LinkFaktenblattFR : INTERLIS.URI;
+      LinkFaktenblattIT : INTERLIS.URI;
+      LinkFaktenblattEN : INTERLIS.URI;
+    END ZweitausendWattAreal;
+
+  END EnergieSchweizfuerGemeinden;
+
+END EnergieSchweizfuerGemeinden_V1_2.

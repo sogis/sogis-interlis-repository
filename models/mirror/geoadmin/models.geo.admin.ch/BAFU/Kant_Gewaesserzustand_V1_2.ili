@@ -1,0 +1,208 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="134.1"
+MODEL Kant_Gewaesserzustand_V1_2 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2024-04-08"  =
+  IMPORTS CatalogueObjects_V1, CHAdminCodes_V1, CodeISO, GeometryCHLV95_V1, Units, LocalisationCH_V1;
+
+  TOPIC Codelisten
+  EXTENDS CatalogueObjects_V1.Catalogues =
+  
+    CLASS Art_Gruppierung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Art_Gruppierung_Catalogue;
+
+    CLASS Erhebung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Erhebung_Catalogue;
+
+    CLASS Gewaessertyp_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gewaessertyp_Catalogue;
+
+    CLASS Parameter_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Parameter_Catalogue;
+
+    CLASS Periodizitaet_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Periodizitaet_Catalogue;
+
+    CLASS Tel_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tel_Typ_Catalogue;
+
+    STRUCTURE Art_Gruppierung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Art_Gruppierung_Catalogue;
+    END Art_Gruppierung_CatRef;
+
+    STRUCTURE Erhebung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Erhebung_Catalogue;
+    END Erhebung_CatRef;
+
+    STRUCTURE Gewaessertyp_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Gewaessertyp_Catalogue;
+    END Gewaessertyp_CatRef;
+
+    STRUCTURE Parameter_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Parameter_Catalogue;
+    END Parameter_CatRef;
+
+    STRUCTURE Periodizitaet_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Periodizitaet_Catalogue;
+    END Periodizitaet_CatRef;
+
+  STRUCTURE Tel_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Tel_Typ_Catalogue;
+    END Tel_Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC Messort =
+    DEPENDS ON Kant_Gewaesserzustand_V1_2.Codelisten;
+
+    DOMAIN
+
+    /* Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Werterhebung =
+      Parameter : MANDATORY Kant_Gewaesserzustand_V1_2.Codelisten.Parameter_CatRef;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Erhebung : MANDATORY Kant_Gewaesserzustand_V1_2.Codelisten.Erhebung_CatRef;
+      Periodizitaet : Kant_Gewaesserzustand_V1_2.Codelisten.Periodizitaet_CatRef;
+      Vorgaenger : TEXT;
+    END Werterhebung;
+	
+    CLASS Messgruppierung =
+      Gewaessername : MANDATORY TEXT;
+      Ortsbezeichnung : MANDATORY TEXT;
+      Code : MANDATORY TEXT;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : Kant_Gewaesserzustand_V1_2.Codelisten.Art_Gruppierung_CatRef;
+      Gewaessertyp : MANDATORY Kant_Gewaesserzustand_V1_2.Codelisten.Gewaessertyp_CatRef;
+      Einzugsgebietsgroesse : 0.1 .. 999999999.0 [Units.km2];
+      Mittlere_Hoehe : 1 .. 5000 [INTERLIS.m];
+      Vergletscherungsgrad : 0.1 .. 100.0;
+      URL_Datenblatt_Kanton : INTERLIS.URI;
+    END Messgruppierung;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV95_V1.Coord3;
+      Polygon : Polygon;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Polygon);
+    END Standort;
+
+    CLASS Verantwortlichkeit =
+      Organisation : LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung);
+    END Verantwortlichkeit;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT;
+      Hausnummer : TEXT;
+      Adresszusatz : TEXT;
+      Postfach : TEXT;
+      PLZ : MANDATORY TEXT;
+      Ort : MANDATORY TEXT;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+	
+    CLASS Telefon =
+      Nummer : TEXT*20;
+      Typ : Kant_Gewaesserzustand_V1_2.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+	
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+	
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {1..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    ASSOCIATION StandortMessgruppierung_Werterhebung =
+      Standort -- {1..*} Standort;
+      M_W -<#> {0..1} Messgruppierung OR Werterhebung;
+      Typ : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END StandortMessgruppierung_Werterhebung;
+
+  END Messort;
+
+END Kant_Gewaesserzustand_V1_2.

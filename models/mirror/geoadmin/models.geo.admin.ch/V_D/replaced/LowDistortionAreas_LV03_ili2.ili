@@ -1,0 +1,58 @@
+INTERLIS 2.3;
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! LowDistortion Areas Model
+!! Datamodel of cadastral surveying, Federal level
+!! written in INTERLIS version 2 (SN 612031).
+!!
+!! Swiss Federal Office of Topography swisstopo
+!! Federal Directorate of Cadastral Surveying
+!! CH-3084 Wabern
+!! www.cadastre.ch and www.interlis.ch
+!!
+!! Version: 1.0 english
+!! File name: LowDistortionAreas_LV03_ili2.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2020-08-24 | V_D   | Domain UUIDOID removed
+
+MODEL LowDistortionAreas_LV03 (en) AT "http://www.cadastre.ch"
+  VERSION "2020-08-24" =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D: CHLV03
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+
+    DOMAIN
+      Coord2 = COORD
+      480000.000 .. 850000.000 [m] {CHLV03[1]},
+      070000.000 .. 310000.000 [m] {CHLV03[2]},
+      ROTATION 2 -> 1;
+
+
+    TOPIC LowDistortionAreas =
+
+      BASKET OID AS UUIDOID;
+      OID AS UUIDOID;
+
+      CLASS LowDistortionArea =
+        !! Structure of Identifier: CH.<ct>.AV-MO.<uuid>
+        !! Example for an object of Canton Neuchatel:
+        !! CH.NE.AV-MO.110E8400-E29B-11D4-A716-446655440000
+        Identifier : MANDATORY TEXT*50;
+        Geometry : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX Coord2
+          WITHOUT OVERLAPS > 0.200;
+        Name : TEXT*50;
+        ValidityDate : MANDATORY XMLDateTime;
+      UNIQUE Identifier;
+      END LowDistortionArea;
+
+    END LowDistortionAreas;
+
+  END LowDistortionAreas_LV03.

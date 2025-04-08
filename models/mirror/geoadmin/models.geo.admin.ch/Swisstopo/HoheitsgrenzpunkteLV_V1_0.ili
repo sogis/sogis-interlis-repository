@@ -1,0 +1,72 @@
+INTERLIS 2.4;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Datenmodell der Landesvermessung
+!! beschrieben in INTERLIS Version 2.4
+!!
+!! Bundesamt fuer Landestopographie (swisstopo)
+!! CH-3084 Wabern
+!! www.swisstopo.ch und www.interlis.ch
+!!
+!! Version: 1 deutsch
+!! Dateiname: HoheitsgrenzpunkteLV_V1_0.ili
+!!
+!! Das vorliegende Datenmodell gilt fuer den Bezugsrahmen "Landesvermessung 1903+
+!! (LV95)".
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!@ IDGeoIV = 39.5
+!!@ technicalContact = mailto:vermessung@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/landesgrenze
+
+MODEL HoheitsgrenzpunkteLV_V1_0 (de) 
+    AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2024-12-31" = 
+    IMPORTS UNQUALIFIED INTERLIS;
+    IMPORTS Units;
+    IMPORTS GeometryCHLV95_V2;
+
+    TOPIC HoheitsgrenzpunkteLV = 
+        
+        DOMAIN 
+            
+            Hoehe = -200.000 .. 5000.000;
+
+            Genauigkeit = 0.001 .. 7.000 [INTERLIS.m];  !! Transformation von [cm] in [INTERLIS.m]
+
+            Zuverlaessigkeit = BOOLEAN;
+
+            !! Definition in GISLG_MARK_TYPE_CD
+            Versicherungsart = (Stein,  !! boundary_marker 
+                Kunststoffzeichen,      !! artificial_boundary_marker
+                Bolzen,                 !! bolt
+                Rohr,                   !! tube
+                Pfahl,                  !! stake
+                Kreuz,                  !! cross
+                unversichert,           !! not_materialized
+                weitere);               !! other, tile, pylon
+
+            Rotation = 0.0 .. 399.9[Units.Gon];
+
+        !! Definition in GISLG_NATIONAL_BOUNDARY_POINT
+        CLASS Landesgrenzpunkt =
+            OBJECTID: MANDATORY I32OID;                         !! OBJECTID
+            BFSNr: 1 .. 9999;
+            Nummer: TEXT*12;
+            Geometrie: MANDATORY GeometryCHLV95_V2.Coord2;      !! Geometry (3D in 2D umwandeln)
+            Art:MANDATORY (Hauptpunkt, Nebenpunkt);
+            Lagegenauigkeit: MANDATORY Genauigkeit;             !! POSITION_ACCURACY
+            IstLagezuverlaessig: MANDATORY Zuverlaessigkeit;    !! POSITION_RELIABLE
+            Punktzeichen: MANDATORY Versicherungsart;           !! MARK_TYPE
+            IstHoheitsgrenzpunkt: MANDATORY BOOLEAN;            !! (TRUE, weil es Landesgrenzpunkte sind)
+            IstHoheitsgrenzsteinAlt: MANDATORY BOOLEAN;         !! SOUVEREIGN_BOUNDARY_STONE
+            IstExaktDefiniert: MANDATORY BOOLEAN;               !! PRECISELY_DEFINED
+            SymbolOri: Rotation;                                !! ORI
+            MANDATORY CONSTRAINT IstExaktDefiniert OR Punktzeichen==#unversichert;
+        UNIQUE OBJECTID;
+        END Landesgrenzpunkt;
+
+    END HoheitsgrenzpunkteLV;
+
+END HoheitsgrenzpunkteLV_V1_0.

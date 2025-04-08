@@ -1,0 +1,222 @@
+
+TRANSFER INTERLIS1;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Datenmodell der PLZOrtschaften "Bund" (PLZO-CH-LV95)
+!! beschrieben in INTERLIS Version 1 (SN 612030)
+!! IDGeoIV = "181.1"
+!!
+!! Bundesamt fuer Landestopographie (swisstopo)
+!! Eidg. Vermessungsdirektion (V+D)
+!! CH-3084 Wabern
+!! www.cadastre.ch/plz
+!!
+!! Version: 1 deutsch
+!! Dateiname: PLZO-CH_LV95_1d_ili1.ili (Datum: 27. August 2012)
+!!
+!! Das vorliegende Datenmodell gilt fuer den Bezugsrahmen "Landesvermessung 1903+
+!! (LV95)".
+!!
+!! Dieses Datenmodell basiert auf dem Datenmodell DM.01-AV-CH-24d enthält jedoch
+!! nur das TOPIC PLZOrtschaft. In der Tabelle PLZ6 wurde der Identifikator
+!! "IDENT PLZ, Zusatzziffern" entfernt, da es PLZ-Flaechen gibt, welche mehrere
+!! Geometrien besitzen, so dass der Identifikator nicht eingehalten werden kann.
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+MODEL PLZOCH1LV95D
+
+  DOMAIN
+
+    LKoord = COORD2 2480000.000   1070000.000
+                    2850000.000  1310000.000;
+
+    Status = (
+      projektiert,
+      gueltig);
+
+    Rotation = GRADS 0.0 399.9;
+
+    Schriftgroesse = (
+      klein,
+      mittel,
+      gross);
+
+    Status_GA = ( !! Fuer Gebaeudeadressen, siehe SN 612040
+        projektiert,    !! neues Objekt, in Bearbeitung
+                        !! Zustand zufaellig
+        real,           !! Objekt existiert real
+        vergangen);     !! Objekt existiert nicht mehr
+
+      Sprachtyp = ( !! Fuer Gebaeudeadressen, siehe SN 612040
+          de,  !! deutsch
+          fr,  !! francais
+          it,  !! italiano
+          rm,  !! rumantsch
+          en); !! english
+
+
+
+ 
+  TOPIC Nummerierungsbereiche =
+
+    DOMAIN
+      Kantonskuerzel = (  !! BFS-Ordnung, ergaenzt mit FL und CH
+        ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH, 
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+
+    !! Der hier definierte Benutzerschluessel und die zugeordnete
+    !! Flaeche koennen einem Gemeindegebiet entsprechen, einem Teil 
+    !! oder einer Aggregation mehrerer Gemeindegebiete; dazu 
+    !! kommen evtl. der Kanton und/oder die Schweiz (bzw. FL)
+    !! als Ganzes (siehe Dokument Erlaeuterungen)
+    TABLE Nummerierungsbereich =
+      Kt: Kantonskuerzel;  !! Eindeutig ueber die Schweiz (inkl. FL)
+      NBNummer: TEXT*10;
+      TechDossier: TEXT*12;
+      GueltigerEintrag: OPTIONAL DATE;
+    IDENT Kt, NBNummer;  !! ergibt Benutzerschluessel NBIdent
+    END Nummerierungsbereich;
+
+    !! Die Geometrien der Nummerierungsbereiche, die das Territorium gemaess der
+    !! gleichen logischen Einheit zerlegen (z.B.: Perimeter der Gemeinden), 
+    !! muessen untereinander eine Gebietsaufteilung (AREA) bilden.
+    !! Innerhalb eines Nummerierungsbereichs muss die 
+    !! Geometrie ueberlappungsfrei (d.h. wie AREA) sein.
+    TABLE NBGeometrie =
+      NBGeometrie_von: -> Nummerierungsbereich;  !! Beziehung 1-m
+      Geometrie: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.050;
+    NO IDENT
+    END NBGeometrie;
+
+    TABLE NummerierungsbereichPos =
+      NummerierungsbereichPos_von: -> Nummerierungsbereich; !! Beziehung 1-mc;
+                                !! beschriftet NBNummer
+      Pos: LKoord // Pos innerhalb NBGeometrie //;
+      Ori: OPTIONAL Rotation // undefiniert = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // undefiniert = Center //;
+      VAli: OPTIONAL VALIGNMENT // undefiniert = Half //;
+      Groesse: OPTIONAL Schriftgroesse // undefiniert = mittel //;
+    NO IDENT
+    END NummerierungsbereichPos;
+
+  END Nummerierungsbereiche.
+
+
+
+ 
+  TOPIC PLZOrtschaft = !! siehe SN 612040;
+                     !! Verantwortung der Kantone fuer Ortschaften
+                     !! Verantwortung der Post fuer PLZ
+
+    TABLE OSNachfuehrung = !! SN Norm = NachfuerbareSache
+      NBIdent: TEXT*12;  !! Beziehung 1-m zu Nummerierungsbereich
+                         !! DM01: zusaetzlich zur SN
+      Identifikator: TEXT*12;  !! z.B. Nummer des technischen Dossiers
+                               !! DM01: zusaetzlich zur SN
+      Beschreibung: TEXT*30;
+      Perimeter: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500; !! DM01: zusaetzlich zur SN
+      Gueltigkeit: Status;
+      GueltigerEintrag: DATE;
+    IDENT NBIdent, Identifikator;
+    END OSNachfuehrung;
+
+    TABLE OrtschaftsVerbund = !! Norm SN 612040: OrtschaftsVerbund
+      !! Dieses Attribut ist nur noetig, um eine gueltige Syntax
+      !! im INTERLIS 1 zu haben
+      Leer: OPTIONAL TEXT*1; 
+    NO IDENT
+    END OrtschaftsVerbund;
+
+    TABLE OrtschaftsVerbundText=
+        OrtschaftsVerbundText_von: -> OrtschaftsVerbund;  !! Beziehung 1-m
+        Text: TEXT*200;
+        Sprache: Sprachtyp; 
+    IDENT OrtschaftsVerbundText_von, Sprache;
+    END OrtschaftsVerbundText;
+
+    !! Die realen Ortschaften bilden AREA
+    TABLE Ortschaft = 
+      Entstehung: -> OSNachfuehrung  ;  !! Beziehung 1-mc
+      Ortschaft_von: OPTIONAL -> OrtschaftsVerbund; !!Beziehung c-m
+      Status: Status_GA;
+      InAenderung: (ja, nein);
+      Flaeche: SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500;
+    NO IDENT
+    END Ortschaft;
+
+    !! Beispiel fuer Text, KurzText und IndexText:
+    !! Text (Vollstaendiger Name): La Chaux-de-Fonds
+    !! KurzText (Schreibweise in der Postadresse): La Chx-de-Fds
+    !! IndexText (Fuer Index): Chaux-de-Fonds
+    TABLE OrtschaftsName =
+        OrtschaftsName_von: -> Ortschaft; !! Beziehung 1-m 
+        Text: TEXT*40;
+        KurzText: OPTIONAL TEXT*18;
+        IndexText: OPTIONAL TEXT*16;
+        Sprache: Sprachtyp; 
+    IDENT OrtschaftsName_von, Sprache;
+    END OrtschaftsName;
+
+    TABLE OrtschaftsName_Pos =  !! DM01: zusaetzlich zur SN
+      OrtschaftsName_Pos_von: -> OrtschaftsName; !! Beziehung 1-mc;
+                            !! beschriftet Texte
+      Pos: LKoord;
+      Ori: OPTIONAL Rotation // undefiniert = 100.0 //;
+      HAli: OPTIONAL HALIGNMENT // undefiniert = Center //;
+      VAli: OPTIONAL VALIGNMENT // undefiniert = Half //;
+      Groesse: OPTIONAL Schriftgroesse // undefiniert = mittel //;
+    NO IDENT
+    END OrtschaftsName_Pos;
+
+    TABLE PLZ6Nachfuehrung = !! SN Norm = NachfuerbareSache
+      NBIdent: TEXT*12;  !! Beziehung 1-m zu Nummerierungsbereich
+                         !! DM01: zusaetzlich zur SN
+      Identifikator: TEXT*12;  !! z.B. Nummer des technischen Dossiers
+                               !! DM01: zusaetzlich zur SN
+      Beschreibung: TEXT*30;
+      Perimeter: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+        WITHOUT OVERLAPS > 0.500; !! DM01: zusaetzlich zur SN
+      Gueltigkeit: Status;
+      GueltigerEintrag: DATE;
+    IDENT NBIdent, Identifikator;
+    END PLZ6Nachfuehrung ;
+
+    !! Eine reale PLZ6 auf eine nicht reale Ortschaft ist zu vermeiden.
+    TABLE PLZ6 =
+      Entstehung: -> PLZ6Nachfuehrung;  !! Beziehung 1-mc
+      PLZ6_von: -> Ortschaft;  !! Beziehung 1-m
+      !! Sind einer Ortschaft mehrere sechsstellige Postleitzahlen zugeordnet,
+      !! muss fuer jede derselben eine Flaeche definiert sein, und alle diese 
+      !! Flaechen muessen innerhalb der Flaeche der Ortschaft liegen.
+      !! Die realen PLZ6 sind vom Typ AREA.
+      Flaeche: OPTIONAL SURFACE WITH (STRAIGHTS, ARCS) VERTEX LKoord
+            WITHOUT OVERLAPS > 0.500;
+      Status: Status_GA;
+      InAenderung: (ja, nein);
+      PLZ: [1000 .. 9999];
+      Zusatzziffern: [0 .. 99];
+    NO IDENT
+    END PLZ6;
+   
+  END PLZOrtschaft.
+
+END PLZOCH1LV95D.
+
+
+
+FORMAT FREE;
+!! FORMAT FIX WITH LINESIZE = 107, TIDSIZE = 16;
+
+
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.
+

@@ -1,0 +1,60 @@
+INTERLIS 2.4;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! AMO-Grafik data model description in INTERLIS version 2.4
+!!
+!! Federal Office of Topography swisstopo
+!! Specialist authority of federal Directorate for Cadastral Surveying
+!! CH-3084 Wabern
+!! www.cadastre.ch und www.interlis.ch
+!!
+!! Version: 2.0
+!! File name: AMO_Grafik_LV95_e_V2_0.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who       | Modification
+!!------------------------------------------------------------------------------
+!! 2024-07-01 | - Upgrade to INTERLIS2.4
+!!            | - DOMAINS CoordP and Cantons replaced by imported groundmodels
+!!            | - DOMAIN Standards adapted to published statistics
+!!            | - DOMAIN Systems deleted
+!!            | - TOPIC Lots in progress deleted
+!!
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact = mailto:amo@swisstopo.ch
+
+MODEL AMO_Grafik_LV95_e_V2_0 (en)
+  AT "https://models.geo.admin.ch/V_D/" VERSION "2025-01-01" =
+  
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS CHAdminCodes_V2;
+  
+  DOMAIN
+    Identifier = 0 .. 99999;
+    Standards = (
+      cadastre93,  !!AV93 - MO93
+      provisionally_digitised,  !!PNtn, PNhg und PNgr - NPsn, NPsg et NPgr
+      full_numeric,  !!VN - CN
+      semi_numeric,  !!TN - SN
+      semi_graphic,  !!HG - SG
+      graphic,  !!GR
+      prov,  !!PNps und ps (provisorisch anerkannt) - NPps et ps (reconnu provisoirement)
+      not_yet_surveyed);  !!Noch nicht vermessen - pas encore mesure
+  
+  TOPIC Status_Cadastral_Surveying = !!Stand der Amtlichen Vermessung / Stand anerkannt - Etat de la MO / Etat reconnu - Stato della MU / Stato riconosciuto 
+  
+    CLASS Actual_Status =
+      Canton: MANDATORY CHAdminCodes_V2.CHCantonCode;
+      Id: MANDATORY Identifier;  !!kantonaler Identifikator (5 Zahlen)- identifiant cantonal de 5 chiffres
+      Quality: MANDATORY Standards;
+      Reference_date: MANDATORY INTERLIS.XMLDateTime;
+      Geometry : MANDATORY GeometryCHLV95_V2.MultiSurface;
+    UNIQUE Canton, Id;
+    END Actual_Status;
+    
+  END Status_Cadastral_Surveying;
+
+END AMO_Grafik_LV95_e_V2_0.

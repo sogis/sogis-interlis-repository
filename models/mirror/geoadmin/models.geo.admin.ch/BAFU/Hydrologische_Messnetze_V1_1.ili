@@ -1,0 +1,228 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (TOPIC Messort),
+!!                      Property EXTERNAL added (all STRUCTUREs in TOPIC Codelisten)
+!! 2020-04-29 | KOGIS | Constraint in ASSOCIATION StandortWerterhebung corrected
+!! 2020-04-29 | BAFU  | Ergänzung Kurzbezeichnungen für Trübung (Tr) und Schwebstoffkonzentration (SSC) in DOMAIN Kurzbezeichnung
+!! 2020-04-29 | BAFU  | Korrekturen Textlängen in Katalog-Codes
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="133.4,135.2,135.3"
+MODEL Hydrologische_Messnetze_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-10-29"  =
+  IMPORTS LocalisationCH_V1,CodeISO,CatalogueObjects_V1,Units,GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Codelisten =
+
+    CLASS Art_Gruppierung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*5;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Art_Gruppierung_Catalogue;
+
+    CLASS Gewaessertyp_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gewaessertyp_Catalogue;
+
+    CLASS Name_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*5;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Name_Catalogue;
+
+    CLASS Parameter_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Parameter_Catalogue;
+
+    CLASS Periodizitaet_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Periodizitaet_Catalogue;
+
+    CLASS Tel_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*4;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tel_Typ_Catalogue;
+
+    STRUCTURE Art_Gruppierung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Art_Gruppierung_Catalogue;
+    END Art_Gruppierung_CatRef;
+
+    STRUCTURE Gewaessertyp_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Gewaessertyp_Catalogue;
+    END Gewaessertyp_CatRef;
+
+    STRUCTURE Name_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Name_Catalogue;
+    END Name_CatRef;
+
+    STRUCTURE Parameter_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Parameter_Catalogue;
+    END Parameter_CatRef;
+
+    STRUCTURE Periodizitaet_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Periodizitaet_Catalogue;
+    END Periodizitaet_CatRef;
+
+    STRUCTURE Tel_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Tel_Typ_Catalogue;
+    END Tel_Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC Messort =
+    DEPENDS ON Hydrologische_Messnetze_V1_1.Codelisten;
+
+    DOMAIN
+
+      Kurzbezeichnung = (
+        H,
+        Q,
+        T,
+        Tr,
+        SSC
+      );
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT;
+      Hausnummer : TEXT;
+      Adresszusatz : TEXT;
+      Postfach : TEXT;
+      PLZ : MANDATORY TEXT;
+      Ort : MANDATORY TEXT;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Messgruppierung =
+      Gewaessername : MANDATORY TEXT;
+      Ortsbezeichnung : MANDATORY TEXT;
+      Code_eindeutig : MANDATORY TEXT;
+      Code_Publikation : TEXT;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : Hydrologische_Messnetze_V1_1.Codelisten.Art_Gruppierung_CatRef;
+      Gewaessertyp : MANDATORY Hydrologische_Messnetze_V1_1.Codelisten.Gewaessertyp_CatRef;
+      Einzugsgebietsgroesse : 0.1 .. 999999999.0 [Units.km2];
+      Mittlere_Hoehe : 1 .. 5000 [INTERLIS.m];
+      Vergletscherungsgrad : 0.1 .. 100.0;
+      URL_Stationsseite : INTERLIS.URI;
+    END Messgruppierung;
+
+    CLASS Messnetz =
+      Name : MANDATORY Hydrologische_Messnetze_V1_1.Codelisten.Name_CatRef;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Standort =
+      Punkt : GeometryCHLV95_V1.Coord3;
+      Polygon : GeometryCHLV95_V1.Surface;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Polygon);
+    END Standort;
+
+    CLASS Telefon =
+      Nummer : MANDATORY TEXT*20;
+      Tel_Typ : MANDATORY Hydrologische_Messnetze_V1_1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    CLASS Verantwortlichkeit =
+      Organisation : LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Abeilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Email : INTERLIS.URI;
+      Link : MANDATORY INTERLIS.URI;
+      MANDATORY CONSTRAINT DEFINED(Organisation) OR DEFINED(Abkuerzung);
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Parameter : MANDATORY Hydrologische_Messnetze_V1_1.Codelisten.Parameter_CatRef;
+      Kurzbezeichnung : Kurzbezeichnung;
+      Einheit : MANDATORY TEXT;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Periodizitaet : Hydrologische_Messnetze_V1_1.Codelisten.Periodizitaet_CatRef;
+      Vorgaenger : TEXT;
+    END Werterhebung;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1..*} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END StandortMessgruppierung;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {1..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION StandortWerterhebung =
+      Standort -- {1} Standort;
+      Werterhebung -<#> {0..1} Werterhebung;
+      MANDATORY CONSTRAINT (DEFINED (Standort -> Werterhebung) AND NOT (DEFINED (Standort -> Messgruppierung))) OR (NOT (DEFINED (Standort -> Werterhebung)) AND DEFINED (Standort -> Messgruppierung));
+    END StandortWerterhebung;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+  END Messort;
+
+END Hydrologische_Messnetze_V1_1.

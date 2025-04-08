@@ -1,0 +1,159 @@
+!!==============================================================================
+!! Seilbahnen
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 99
+!! Bezeichnung GeoIV                         : Seilbahnen
+!! Sammlung-Nr.                : 99.1
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAV)
+!! Zugangsberechtigungsstufe                 : A
+!! 
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date     | Who | Modification
+!!------------------------------------------------------------------------------
+!! 0.92   | 2012-11-15 | LS  | Draft 
+!! 0.93   | 2012-12-13 | LS  | Draft, kleinere Korrekturen
+!! 1.00   | 2014-05-20 | EMS | Draft (release candidate)
+!! 1.00   | 2014-06-20 | LS  | Anpassungen Rückmeldung KOGIS
+!! 1.00   | 2014-07-24 | EMS | Anpassungen Rückmeldung KOGIS
+!! 1.10   | 2015-06-25 | EMS | Entfernen von Gültigkeitsattribut bei Bauwerken
+!! 1.11   | 2015-08-14 | EMS | Anpassung von Unique-Constraint der Station zu Struktur Betriebspunkt (nach Änderung des KOGIS INTERLIS Compilers)
+
+INTERLIS 2.3;
+!!@ IDGeoIV = "99.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = http://www.bav.admin.ch/dokumentation/04523/04524/04546/index.html
+
+
+MODEL Seilbahnen_V1_1 (de) 
+ AT "http://models.geo.admin.ch/BAV/" VERSION "2015-06-15" =
+
+ IMPORTS GeometryCHLV03_V1;
+ IMPORTS HaltestellenOeV_V1_1;
+
+
+  TOPIC Seilbahnen = 
+    DEPENDS ON HaltestellenOeV_V1_1.HaltestellenOeV;
+
+    DOMAIN
+      Distanz   = 0 .. 9999 [INTERLIS.m];
+   
+      Bahntyp   = ( 
+           Luftseilbahn,
+           Standseilbahn );
+   
+      Fahrzeugtyp = ( 
+           Sessel,
+           Kabine,
+           Sessel_Kabine );
+   
+      Stationstyp = ( 
+           Bergstation,
+           Talstation,
+           Zwischenstation);
+   
+      Bauwerkstyp = ( 
+           Tunnel,
+           Bruecke,
+           Galerie );
+   
+      Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+    STRUCTURE Betriebspunkt =
+      Nummer :    MANDATORY 0 .. 9999999;
+      Name :                TEXT*50;    !! redundant zu Nummer
+      Abkuerzung :          TEXT*6;     !! redundant zu Nummer
+      DatenherrAbkuerzung : TEXT*10;
+    
+      !!Betriebspunkt muss in MGDM HaltestellenOeV definiert sein (muss in DIDOK-Liste definiert sein)
+      EXISTENCE CONSTRAINT Nummer REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Nummer;
+      EXISTENCE CONSTRAINT Name  REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Name;
+      EXISTENCE CONSTRAINT Abkuerzung REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:Abkuerzung;
+      EXISTENCE CONSTRAINT DatenherrAbkuerzung REQUIRED IN HaltestellenOeV_V1_1.HaltestellenOeV.Betriebspunkt:DatenherrAbkuerzung;
+
+    END Betriebspunkt;
+
+    STRUCTURE TU =
+      TUNummer : MANDATORY TEXT*6;
+      TUAbkuerzung :       TEXT*10;    !! redundant zu TUNummer
+
+      !!TUNummer muss in TU-Verzeichnis BAV definiert sein. TU-Verzeichnis nicht als MGDM definiert, so dass keine formale Prüfung via INTERLIS-Constraint möglich ist
+      !!EXISTENCE CONSTRAINT TUNummer REQUIRED IN TU.TU.Unternehmen.TUNummer;  
+      !!EXISTENCE CONSTRAINT TUAbkuerzung REQUIRED IN TU.TU.Unternehmen.TUAbkuerzung;  
+
+    END TU;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit : MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit :             INTERLIS.XMLDate;
+      BearbeitungsDatum : MANDATORY INTERLIS.XMLDate;
+      Stand :             MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+
+  
+    CLASS Anlage =
+      AnlageNr :    MANDATORY TEXT*7;
+      AnlageName :  MANDATORY TEXT*60;
+      Bahntyp :     MANDATORY Bahntyp;
+      Fahrzeugtyp : MANDATORY Fahrzeugtyp;
+      Betreiber :   MANDATORY TU;
+      Gueltigkeit : MANDATORY Gueltigkeit;
+
+      UNIQUE AnlageNr;
+      UNIQUE AnlageName;
+    
+    END Anlage;
+
+    CLASS Station =
+      Betriebspunkt : MANDATORY Betriebspunkt;
+      Stationstyp :   MANDATORY Stationstyp;
+      Geometrie :     MANDATORY GeometryCHLV03_V1.Coord2;
+
+      UNIQUE Betriebspunkt->Nummer;
+
+    END Station;
+
+    CLASS Seilbahnstrecke =
+      LaengeSchief :        Distanz;
+      Hoehendifferenz :     Distanz;
+      Geometrie : MANDATORY Linie;
+    END Seilbahnstrecke;
+
+    CLASS Seilstuetze =
+      Geometrie :  MANDATORY GeometryCHLV03_V1.Coord2;
+    END Seilstuetze;
+
+    CLASS Bauwerk =
+      Bauwerkstyp : MANDATORY Bauwerkstyp;
+      Geometrie :   MANDATORY Linie;
+    END Bauwerk;
+
+
+    ASSOCIATION Anlage_StationAssoc =
+      rAnlage -<#> {1} Anlage;
+      rStation -- {2..*} Station;
+    END Anlage_StationAssoc;
+
+    ASSOCIATION Anlage_SeilbahnstreckeAssoc =
+      rAnlage -<#> {1} Anlage;
+      rSeilbahnstrecke -- {1} Seilbahnstrecke;
+    END Anlage_SeilbahnstreckeAssoc;
+
+    ASSOCIATION StreckeLuftseilbahn_SeilstuetzeAssoc =
+      rStreckeLuftseilbahn -<#> {1} Seilbahnstrecke;
+      rSeilstuetze -- {0..*} Seilstuetze;
+    END StreckeLuftseilbahn_SeilstuetzeAssoc;
+
+    ASSOCIATION StreckeStandseilbahn_BauwerkAssoc =
+      rStreckeStandseilbahn -- {1} Seilbahnstrecke;
+      rBauwerk -- {0..*} Bauwerk;
+    END StreckeStandseilbahn_BauwerkAssoc;
+
+
+  END Seilbahnen ;
+
+END Seilbahnen_V1_1 .

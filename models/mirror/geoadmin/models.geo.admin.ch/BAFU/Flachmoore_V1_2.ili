@@ -1,0 +1,65 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU  | UNIQUE-Constraint beim Attribut Flachmoor.ObjNummer eingfügt, LV03 gelöscht
+
+!!@ IDGeoIV=21.1
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Flachmoore_V1_2 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-06-02"  =
+  IMPORTS LocalisationCH_V1,GeometryCHLV95_V1;
+
+  TOPIC Flachmoore =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /** Klasse für gesamtes Flachmoorobjekt */
+    CLASS Flachmoor =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Geo_Obj : MANDATORY MultiPolygon;
+    UNIQUE ObjNummer;
+    END Flachmoor;
+
+  END Flachmoore;
+
+END Flachmoore_V1_2.

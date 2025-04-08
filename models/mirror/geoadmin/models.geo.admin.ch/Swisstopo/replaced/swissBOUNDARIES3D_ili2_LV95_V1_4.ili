@@ -1,0 +1,156 @@
+INTERLIS 2.3;
+
+!!======================================
+!!@ IDGeoIV=39.3
+!!@ furtherInformation=https://www.swisstopo.admin.ch/de/geodata/landscape/boundaries3d.html
+!!@ technicalContact=mailto:geodata@swisstopo.ch
+
+MODEL swissBOUNDARIES3D_ili2_LV95_V1_4 (de) AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2023-01-01" =
+
+
+  IMPORTS CoordSys;
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D : CHLV95
+    OBJECTS OF GeoHeight: SwissOrthometricAlt;
+  DOMAIN
+    UUIDOID = OID TEXT*36;
+    HKoord = COORD 2480000.000 .. 2850000.000 [INTERLIS.m] {CHLV95[1]},
+                   1070000.000 .. 1310000.000 [INTERLIS.m] {CHLV95[2]},
+                      -200.000 ..    5000.000 [INTERLIS.m] {SwissOrthometricAlt[1]},
+                   ROTATION 2 -> 1;
+    D_POLYLINE = POLYLINE WITH (STRAIGHTS,ARCS) VERTEX HKoord;
+    D_SURFACE = SURFACE WITH (STRAIGHTS,ARCS) VERTEX HKoord WITHOUT OVERLAPS > 0.001;
+    TLM_Grund_Aenderung_CD = (
+      uebertragen,
+      real,
+      restrukturiert,
+      verbessert);
+    TLM_Herkunft_CD = (
+      swisstopo,
+      NDB,
+      V25,
+      GG25,
+      AV,
+      ASTRA,
+      Transportunternehmen,
+      GIS_Landesgrenze,
+      Strassendaten_Kanton,
+      NMA_Ausland,
+      BAFU,
+      BAV,
+      SchweizMobil,
+      LV_Kanton,
+      EuroGeographics,
+      Gemeinde,
+      GebCH_T2013,
+      GebCH_T2014,
+      GebCH_T2015,
+      GebCH_T2016);
+
+  CLASS TLM_OBJEKT (ABSTRACT) =
+    UUID: MANDATORY UUIDOID;
+    Datum_Aenderung: INTERLIS.XMLDate;
+    Datum_Erstellung: INTERLIS.XMLDate;
+    Erstellung_Jahr: -999999 .. 2100;
+    Erstellung_Monat: TEXT*5;
+    Grund_Aenderung: TLM_Grund_Aenderung_CD;
+    Herkunft: TLM_Herkunft_CD;
+    Herkunft_Jahr: -999999 .. 2100;
+    Herkunft_Monat: TEXT*5;
+    Revision_Jahr: -999999 .. 2100;
+    Revision_Monat: TEXT*5;
+    Revision_Qualitaet: TEXT*20;
+  END TLM_OBJEKT;
+
+  TOPIC TLM_GRENZEN =
+  
+    DOMAIN
+      TLM_Grenzen_ICC_CD = (
+        CH,
+        DE,
+        FR,
+        IT,
+        LI,
+        AT_,
+        ub,
+        k_W,
+        AT_CH,
+        AT_DE,
+        AT_IT,
+        AT_LI,
+        CH_DE,
+        CH_FR,
+        CH_IT,
+        CH_LI,
+        DE_FR,
+        FR_IT);
+
+    CLASS TLM_HOHEITSGRENZE EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY 1 .. 6;
+      ICC: TLM_Grenzen_ICC_CD;
+      TYP: (
+        Politisch_administrativ,
+        Technisch,
+        ub,
+        k_W);
+      Shape: MANDATORY D_POLYLINE;
+    END TLM_HOHEITSGRENZE;
+
+    CLASS TLM_HOHEITSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (
+        Kantonsgebiet,
+        Kommunanz,
+        Gemeindegebiet);
+      BFS_Nummer: -999999 .. 9999;
+      Bezirksnummer: 0 .. 9999;
+      Kantonsnummer: 0 .. 99;
+      Name: TEXT*255;
+      Gem_Teil: 0 .. 999998;
+      Gem_Flaeche: 0.0 .. 9999999999.9;
+      See_Flaeche : 0.0 .. 9999999999.9;
+      ICC: TLM_Grenzen_ICC_CD;
+      SHN: TEXT*20;
+      Einwohnerzahl : 0 .. 99999999;
+      HIST_NR : 0 .. 99999;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_HOHEITSGEBIET;
+
+    CLASS TLM_BEZIRKSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Bezirk);
+      Bezirksnummer: 0 .. 9999;
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Bezirksflaeche: 0.0 .. 9999999999.9;
+      Bezirk_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      Kantonsnummer: 0 .. 99;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_BEZIRKSGEBIET;
+
+    CLASS TLM_KANTONSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Kanton);
+      Kantonsnummer: 0 .. 99;
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Kantonsflaeche: 0.0 .. 9999999999.9;
+      Kanton_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_KANTONSGEBIET;
+
+    CLASS TLM_LANDESGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Land);
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Landesflaeche: 0.0 .. 9999999999.9;
+      Land_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+      Shape: MANDATORY D_SURFACE;
+    END TLM_LANDESGEBIET;
+
+  END TLM_GRENZEN;
+
+END swissBOUNDARIES3D_ili2_LV95_V1_4.

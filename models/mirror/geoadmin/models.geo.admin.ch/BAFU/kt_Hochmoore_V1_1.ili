@@ -1,0 +1,103 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-02-08 | BAFU  | Anpassung auf LV95; Textlängen definiert
+!! 2022-11-18 | BAFU  | Korrektur: Wertebereich bei Obj_GISFlaeche auf 1.000 .. 999999999.000 (analog der anderen MGDM)
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=27.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL kt_Hochmoore_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2022-11-18"  =
+  IMPORTS LocalisationCH_V1,Units,GeometryCHLV95_V1,CHAdminCodes_V1,CatalogueObjects_V1;
+
+  TOPIC Codelisten =
+
+    CLASS HM_Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_Bedeutung_Catalogue;
+
+    CLASS HM_Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_Kartierungsgrundlage_Catalogue;
+
+    CLASS HM_KE_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*7;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_KE_Catalogue;
+
+    CLASS HM_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HM_Typ_Catalogue;
+
+    STRUCTURE HM_Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HM_Bedeutung_Catalogue;
+    END HM_Bedeutung_CatRef;
+
+    STRUCTURE HM_Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HM_Kartierungsgrundlage_Catalogue;
+    END HM_Kartierungsgrundlage_CatRef;
+
+    STRUCTURE HM_KE_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HM_KE_Catalogue;
+    END HM_KE_CatRef;
+
+    STRUCTURE HM_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HM_Typ_Catalogue;
+    END HM_Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC kt_Hochmoore =
+    DEPENDS ON kt_Hochmoore_V1_1.Codelisten;
+
+    CLASS kt_Hochmoor =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      Obj_GISFlaeche : MANDATORY 1.000 .. 999999999.000 [Units.m2];
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY kt_Hochmoore_V1_1.Codelisten.HM_Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY kt_Hochmoore_V1_1.Codelisten.HM_Bedeutung_CatRef;
+    END kt_Hochmoor;
+
+    CLASS kt_Hochmoor_Geometrie =
+      HM_TYP : kt_Hochmoore_V1_1.Codelisten.HM_Typ_CatRef;
+      HM_KE : kt_Hochmoore_V1_1.Codelisten.HM_KE_CatRef;
+      Geo_Obj : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END kt_Hochmoor_Geometrie;
+
+    CLASS kt_Hochmoor_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*30;
+      HM_TO : 0 .. 999999;
+    END kt_Hochmoor_Teilobjekt;
+
+    ASSOCIATION GeometrieTeilobjekt =
+      kt_Hochmoor_Geometrie -- {1..*} kt_Hochmoor_Geometrie;
+      kt_Hochmoor_Teilobjekt -<#> {1} kt_Hochmoor_Teilobjekt;
+    END GeometrieTeilobjekt;
+
+    ASSOCIATION TeilobjektHochmoor =
+      kt_Hochmoor_Teilobjekt -- {1..*} kt_Hochmoor_Teilobjekt;
+      kt_Hochmoor -<#> {1} kt_Hochmoor;
+    END TeilobjektHochmoor;
+
+  END kt_Hochmoore;
+
+END kt_Hochmoore_V1_1.

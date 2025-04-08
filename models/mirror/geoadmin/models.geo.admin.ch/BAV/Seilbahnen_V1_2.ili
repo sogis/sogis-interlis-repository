@@ -1,0 +1,302 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Seilbahnen mit Bundeskonzession
+!!------------------------------------------------------------------------------
+!!
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 99
+!! Bezeichnung GeoIV                         : Seilbahnen mit Bundeskonzession
+!! Sammlung-Nr.                              : 99.1
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (BAV)
+!! Zugangsberechtigungsstufe                 : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date     | Who | Modification
+!!------------------------------------------------------------------------------
+!! 0.92   | 2012-11-15 | LS  | Draft
+!! 0.93   | 2012-12-13 | LS  | Draft, kleinere Korrekturen
+!! 1.0    | 2014-05-20 | ems | Draft (release candidate)
+!! 1.0    | 2014-06-20 | LS  | Anpassungen Rückmeldung KOGIS
+!! 1.0    | 2014-06-23 |(BAV)| Genehmigung DS BAV
+!! 1.0    | 2014-07-24 | ems | Anpassungen Rückmeldung KOGIS
+!! 1.1    | 2015-06-25 | ems | Entfernen von Gültigkeitsattribut bei Bauwerken
+!! 1.11   | 2015-08-14 | ems | Anpassung von Unique-Constraint der Station zu Struktur Betriebspunkt (nach Änderung des KOGIS INTERLIS Compilers)
+!! 1.2    | 2017-06-08 | ems | Ergänzung Datenmodell für Bezugsrahmen LV95 und entsprechende Anpassung der MODEL-Namen;
+!!                             Verweis auf MGDM Haltestellen öV Version 1.3
+!!                             Aktivierung von bisher auskommentierten Existence Constraints in Bezug auf das Datenmodell TU;
+!! 1.2    | 2017-07-21 | ems | Minimale Anpassungen nach Rückmeldung KOGIS
+!! 1.2    | 2017-10-30 | ems | Korrex Wertebereich TUAbkuerzung und DatenherrAbkuerzung
+!! 1.2    | 2018-07-25 | ems | Anpassung furtherInformation
+
+
+!!@ IDGeoIV = "99.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/themen-a-z/geoinformation/geobasisdaten/seilbahnen-mit-bundeskonzession.html
+
+MODEL Seilbahnen_LV95_V1_2 (de)
+ AT "https://models.geo.admin.ch/BAV/" VERSION "2018-07-25" =
+
+ IMPORTS GeometryCHLV95_V1;
+ IMPORTS HaltestellenOeV_LV95_V1_3;
+ IMPORTS TransportunternehmenOeV_V1;
+
+
+  TOPIC Seilbahnen =
+    DEPENDS ON HaltestellenOeV_LV95_V1_3.HaltestellenOeV, TransportunternehmenOeV_V1.TU;
+
+    DOMAIN
+      Distanz   = 0 .. 9999 [INTERLIS.m];
+
+      Bahntyp   = (
+           Luftseilbahn,
+           Standseilbahn );
+
+      Fahrzeugtyp = (
+           Sessel,
+           Kabine,
+           Sessel_Kabine );
+
+      Stationstyp = (
+           Bergstation,
+           Talstation,
+           Zwischenstation);
+
+      Bauwerkstyp = (
+           Tunnel,
+           Bruecke,
+           Galerie );
+
+      Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+    STRUCTURE Betriebspunkt =
+      Nummer :    MANDATORY 0 .. 9999999;
+      Name :                TEXT*50;    !! redundant zu Nummer
+      Abkuerzung :          TEXT*6;     !! redundant zu Nummer
+      DatenherrAbkuerzung : TEXT*15;
+
+      !!Betriebspunkt muss in MGDM HaltestellenOeV definiert sein (muss in DIDOK-Liste definiert sein)
+      EXISTENCE CONSTRAINT Nummer REQUIRED IN HaltestellenOeV_LV95_V1_3.HaltestellenOeV.Betriebspunkt:Nummer;
+      EXISTENCE CONSTRAINT Name  REQUIRED IN HaltestellenOeV_LV95_V1_3.HaltestellenOeV.Betriebspunkt:Name;
+      EXISTENCE CONSTRAINT Abkuerzung REQUIRED IN HaltestellenOeV_LV95_V1_3.HaltestellenOeV.Betriebspunkt:Abkuerzung;
+      EXISTENCE CONSTRAINT DatenherrAbkuerzung REQUIRED IN HaltestellenOeV_LV95_V1_3.HaltestellenOeV.Betriebspunkt:DatenherrAbkuerzung;
+
+    END Betriebspunkt;
+
+    STRUCTURE TU =
+      TUNummer : MANDATORY TEXT*6;
+      TUAbkuerzung :       TEXT*15;    !! redundant zu TUNummer
+
+      !!TU muss in TU-Verzeichnis BAV definiert sein.
+      EXISTENCE CONSTRAINT TUNummer REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Nummer;
+      EXISTENCE CONSTRAINT TUAbkuerzung REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Abkuerzung;
+
+    END TU;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit : MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit :             INTERLIS.XMLDate;
+      BearbeitungsDatum : MANDATORY INTERLIS.XMLDate;
+      Stand :             MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+
+    CLASS Anlage =
+      AnlageNr :    MANDATORY TEXT*7;
+      AnlageName :  MANDATORY TEXT*60;
+      Bahntyp :     MANDATORY Bahntyp;
+      Fahrzeugtyp : MANDATORY Fahrzeugtyp;
+      Betreiber :   MANDATORY TU;
+      Gueltigkeit : MANDATORY Gueltigkeit;
+
+      UNIQUE AnlageNr;
+      UNIQUE AnlageName;
+
+    END Anlage;
+
+    CLASS Station =
+      Betriebspunkt : MANDATORY Betriebspunkt;
+      Stationstyp :   MANDATORY Stationstyp;
+      Geometrie :     MANDATORY GeometryCHLV95_V1.Coord2;
+
+      UNIQUE Betriebspunkt->Nummer;
+
+    END Station;
+
+    CLASS Seilbahnstrecke =
+      LaengeSchief :        Distanz;
+      Hoehendifferenz :     Distanz;
+      Geometrie : MANDATORY Linie;
+    END Seilbahnstrecke;
+
+    CLASS Seilstuetze =
+      Geometrie :  MANDATORY GeometryCHLV95_V1.Coord2;
+    END Seilstuetze;
+
+    CLASS Bauwerk =
+      Bauwerkstyp : MANDATORY Bauwerkstyp;
+      Geometrie :   MANDATORY Linie;
+    END Bauwerk;
+
+
+    ASSOCIATION Anlage_StationAssoc =
+      rAnlage -<#> {1} Anlage;
+      rStation -- {2..*} Station;
+    END Anlage_StationAssoc;
+
+    ASSOCIATION Anlage_SeilbahnstreckeAssoc =
+      rAnlage -<#> {1} Anlage;
+      rSeilbahnstrecke -- {1} Seilbahnstrecke;
+    END Anlage_SeilbahnstreckeAssoc;
+
+    ASSOCIATION StreckeLuftseilbahn_SeilstuetzeAssoc =
+      rStreckeLuftseilbahn -<#> {1} Seilbahnstrecke;
+      rSeilstuetze -- {0..*} Seilstuetze;
+    END StreckeLuftseilbahn_SeilstuetzeAssoc;
+
+    ASSOCIATION StreckeStandseilbahn_BauwerkAssoc =
+      rStreckeStandseilbahn -- {1} Seilbahnstrecke;
+      rBauwerk -- {0..*} Bauwerk;
+    END StreckeStandseilbahn_BauwerkAssoc;
+
+
+  END Seilbahnen ;
+
+END Seilbahnen_LV95_V1_2 .
+
+!!@ IDGeoIV = "99.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/themen-a-z/geoinformation/geobasisdaten/seilbahnen-mit-bundeskonzession.html
+
+MODEL Seilbahnen_LV03_V1_2 (de)
+ AT "https://models.geo.admin.ch/BAV/" VERSION "2018-07-25" =
+
+ IMPORTS GeometryCHLV03_V1;
+ IMPORTS HaltestellenOeV_LV03_V1_3;
+ IMPORTS TransportunternehmenOeV_V1;
+
+
+  TOPIC Seilbahnen =
+    DEPENDS ON HaltestellenOeV_LV03_V1_3.HaltestellenOeV, TransportunternehmenOeV_V1.TU;
+
+    DOMAIN
+      Distanz   = 0 .. 9999 [INTERLIS.m];
+
+      Bahntyp   = (
+           Luftseilbahn,
+           Standseilbahn );
+
+      Fahrzeugtyp = (
+           Sessel,
+           Kabine,
+           Sessel_Kabine );
+
+      Stationstyp = (
+           Bergstation,
+           Talstation,
+           Zwischenstation);
+
+      Bauwerkstyp = (
+           Tunnel,
+           Bruecke,
+           Galerie );
+
+      Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+    STRUCTURE Betriebspunkt =
+      Nummer :    MANDATORY 0 .. 9999999;
+      Name :                TEXT*50;    !! redundant zu Nummer
+      Abkuerzung :          TEXT*6;     !! redundant zu Nummer
+      DatenherrAbkuerzung : TEXT*15;
+
+      !!Betriebspunkt muss in MGDM HaltestellenOeV definiert sein (muss in DIDOK-Liste definiert sein)
+      EXISTENCE CONSTRAINT Nummer REQUIRED IN HaltestellenOeV_LV03_V1_3.HaltestellenOeV.Betriebspunkt:Nummer;
+      EXISTENCE CONSTRAINT Name  REQUIRED IN HaltestellenOeV_LV03_V1_3.HaltestellenOeV.Betriebspunkt:Name;
+      EXISTENCE CONSTRAINT Abkuerzung REQUIRED IN HaltestellenOeV_LV03_V1_3.HaltestellenOeV.Betriebspunkt:Abkuerzung;
+      EXISTENCE CONSTRAINT DatenherrAbkuerzung REQUIRED IN HaltestellenOeV_LV03_V1_3.HaltestellenOeV.Betriebspunkt:DatenherrAbkuerzung;
+
+    END Betriebspunkt;
+
+    STRUCTURE TU =
+      TUNummer : MANDATORY TEXT*6;
+      TUAbkuerzung :       TEXT*15;    !! redundant zu TUNummer
+
+      !!TU muss in TU-Verzeichnis BAV definiert sein.
+      EXISTENCE CONSTRAINT TUNummer REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Nummer;
+      EXISTENCE CONSTRAINT TUAbkuerzung REQUIRED IN TransportunternehmenOeV_V1.TU.Transportunternehmen:Abkuerzung;
+
+    END TU;
+
+    STRUCTURE Gueltigkeit =
+      BeginnGueltigkeit : MANDATORY INTERLIS.XMLDate;
+      EndeGueltigkeit :             INTERLIS.XMLDate;
+      BearbeitungsDatum : MANDATORY INTERLIS.XMLDate;
+      Stand :             MANDATORY INTERLIS.XMLDate;
+    END Gueltigkeit;
+
+
+    CLASS Anlage =
+      AnlageNr :    MANDATORY TEXT*7;
+      AnlageName :  MANDATORY TEXT*60;
+      Bahntyp :     MANDATORY Bahntyp;
+      Fahrzeugtyp : MANDATORY Fahrzeugtyp;
+      Betreiber :   MANDATORY TU;
+      Gueltigkeit : MANDATORY Gueltigkeit;
+
+      UNIQUE AnlageNr;
+      UNIQUE AnlageName;
+
+    END Anlage;
+
+    CLASS Station =
+      Betriebspunkt : MANDATORY Betriebspunkt;
+      Stationstyp :   MANDATORY Stationstyp;
+      Geometrie :     MANDATORY GeometryCHLV03_V1.Coord2;
+
+      UNIQUE Betriebspunkt->Nummer;
+
+    END Station;
+
+    CLASS Seilbahnstrecke =
+      LaengeSchief :        Distanz;
+      Hoehendifferenz :     Distanz;
+      Geometrie : MANDATORY Linie;
+    END Seilbahnstrecke;
+
+    CLASS Seilstuetze =
+      Geometrie :  MANDATORY GeometryCHLV03_V1.Coord2;
+    END Seilstuetze;
+
+    CLASS Bauwerk =
+      Bauwerkstyp : MANDATORY Bauwerkstyp;
+      Geometrie :   MANDATORY Linie;
+    END Bauwerk;
+
+
+    ASSOCIATION Anlage_StationAssoc =
+      rAnlage -<#> {1} Anlage;
+      rStation -- {2..*} Station;
+    END Anlage_StationAssoc;
+
+    ASSOCIATION Anlage_SeilbahnstreckeAssoc =
+      rAnlage -<#> {1} Anlage;
+      rSeilbahnstrecke -- {1} Seilbahnstrecke;
+    END Anlage_SeilbahnstreckeAssoc;
+
+    ASSOCIATION StreckeLuftseilbahn_SeilstuetzeAssoc =
+      rStreckeLuftseilbahn -<#> {1} Seilbahnstrecke;
+      rSeilstuetze -- {0..*} Seilstuetze;
+    END StreckeLuftseilbahn_SeilstuetzeAssoc;
+
+    ASSOCIATION StreckeStandseilbahn_BauwerkAssoc =
+      rStreckeStandseilbahn -- {1} Seilbahnstrecke;
+      rBauwerk -- {0..*} Bauwerk;
+    END StreckeStandseilbahn_BauwerkAssoc;
+
+
+  END Seilbahnen ;
+
+END Seilbahnen_LV03_V1_2 .
+

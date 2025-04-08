@@ -1,0 +1,221 @@
+INTERLIS 2.3;
+
+!! Version    | Who       | Modification
+!!-----------------------------------------------------------------------------------------
+!! 2016-09-01 | KOGIS/BLW | IMPORTS, DEPENDS ON and ASSOCIATION corrected (line 15, 19, 97)
+
+/** Das Modell Biodiversitaetsfoerderflaechen und Vernetzung löst das Modell Flaechen_nach_OeQV ab.
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV="153.3,153.4"
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+MODEL Biodiversitaetsfoerderflaechen_Qualitaetsstufe_II_und_Vernetzung_LV95_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2016-09-01"  =
+  IMPORTS Bearbeitungsstatus_V1_2,GeometryCHLV95_V1,Nutzungsflaechen_LV95_V1_3;
+
+  TOPIC Foerderflaechen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1_2.Status,Nutzungsflaechen_LV95_V1_3.Nutzung;
+
+    /** Perimeter der Qualitätsflächen, Standorte der für die biologische Qualität berücksichtigten Bäume.
+     */
+    CLASS BFF_Qualitaet_II =
+      /** Entweder Fläche oder Punkt muss definiert sein.
+       */
+      Flaeche : GeometryCHLV95_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume. Entweder Fläche oder Punkt muss definiert sein.
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      Anzahl_Baeume : 0 .. 10000;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Von : INTERLIS.GregorianYear;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Bis : INTERLIS.GregorianYear;
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100;
+      /** Gibt an, ob eine bewirtschaftete Fläche aufgrund von Ausschlusskriterien nicht beitragsberechtigt ist.
+       */
+      Beitragsberechtigt : MANDATORY BOOLEAN;
+      /** Gibt an, ob für eine Fläche eine schriftliche Nutzungs- und Schutzvereinbarung besteht. Normalfall: nein
+       */
+      NHG : MANDATORY BOOLEAN;
+      /** Für die Biodiversitätsförderflächen der Qualitätsstufe II ist der Qualitätsanteil für jede Teilfläche anzugeben. Dieser legt den beitragsberechtigten Pro-zentanteil einer Fläche fest.
+       */
+      Qualitaetsanteil : MANDATORY 0 .. 100;
+      /** Code gemäss Nutzungskatalog
+       * Dieses Attribut ist notwendig, wenn im Modell ?Nutzungsflächen? keine Bäume erfasst werden und die Art eines Baumes nicht durch Überlagerung und Verschnitt bestimmt werden kann (Nussbäume und andere Hochstammbäume müssen wegen unterschiedlicher Zahlungen unterschieden werden können).
+       */
+      LNF_Code : TEXT*20;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Punkt);
+    END BFF_Qualitaet_II;
+
+    /** Perimeter der Vernetzungsflächen, Standorte der für die Vernetzung berücksichtigten Bäume.
+     */
+    CLASS BFF_Vernetzung =
+      Flaeche : GeometryCHLV95_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV95_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 10000;
+      Ist_definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Von : INTERLIS.GregorianYear;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Bis : INTERLIS.GregorianYear;
+      /** Für Verpflichtungsflächen
+       */
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, ob eine bewirtschaftete Fläche aufgrund von Ausschlusskriterien nicht beitragsberechtigt ist.
+       */
+      Beitragsberechtigt : MANDATORY BOOLEAN;
+      /** Code gemäss Nutzungskatalog
+       * Dieses Attribut ist notwendig, wenn auf Stufe Nutzung keine Bäume erfasst werden und die Art eines Bau-mes nicht durch Überlagerung und Verschnitt be-stimmt werden kann (Nussbäume und andere Hoch-stammbäume müssen wegen unterschiedlicher Zah-lungen unterschieden werden können).
+       */
+      LNF_Code : TEXT*20;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Punkt);
+    END BFF_Vernetzung;
+
+    /** Zurechnungsflächen für OeQV_Qualität
+     */
+    ASSOCIATION QualitaetNutzung =
+      Nutzung (EXTERNAL) -- {0..*} Nutzungsflaechen_LV95_V1_3.Nutzung.LNF_Nutzung;
+      Qualitaetsflaeche -- {0..*} BFF_Qualitaet_II;
+    END QualitaetNutzung;
+
+  END Foerderflaechen;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+END Biodiversitaetsfoerderflaechen_Qualitaetsstufe_II_und_Vernetzung_LV95_V1_3.
+
+/** Das Modell Biodiversitaetsfoerderflaechen und Vernetzung löst das Modell Flaechen_nach_OeQV ab.
+ */
+!!@ technicalContact=mailto:info@blw.admin.ch
+!!@ IDGeoIV="153.3,153.4"
+!!@ furtherInformation="http://www.blw.admin.ch/dienstleistungen/00568/01328/01329/index.html?lang=de"
+MODEL Biodiversitaetsfoerderflaechen_Qualitaetsstufe_II_und_Vernetzung_V1_3 (de)
+AT "http://models.geo.admin.ch/BLW/"
+VERSION "2016-08-01"  =
+  IMPORTS GeometryCHLV03_V1,Nutzungsflaechen_V1_3,Bearbeitungsstatus_V1_2;
+
+  TOPIC Foerderflaechen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON Bearbeitungsstatus_V1_2.Status,Nutzungsflaechen_V1_3.Nutzung;
+
+    /** Perimeter der Qualitätsflächen, Standorte der für die biologische Qualität berücksichtigten Bäume.
+     */
+    CLASS BFF_Qualitaet_II =
+      /** Entweder Fläche oder Punkt muss definiert sein.
+       */
+      Flaeche : GeometryCHLV03_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume. Entweder Fläche oder Punkt muss definiert sein.
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      Anzahl_Baeume : 0 .. 10000;
+      /** Angabe, ob die Daten definitiven Status haben oder nicht. Über die Referenz zum Bearbeitungsstatus kann optional eine präzisere Angabe gemacht werden
+       */
+      Ist_Definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Von : INTERLIS.GregorianYear;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Bis : INTERLIS.GregorianYear;
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, wie viel Prozent der Fläche als bewirtschaftet angerechnet werden können.
+       */
+      Bewirtschaftungsgrad : MANDATORY 0 .. 100;
+      /** Gibt an, ob eine bewirtschaftete Fläche aufgrund von Ausschlusskriterien nicht beitragsberechtigt ist.
+       */
+      Beitragsberechtigt : MANDATORY BOOLEAN;
+      /** Gibt an, ob für eine Fläche eine schriftliche Nutzungs- und Schutzvereinbarung besteht. Normalfall: nein
+       */
+      NHG : MANDATORY BOOLEAN;
+      /** Für die Biodiversitätsförderflächen der Qualitätsstufe II ist der Qualitätsanteil für jede Teilfläche anzugeben. Dieser legt den beitragsberechtigten Pro-zentanteil einer Fläche fest.
+       */
+      Qualitaetsanteil : MANDATORY 0 .. 100;
+      /** Code gemäss Nutzungskatalog
+       * Dieses Attribut ist notwendig, wenn im Modell ?Nutzungsflächen? keine Bäume erfasst werden und die Art eines Baumes nicht durch Überlagerung und Verschnitt bestimmt werden kann (Nussbäume und andere Hochstammbäume müssen wegen unterschiedlicher Zahlungen unterschieden werden können).
+       */
+      LNF_Code : TEXT*20;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Punkt);
+    END BFF_Qualitaet_II;
+
+    /** Perimeter der Vernetzungsflächen, Standorte der für die Vernetzung berücksichtigten Bäume.
+     */
+    CLASS BFF_Vernetzung =
+      Flaeche : GeometryCHLV03_V1.Surface;
+      /** Position (XY-Koordinate) der Bäume
+       */
+      Punkt : GeometryCHLV03_V1.Coord2;
+      /** Anzahl Bäume, wenn diese als Fläche erfasst
+       */
+      Anzahl_Baeume : 0 .. 10000;
+      Ist_definitiv : MANDATORY BOOLEAN;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Von : INTERLIS.GregorianYear;
+      /** Für Vertragsflächen
+       */
+      Verpflichtung_Bis : INTERLIS.GregorianYear;
+      /** Für Verpflichtungsflächen
+       */
+      Schnittzeitpunkt : FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      /** Gibt an, ob eine bewirtschaftete Fläche aufgrund von Ausschlusskriterien nicht beitragsberechtigt ist.
+       */
+      Beitragsberechtigt : MANDATORY BOOLEAN;
+      /** Code gemäss Nutzungskatalog
+       * Dieses Attribut ist notwendig, wenn auf Stufe Nutzung keine Bäume erfasst werden und die Art eines Bau-mes nicht durch Überlagerung und Verschnitt be-stimmt werden kann (Nussbäume und andere Hoch-stammbäume müssen wegen unterschiedlicher Zah-lungen unterschieden werden können).
+       */
+      LNF_Code : TEXT*20;
+      Status : Bearbeitungsstatus_V1_2.Status.BS_Katalog_Prozess_StatusRef;
+      MANDATORY CONSTRAINT
+        DEFINED (Flaeche) OR DEFINED (Punkt);
+    END BFF_Vernetzung;
+
+    /** Zurechnungsflächen für OeQV_Qualität
+     */
+    ASSOCIATION QualitaetNutzung =
+      Nutzung (EXTERNAL) -- {0..*} Nutzungsflaechen_V1_3.Nutzung.LNF_Nutzung;
+      Qualitaetsflaeche -- {0..*} BFF_Qualitaet_II;
+    END QualitaetNutzung;
+
+  END Foerderflaechen;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+END Biodiversitaetsfoerderflaechen_Qualitaetsstufe_II_und_Vernetzung_V1_3.

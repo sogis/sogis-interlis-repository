@@ -1,0 +1,75 @@
+INTERLIS 2.4;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Minimal Geodata Model for Official Index of Localities (Art. 20 GeoNV)
+!! INTERLIS Version 2.4 (eCH-0031)
+!!
+!! Federal Office of Topography (swisstopo)
+!! Seftigenstrasse 264
+!! CH-3084 Wabern
+!!
+!! Filename: OfficialIndexOfLocalities_V1_0.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who       | Modification
+!!------------------------------------------------------------------------------
+
+
+!!@ IDGeoIV = 181.1
+!!@ technicalContact = mailto:plz@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.admin.ch/en/geodata/official-geographic-directories/directory-towns-cities.html
+
+MODEL OfficialIndexOfLocalities_V1_0 (en) 
+  AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2024-01-01" =
+
+  IMPORTS GeometryCHLV95_V2, Text_V2;
+  
+  TOPIC OfficialIndexOfLocalities =
+
+    CLASS Locality =
+      LocalityID : INTERLIS.UUIDOID;
+      LocalityName : MANDATORY TEXT*40;
+      LocalityShortName : TEXT*20;
+      LocalityIndexName : TEXT*20;
+      Language : MANDATORY (
+        de,
+        fr,
+        it,
+        rm,
+        multiple: FINAL);
+      Status : MANDATORY (
+        planned,
+        real,
+        outdated: FINAL);
+      InModification : MANDATORY BOOLEAN;
+      Validity : MANDATORY FORMAT INTERLIS.XMLDate "1900-01-01" .. "2999-12-31";
+      Modified : MANDATORY FORMAT INTERLIS.XMLDate "2010-01-01" .. "2999-12-31";
+      Geometry : MANDATORY GeometryCHLV95_V2.MultiSurface;
+    UNIQUE LocalityID; 
+    END Locality;
+
+    CLASS ZIP =
+      ZIP_ID : 0 .. 99999;
+      ZIP4 : 1000 .. 9999;
+      AdditionalNumber : TEXT*2;
+      Status : MANDATORY (
+        planned,
+        real,
+        outdated: FINAL);
+      InModification : MANDATORY BOOLEAN;
+      Modified : MANDATORY FORMAT INTERLIS.XMLDate "2010-01-01" .. "2999-12-31";
+      Geometry : MANDATORY GeometryCHLV95_V2.MultiSurface;
+	  MANDATORY CONSTRAINT Text_V2.matches(AdditionalNumber,"[0-9]{2}");
+    UNIQUE ZIP_ID;  
+    END ZIP;
+
+    ASSOCIATION LocalityZIP =
+      Locality -<#> {1} Locality;
+      ZIP -- {1..*} ZIP;
+    END LocalityZIP;
+
+  END OfficialIndexOfLocalities;
+
+END OfficialIndexOfLocalities_V1_0.

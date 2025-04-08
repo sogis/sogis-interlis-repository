@@ -1,0 +1,92 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=82.2
+
+MODEL StatisticsOfHydropowerPlants_WASTA_V2_2 (en)
+AT "http://models.geo.admin.ch/BFE" VERSION "2017-02-15"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,CHAdminCodes_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Numeric = 0.00 .. 9999.00;
+    Text = TEXT*500;
+    WASTANumber = 0 .. 99999999;
+    Year = 1800 .. 2999;
+
+!! ****************************************************
+!! ****************************************************	
+  TOPIC HydropowerPlantOperationalStatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS HydropowerPlantOperationalStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      OperationalStatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HydropowerPlantOperationalStatus;
+
+    STRUCTURE HydropowerPlantOperationalStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HydropowerPlantOperationalStatus;
+    END HydropowerPlantOperationalStatusRef;
+
+  END HydropowerPlantOperationalStatusCatalogue;
+
+!! ****************************************************
+!! ****************************************************	
+  TOPIC HydropowerPlantTypeCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS HydropowerPlantType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Type : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HydropowerPlantType;
+
+    STRUCTURE HydropowerPlantTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HydropowerPlantType;
+    END HydropowerPlantTypeRef;
+
+  END HydropowerPlantTypeCatalogue;
+
+!! ****************************************************
+!! ****************************************************	
+  TOPIC StatisticsOfHydropowerPlants =
+    DEPENDS ON StatisticsOfHydropowerPlants_WASTA_V2_2.HydropowerPlantTypeCatalogue,StatisticsOfHydropowerPlants_WASTA_V2_2.HydropowerPlantOperationalStatusCatalogue;
+
+    CLASS HydropowerPlant =
+      WASTANumber : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.WASTANumber;
+      Position : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.Text;
+      Location : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.Text;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      BeginningOfOperation : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.Year;
+      EndOfOperation : StatisticsOfHydropowerPlants_WASTA_V2_2.Year;
+      Type : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.HydropowerPlantTypeCatalogue.HydropowerPlantTypeRef;
+      UNIQUE WASTANumber;
+    END HydropowerPlant;
+
+    CLASS TechnicalSpecification =
+      DateOfStatistic : MANDATORY INTERLIS.XMLDate;
+      PerformanceGeneratorMaximum : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      PerformanceTurbineMaximum : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      ProductionExpected : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      PumpsPowerInputMaximum : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      EnginePowerDemand : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      FallHeight : StatisticsOfHydropowerPlants_WASTA_V2_2.Numeric;
+      OperationalStatus : MANDATORY StatisticsOfHydropowerPlants_WASTA_V2_2.HydropowerPlantOperationalStatusCatalogue.HydropowerPlantOperationalStatusRef;
+    END TechnicalSpecification;
+
+    ASSOCIATION HydropowerPlantTechnicalSpecification =
+      hydropowerPlantR -<#> {1} HydropowerPlant;
+      technicalSpecificationR -- {0..*} TechnicalSpecification;
+    END HydropowerPlantTechnicalSpecification;
+
+  END StatisticsOfHydropowerPlants;
+
+END StatisticsOfHydropowerPlants_WASTA_V2_2.

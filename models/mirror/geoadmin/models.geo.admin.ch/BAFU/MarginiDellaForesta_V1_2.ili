@@ -1,0 +1,172 @@
+INTERLIS 2.3;
+
+/** Modello di geodati minimale
+ * Margini statici della foresta
+ * Geodati di base No 157
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2023-03-20 | ARE   | CLASS Tipo : Attributo Codice, lunghezza campo 40 caratteri
+!!------------------------------------------------------------------------------
+!! 2021-11-19 | KOGIS | Localisation_V1 replaced by LocalisationCH_V1
+!!------------------------------------------------------------------------------
+!! 2021-09-01 | ARE   | Version 1.2
+!!                    | Adaption au modèle-cadre RDPPF version 2.0 du 14 avril 2021 :
+!!                    | - DOMAIN StatoGiuridico adapté, TipoDocumento nouveau
+!!                    | - STRUCTURE LocalisedBlob et MultilingualBlob nouveaux
+!!                    | - CLASS MargineDellaForesta_Linea : nouvel attribut pubblicataFinoAl
+!!                    | - CLASS Documento adapté au modèle-cadre RDPPF
+!!                    | - CLASS Servizio adapté au modèle-cadre RDPPF
+!!                    | Modifications techniques ultérieures
+!!                    | - ASSOCIATION Geometria_Documento inséré additionellement pour permettre un lien direct entre les classes Geometria et Documento
+!!                    | - TOPIC GeodatiDiBase maintenant avec BASKET OID du type TypeID
+!!                    | - CLASS SetDiDati : Attribut BasketID maintenant du type TypeID, nouvel méta-attribut pour la vérification de l’ID
+!!------------------------------------------------------------------------------
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mgm
+!!@ IDGeoIV=157
+MODEL MarginiDellaForesta_V1_2 (it)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-03-20"
+TRANSLATION OF Waldgrenzen_V1_2 ["2023-03-20"] =
+  IMPORTS CHAdminCodes_V1,InternationalCodes_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+  DOMAIN
+
+    Genere_MargineForesta = (
+      in_zone_edificabili,
+      fuori_zone_edificabili
+    );
+
+    ForzaVincolante = (
+      Vincolo_PianoDiUtilizzazione,
+      Contenuto_orientativo,
+      Contenuto_indicativo,
+      Contenuto_direttivo
+    );
+
+    TypeID = OID TEXT*60;
+
+    StatoGiuridico = (
+      inVigore,
+      ModificazioneConEffettoAnticipato,
+      ModificazioneSenzaEffettoAnticipato
+    );
+
+    TipoDocumento = (
+      PrescrizionLegale,
+      BaseLegale,
+      Indicazione
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF MarginiDellaForesta_V1_2.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  STRUCTURE LocalisedBlob =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Blob : MANDATORY BLACKBOX BINARY;
+  END LocalisedBlob;
+
+  STRUCTURE MultilingualBlob =
+    LocalisedBlob : BAG {1..*} OF MarginiDellaForesta_V1_2.LocalisedBlob;
+    UNIQUE (LOCAL) LocalisedBlob: Language;
+  END MultilingualBlob;
+
+  TOPIC PrescrizioniLegali =
+
+    CLASS Documento =
+      Tipo : MANDATORY MarginiDellaForesta_V1_2.TipoDocumento;
+      Titolo : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abbreviazione : LocalisationCH_V1.MultilingualText;
+      NoUfficiale : LocalisationCH_V1.MultilingualText;
+      SoloNelComune : CHAdminCodes_V1.CHMunicipalityCode;
+      TestoNelWeb : MarginiDellaForesta_V1_2.MultilingualUri;
+      Documento : MarginiDellaForesta_V1_2.MultilingualBlob;
+      IndiceEstratto : MANDATORY -1000 .. 1000;
+      StatoGiuridico : MANDATORY MarginiDellaForesta_V1_2.StatoGiuridico;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      pubblicataFinoAl : INTERLIS.XMLDate;
+    END Documento;
+
+  END PrescrizioniLegali;
+
+  TOPIC GeodatiDiBase =
+    BASKET OID AS TypeID;
+    DEPENDS ON MarginiDellaForesta_V1_2.PrescrizioniLegali;
+
+    CLASS Tipo =
+      Codice : MANDATORY TEXT*40;
+      Designazione : MANDATORY TEXT*80;
+      Abbreviazione : TEXT*10;
+      ForzaVincolante : MANDATORY MarginiDellaForesta_V1_2.ForzaVincolante;
+      Osservazioni : MTEXT;
+      Genere : MANDATORY MarginiDellaForesta_V1_2.Genere_MargineForesta;
+      Simbolo : BLACKBOX BINARY;
+    END Tipo;
+
+    CLASS MargineDellaForesta_Linea =
+      Geometria : MANDATORY GeometryCHLV95_V1.Line;
+      pubblicataDal : MANDATORY INTERLIS.XMLDate;
+      pubblicataFinoAl : INTERLIS.XMLDate;
+      StatoGiuridico : MANDATORY MarginiDellaForesta_V1_2.StatoGiuridico;
+      Osservazioni : MTEXT;
+    END MargineDellaForesta_Linea;
+
+    ASSOCIATION Geometrie_Document =
+      Geometrie (EXTERNAL) -- {0..*} MargineDellaForesta_Linea;
+      Dokument (EXTERNAL) -- {0..*} MarginiDellaForesta_V1_2.PrescrizioniLegali.Documento;
+    END Geometrie_Document;
+
+    ASSOCIATION Tipo_Documento =
+      Tipo (EXTERNAL) -- {0..*} Tipo;
+      Prescizioni (EXTERNAL) -- {0..*} MarginiDellaForesta_V1_2.PrescrizioniLegali.Documento;
+    END Tipo_Documento;
+
+    ASSOCIATION Tipo_Geometria =
+      Geometria -- {0..*} MargineDellaForesta_Linea;
+      MF -<> {1} Tipo;
+    END Tipo_Geometria;
+
+  END GeodatiDiBase;
+
+  TOPIC MetadatiTrasferimento =
+    DEPENDS ON MarginiDellaForesta_V1_2.GeodatiDiBase;
+
+    CLASS Servizio =
+      Nome : MANDATORY LocalisationCH_V1.MultilingualText;
+      ServizioNelWeb : MarginiDellaForesta_V1_2.MultilingualUri;
+      IDI : TEXT*12;
+      Riga1 : TEXT*80;
+      Riga2 : TEXT*80;
+      Via : TEXT*100;
+      Numero : TEXT*7;
+      CAP : TEXT*4;
+      Localita : TEXT*40;
+      UNIQUE IDI;
+    END Servizio;
+
+    CLASS SetDiDati =
+      !!@ basketRef=MarginiDellaForesta_V1_2.GeodatiDiBase
+      BasketID : MANDATORY TypeID;
+      Versione : MANDATORY INTERLIS.XMLDate;
+      DataDellaConsegna : INTERLIS.XMLDate;
+      Osservazioni : MTEXT;
+    END SetDiDati;
+
+    ASSOCIATION Dati_servComp =
+      ServizioCompetente -<> {1} Servizio;
+      SetDiDati -- {0..*} SetDiDati;
+    END Dati_servComp;
+
+  END MetadatiTrasferimento;
+
+END MarginiDellaForesta_V1_2.

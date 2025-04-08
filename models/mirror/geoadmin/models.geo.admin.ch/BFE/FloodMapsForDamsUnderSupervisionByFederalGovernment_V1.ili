@@ -1,0 +1,96 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+!!@ technicalContact=geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=220.1
+
+MODEL FloodMapsForDamsUnderSupervisionByFederalGovernment_V1 (en)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2023-03-21"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1,Units;
+
+  TOPIC ScenarioCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Scenario
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Scenario : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Scenario;
+
+    STRUCTURE ScenarioRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Scenario;
+    END ScenarioRef;
+
+  END ScenarioCatalogue;
+
+  TOPIC FloodMapsForDamsUnderSupervisionByFederalGovernment =
+    DEPENDS ON FloodMapsForDamsUnderSupervisionByFederalGovernment_V1.ScenarioCatalogue;
+
+    UNIT
+
+      Intensity [m2s] = (Units.m2 / INTERLIS.s);
+
+    DOMAIN
+
+      DecimalHeightDepth = 0.00 .. 99999999.99 [INTERLIS.m];
+
+      DecimalIntensity = 0.00 .. 99999999.99 [m2s];
+
+      DecimalVelocity = 0.00 .. 99999999.99 [Units.ms];
+
+      IntegerTime = 0 .. 999999 [INTERLIS.min];
+
+      Text = TEXT*300;
+
+    CLASS Facility =
+      ID : MANDATORY Text;
+      Name : MANDATORY Text;
+    END Facility;
+
+    CLASS Floodplain (ABSTRACT) =
+      Scenario : MANDATORY FloodMapsForDamsUnderSupervisionByFederalGovernment_V1.ScenarioCatalogue.ScenarioRef;
+    END Floodplain;
+
+    CLASS MaximumWaterDepth
+    EXTENDS Floodplain =
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;
+      WaterDepth : MANDATORY DecimalHeightDepth;
+    END MaximumWaterDepth;
+
+    CLASS MaximumMeanFlowVelocityOverTheWaterDepth
+    EXTENDS Floodplain =
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;
+      MeanFlowVelocity : MANDATORY DecimalVelocity;
+    END MaximumMeanFlowVelocityOverTheWaterDepth;
+
+    CLASS MaximumPossibleFloodWaveHeight
+    EXTENDS Floodplain =
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;
+      FloodWaveHeight : MANDATORY DecimalHeightDepth;
+    END MaximumPossibleFloodWaveHeight;
+
+    CLASS MaximumIntensity
+    EXTENDS Floodplain =
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;
+      Intensity : MANDATORY DecimalIntensity;
+    END MaximumIntensity;
+
+    CLASS TimeOfArrivalOfTheFloodWave
+    EXTENDS Floodplain =
+      Geometry : MANDATORY GeometryCHLV95_V1.Line;
+      TimeOfArrival : MANDATORY IntegerTime;
+    END TimeOfArrivalOfTheFloodWave;
+
+    ASSOCIATION FacilityFloodplain =
+      FacilityR -- {1} Facility;
+      FloodplainR -- {1..*} Floodplain;
+    END FacilityFloodplain;
+
+  END FloodMapsForDamsUnderSupervisionByFederalGovernment;
+
+END FloodMapsForDamsUnderSupervisionByFederalGovernment_V1.

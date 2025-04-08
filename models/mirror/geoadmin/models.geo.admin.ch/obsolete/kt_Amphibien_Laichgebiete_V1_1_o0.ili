@@ -1,0 +1,157 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=29.1
+MODEL kt_Amphibien_Laichgebiete_Codelisten_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-02-07"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /* Modell für externe Codelisten, die anschliessend importiert werden in die Modelle *_LV03* und *_LV95" */
+  TOPIC Codelisten =
+
+    CLASS AM_L_Bereich_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END AM_L_Bereich_Catalogue;
+
+    CLASS Bedeutung_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bedeutung_Catalogue;
+
+    CLASS Kartierungsgrundlage_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kartierungsgrundlage_Catalogue;
+
+    STRUCTURE AM_L_Bereich_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) AM_L_Bereich_Catalogue;
+    END AM_L_Bereich_CatRef;
+
+    STRUCTURE Bedeutung_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Bedeutung_Catalogue;
+    END Bedeutung_CatRef;
+
+    STRUCTURE Kartierungsgrundlage_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Kartierungsgrundlage_Catalogue;
+    END Kartierungsgrundlage_CatRef;
+
+  END Codelisten;
+
+ END kt_Amphibien_Laichgebiete_Codelisten_V1_1.
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=29.1
+MODEL kt_Amphibien_Laichgebiete_LV03_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-02-07"  =
+  IMPORTS CHAdminCodes_V1,Units,GeometryCHLV03_V1,LocalisationCH_V1,kt_Amphibien_Laichgebiete_Codelisten_V1_1;
+
+  TOPIC kt_Amphibiengebiet =
+    DEPENDS ON kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+      /* Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /* Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /* Klasse für gesamtes Amphibiengebiet */
+    CLASS kt_Amphibiengebiet =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      Obj_GISFlaeche : MANDATORY 1.000 .. 999999999.000 [Units.ha];
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationgsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Bedeutung_CatRef;
+    END kt_Amphibiengebiet;
+
+    /* Klasse für Amphibien-Teilgebiete */
+    CLASS kt_Amphibiengebiet_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      AM_L_Bereich : kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.AM_L_Bereich_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END kt_Amphibiengebiet_Teilobjekt;
+
+    ASSOCIATION Teilobjektkt_Auengebiet =
+      kt_Amphibiengebiet_Teilobjekt -- {1..*} kt_Amphibiengebiet_Teilobjekt;
+      kt_Amphibiengebiet -<#> {1} kt_Amphibiengebiet;
+    END Teilobjektkt_Auengebiet;
+
+  END kt_Amphibiengebiet;
+
+END kt_Amphibien_Laichgebiete_LV03_V1_1.
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=29.1
+MODEL kt_Amphibien_Laichgebiete_LV95_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-02-07"  =
+  IMPORTS CHAdminCodes_V1,Units,GeometryCHLV95_V1,LocalisationCH_V1,kt_Amphibien_Laichgebiete_Codelisten_V1_1;
+
+  TOPIC kt_Amphibiengebiet =
+    DEPENDS ON kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+      /* Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /* Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    /* Klasse für gesamtes Amphibiengebiet */
+    CLASS kt_Amphibiengebiet =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ObjNummer : MANDATORY TEXT*30;
+      Name : TEXT*80;
+      Obj_GISFlaeche : MANDATORY 1.000 .. 999999999.000 [Units.ha];
+      Herkunft : MANDATORY TEXT*250;
+      Kartierungsgrundlage : MANDATORY kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Kartierungsgrundlage_CatRef;
+      Aufnahmedatum : INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationgsgrund : LocalisationCH_V1.MultilingualMText;
+      Bedeutung : MANDATORY kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.Bedeutung_CatRef;
+    END kt_Amphibiengebiet;
+
+    /* Klasse für Amphibien-Teilgebiete */
+    CLASS kt_Amphibiengebiet_Teilobjekt =
+      Teilobj_Nr : MANDATORY TEXT*20;
+      AM_L_Bereich : kt_Amphibien_Laichgebiete_Codelisten_V1_1.Codelisten.AM_L_Bereich_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END kt_Amphibiengebiet_Teilobjekt;
+
+    ASSOCIATION Teilobjektkt_Auengebiet =
+      kt_Amphibiengebiet_Teilobjekt -- {1..*} kt_Amphibiengebiet_Teilobjekt;
+      kt_Amphibiengebiet -<#> {1} kt_Amphibiengebiet;
+    END Teilobjektkt_Auengebiet;
+
+  END kt_Amphibiengebiet;
+
+END kt_Amphibien_Laichgebiete_LV95_V1_1.

@@ -1,0 +1,119 @@
+  INTERLIS 2.3;
+!!======================================
+MODEL swissBOUNDARIES3D_1_2_CH_LV95 AT "http://www.swisstopo.admin.ch" VERSION "2015-01-01" =
+  
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS CoordSys;
+  
+!!======================================
+  REFSYSTEM BASKET BCoordSys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D : CHLV95
+    OBJECTS OF GeoHeight : SwissOrthometricAlt;
+  
+!!======================================
+  DOMAIN
+   
+    UUIDOID = OID TEXT*36;   
+    EnabledDomain = (False,True);
+
+    HKoord = COORD 2480000.000 .. 2850000.000 [m] {CHLV95[1]},
+                   1070000.000 .. 1310000.000 [m] {CHLV95[2]},
+                      -200.000 ..   5000.000 [m] {SwissOrthometricAlt[1]},
+                   ROTATION 2 -> 1;
+    D_POLYLINE = POLYLINE WITH (STRAIGHTS,ARCS) VERTEX HKoord;
+    D_SURFACE = SURFACE WITH (STRAIGHTS,ARCS) VERTEX HKoord WITHOUT OVERLAPS > 0.001;
+
+    !! ub = "unbekannt", k_W = "kein Wert" 
+
+!!################################################
+/*  Dies ist die Definition einer abstrakten 
+    Objektklasse, die alle Standardattribute 
+    abbildet. Die Klasse wird für jede konkrete
+    Klasse im Datenmodell erweitert.
+*/
+    CLASS TLM_OBJEKT (ABSTRACT) =
+      UUID: MANDATORY UUIDOID;
+      Datum_Aenderung: XMLDate;
+      Datum_Erstellung: XMLDate;
+      Erstellung_Jahr: -999999 .. 2100;
+      Erstellung_Monat: 1 .. 999998; !! 1-12, 999997=ub, 999998=k_W
+      Revision_Jahr: -999999 .. 2100;
+      Revision_Monat: 1 .. 999998; !! 1-12, 999997=ub, 999998=k_W
+      Grund_Aenderung: (uebertragen,real,restrukturiert,verbessert);
+      Herkunft: (swisstopo,NDB,V25,GG25,AV,ASTRA,Transportunternehmen,Strassendaten_Kanton,NMA_Ausland,BAFU,BAV,SchweizMobil,LV_Kanton,EuroGeographics,TLM_Ausland);
+      Herkunft_Jahr: -999999 .. 2100;
+      Herkunft_Monat: 1 .. 999998; !! 1-12, 999997=ub, 999998=k_W
+      Revision_Qualitaet: TEXT*100;
+    END TLM_OBJEKT;
+!!################################################
+
+!!======================================
+  TOPIC TLM_GRENZEN =
+  
+    DOMAIN
+      TLM_Grenzen_ICC_CD = (CH,DE,FR,IT,LI,AT_,ub,k_W,AT_CH,AT_DE,AT_IT,AT_LI,CH_DE,CH_FR,CH_IT,CH_LI,DE_FR,FR_IT);
+
+    CLASS TLM_HOHEITSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Kantonsgebiet, Kommunanz, Gemeindegebiet);
+      Shape: MANDATORY D_SURFACE;
+      BFS_Nummer: -999999 .. 9999;
+      Bezirksnummer: 0 .. 9999;
+      Kantonsnummer: 0 .. 99;
+      Name: TEXT*255;
+      Gem_Teil: 0 .. 999998; !! 0-9, 999997=ub, 999998=k_W
+      Gem_Flaeche: 0.0 .. 9999999999.9;
+      See_Flaeche : 0.0 .. 9999999999.9;
+      ICC: TLM_Grenzen_ICC_CD;
+      SHN: TEXT*20;
+      Einwohnerzahl : 0 .. 99999999;
+    END TLM_HOHEITSGEBIET;
+    
+    CLASS TLM_HOHEITSGRENZE EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY 1 .. 6;
+      Shape: MANDATORY D_POLYLINE;
+      MutationsDatum: XMLDate;
+      ICC: TLM_Grenzen_ICC_CD;
+      TYP: (Politisch_administrativ,Technisch,ub,k_W);
+    END TLM_HOHEITSGRENZE;
+  
+    CLASS TLM_BEZIRKSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Bezirk);
+      Shape: MANDATORY D_SURFACE;
+      Bezirksnummer: 0 .. 9999;
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Bezirksflaeche: 0.0 .. 9999999999.9;
+      Bezirk_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      Kantonsnummer: 0 .. 99;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+    END TLM_BEZIRKSGEBIET;
+  
+    CLASS TLM_KANTONSGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Kanton);
+      Shape: MANDATORY D_SURFACE;
+      Kantonsnummer: 0 .. 99;
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Kantonsflaeche: 0.0 .. 9999999999.9;
+      Kanton_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+    END TLM_KANTONSGEBIET;
+
+    CLASS TLM_LANDESGEBIET EXTENDS TLM_OBJEKT =
+      Objektart: MANDATORY (Land);
+      Shape: MANDATORY D_SURFACE;
+      See_Flaeche: 0.0 .. 9999999999.9;
+      Landesflaeche: 0.0 .. 9999999999.9;
+      Land_Teil: 0 .. 999998;
+      Name: TEXT*100;
+      ICC: TLM_Grenzen_ICC_CD;
+      Einwohnerzahl: 0 .. 99999999;
+    END TLM_LANDESGEBIET;
+  
+  END TLM_GRENZEN;
+  
+!!======================================
+
+END swissBOUNDARIES3D_1_2_CH_LV95.

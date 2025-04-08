@@ -1,0 +1,150 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2020-04-29 | KOGIS | Constraint in CLASS ERK_GEOI corrected
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV="112.1, 113.1"
+MODEL ERKAS_Betrieb_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2020-04-29"  =
+  IMPORTS GeometryCHLV03_V1;
+
+  TOPIC ERKAS_Betriebe =
+
+    CLASS ERK_BETRIEB =
+      NAME_1_BETRIEB : MANDATORY TEXT*32;
+      NAME_2_BETRIEB : TEXT*32;
+      NAME_ZUSATZ : TEXT*50;
+      BUR_NR : MANDATORY 1 .. 99999999;
+      UID : 1 .. 999999999;
+      GDD_DATUM : INTERLIS.XMLDate;
+      KONS_BEREICH : 0 .. 9999;
+      NOGA_Code : 1 .. 999999;
+    END ERK_BETRIEB;
+
+    CLASS ERK_BETRIEBSEINHEIT =
+      NAME_BE : MANDATORY TEXT*50;
+    END ERK_BETRIEBSEINHEIT;
+
+    CLASS ERK_DOKUMENT =
+      Dateiname : MANDATORY TEXT;
+    END ERK_DOKUMENT;
+
+    CLASS ERK_GEFAHRENPOTENTIAL_B =
+      MELDUNGSNR : MANDATORY TEXT*7;
+      KLASSE : MANDATORY 1 .. 9;
+      DIAGNOSTIK : TEXT*1;
+    END ERK_GEFAHRENPOTENTIAL_B;
+
+    CLASS ERK_GEFAHRENPOTENTIAL_C =
+      CAS : TEXT*11;
+      LVA : TEXT*10;
+      STOFF : MANDATORY TEXT*100;
+      MENGE : MANDATORY 1.00 .. 9999999999.00;
+      SCHWELLE : MANDATORY 1.00 .. 999999999.00;
+    END ERK_GEFAHRENPOTENTIAL_C;
+
+    CLASS ERK_GEOI =
+      EGID : 1 .. 999999999;
+      ORT : GeometryCHLV03_V1.Coord2;
+      Gemeinde : TEXT;
+      Kanton : TEXT*2;
+      MANDATORY CONSTRAINT DEFINED (EGID) OR DEFINED (ORT);
+    END ERK_GEOI;
+
+    CLASS ERK_GRUNDSTUECK =
+      GRSNR : TEXT*12;
+      NBIdent : TEXT*12;
+      E_GRID : TEXT*14;
+    END ERK_GRUNDSTUECK;
+
+    CLASS ERK_KURZBERICHT =
+      KB_CODE : MANDATORY TEXT*100;
+      KB_NAME : TEXT*100;
+      ERKAS_VERSION : MANDATORY TEXT*1;
+      DATUM : MANDATORY INTERLIS.XMLDate;
+      STFV_UNT : MANDATORY INTERLIS.BOOLEAN;
+      KB_VER_AB : MANDATORY INTERLIS.XMLDate;
+      EN_PLAN : MANDATORY INTERLIS.BOOLEAN;
+      SS_BEV : INTERLIS.BOOLEAN;
+      SS_OIG : INTERLIS.BOOLEAN;
+      SS_UIG : INTERLIS.BOOLEAN;
+      SS_BOD : INTERLIS.BOOLEAN;
+      SS_SACH : INTERLIS.BOOLEAN;
+      RE_PFLICHT : INTERLIS.BOOLEAN;
+      RE_LIEGTVOR : INTERLIS.BOOLEAN;
+      RE_VERF_AB : INTERLIS.XMLDate;
+      RE_ZUSF : INTERLIS.BOOLEAN;
+      RE_ZUSF_ZUGEST : INTERLIS.BOOLEAN;
+      RE_ZUSF_FILE : TEXT*50;
+      KONTR_BER : MANDATORY INTERLIS.BOOLEAN;
+      KONTR_BER_ZUGEST : INTERLIS.BOOLEAN;
+      KONTR_BER_FILE : TEXT*50;
+      ERH_NAME : TEXT*50;
+      ERH_STELLE : TEXT*100;
+      ERH_TEL : TEXT*12;
+      ERH_DAT : INTERLIS.XMLDate;
+      ERF_NAME : TEXT*50;
+      ERF_DAT : INTERLIS.XMLDate;
+      ERF_ART : TEXT*1;
+      MANDATORY CONSTRAINT (KB_VER_AB == DATUM AND NOT (DEFINED (SS_BEV)) AND NOT (DEFINED (SS_OIG)) AND NOT (DEFINED (SS_UIG)) AND NOT (DEFINED (SS_BOD)) AND NOT (DEFINED (SS_SACH)) AND NOT (DEFINED (RE_PFLICHT)))
+                              OR (KB_VER_AB != DATUM AND DEFINED (SS_BEV) AND DEFINED (SS_OIG) AND DEFINED (SS_UIG) AND DEFINED (SS_BOD) AND DEFINED (SS_SACH) AND DEFINED (RE_PFLICHT));
+      MANDATORY CONSTRAINT RE_ZUSF_ZUGEST AND DEFINED (RE_ZUSF_FILE) OR NOT (RE_ZUSF_ZUGEST) AND NOT (DEFINED (RE_ZUSF_FILE));
+      MANDATORY CONSTRAINT KONTR_BER_ZUGEST AND DEFINED (KONTR_BER_FILE) OR NOT (KONTR_BER_ZUGEST) AND NOT (DEFINED (KONTR_BER_FILE));
+      MANDATORY CONSTRAINT DEFINED (RE_VERF_AB) AND DEFINED (RE_ZUSF) OR NOT (DEFINED (RE_VERF_AB)) AND NOT (DEFINED (RE_ZUSF));
+      MANDATORY CONSTRAINT RE_PFLICHT AND DEFINED (RE_LIEGTVOR) OR NOT (RE_PFLICHT) AND NOT (DEFINED (RE_LIEGTVOR));
+      MANDATORY CONSTRAINT NOT (RE_LIEGTVOR) AND NOT (DEFINED (RE_VERF_AB)) OR RE_LIEGTVOR;
+    END ERK_KURZBERICHT;
+
+    CLASS ERK_STOERFALL =
+      SF_DAT : INTERLIS.XMLDate;
+      SF_BER_DAT : INTERLIS.XMLDate;
+      SF_BER_FILE : TEXT;
+    END ERK_STOERFALL;
+
+    ASSOCIATION BetriebBetriebseinheit =
+      Betrieb -- {1} ERK_BETRIEB;
+      Betriebseinheit -- {1..*} ERK_BETRIEBSEINHEIT;
+    END BetriebBetriebseinheit;
+
+    ASSOCIATION DokumentKurzbericht =
+      Dokument -- {0..*} ERK_DOKUMENT;
+      Kurzbericht -- {1} ERK_KURZBERICHT;
+    END DokumentKurzbericht;
+
+    ASSOCIATION Gefahrenpot_BBetriebseinheit =
+      Gefahrenpot_B -- {0..*} ERK_GEFAHRENPOTENTIAL_B;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END Gefahrenpot_BBetriebseinheit;
+
+    ASSOCIATION Gefahrenpot_CBetriebseinheit =
+      Gefahrenpot_C -- {0..*} ERK_GEFAHRENPOTENTIAL_C;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END Gefahrenpot_CBetriebseinheit;
+
+    ASSOCIATION GeoiBetriebseinheit =
+      Geoi -- {1..*} ERK_GEOI;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END GeoiBetriebseinheit;
+
+    ASSOCIATION GrundstueckBetrieb =
+      Grundstueck -- {0..*} ERK_GRUNDSTUECK;
+      Betrieb -- {1..*} ERK_BETRIEB;
+    END GrundstueckBetrieb;
+
+    ASSOCIATION KurzberichtBetriebseinheit =
+      Kurzbericht -- {1} ERK_KURZBERICHT;
+      Betriebseinheit -- {1..*} ERK_BETRIEBSEINHEIT;
+    END KurzberichtBetriebseinheit;
+
+    ASSOCIATION StoerfallBetriebseinheit =
+      Stoerfall -- {0..*} ERK_STOERFALL;
+      Betriebseinheit -- {1} ERK_BETRIEBSEINHEIT;
+    END StoerfallBetriebseinheit;
+
+  END ERKAS_Betriebe;
+
+END ERKAS_Betrieb_V1.

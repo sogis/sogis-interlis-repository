@@ -1,0 +1,223 @@
+INTERLIS 2.3;
+
+/** Stationen zur Messung der Luftqualität. Diese können in ein nationales oder kantonales Messnetz eingebunden sein.
+ */
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=121.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL NabelStationen_LV95_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2013-05-01"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** Bebauung der Umgebung
+     */
+    CLASS Bebauung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bebauung;
+
+    CLASS Stationstyp
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Stationstyp;
+
+    CLASS Zonentyp
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Zonentyp;
+
+    STRUCTURE BebauungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Bebauung;
+    END BebauungRef;
+
+    STRUCTURE StationstypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Stationstyp;
+    END StationstypRef;
+
+    STRUCTURE ZonentypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Zonentyp;
+    END ZonentypRef;
+
+  END Kataloge;
+
+  TOPIC Stationen =
+    DEPENDS ON NabelStationen_LV95_V1.Kataloge;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      /** Link zu Website mit weiteren Angaben zum Messnetz, wie zum Beispiel Messdaten.
+       */
+      Link : INTERLIS.URI;
+    END Messnetz;
+
+    /** Die Position einer Station wird durch eine oder zwei Koordinaten bestimmt. Falls zwei Koordinaten definiert sind, bezeichnen diese die beiden Endpunkte der DOAS-Strecke.
+     */
+    STRUCTURE Position =
+      /** Erste Koordinate
+       */
+      ersteKoordinate : MANDATORY GeometryCHLV95_V1.Coord3;
+      /** Zweite Koordinate
+       */
+      endDOAS : GeometryCHLV95_V1.Coord3;
+    END Position;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Link : MANDATORY INTERLIS.URI;
+    END Verantwortlichkeit;
+
+    CLASS Station =
+      Position : MANDATORY NabelStationen_LV95_V1.Stationen.Position;
+      Name : MANDATORY TEXT*50;
+      /** Kantonskürzel plus 3 Buchstaben für die Station.
+       */
+      Code : MANDATORY TEXT*20;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Bebauung : MANDATORY NabelStationen_LV95_V1.Kataloge.BebauungRef;
+      Zonentyp : MANDATORY NabelStationen_LV95_V1.Kataloge.ZonentypRef;
+      Stationstyp : MANDATORY NabelStationen_LV95_V1.Kataloge.StationstypRef;
+      /** Höhe des Lufteinlasses über Boden
+       */
+      Probennahme : MANDATORY 0.0 .. 1000.0 [INTERLIS.M];
+    END Station;
+
+    ASSOCIATION MessnetzVerantwortlichkeit =
+      Messnetz -- {0..*} Messnetz;
+      Verantwortlich -- {1} Verantwortlichkeit;
+    END MessnetzVerantwortlichkeit;
+
+    ASSOCIATION StationMessnetz =
+      Messnetz -- {1} Messnetz;
+      Station -- {1..*} Station;
+    END StationMessnetz;
+
+    ASSOCIATION StationVerantwortlichkeit =
+      Station -- {0..*} Station;
+      Verantwortlich -- {1} Verantwortlichkeit;
+    END StationVerantwortlichkeit;
+
+  END Stationen;
+
+END NabelStationen_LV95_V1.
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=121.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL NabelStationen_LV03_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2013-05-01"  =
+  IMPORTS GeometryCHLV03_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** Bebauung der Umgebung
+     */
+    CLASS Bebauung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bebauung;
+
+    CLASS Stationstyp
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Stationstyp;
+
+    CLASS Zonentyp
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Zonentyp;
+
+    STRUCTURE BebauungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Bebauung;
+    END BebauungRef;
+
+    STRUCTURE StationstypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Stationstyp;
+    END StationstypRef;
+
+    STRUCTURE ZonentypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Zonentyp;
+    END ZonentypRef;
+
+  END Kataloge;
+
+  TOPIC Stationen =
+    DEPENDS ON NabelStationen_LV03_V1.Kataloge;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Beschreibung : MANDATORY LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      /** Link zu Website mit weiteren Angaben zum Messnetz, wie zum Beispiel Messdaten.
+       */
+      Link : INTERLIS.URI;
+    END Messnetz;
+
+    /** Die Position einer Station wird durch eine oder zwei Koordinaten bestimmt. Falls zwei Koordinaten definiert sind, bezeichnen diese die beiden Endpunkte der DOAS-Strecke.
+     */
+    STRUCTURE Position =
+      /** Erste Koordinate
+       */
+      ersteKoordinate : MANDATORY GeometryCHLV03_V1.Coord3;
+      /** Zweite Koordinate
+       */
+      endDOAS : GeometryCHLV03_V1.Coord3;
+    END Position;
+
+    CLASS Verantwortlichkeit =
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Link : MANDATORY INTERLIS.URI;
+    END Verantwortlichkeit;
+
+    CLASS Station =
+      Position : MANDATORY NabelStationen_LV03_V1.Stationen.Position;
+      Name : MANDATORY TEXT*50;
+      /** Kantonskürzel plus 3 Buchstaben für die Station.
+       */
+      Code : MANDATORY TEXT*20;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Bebauung : MANDATORY NabelStationen_LV03_V1.Kataloge.BebauungRef;
+      Zonentyp : MANDATORY NabelStationen_LV03_V1.Kataloge.ZonentypRef;
+      Stationstyp : MANDATORY NabelStationen_LV03_V1.Kataloge.StationstypRef;
+      /** Höhe des Lufteinlasses über Boden
+       */
+      Probennahme : MANDATORY 0.0 .. 1000.0 [INTERLIS.M];
+    END Station;
+
+    ASSOCIATION MessnetzVerantwortlichkeit =
+      Messnetz -- {0..*} Messnetz;
+      Verantwortlich -- {1} Verantwortlichkeit;
+    END MessnetzVerantwortlichkeit;
+
+    ASSOCIATION StationMessnetz =
+      Messnetz -- {1} Messnetz;
+      Station -- {1..*} Station;
+    END StationMessnetz;
+
+    ASSOCIATION StationVerantwortlichkeit =
+      Station -- {0..*} Station;
+      Verantwortlich -- {1} Verantwortlichkeit;
+    END StationVerantwortlichkeit;
+
+  END Stationen;
+
+END NabelStationen_LV03_V1.

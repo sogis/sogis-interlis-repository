@@ -1,0 +1,101 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV="229.1 und 230.1"
+
+MODEL SolarAndWindEnergyProjects_V1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2023-11-10"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+  
+!! ****************************************************
+!! ****************************************************
+
+  STRUCTURE PointStructure =
+    Point : GeometryCHLV95_V1.Coord2;
+  END PointStructure;
+
+  STRUCTURE MultiPoint =
+    Points : BAG {1..*} OF SolarAndWindEnergyProjects_V1.PointStructure;
+  END MultiPoint;  
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC EnergySourceCatalogue =
+
+    CLASS EnergySource
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      EnergySource : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EnergySource;
+
+    STRUCTURE EnergySourceRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) EnergySource;
+    END EnergySourceRef;
+
+  END EnergySourceCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC StatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS StatusCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Status : MANDATORY LocalisationCH_V1.MultilingualText;
+    END StatusCategory;
+
+    STRUCTURE StatusCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) StatusCategory;
+    END StatusCategoryRef;
+
+  END StatusCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+
+  TOPIC SolarAndWindEnergyProject =
+    DEPENDS ON SolarAndWindEnergyProjects_V1.StatusCatalogue,SolarAndWindEnergyProjects_V1.EnergySourceCatalogue,SolarAndWindEnergyProjects_V1.EnergySourceCatalogue;
+
+    CLASS Project =
+      ProjectName : MANDATORY TEXT*100;
+      ProjectManagement : MANDATORY TEXT*100;
+      ProjectWeb : INTERLIS.URI;
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      GeometrySurface : GeometryCHLV95_V1.Surface;
+      GeometryMultipoint : SolarAndWindEnergyProjects_V1.MultiPoint;
+      Elevation : MANDATORY 0 .. 4000;
+      FinalNonRecurrentRemuneration : 0.00 .. 1000.00;
+      ShareOfSubsidisedCosts : 0.00 .. 100.00;
+      Municipalities : MANDATORY TEXT*500;
+      Cantons : MANDATORY TEXT*100;
+      EnergySource : MANDATORY SolarAndWindEnergyProjects_V1.EnergySourceCatalogue.EnergySourceRef;
+    END Project;
+
+    CLASS ProjectStatus =
+      Date : MANDATORY FORMAT INTERLIS.XMLDate "2022-12-31" .. "2099-12-31";
+      Power : MANDATORY 0.00 .. 199.99;
+      AnnualProduction : MANDATORY 0.00 .. 399.99;
+      WinterProduction : 0.00 .. 199.99;
+      SpecificAnnualProduction : MANDATORY 0 .. 2000;
+      SpecificWinterProduction : 0 .. 1000;
+      NumberOfPlants : 0 .. 50;
+      PlantType : TEXT*500;
+      Status : MANDATORY SolarAndWindEnergyProjects_V1.StatusCatalogue.StatusCategoryRef;
+    END ProjectStatus;
+
+    ASSOCIATION ProjectProjectStatus =
+      ProjectR -- {1} Project;
+      ProjectStatusR -- {1..*} ProjectStatus;
+    END ProjectProjectStatus;
+
+  END SolarAndWindEnergyProject;
+
+END SolarAndWindEnergyProjects_V1.

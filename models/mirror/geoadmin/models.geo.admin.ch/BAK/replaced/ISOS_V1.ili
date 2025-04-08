@@ -1,0 +1,528 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2017-10-05 | KOGIS | Comments adapted
+!! 2018-02-20 | KOGIS | WITHOUT OVERLAPS corrected (line 129 and 131)
+
+MODEL ISOS_V1 (de)
+AT "mailto:ce@eisenhutinformatik.ch"
+VERSION "2018-02-20"  =
+
+  DOMAIN
+
+    /** Klassierung des Zustands des Gebiets oder der Baugruppe zum Zeitpunkt der Aufnahme.
+     */
+    AufnahmekategorieGebiet = (
+      /** Aufnahmekategorie A hat ursprüngliche Substanz, d.h. die Mehrheit der Bauten und Räume hat historisch die gleiche epochenspezifische oder regionaltypische Prägung.
+       */
+      UrspruenglicheSubstanz,
+      /** AB
+       */
+      UrspruenglicheSubstanzOderStruktur,
+      /** Aufnahmekategorie B hat ursprüngliche Struktur, d.h. das historische Gefüge der Räume besteht, die Mehrheit der Bauten hat ähnliche epochenspezifische oder regionaltypische Merkmale.
+       */
+      UrspruenglicheStruktur,
+      /** BC
+       */
+      UrspruenglicheStrukturOderCharakter,
+      /** Aufnahmekategorie C hat ursprünglichen Charakter, d.h. alte und neue Bauten sind gemischt: Anlagen und Räume mit unterschiedlichen epochenspezifischen oder regionaltypischen Merkmalen.
+       */
+      UrspruenglichenCharakter
+    );
+
+    /** Klassierung des Zustands der Umgebung zum Zeitpunkt der Aufnahme.
+     */
+    AufnahmekategorieUmgebung = (
+      /** Aufnahmekategorie a ist ein unerlässlicher Teil des Ortsbildes, d.h. unverbaut oder mit Bauten, die der ursprünglichen Beschaffenheit der Umgebung entsprechen.
+       */
+      UnerlaesslicherTeil,
+      /** ab
+       */
+      UnerlaesslichOderEmpfindlich,
+      /** Aufnahmekategorie b ist ein empfindlicher Teil des Ortsbildes, d.h. häufig überbaut.
+       */
+      EmpfindlicherTeil
+    );
+
+    /** Klassierung der Erhaltungsziele des Gebiets oder der Baugruppe.
+     */
+    ErhaltungszielGebiet = (
+      /** Erhaltungsziel A gilt: Erhalten der Substanz.
+       * Alle Bauten, Anlageteile und Freiräume integral erhalten, störende Eingriffe beseitigen.
+       */
+      Substanz,
+      /** Erhaltungsziel B gilt: Erhalten der Struktur.
+       * Anordnung und Gestalt der Bauten und Freiräume bewahren, für die Struktur wesentliche Elemente und Merkmale integral erhalten.
+       */
+      Struktur,
+      /** Erhaltungsziel C gilt: Erhalten des Charakters.
+       * Gleichgewicht zwischen Alt- und Neubauten bewahren, die für den Charakter wesentlichen Elemente integral erhalten.
+       */
+      Charakter
+    );
+
+    /** Klassierung der Erhaltungsziele der Umgebung.
+     */
+    ErhaltungszielUmgebung = (
+      /** Erhaltungsziel a: Erhalten der Beschaffenheit als Kulturland oder Freifläche. Die für das Ortsbild wesentliche Vegetation und Altbauten bewahren, störende Veränderungen beseitigen.
+       */
+      BeschaffenheitDerZone,
+      /** Erhaltungsziel b: Erhalten der wesentlichen Eigenschaften für die Beziehung zu Ortsteilen.
+       */
+      BeziehungDerZoneZuOrtsteilen
+    );
+
+    /** Liste der Kantone.
+     */
+    Kanton = (
+      AG,
+      AR,
+      AI,
+      BL,
+      BS,
+      BE,
+      FR,
+      GE,
+      GL,
+      GR,
+      JU,
+      LU,
+      NE,
+      NW,
+      OW,
+      SG,
+      SH,
+      SO,
+      SZ,
+      TG,
+      TI,
+      UR,
+      VS,
+      VD,
+      ZG,
+      ZH
+    );
+
+    LKoord = COORD 480000 .. 850000 [INTERLIS.m], 70000 .. 310000 [INTERLIS.m];
+
+    /** Ein Ortsbild oder ein Ortsbildfaktor hat eine bestimmte Lagequalität, eine räumliche Qualität und eine architekturhistorische Qualität. Es handelt sich dabei um drei separate Attribute die aber alle die gleiche Ausprägung haben.
+     */
+    Qualitaet = (
+      besondereQualitaeten,
+      gewisseQualitaeten,
+      ohneBesondereQualitaeten
+    );
+
+    /** HTML mit eingeschränkter Auswahl von zulässigen Tags. Welche Tags zulässig sind, muss noch definiert werden.
+     */
+    ReduziertesHtml = MTEXT;
+  STRUCTURE Kanton_ = value : MANDATORY Kanton; END Kanton_;
+
+  STRUCTURE Kapitel =
+    Titel : MANDATORY TEXT;
+    Text : MTEXT;
+  END Kapitel;
+
+  DOMAIN
+
+    Grenzflaeche = SURFACE WITH (ARCS,STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 1;
+
+    Grenzlinie = POLYLINE WITH (ARCS,STRAIGHTS) VERTEX LKoord WITHOUT OVERLAPS > 1;
+
+  STRUCTURE Grenzflaeche_ = value : MANDATORY Grenzflaeche; END Grenzflaeche_;
+
+  STRUCTURE TextMitKapitel =
+    Kapitel : BAG {0..*} OF Kapitel;
+  END TextMitKapitel;
+
+  TOPIC ISOS =
+
+    /** Allgemeine Angaben zum Ablauf der Inventur (z.B. Angabe zu den einzelnen Sitzungen).
+     */
+    CLASS Ablauf =
+      /** Dateiname der PDF-Datei mit den Angaben zum Ablauf der Inventur (wie publiziert).
+       */
+      OriginalPublikationsPDF : MANDATORY TEXT*20;
+    END Ablauf;
+
+    /** ISOS-Publikation, welcher mehrere Ortsbilder eines bestimmten Kantons enthält. Es gibt verschiedene Typen von ISOS-Publikationen: Übersichtsband, Ortsbildband, Kombination aus Beidem.
+     */
+    CLASS Band =
+      /** Name des publizierten Bandes.
+       */
+      Name : MANDATORY TEXT*20;
+      /** Publikationsdatum. Im Normalfall das Datum der Pressekonferenz.
+       */
+      Erscheinungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1970-1-1" .. "2099-1-1";
+      BBL_Nummer : MANDATORY TEXT*20;
+    END Band;
+
+    /** Beurteilung eines Ortsbildfaktors im Kontext eines Ortsbildes.
+     */
+    CLASS Beurteilungselement (ABSTRACT) =
+      /** Nummer der Ortsbildfaktors im Kontext eines Ortsbildes.
+       */
+      Nummer : MANDATORY TEXT*20;
+      /** Archäologische, geschichtliche, typologische oder kulturelle Bedeutungen.
+       */
+      zusaetzlicheBedeutung : ISOS_V1.Qualitaet;
+      /** Ortsbildfaktor der in einem anderen Ortsbild definierend vorhanden ist, in diesem Ortsbild aber nur als Hinweis dargestellt wird.
+       */
+      inAnderemOrtsbild : BOOLEAN;
+    END Beurteilungselement;
+
+    /** Metainformationen zu den Flugbildern der Ortsbilder mit nationaler Einstufung.
+     */
+    CLASS Flugbild =
+      /** Abbildungstitel des Flugbildes in der Publikation.
+       */
+      Titel : TEXT*80;
+      /** Jahr, in welchem das Flugbild aufgenommen wurde.
+       */
+      Aufnahmejahr : MANDATORY FORMAT INTERLIS.XMLDate "1970-1-1" .. "2099-1-1";
+      /** Name der Bilddatei, die das Flugbild enthält.
+       */
+      Dateiname : MANDATORY TEXT*20;
+      /** Nutzungsrechtangaben zum Flugbild.
+       */
+      Copyright : MANDATORY TEXT*120;
+      /** Freitext.
+       */
+      Bemerkung : TEXT*20;
+    END Flugbild;
+
+    /** Einige Planobjekte verweisen auf ein oder mehrere Fotos.
+     * Die Fotos liegen als jpg-Dateien vor und haben Dateinamen in der Form "OrtsdatenID_Fotonummer.jpg" (z.B.: 3332_19.jpg).
+     */
+    CLASS Foto =
+      /** Abbildungstitel des Fotos in der Publikation.
+       */
+      Titel : TEXT*80;
+      /** Jahr, in welchem das Foto aufgenommen wurde.
+       */
+      Aufnahmejahr : MANDATORY FORMAT INTERLIS.XMLDate "1970-1-1" .. "2099-1-1";
+      /** Dateiname des digitalen Fotos.
+       */
+      Dateiname : MANDATORY TEXT*20;
+      /** Nutzungsrechtangaben zum Flugbild.
+       */
+      Copyright : TEXT*120;
+      /** Standort (Koordinate) für die Aufnahme.
+       */
+      AufnahmeStandort : ISOS_V1.LKoord;
+      /** Richtung der Aufnahme.
+       */
+      AufnahmeRichtung : 0 .. 360;
+    END Foto;
+
+    /** Foto im Kontext eines Ortsbildes.
+     */
+    CLASS FotoNummer =
+      /** Nummer des Fotos.
+       */
+      Nummer : MANDATORY 0 .. 999999;
+    END FotoNummer;
+
+    /** Geometriedefinition als Punkt, Linie oder Fläche.
+     */
+    CLASS Geometrie =
+      Punkt : ISOS_V1.LKoord;
+      Linie : POLYLINE WITH (ARCS,STRAIGHTS) VERTEX ISOS_V1.LKoord;
+      Flaeche : SURFACE WITH (ARCS,STRAIGHTS) VERTEX ISOS_V1.LKoord WITHOUT OVERLAPS>0;
+      MANDATORY CONSTRAINT DEFINED(Punkt) OR DEFINED(Linie) OR DEFINED(Flaeche);
+    END Geometrie;
+
+    /** Charakterisierung des ISOS-Ortsbildes.
+     * 
+     * Das schützenswerte Ortsbild:
+     * Ortschaften, die den quantitativen und qualitativen Bedingungen zur Aufnahme genügen, werden fotografisch, zeichnerisch und textlich dokumentiert und als schützenswerte Ortsbilder Gegenstand des Inventars. Die Ortschaften sind mit Hilfe der drei Ansätze der Aufnahmemethode (historischer und räumlicher Ansatz, Ansatz nach Erhaltungsziel) in Ortsbildteile aufzugliedern, die den Kategorien des Aufnahmeinstruments zugeordnet, einzeln und in ihrer Beziehung zueinander beschrieben und im Plan eingetragen werden.
+     */
+    CLASS Ortsbild =
+      /** NBIdent.
+       */
+      Prefix : MANDATORY TEXT*20;
+      /** Eindeutige, stabile (Identifikations-) Nummer des Ortsbildes. Integer, z.B. 3421 oder 23.
+       */
+      OrtsdatenID : MANDATORY 0 .. 10000;
+      /** Name des Ortsbildes.
+       */
+      OrtsbildName : MANDATORY TEXT*255;
+      Status : MANDATORY (
+        inKraft,
+        laufendeAenderung
+      );
+      /** Kurze allgemeine Beschreibung (2-3 Sätze) des Orts.
+       */
+      Kurzbeschreibung : MANDATORY MTEXT;
+      /** Das ISOS unterscheidet Ortsbilder von nationaler, regionaler und lokaler Bedeutung.
+       */
+      Einstufung : MANDATORY (
+        national,
+        regional,
+        lokal
+      );
+      Vergleichsraster : MANDATORY (
+        Stadt,
+        Kleinstadt_Flecken,
+        Verstaedtertes_Dorf,
+        Dorf,
+        Weiler,
+        Spezialfall
+      );
+      /** Falls es sich um ein Ortsbild mit Vergleichsraster = "Spezialfall" handelt, wird hier der Spezialfall durch ein Stichwort beschrieben z.B. "Fabrikanlage".
+       */
+      VergleichsrasterSpezialfall : TEXT;
+      /** Grobkoordinate des Ortsbildes.
+       */
+      Koordinate : MANDATORY ISOS_V1.LKoord;
+      /** Grenzdefinition als Geometrie (Fläche).
+       */
+      Perimeter : SURFACE WITH (ARCS,STRAIGHTS) VERTEX ISOS_V1.LKoord WITHOUT OVERLAPS>0;
+      /** Planausschnitt in der Publikation als Geometrie (Fläche).
+       */
+      PlanausschnittPublikation : SURFACE WITH (ARCS,STRAIGHTS) VERTEX ISOS_V1.LKoord WITHOUT OVERLAPS>0;
+      /** Erfassungssprache des Ortsbildes.
+       */
+      Sprachcode : MANDATORY (
+        de,
+        fr,
+        it,
+        rm
+      );
+      Siedlungsentwicklung : ISOS_V1.ReduziertesHtml;
+      DerHeutigeOrt : ISOS_V1.ReduziertesHtml;
+      Empfehlungen : MTEXT;
+      /** Situationswert des Orts und Grad der Verbauung.
+       */
+      LageQualitaet : MANDATORY ISOS_V1.Qualitaet;
+      LageQualitaetText : MTEXT;
+      /** Intensität des Raumzusammenhangs und Wert der einzelnen Ortsteile.
+       */
+      RaeumlicheQualitaet : MANDATORY ISOS_V1.Qualitaet;
+      RaeumlicheQualitaetText : MTEXT;
+      /** Wert der einzelnen Ortsteile sowie Ablesbarkeit der Wachstumsphasen im Ortsganzen.
+       */
+      ArchitekturhistorischeQualitaet : MANDATORY ISOS_V1.Qualitaet;
+      ArchitekturhistorischeQualitaetText : MTEXT;
+      /** Dateiname der Originalpublikation (PDF-Datei).
+       */
+      OriginalPublikationsPDF : TEXT*20;
+      /** Datum der Aufnahme.
+       */
+      Aufnahmedatum : MANDATORY FORMAT INTERLIS.XMLDate "1970-1-1" .. "2099-12-31";
+      /** Datum der Inkraftsetzung.
+       */
+      Inkraftsetzungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "1970-1-1" .. "2099-12-31";
+    END Ortsbild;
+
+    /** Das Inventar gliedert den Ort (das Ortsbild) in Gebiete und Baugruppen, in Umgebungszonen und Umgebungsrichtungen. Kriterien sind: historische und räumliche Qualitäten der Bebauung; Zustand, Bedeutung und Erhaltungsziel des Ortsteils.
+     * 
+     * Die schützenswerte Bebauung:
+     * Je nach Grösse, Dominanz und Intensität des räumlichen oder zeitlichen Zusammenhangs wird die schützenswerte Bebauung des Ortsbildes in Gebiete und Baugruppen eingegrenzt oder als Einzelelemente erfasst.
+     * 
+     * Die Umgebung:
+     * Als Umgebungs-Zonen oder -Richtungen werden diejenigen Bereiche bezeichnet, die zur Erhaltung der schützenswerten Bebauung von Gebieten und Baugruppen nötig sind. Sie können bebaut oder unbebaut sein und neben den gesondert vermerkten Einzelelementen auch architektonisch interessante Quartiere aus neuerer Zeit enthalten. Diese werden wegen dem bei Inventarisierungen generell eingehaltenen Zeitabstand von 50 Jahren nur in Ausnahmefällen als Gebiete oder Baugruppen erfasst.
+     * 
+     * Wenn weitere Sachverhalte einer gesonderten Aufmerksamkeit bedürfen, können sie als Hinweis oder, falls sie Ortsbildteile beeinträchtigen, als Störfaktor aufgeführt werden.
+     */
+    CLASS Ortsbildfaktor (ABSTRACT) =
+      /** Beschreibung in Prosa.
+       */
+      Beschreibung : MANDATORY MTEXT*20;
+    END Ortsbildfaktor;
+
+    CLASS UeberregionaleSiedlungsCharakteristik =
+      /** Name der Region z.B. "Kanton Thurgau" oder "Emmental".
+       */
+      Name : MANDATORY TEXT;
+      /** Dateiname der Originalpublikation (PDF-Datei).
+       */
+      OriginalPublikationsPDF : TEXT*20;
+      /** Grenzdefinition als Geometrie (Fläche).
+       */
+      Perimeter : SURFACE WITH (ARCS,STRAIGHTS) VERTEX ISOS_V1.LKoord WITHOUT OVERLAPS>0;
+      Beschreibung : MANDATORY ISOS_V1.TextMitKapitel;
+    END UeberregionaleSiedlungsCharakteristik;
+
+    STRUCTURE UmgebungsrichtungGrenze =
+      /** Grenzdefinition als Geometrie (Linie).
+       */
+      PublizierteLinie : MANDATORY ISOS_V1.Grenzlinie;
+      /** Hilfslinie zur Vervollständigung der Grenzlinie zu einer Fläche.
+       */
+      Abschlusshilfslinie : ISOS_V1.Grenzlinie;
+    END UmgebungsrichtungGrenze;
+
+    /** Ortsteil geringerer Grösse, dank räumlich ausgeprägter Wechselbeziehung der Bauten und dank räumlichen, architekturhistorischen oder regionaltypischen Merkmalen als Ganzheit ablesbar, z.B. Münsterplatz, Gassenzug, Kirchenbezirk, Mühlegruppe.
+     * 
+     * Die Baugruppe kann als kleinerer und eindeutig definierbarer Bereich innerhalb und ausserhalb von Gebieten liegen. So wurde z. B. die Bahnhofstrasse innerhalb des Bahnhofquartiers und die Marktgasse innerhalb der Altstadt als separate Baugruppe eingegrenzt.
+     */
+    CLASS Baugruppe
+    EXTENDS Ortsbildfaktor =
+      /** Zustands des Gebiets oder der Baugruppe zum Zeitpunkt der Aufnahme.
+       */
+      Aufnahmekategorie : MANDATORY ISOS_V1.AufnahmekategorieGebiet;
+      /** Grenzdefinition als Geometrie (Fläche).
+       */
+      Grenze : BAG {1..*} OF ISOS_V1.Grenzflaeche_;
+    END Baugruppe;
+
+    /** Beurteilung eines Einzelelements im Kontext eines Ortsbildes.
+     */
+    CLASS BeurteilungEinzelelement
+    EXTENDS Beurteilungselement =
+      /** Integrales Erhalten der Substanz.
+       */
+      istSchuetzenswertesEinzelelement : BOOLEAN;
+    END BeurteilungEinzelelement;
+
+    /** Beurteilung des Gebiets oder der Baugruppe im Kontext eines Ortsbildes.
+     */
+    CLASS BeurteilungGebiet
+    EXTENDS Beurteilungselement =
+      /** Erhaltungsziel des Gebiets oder der Baugruppe. Bedingung: Eine Baugruppe hat immer ein höheres Erhaltungsziel als das Gebiet, in dem sie liegt.
+       */
+      Erhaltungsziel : MANDATORY ISOS_V1.ErhaltungszielGebiet;
+      /** Intensität des Raumzusammenhangs und Wert der einzelnen Ortsteile.
+       */
+      RaeumlicheQualitaet : MANDATORY ISOS_V1.Qualitaet;
+      /** Wert der einzelnen Ortsteile sowie Ablesbarkeit der Wachstumsphasen im Ortsganzen.
+       */
+      ArchitekturhistorischeQualitaet : MANDATORY ISOS_V1.Qualitaet;
+    END BeurteilungGebiet;
+
+    /** Beurteilung der Umgebungsrichtung oder Umgebungszone im Kontext eines Ortsbildes.
+     */
+    CLASS BeurteilungUmgebung
+    EXTENDS Beurteilungselement =
+      /** Erhaltungsziel der Umgebungszone oder Richtung.
+       */
+      Erhaltungsziel : MANDATORY ISOS_V1.ErhaltungszielUmgebung;
+    END BeurteilungUmgebung;
+
+    /** Kleinstmöglicher Ortsbildteil, mit grossem Eigen- und Stellenwert im Ort, z.B. Kirche, Schulhaus, Käserei, Brücke, usw.
+     * Er kann innerhalb von Gebieten und Baugruppen liegen, wie der Bahnhof im Bahnhofquartier als Endpunkt der Bahnhofachse, oder ausserhalb in der Umgebung, wie die Allee, die zum Altstadttor führt.
+     * 
+     * Ein Einzelelement kann schützenswert (Kat-A-Element), ein Hinweis oder ein Störfaktor sein.
+     */
+    CLASS Einzelelement
+    EXTENDS Ortsbildfaktor =
+      /** Sachverhalte oder Elemente, die einer Lokalisierung im Ort bedürfen.
+       */
+      istHinweis : TEXT*20;
+      /** Eine starke Beeinträchtigung oder Gefährdung eines Ortsteils oder des Ortsganzen.
+       */
+      istStoerfaktor : TEXT*20;
+    END Einzelelement;
+
+    /** Grösstmöglicher Ortsteil, dank räumlichen, architekturhistorischen oder regionaltypischen Merkmalen als Ganzheit ablesbar, z.B. mittelalterlicher Stadtkern, Bahnhofquartier, Unterdorf, alter Dorfkern, Industrieanlage.
+     * 
+     * Ein Gebiet umfasst in Stadt und Land sehr unterschiedliche Ganzheiten. Die Gebiete als grösstmögliche eingrenzbare Teile der erhaltenswerten Bebauung können nicht ineinander verschachtelt werden, sondern nur nebeneinander vorkommen.
+     */
+    CLASS Gebiet
+    EXTENDS Ortsbildfaktor =
+      /** Wert der einzelnen Ortsteile sowie Ablesbarkeit der Wachstumsphasen im Ortsganzen.
+       */
+      Aufnahmekategorie : MANDATORY ISOS_V1.AufnahmekategorieGebiet;
+      /** Grenzdefinition als Geometrie (Fläche).
+       */
+      Grenze : BAG {1..*} OF ISOS_V1.Grenzflaeche_;
+    END Gebiet;
+
+    /** Bereich von ein- oder mehrseitig unbegrenzbarer Ausdehnung meist von Bedeutung für den weiträumigen Bezug zwischen Bebauung und Landschaft, z.B. Vorder-/Hintergrund, angrenzendes Kulturland, Talhänge Uferpartien, Flussraum, Neuquartiere.
+     * 
+     * Die UmgebungsRichtung (U-Ri) ist immer mindestens in einer Richtung nicht begrenzbar, weil sie der schützenswerten Bebauung z. B. als weitläufiger Ortsbildvorder- oder -hintergrund dient. Oder aber sie ufert als ein mit Altbauten durchsetztes Neubauquartier in die Agglomeration aus und hat z. B. wegen der Nähe zu wichtigen Ortsteilen Auflagen hinzunehmen.
+     */
+    CLASS Umgebungsrichtung
+    EXTENDS Ortsbildfaktor =
+      /** Wert der einzelnen Ortsteile sowie Ablesbarkeit der Wachstumsphasen im Ortsganzen.
+       */
+      Aufnahmekategorie : MANDATORY ISOS_V1.AufnahmekategorieUmgebung;
+      /** Grenzdefinition als Geometrie (Linie).
+       */
+      Grenze : BAG {1..*} OF UmgebungsrichtungGrenze;
+    END Umgebungsrichtung;
+
+    /** Bereich von begrenzter Ausdehnung, meist in enger Beziehung zur schützenswerten Bebauung; Grünflächen, z.B. Hostetten, Wiesland oder Dorfanger, Rebhang, Parkanlage, Areal öffentlicher Bauten.
+     * 
+     * Die UmgebungsZone (U-Zo) schliesst meist an die schützenswerte Bebauung an, kann aber in seltenen Fällen auch innerhalb eines Gebietes oder einer Baugruppe vorkommen. Weil sie nur für allseitig begrenzbare Bereiche verwendet wird, kann meist eine präzise Erhaltungsvorstellung oder eine baubeschränkende Forderung formuliert werden. Die Umgebungszone kann auch ein Bereich für den weiträumigen Bezug zwischen Bebauung und Landschaft, z. B. Vorder-/Hintergrund, angrenzendes Kulturland, Talhänge, Uferpartien, Flussraum, Neuquartiere sein (unter der Annahme, dass Umgebungsrichtungen in Umgebungszonen umgewandelt werden - siehe Vereinfachung ISOS, Vorschlag Kommissionen).
+     */
+    CLASS Umgebungszone
+    EXTENDS Ortsbildfaktor =
+      /** Wert der einzelnen Ortsteile sowie Ablesbarkeit der Wachstumsphasen im Ortsganzen.
+       */
+      Aufnahmekategorie : MANDATORY ISOS_V1.AufnahmekategorieUmgebung;
+      /** Grenzdefinition als Geometrie (Fläche).
+       */
+      Grenze : BAG {1..*} OF ISOS_V1.Grenzflaeche_;
+    END Umgebungszone;
+
+    ASSOCIATION AssociationDef183 =
+      Beurteilungselement -- {1..*} Beurteilungselement;
+      Ortsbildfaktor -- {1} Ortsbildfaktor;
+    END AssociationDef183;
+
+    ASSOCIATION AssociationDef333 =
+      FotoNummer -- {0..*} FotoNummer;
+      Ortsbild -<#> {1} Ortsbild;
+    END AssociationDef333;
+
+    ASSOCIATION AssociationDef341 =
+      FotoNummer -<> {0..*} FotoNummer;
+      Foto -- {1} Foto;
+    END AssociationDef341;
+
+    ASSOCIATION AssociationDef83 =
+      Ortsbild -- {0..*} Ortsbild;
+      Ablauf -- {0..1} Ablauf;
+    END AssociationDef83;
+
+    ASSOCIATION Ortsbild_Band =
+      beinhaltet -<> {1..*} Ortsbild;
+      publiziert_in -- {0..*} Band;
+    END Ortsbild_Band;
+
+    ASSOCIATION Ortsbild_Charakteristik =
+      Ortsbild -- {0..*} Ortsbild;
+      Charakteristik -- {1} UeberregionaleSiedlungsCharakteristik;
+    END Ortsbild_Charakteristik;
+
+    ASSOCIATION Ortsbild_Flugbild =
+      Flugbild -- {0..*} Flugbild;
+      zeigt -- {1} Ortsbild;
+    END Ortsbild_Flugbild;
+
+    ASSOCIATION Ortsbild_PlanObjekt =
+      gehoert_zu -<#> {1} Ortsbild;
+      besteht_aus -- {1..*} Beurteilungselement;
+    END Ortsbild_PlanObjekt;
+
+    ASSOCIATION PlanObjekt_Foto =
+      zeigt -- {1..*} Ortsbildfaktor;
+      hat -- {0..*} FotoNummer;
+    END PlanObjekt_Foto;
+
+    ASSOCIATION Baugruppe_Gebiet =
+      Baugruppe -- {0..*} Baugruppe;
+      Gebiet -<> {0..1} Gebiet;
+    END Baugruppe_Gebiet;
+
+    ASSOCIATION Detail_UebergeordneterFaktor =
+      Detail -- {0..*} Einzelelement;
+      UebergeordneterFaktor -<> {0..1} Ortsbildfaktor;
+    END Detail_UebergeordneterFaktor;
+
+    ASSOCIATION Geometrie_Detailobjekt =
+      Geometrie -- {0..*} Geometrie;
+      Detailobjekt -<#> {1} Einzelelement;
+    END Geometrie_Detailobjekt;
+
+    ASSOCIATION Umgebungsrichtung_Umgebungszone =
+      Umgebungsrichtung -- {0..*} Umgebungsrichtung;
+      Umgebungszone -<> {0..1} Umgebungszone;
+    END Umgebungsrichtung_Umgebungszone;
+
+  END ISOS;
+
+END ISOS_V1.

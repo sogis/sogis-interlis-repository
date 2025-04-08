@@ -1,0 +1,243 @@
+INTERLIS 2.3;
+
+/** Modèle de géodonnées minimal "Zones réservées"
+ * Jeu de géodonnées de base No. 76
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2019-08-09 | KOGIS | Association TypZR_Document adapted (both roles defined as EXTERNAL)
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mmg
+!!@ IDGeoIV=76
+MODEL Zones_reservees_MN03_V1 (fr)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"
+TRANSLATION OF Planungszonen_LV03_V1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    SurfaceUnique = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    DispositionNiveau = (
+      Canton,
+      Commune,
+      Autres
+    );
+
+    StatutJuridique = (
+      En_vigueur,
+      En_cours_modifications
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Zones_reservees_MN03_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : MANDATORY TEXT*20;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      StatutJuridique : MANDATORY Zones_reservees_MN03_V1.StatutJuridique;
+      TexteEnLigne : Zones_reservees_MN03_V1.MultilingualUri;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON Zones_reservees_MN03_V1.DispositionsJuridiques;
+
+    CLASS ZoneReservee =
+      Geometrie : MANDATORY Zones_reservees_MN03_V1.SurfaceUnique;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      valableJusquA : MANDATORY INTERLIS.XMLDate;
+      StatutJurdique : MANDATORY Zones_reservees_MN03_V1.StatutJuridique;
+      Remarques : MTEXT;
+    END ZoneReservee;
+
+    CLASS Type_ZoneReservee =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*12;
+      DispositionNiveau : MANDATORY Zones_reservees_MN03_V1.DispositionNiveau;
+      Remarques : MTEXT;
+      Symbole : BLACKBOX BINARY;
+    END Type_ZoneReservee;
+
+    ASSOCIATION TypZR_Document =
+      TypeZR (EXTERNAL) -- {0..*} Type_ZoneReservee;
+      Disposition (EXTERNAL) -- {0..*} Zones_reservees_MN03_V1.DispositionsJuridiques.Document;
+    END TypZR_Document;
+
+    ASSOCIATION TypZR_ZoneReservee =
+      ZoneReservee -- {0..*} ZoneReservee;
+      TypZR -<> {1} Type_ZoneReservee;
+    END TypZR_ZoneReservee;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON Zones_reservees_MN03_V1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      GuichetEnLigne : Zones_reservees_MN03_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      BasketID : MANDATORY TEXT*20;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_orgResp =
+      OrganismeResponsable -<> {1} Office;
+      Donnees -- {0..*} JeuDeDonnees;
+    END Donnees_orgResp;
+
+  END MetadonneesTransfer;
+
+END Zones_reservees_MN03_V1.
+
+!!@ technicalContact=mailto:info@are.admin.ch
+!!@ furtherInformation=https://www.are.admin.ch/mmg
+!!@ IDGeoIV=76
+MODEL Zones_reservees_MN95_V1 (fr)
+AT "https://models.geo.admin.ch/ARE/"
+VERSION "2019-08-09"
+TRANSLATION OF Planungszonen_LV95_V1 ["2019-08-09"] =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  DOMAIN
+
+    SurfaceUnique = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.05;
+
+    DispositionNiveau = (
+      Canton,
+      Commune,
+      Autres
+    );
+
+    StatutJuridique = (
+      En_vigueur,
+      En_cours_modifications
+    );
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF Zones_reservees_MN95_V1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText: Language;
+  END MultilingualUri;
+
+  TOPIC DispositionsJuridiques =
+
+    CLASS Document =
+      Titre : MANDATORY TEXT*80;
+      TitreOfficiel : TEXT;
+      Abreviation : TEXT*12;
+      NoOfficiel : MANDATORY TEXT*20;
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      Commune : CHAdminCodes_V1.CHMunicipalityCode;
+      publieDepuis : MANDATORY INTERLIS.XMLDate;
+      StatutJuridique : MANDATORY Zones_reservees_MN95_V1.StatutJuridique;
+      TexteEnLigne : Zones_reservees_MN95_V1.MultilingualUri;
+      Remarques : MTEXT;
+    END Document;
+
+    CLASS DispositionJuridique
+    EXTENDS Document =
+    END DispositionJuridique;
+
+    ASSOCIATION autresDocuments =
+      Origine -- {0..*} Document;
+      Document -- {0..*} Document;
+    END autresDocuments;
+
+  END DispositionsJuridiques;
+
+  TOPIC GeodonneesDeBase =
+    DEPENDS ON Zones_reservees_MN95_V1.DispositionsJuridiques;
+
+    CLASS ZoneReservee =
+      Geometrie : MANDATORY Zones_reservees_MN95_V1.SurfaceUnique;
+      publieeDepuis : MANDATORY INTERLIS.XMLDate;
+      valableJusquA : MANDATORY INTERLIS.XMLDate;
+      StatutJurdique : MANDATORY Zones_reservees_MN95_V1.StatutJuridique;
+      Remarques : MTEXT;
+    END ZoneReservee;
+
+    CLASS Type_ZoneReservee =
+      Code : MANDATORY TEXT*12;
+      Designation : MANDATORY TEXT*80;
+      Abreviation : TEXT*12;
+      DispositionNiveau : MANDATORY Zones_reservees_MN95_V1.DispositionNiveau;
+      Remarques : MTEXT;
+      Symbole : BLACKBOX BINARY;
+    END Type_ZoneReservee;
+
+    ASSOCIATION TypZR_Document =
+      TypeZR (EXTERNAL) -- {0..*} Type_ZoneReservee;
+      Disposition (EXTERNAL) -- {0..*} Zones_reservees_MN95_V1.DispositionsJuridiques.Document;
+    END TypZR_Document;
+
+    ASSOCIATION TypZR_ZoneReservee =
+      ZoneReservee -- {0..*} ZoneReservee;
+      TypZR -<> {1} Type_ZoneReservee;
+    END TypZR_ZoneReservee;
+
+  END GeodonneesDeBase;
+
+  TOPIC MetadonneesTransfer =
+    DEPENDS ON Zones_reservees_MN95_V1.GeodonneesDeBase;
+
+    CLASS Office =
+      Nom : MANDATORY TEXT*80;
+      GuichetEnLigne : Zones_reservees_MN95_V1.MultilingualUri;
+      UID : TEXT*12;
+    END Office;
+
+    CLASS JeuDeDonnees =
+      BasketID : MANDATORY TEXT*20;
+      Version : MANDATORY INTERLIS.XMLDate;
+      DateDeLivraison : INTERLIS.XMLDate;
+      Remarques : MTEXT;
+    END JeuDeDonnees;
+
+    ASSOCIATION Donnees_orgResp =
+      OrganismeResponsable -<> {1} Office;
+      Donnees -- {0..*} JeuDeDonnees;
+    END Donnees_orgResp;
+
+  END MetadonneesTransfer;
+
+END Zones_reservees_MN95_V1.

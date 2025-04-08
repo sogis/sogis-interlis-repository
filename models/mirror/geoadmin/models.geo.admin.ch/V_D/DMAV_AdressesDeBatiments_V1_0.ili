@@ -1,0 +1,170 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.12
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_AdressesDeBatiments_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_Gebaeudeadressen_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_ModinfoFR_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC AdressesDeBatiments =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      Langue = (
+        de,
+        fr,
+        it,
+        rm
+      );
+
+    CLASS MiseAJourAB =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH120101: IdentDN, Identification;
+    END MiseAJourAB;
+
+    STRUCTURE NomLocalisation =
+      Nom : MANDATORY TEXT*60;
+      NomAbrege : TEXT*24;
+      NomCommeIndex : TEXT*16;
+      Langue : MANDATORY Langue;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomLocalisation;
+
+    STRUCTURE LieuDenomme =
+      Geometrie : MANDATORY SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+    END LieuDenomme;
+
+    STRUCTURE TronconRue =
+      Geometrie : MANDATORY GeometryCHLV95_V2.DirectedLine;
+      EstAxe : MANDATORY BOOLEAN;
+    END TronconRue;
+
+    CLASS Localisation =
+      NumeroLocalisation : TEXT*12;
+      AttributsProvisoires : MANDATORY BOOLEAN;
+      EstDesignationOfficielle : MANDATORY BOOLEAN;
+      StatutLocalisation : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      EnCoursModification : MANDATORY BOOLEAN;
+      GenreLocalisation : MANDATORY (
+        LieuDenomme,
+        rue,
+        place
+      );
+      PrincipeNumerotation : MANDATORY (
+        pas_de_numeros,
+        quelconque,
+        croissante,
+        impairs_a_gauche,
+        pairs_a_gauche
+      );
+      ESID : 10000000 .. 90000000;
+      NomLocalisation : BAG {1..*} OF NomLocalisation;
+      LieuDenomme : BAG {0..*} OF LieuDenomme;
+      TronconRue : LIST {0..*} OF TronconRue;
+      MANDATORY CONSTRAINT CH120501: (INTERLIS.elementCount(TronconRue) > 0) == (GenreLocalisation == #rue OR GenreLocalisation == #place);
+      MANDATORY CONSTRAINT CH120502: (INTERLIS.elementCount(LieuDenomme) > 0) == (GenreLocalisation == #LieuDenomme);
+      UNIQUE CH120503: (LOCAL) NomLocalisation: Langue;
+    END Localisation;
+
+    ASSOCIATION Origine_Localisation =
+      Origine -- {1} MiseAJourAB;
+      Localisation_bientotcreee -- {0..*} Localisation;
+    END Origine_Localisation;
+
+    ASSOCIATION Caducite_Localisation =
+      Caducite  -- {0..1} MiseAJourAB;
+      Localisation_bientotcaduque -- {0..*} Localisation;
+    END Caducite_Localisation;
+
+    ASSOCIATION Predecesseur_Successeur_Localisation =
+      Predecesseur -- {0..1} Localisation;
+      Successeur -- {0..*} Localisation;
+    END Predecesseur_Successeur_Localisation;
+
+    VIEW Localisation_Valable
+      PROJECTION OF Localisation;
+      WHERE
+        DEFINED(Localisation->Origine) AND NOT (DEFINED(Localisation->Caducite ));
+      =
+      ALL OF Localisation;
+    END Localisation_Valable;
+
+    STRUCTURE NomBatiment =
+      Nom : MANDATORY TEXT*60;
+      NomAbrege : TEXT*24;
+      NomCommeIndex : TEXT*16;
+      Langue : MANDATORY Langue;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+    END NomBatiment;
+
+    STRUCTURE DescriptionBatiment =
+      Description : MANDATORY TEXT*100;
+      Langue : MANDATORY Langue;
+    END DescriptionBatiment;
+
+    CLASS EntreeBatiment =
+      StatutBatiment : MANDATORY DMAVTYM_ModinfoFR_V1_0.StatutObjet;
+      EnCoursModification : MANDATORY BOOLEAN;
+      AttributsProvisoires : MANDATORY BOOLEAN;
+      EstAdresseOfficielle : MANDATORY BOOLEAN;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      HauteurAuDessusSol : -99 .. 99 [INTERLIS.m];
+      NumeroMaison : TEXT*12;
+      DansModule : MANDATORY (
+        CouvertureSol,
+        ObjetDivers
+      );
+      EGID : 1 .. 900000000;
+      EDID : 0 .. 90;
+      NomBatiment : BAG {0..*} OF NomBatiment;
+      DescriptionBatiment : BAG {0..*} OF DescriptionBatiment;
+      PositionTexte : BAG {0..*} OF DMAVTYM_Grafique_V1_0.PositionTexte;
+      UNIQUE CH121201: (LOCAL) NomBatiment: Langue;
+      UNIQUE CH121202: (LOCAL) DescriptionBatiment: Langue;
+    END EntreeBatiment;
+
+    ASSOCIATION Origine_EntreeBatiment =
+      Origine -- {1} MiseAJourAB;
+      EntreeBatiment_bientotcreee -- {0..*} EntreeBatiment;
+    END Origine_EntreeBatiment;
+
+    ASSOCIATION Caducite_EntreeBatiment =
+      Caducite  -- {0..1} MiseAJourAB;
+      EntreeBatiment_bientotcaduque -- {0..*} EntreeBatiment;
+    END Caducite_EntreeBatiment;
+
+    ASSOCIATION Predecesseur_Successeur_EntreeBatiment =
+      Predecesseur -- {0..1} EntreeBatiment;
+      Successeur -- {0..*} EntreeBatiment;
+    END Predecesseur_Successeur_EntreeBatiment;
+
+    VIEW EntreeBatiment_Valable
+      PROJECTION OF EntreeBatiment;
+      WHERE
+        DEFINED(EntreeBatiment->Origine) AND NOT (DEFINED(EntreeBatiment->Caducite ));
+      =
+      ALL OF EntreeBatiment;
+    END EntreeBatiment_Valable;
+
+    ASSOCIATION LocalisationEntreeBatiment =
+      Localisation -<> {0..1} Localisation;
+      EntreeBatiment -- {0..*} EntreeBatiment;
+      MANDATORY CONSTRAINT CH121701: (Localisation->PrincipeNumerotation == #pas_de_numeros) == NOT (DEFINED(EntreeBatiment->NumeroMaison));
+    END LocalisationEntreeBatiment;
+
+  END AdressesDeBatiments;
+
+END DMAV_AdressesDeBatiments_V1_0.

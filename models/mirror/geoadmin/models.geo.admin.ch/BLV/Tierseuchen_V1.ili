@@ -1,0 +1,125 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell Tierseuchenmeldungen.
+ * Identifikator: 155
+ */
+
+!!@ furtherInformation=https://www.blv.admin.ch/blv/de/home/tiere/tierseuchen.html
+!!@ technicalContact=mailto:info@blv.admin.ch
+!!@ IDGeoIV=155.1
+MODEL Tierseuchen_V1 (de)
+AT "https://models.geo.admin.ch/BLV/"
+VERSION "2012-06-13" =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /** Kataloge zum Modell Tierseuchenmeldungen
+   */
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** Katalog mit Gemeindenummern und -namen
+     */
+    CLASS Gemeinde
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Nummer : MANDATORY 0 .. 9999;
+      Name : MANDATORY TEXT*50;
+    END Gemeinde;
+
+    /** Verschiedene Tierseuchen haben mehr als eine Ausprägung. Die Spezifikationen der verschiedenen Ausprägungen werden hier definiert.
+     */
+    CLASS Seuchenspezifikation
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Typ : MANDATORY TEXT*20;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Seuchenspezifikation;
+
+    CLASS Tierart
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tierart;
+
+    CLASS Tierkategorie
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tierkategorie;
+
+    /** Liste der registrierten Tierseuchen
+     */
+    CLASS Tierseuche
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+    /** Code der Tierseuche gemäss internationalem Tierseuchenamt
+     */
+      oieCode : TEXT*20;
+      Kuerzel : TEXT*20;
+      Bemerkung : LocalisationCH_V1.MultilingualText;
+      Bezeichnung : MANDATORY LocalisationCH_V1.MultilingualText;
+      InfoLink : LocalisationCH_V1.MultilingualText;
+    END Tierseuche;
+
+    STRUCTURE GemeindeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Gemeinde;
+    END GemeindeRef;
+
+    STRUCTURE SeuchenspezifikationRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Seuchenspezifikation;
+    END SeuchenspezifikationRef;
+
+    STRUCTURE TierartRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Tierart;
+    END TierartRef;
+
+    STRUCTURE TierkategorieRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Tierkategorie;
+    END TierkategorieRef;
+
+    STRUCTURE TierseucheRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Tierseuche;
+    END TierseucheRef;
+
+    ASSOCIATION TierartTierseuche =
+      Tierart -- {0..*} Tierart;
+      Tierseuche -- {0..*} Tierseuche;
+    END TierartTierseuche;
+
+    ASSOCIATION TierkategorieTierseuche =
+      Tierkategorie -- {0..*} Tierkategorie;
+      Tierseuche -- {0..*} Tierseuche;
+    END TierkategorieTierseuche;
+
+    ASSOCIATION TierseucheSeuchenspezifikation =
+      Seuche -<#> {1} Tierseuche;
+      Spezifikation -- {0..*} Seuchenspezifikation;
+    END TierseucheSeuchenspezifikation;
+
+  END Kataloge;
+
+  TOPIC Meldungen =
+    DEPENDS ON Tierseuchen_V1.Kataloge;
+
+    /** Enthält die akutellen Seuchenmeldungen
+     */
+    CLASS Seuchenmeldung =
+      /** Datum der Feststellung der Tierseuche (Laborbericht)
+       */
+      diagnoseDatum : MANDATORY FORMAT INTERLIS.XMLDate "2012-01-01" .. "2112-01-01";
+      /** Summe aus infizierten und erkrankten Tieren
+       */
+      anzahlTiere : MANDATORY 0 .. 10000;
+      /** Allfällige Kommentare zu diesem Fall
+       */
+      details : MTEXT*62000;
+      Gemeinde : MANDATORY Tierseuchen_V1.Kataloge.GemeindeRef;
+      Seuche : MANDATORY Tierseuchen_V1.Kataloge.TierseucheRef;
+      Seuchenspezifikation : Tierseuchen_V1.Kataloge.SeuchenspezifikationRef;
+      Tierart : MANDATORY Tierseuchen_V1.Kataloge.TierartRef;
+      Tierkategorie : Tierseuchen_V1.Kataloge.TierkategorieRef;
+    END Seuchenmeldung;
+
+  END Meldungen;
+
+END Tierseuchen_V1.

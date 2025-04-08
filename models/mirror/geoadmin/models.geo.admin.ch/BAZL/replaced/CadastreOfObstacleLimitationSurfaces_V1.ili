@@ -1,0 +1,448 @@
+INTERLIS 2.3;
+
+/** #############################################################################################################
+ * # DE: Minimales Geodatenmodell "Hindernisbegrenzungsflächen-Kataster"                                     
+ * # FR: Modèle de géodonnées minimal "Cadastres des surfaces de limitation d’obstacles à la navigation aérienne"
+ * ##############################################################################################################
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | WITHOUT OVERLAPS added (line 74 and 84)
+!! 2018-02-19 | KOGIS | WITHOUT OVERLAPS corrected (line 74 and 84)
+
+!!@ IDGeoIV=106.1
+!!@ furtherInformation=http://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+CONTRACTED MODEL CadastreOfObstacleLimitationSurfaces_V1 (en)
+AT "http://models.geo.admin.ch/BAZL/"
+VERSION "2018-02-19"  =
+  IMPORTS GeometryCHLV95_V1,WithLatestModification_V1;
+
+  /** DE: Funktion zur Prüfung der Bedingung für Gebietseinteilungsflächen (AREA) bei Einzelflächen
+   * FR: Fonction d'examen de la condition relative aux partitions du territoire (AREA) en présence de surfaces indépendantes
+   */
+  FUNCTION areAreas(
+    Objects: OBJECTS OF ANYCLASS;
+    SurfaceBag: ATTRIBUTE OF @ Objects RESTRICTION (BAG OF ANYSTRUCTURE);
+    SurfaceAttr: ATTRIBUTE OF @ SurfaceBag RESTRICTION (SURFACE)
+  ):BOOLEAN;
+
+  /** -------------------------------------------------------------------------------------------------------------------
+   * DE: Thema für Hindernisbegrenzungsflächen, Referenzpunkte und Linienelemente
+   * FR: Thème en relation avec les surfaces de limitation d'obstacles, les points de référence et les éléments linéaires
+   * --------------------------------------------------------------------------------------------------------------------
+   */
+  TOPIC CadastreOfObstacleLimitationSurfaces_WithLatestModification =
+
+    /** DE: Graphische Eigenschaften von Beschriftungen
+     * FR: Propriétés graphiques des annotations
+     */
+    STRUCTURE Label3DGraphic =
+      /** DE: 3D-Positionsangabe der Beschriftung
+       * FR: Coordonnées 3D d'annotation
+       */
+      Position3D : MANDATORY GeometryCHLV95_V1.Coord3;
+      /** DE: Horizontale Textausrichtung
+       * FR: Alignement horizontal du texte
+       */
+      HAli : MANDATORY HALIGNMENT;
+      /** DE: Vertikale Textausrichtung
+       * FR: Alignement vertical du texte
+       */
+      VAli : MANDATORY VALIGNMENT;
+      /** DE: Orientierung der Beschriftung
+       * FR: Orientation d'annotation
+       */
+      Orientation : GeometryCHLV95_V1.Orientation;
+    END Label3DGraphic;
+
+    /** DE: Gültigkeit und letzte Änderung von OLS-Objekten
+     * FR: Durée de validité et date de la dernière modification des objets OLS
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Restriktivste (massgebende) 2D-Gesamtfläche
+     * FR: Surface totale restrictive (déterminante) en 2D
+     */
+    CLASS RestrictiveArea =
+      /** DE: 2D-Gebietseinteilungsfläche
+       * FR: Partition du territoire en 2D
+       */
+      Area2D : MANDATORY AREA WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+    END RestrictiveArea;
+
+    /** DE: Einzelnes Element einer Dreiecksvermaschung; Dreieck
+     * FR: Élément unitaire d'un maillage triangulaire; triangle
+     */
+    STRUCTURE TinElement =
+      /** DE: Dreidimensionale Dreiecksfläche (mit Geraden, ohne Kreisbögen)
+       * FR: Surface triangulaire tridimensionnelle (avec segments de droite, sans arcs de cercle)
+       */
+      Surface3D : MANDATORY SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+    END TinElement;
+
+    /** DE: Inhalt von Beschriftungen
+     * FR: Contenu des annotations
+     */
+    STRUCTURE Label3DText =
+      /** DE: Beschriftungstext
+       * FR: Texte d'annotation
+       */
+      Text : MANDATORY TEXT*50;
+      /** DE: Graphische Eigenschaften
+       * FR: Propriétés graphiques
+       */
+      Graphic : BAG {1..*} OF Label3DGraphic;
+      /** DE: Verweis auf das Textattribut für die Beschriftung
+       * FR: Renvoi à l'attribut texte des annotations
+       */
+      Depiction (TRANSIENT) : MANDATORY ATTRIBUTE := >>Text;
+    END Label3DText;
+
+    /** DE: Hindernisbegrenzungsflächen-Kataster für Flugplatz bzw. Heliport, Flugsicherungsanlage oder Flugweg
+     * FR: Cadastre des surfaces de limitation d'obstacles pour aérodrome, hélistation, installation de la navigation aérienne ou trajectoire de vol
+     */
+    CLASS OlsCadastre =
+      /** DE: Eindeutige Bezeichnung des Hindernisbegrenzungsflächen-Katasters (z.B. "HBK_LSZH")
+       * FR: Désignation unique du cadastre des surfaces de limitation d'obstacles (p. ex. "CAD_LSZH")
+       */
+      CadastreName : MANDATORY TEXT*30;
+      /** DE: Bezugstyp des Katasters gemäss Art. 2m VIL
+       * FR: Type de cadastre au sens de l'art. 2, let. m OSIA
+       */
+      CadastreType : MANDATORY (
+        /** DE: Flugweg
+         * FR: Trajectoire de vol
+         */
+        FlightPath,
+        /** DE: Flugsicherungsanlage
+         * FR: Installation de navigation aérienne
+         */
+        AirNavigationFacility,
+        /** DE: Flugplatz oder Heliport
+         * FR: Aérodrome ou hélistation
+         */
+        AerodromeHeliport
+      );
+      /** DE: Offizieller ICAO-Code für Flug- und Helikopterlandeplätze
+       * FR: Code OACI officiel de l'aérodrome ou de l'hélistation
+       */
+      IcaoLocationIndicator : TEXT*4;
+      /** DE: Gültigkeit und letzte Änderung des Hindernisbegrenzungsflächen-Katasters
+       * FR: Durée de validité et dernière modification du cadastre des surfaces de limitation d'obstacles
+       */
+      CadastreModification : MANDATORY ModificationInfo;
+      /** DE: Eindeutigkeitsbedingung für "CadastreName"
+       * FR: Condition d'unicité pour "CadastreName"
+       */
+      UNIQUE CadastreName;
+    END OlsCadastre;
+
+    /** DE: Verbund von unregelmässigen Dreiecken / Dreiecksvermaschung (TIN)
+     * FR: Ensemble de triangles irréguliers / maillage triangulaire (TIN)
+     */
+    STRUCTURE Triangulation =
+      /** DE: Einzelnes Dreieck
+       * FR: Triangle unitaire
+       */
+      Triangle : BAG {1..*} OF TinElement;
+    END Triangulation;
+
+    /** DE: Beschriftungen ohne Bezug zu OLS-Objekten
+     * FR: Annotations sans référence aux objets d'OLS
+     */
+    CLASS AuxiliaryLabel =
+      /** DE: Beschriftung(en)
+       * FR: Annotation(s)
+       */
+      Label : BAG {1..*} OF Label3DText;
+    END AuxiliaryLabel;
+
+    /** DE: Linienelemente der OLS
+     * FR: Éléments linéaires des OLS
+     */
+    CLASS OlsLine =
+      /** DE: Typ der OLS-Linie
+       * FR: Type de ligne OLS
+       */
+      LineType : MANDATORY (
+        /** DE: Umrandung einer einzelnen OLS
+         * FR: Frontière d'une seule OLS
+         */
+        Boundary_line,
+        /** DE: Schnittlinie zweier Flächen
+         * FR: Ligne d'intersection de deux surfaces
+         */
+        Intersection_line,
+        /** DE: Höhenlinie / Höhenschichtlinie
+         * FR: Courbe de niveau
+         */
+        Contour_line,
+        /** DE: Achse der Pisten sowie der An- und Abflugwege
+         * FR: Axe des pistes et des trajectoires d'approche et de départ
+         */
+        Center_line,
+        /** DE: Graphische Hilfslinie, z.B. Linie zu einer nicht massgebenden Fläche
+         * FR: Trait de rappel, p. ex. ligne d'une surface non déterminante
+         */
+        Auxiliary_line
+      );
+      /** DE: Dreidimensionale Linie (Polylinie mit Geraden, ohne Kreisbögen)
+       * FR: Ligne tridimensionnelle (polyligne avec segments de droite, sans arcs de cercle)
+       */
+      Line3D : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3;
+      /** DE: Beschriftung(en)
+       * FR: Annotation(s)
+       */
+      Label : BAG {0..*} OF Label3DText;
+    END OlsLine;
+
+    /** DE: Räumliche Bezugspunkte der Hindernisbegrenzungsflächen (OLS)
+     * FR: Points de référence spatiaux des surfaces de limitation d'obstacles (OLS)
+     */
+    CLASS ReferencePoint =
+      /** DE: Typ des Referenzpunkts
+       * FR: Type du point de référence
+       */
+      PointType : MANDATORY (
+        /** DE: Flugplatzbezugspunkt (Aerodrome Reference Point)
+         * FR: Point de référence d'aérodrome (Aerodrome Reference Point)
+         */
+        ARP,
+        /** DE: Achspunkt (Centerline Point)
+         * FR: Point d'axe de piste (Centerline Point)
+         */
+        CLP,
+        /** DE: Operationelles Pistenende (Departure End of Runway)
+         * FR: Fin de la piste de décollage (Departure End of Runway)
+         */
+        DER,
+        /** DE: Mittelpunkt der FATO
+         * FR: Point central du FATO
+         */
+        FATO,
+        /** DE: Punkt auf Pistenschwelle (Threshold Point)
+         * FR: Point de seuil de piste (Threshold Point)
+         */
+        THR
+      );
+      /** DE: 3D-Punktgeometrie
+       * FR: Géométrie des points 3D
+       */
+      Point3D : MANDATORY GeometryCHLV95_V1.Coord3;
+      /** DE: Beschriftung(en)
+       * FR: Annotation(s)
+       */
+      Label : BAG {0..*} OF Label3DText;
+    END ReferencePoint;
+
+    /** DE: Einzelne Hindernisbegrenzungsfläche (OLS)
+     * FR: Surface de limitation d'obstacles (OLS) indépendante
+     */
+    CLASS Ols =
+      /** DE: Eindeutige Bezeichnung der OLS
+       * FR: Désignation unique de l'OLS
+       */
+      SurfaceName : MANDATORY TEXT*60;
+      /** DE: Typ der OLS
+       * FR: Type d'OLS
+       */
+      SurfaceType : MANDATORY (
+        /** DE: Innere Horizontalfläche
+         * FR: Surface horizontale intérieure
+         */
+        Inner_horizontal_surface,
+        /** DE: Seitliche Übergangsfläche
+         * FR: Surface de transition
+         */
+        Transitional_surface,
+        /** DE: Anflugfläche
+         * FR: Surface d'approche
+         */
+        Approach_surface,
+        /** DE: Anflugfläche für Helikopter
+         * FR: Surface d'approche pour hélicoptères
+         */
+        Approach_surface_heli,
+        /** DE: Pistenstreifen
+         * FR: Bande de piste
+         */
+        Runway_strip,
+        /** DE: Durchstartfläche
+         * FR: Surface d'atterrrissage interrompu
+         */
+        Balked_landing_surface,
+        /** DE: Innere seitliche Übergangsfläche
+         * FR: Surface intérieure de transition
+         */
+        Inner_transitional_surface,
+        /** DE: Innere Anflugfläche
+         * FR: Surface intérieure d'approche
+         */
+        Inner_approach_surface,
+        /** DE: Geschützte seitliche Neigung für Helikopter
+         * FR: Pente latérale protégée pour hélicoptères
+         */
+        Protected_side_slope_heli,
+        /** DE: Abflugfläche
+         * FR: Surface de montée au décollage
+         */
+        Takeoff_climb_surface,
+        /** DE: Abflugfläche für Helikopter
+         * FR: Surface de montée au décollage pour hélicoptères
+         */
+        Takeoff_climb_surface_heli,
+        /** DE: Konische Fläche
+         * FR: Surface conique
+         */
+        Conical_surface,
+        /** DE: Sicherheitsbereich für Helikopter
+         * FR: Aire de sécurité pour hélicoptères
+         */
+        Safety_area_heli,
+        /** DE: Endanflug- und Startfläche für Helikopter
+         * FR: Aire d’approche finale et de décollage pour hélicoptères
+         */
+        FATO_area_heli,
+        /** DE: Schutzfläche für Navigationsanlagen
+         * FR: Surface de protection des installations de navigation aérienne
+         */
+        Critical_sensitive_area,
+        /** DE: OEI-Fläche (One Engine Inoperative)
+         * FR: Surface OEI (One Engine Inoperative)
+         */
+        One_engine_out_surface,
+        /** DE: PANS-OPS-Fläche
+         * FR: Surface PANS-OPS
+         */
+        PANS_OPS_surface,
+        /** DE: VASIS-Schutzfläche
+         * FR: Surface de protection du dispositif VASIS
+         */
+        Obstacle_protection_surface,
+        /** DE: AOC-Fläche
+         * FR: Surface AOC
+         */
+        Takeoff_flightpath_area,
+        /** DE: Anomalie (Kalotte)
+         * FR: Anomalie (Calotte)
+         */
+        Calotte_area
+      );
+      /** DE: Dreiecksvermaschung (TIN)
+       * FR: Maillage triangulaire irrégulier (TIN)
+       */
+      TIN : MANDATORY Triangulation;
+      /** DE: Angabe der Pistenzugehörigkeit (falls vorhanden)
+       * FR: Indication de la catégorie de piste (si disponible)
+       */
+      RunwayDesignator : TEXT*20;
+      /** DE: Pistenklassifizierung nach ICAO (relevant in Kombination mit "Operation" und "SurfaceType")
+       * FR: Classification OACI de la piste (information pertinente en relation avec "Operation" et "SurfaceType")
+       */
+      RunwayCodeNumber : 1 .. 4;
+      /** DE: Flugoperation (relevant in Kombination mit "RunwayCodeNumber" und "SurfaceType")
+       * FR: Opération aérienne (information pertinente en relation avec "RunwayCodeNumber" et "SurfaceType")
+       */
+      Operation : (
+        /** DE: Nicht-Präzisionsanflug
+         * FR: Approche classique
+         */
+        Non_precision,
+        /** DE: Sichtanflug
+         * FR: Approche à vue
+         */
+        Non_instrument,
+        /** DE: Präzisionsanflug
+         * FR: Approche de précision
+         */
+        Precision,
+        /** DE: Abflug
+         * FR: Montée au décollage
+         */
+        Take_off_climb,
+        /** DE: Voltenflug
+         * FR: Circuit d'aérodrome
+         */
+        Circuit
+      );
+      /** DE: Gültigkeit und letze Änderung der OLS
+       * FR: Durée de validité et dernière modification de l'OLS
+       */
+      SurfaceModification : ModificationInfo;
+      /** DE: Beschriftung(en)
+       * FR: Annotation(s)
+       */
+      Label : BAG {0..*} OF Label3DText;
+      /** DE: Eindeutigkeitsbedingung für "SurfaceName"
+       * FR: Condition d'unicité pour "SurfaceName"
+       */
+      UNIQUE SurfaceName;
+      /** DE: Aufruf der Funktion "areAreas"
+       * FR: Appel de la fonction "areAreas"
+       */
+      SET CONSTRAINT areAreas(ALL, >> TIN, >> Triangulation->Triangle);
+    END Ols;
+
+    /** DE: Ein OLS-Kataster umfasst eine oder mehrere OLS
+     * FR: Un cadastre des surfaces de limitation d'obstacles est formé d'une ou de plusieurs OLS
+     */
+    ASSOCIATION CadastreObstacleArea =
+      /** DE: Übergeordneter OLS-Kataster
+       * FR: Cadastre des surfaces de limitation d'obstacles
+       */
+      Cadastre -<#> {1} OlsCadastre;
+      /** DE: Zugehörige OLS
+       * FR: OLS associée
+       */
+      ObstacleArea -- {1..*} Ols;
+    END CadastreObstacleArea;
+
+    /** DE: Lineare Elemente werden genau einer OLS zugeordnet
+     * FR: Les éléments linéaires se rapportent à une seule OLS
+     */
+    ASSOCIATION OlsLineElement =
+      /** DE: Bezug zu OLS-Linien
+       * FR: Référence aux lignes OLS
+       */
+      LineElement -- {0..*} OlsLine;
+      /** DE: Bezug zur OLS
+       * FR: Référence à l'OLS
+       */
+      OlsR -<#> {1} Ols;
+    END OlsLineElement;
+
+    /** DE: Restriktivste 2D-Teilfläche einer OLS
+     * FR: Surface restrictive partielle en 2D d'une OLS
+     */
+    ASSOCIATION OlsRestrictivePart =
+      /** DE: Massgebender OLS-Anteil
+       * FR: Part déterminante de l'OLS
+       */
+      RestrictivePart -- {0..*} RestrictiveArea;
+      /** DE: Bezug zur OLS
+       * FR: Référence à l'OLS
+       */
+      OlsR -<#> {1} Ols;
+    END OlsRestrictivePart;
+
+    /** DE: Eine OLS bezieht sich auf einen oder mehrere Referenzpunkte
+     * FR: Une OLS se rapporte à un ou à plusieurs point(s) de référence(s)
+     */
+    ASSOCIATION OlsSpatialReference =
+      /** DE: Bezugspunkte der OLS
+       * FR: Points de référence de l'OLS
+       */
+      SpatialReference -- {0..*} ReferencePoint;
+      /** DE: Bezug zu OLS
+       * FR: Référence à l'OLS
+       */
+      OlsR -- {0..*} Ols;
+    END OlsSpatialReference;
+
+  END CadastreOfObstacleLimitationSurfaces_WithLatestModification;
+
+END CadastreOfObstacleLimitationSurfaces_V1.

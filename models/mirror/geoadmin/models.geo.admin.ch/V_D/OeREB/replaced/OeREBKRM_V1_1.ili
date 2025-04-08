@@ -1,0 +1,163 @@
+INTERLIS 2.3;
+
+/** Basisdefinitionen für das OEREB-Katasterrahmenmodell
+ */
+!!@ furtherInformation=http://www.cadastre.ch/oereb-public
+!!@ technicalContact=mailto:infovd@swisstopo.ch
+MODEL OeREBKRM_V1_1 (de)
+AT "http://models.geo.admin.ch/V_D/OeREB/"
+VERSION "2016-08-15"  =
+  IMPORTS LocalisationCH_V1,InternationalCodes_V1,CatalogueObjects_V1;
+
+  DOMAIN
+
+    /** Themenspezifische, maschinen-lesbare Art der Eigentumsbeschränkung
+     */
+    ArtEigentumsbeschraenkung = TEXT*40;
+
+    /** Wertebereich für den Artikeltext einer Rechtsvorschrift oder einer gesetzlichen Grundlage.
+     */
+    ArtikelInhalt = MTEXT;
+
+    /** Nummer eines Artikels in einer Rechtsvorschrift oder gesetzlichen Grundlage.
+     */
+    ArtikelNummer = TEXT*20;
+
+    Datum = FORMAT INTERLIS.XMLDate "1848-1-1" .. "2100-12-31";
+
+    /** Wertebereich für Objektidentifikatoren. Der Wert soll mit einem gültigen Internet Domain-Name anfangen, z.B. "ch.admin.sr.720"
+     */
+    OEREBOID = OID TEXT;
+
+    /** Werteliste zur Unterscheidung ob eine Eigentumsbeschränkung in Kraft ist oder nicht.
+     */
+    RechtsStatus = (
+      /** Die Eigentumsbeschränkung ist in Kraft.
+       */
+      inKraft,
+      /** gem. OeREBKV Art. 12 Abs. 2
+       */
+      laufendeAenderung
+    );
+
+    SubThema = TEXT*60;
+
+    /** Liste der Geobasisdaten die ÖREB-Themen sind (Wird durch den Bundesrat definiert). Die Liste kann durch Kantone erweitert werden.
+     */
+    Thema = (
+      /** GeoIV Datensatz 73
+       */
+      Nutzungsplanung,
+      /** 87
+       */
+      ProjektierungszonenNationalstrassen,
+      /** 88
+       */
+      BaulinienNationalstrassen,
+      /** 96
+       */
+      ProjektierungszonenEisenbahnanlagen,
+      /** 97
+       */
+      BaulinienEisenbahnanlagen,
+      /** 103
+       */
+      ProjektierungszonenFlughafenanlagen,
+      /** 104
+       */
+      BaulinienFlughafenanlagen,
+      /** 108
+       */
+      SicherheitszonenplanFlughafen,
+      /** 116
+       */
+      BelasteteStandorte,
+      /** 117
+       */
+      BelasteteStandorteMilitaer,
+      /** 118
+       */
+      BelasteteStandorteZivileFlugplaetze,
+      /** 119
+       */
+      BelasteteStandorteOeffentlicherVerkehr,
+      /** 131
+       */
+      Grundwasserschutzzonen,
+      /** 132
+       */
+      Grundwasserschutzareale,
+      /** 145
+       */
+      Laermemfindlichkeitsstufen,
+      /** 157
+       */
+      Waldgrenzen,
+      /** 159
+       */
+      Waldabstandslinien,
+      /** Fuer weitere Themen
+       */
+      WeiteresThema
+    );
+
+    /** Unternehmensindentifikation (gemäss. Bundesgesetz über die Unternehmens-Identifikationsnummer SR 431.03) ohne Formatierung z.B. CHE116068369
+     */
+    UID = TEXT*12;
+
+    /** Verweis auf ein Dokument im Web (z.B. eine HTML Seite oder ein PDF-Dokument)
+     */
+    WebReferenz = URI;
+
+    /** z.B. kantonale Themen. Der Code wird nach folgendem Muster gebildet: ch.{canton}.{topic}
+     * fl.{topic}
+     * ch.{bfsnr}.{topic}
+     * Wobei {canton} das offizielle zwei-stellige Kürzel des Kantons ist, {to-pic} der Themenname und {bfsnr} die Gemeindenummer gem. BFS.
+     */
+    WeiteresThema = TEXT*120;
+  STRUCTURE ArtikelNummer_ = value : MANDATORY ArtikelNummer; END ArtikelNummer_;
+  STRUCTURE Datum_ = value : MANDATORY Datum; END Datum_;
+  STRUCTURE Thema_ = value : MANDATORY Thema; END Thema_;
+  STRUCTURE WebReferenz_ = value : MANDATORY WebReferenz; END WebReferenz_;
+
+  /** Wertebereich für den Artikeltext einer Rechtsvorschrift oder einer gesetzlichen Grundlage.
+   */
+  STRUCTURE ArtikelInhaltMehrsprachig
+  EXTENDS LocalisationCH_V1.MultilingualMText =
+  END ArtikelInhaltMehrsprachig;
+
+  STRUCTURE LocalisedUri =
+    Language : InternationalCodes_V1.LanguageCode_ISO639_1;
+    Text : MANDATORY URI;
+  END LocalisedUri;
+
+  STRUCTURE MultilingualUri =
+    LocalisedText : BAG {1..*} OF OeREBKRM_V1_1.LocalisedUri;
+    UNIQUE (LOCAL) LocalisedText:Language;
+  END MultilingualUri;
+
+  /** Anzeigetexte für Aufzählungen des Rahmenmodells
+   */
+  TOPIC CodelistenText =
+
+    /** Anzeigetexte für die Aufzählung RechtsStatus
+     */
+    CLASS RechtsStatusTxt
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY OeREBKRM_V1_1.RechtsStatus;
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END RechtsStatusTxt;
+
+    /** Anzeigetexte für die Aufzählung Thema
+     */
+    CLASS ThemaTxt
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY OeREBKRM_V1_1.Thema;
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END ThemaTxt;
+
+  END CodelistenText;
+
+END OeREBKRM_V1_1.

@@ -1,0 +1,54 @@
+INTERLIS 2.3;
+
+!! Version    | Who      | Modification
+!!------------------------------------------------------------------------------
+!! 2021-04-22 | BAFU/WSL | Anpassung infolge Umstellung auf Satellitendaten, LV03 gelöscht
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="164.21"
+MODEL LFI_Waldmischungsgrad_V1_1 (en)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2021-04-22"  =
+  IMPORTS GeometryCHLV95_V1,Units,NonVector_Base_LV95_V3_1;
+
+DOMAIN
+DataYear EXTENDS INTERLIS.GregorianYear = 1900 .. 2300;
+
+  TOPIC NonVector
+  EXTENDS NonVector_Base_LV95_V3_1.NonVector =
+
+    CLASS ImageGraphicRasterObject (EXTENDED) =
+      /** Höhe in Anzahl Rasterpunkten
+       */
+      ImageTileSizeH (EXTENDED) : MANDATORY 1 .. 1000000000;
+      /** Breite in Anzahl Rasterpunkten
+       */
+      ImageTileSizeW (EXTENDED) : MANDATORY 1 .. 1000000000;
+      SpatialReference_Tile (EXTENDED) : MANDATORY GeometryCHLV95_V1.Coord2;
+      ImageTileOrientation_DEG (EXTENDED) : MANDATORY 0.00 .. 359.99 [Units.Angle_Degree];
+      /** Minimalwert im Datensatz
+       */
+      DataMin : MANDATORY 0 .. 255;
+      /** Maximalwert im Datensatz
+       */
+      DataMax : MANDATORY 0 .. 255;
+      /** Im Bild gespeicherter Wert für Rasterzellen ohne Daten
+       */
+      NoDataValue : MANDATORY -128.0 .. 0.0;
+    END ImageGraphicRasterObject;
+
+    CLASS NonVector_Dataset (EXTENDED) =
+      Title : MANDATORY TEXT*256;
+      Description (EXTENDED) : MANDATORY MTEXT*256;
+      /** Datenstand
+       */
+      DataStatus : MANDATORY DataYear;
+    END NonVector_Dataset;
+
+    CLASS Clipping (EXTENDED) =
+    END Clipping;
+
+  END NonVector;
+
+END LFI_Waldmischungsgrad_V1_1.

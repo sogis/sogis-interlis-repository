@@ -1,0 +1,216 @@
+INTERLIS 2.3;
+!!==============================================================================
+!! Restrictions pour la navigation intérieure
+!!------------------------------------------------------------------------------
+!!
+!! OGéo, Annexe 1
+!! ==============
+!! Identificateur OGéo                                        : 100
+!! Désignation OGéo                                           : Restrictions pour la navigation intérieure
+!! Numero du recueil                                          : 100.1
+!! Service compétent [Service spécialisé de la Confédération] : Cantons [OFT]
+!! Niveau d’autorisation d'accès                              : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 1.0     | 2020-02-26 | ems   | Version publication
+!! 1.0     | 2022-07-26 | KOGIS | Meta attributes @ili2db deleted
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL RestrictionsNavigationInterieure_Catalogues_V1 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2020-02-26" TRANSLATION OF EinschraenkungenBinnenschifffahrt_Kataloge_V1 ["2020-02-26"] =
+
+  IMPORTS CatalogueObjects_V1, LocalisationCH_V1;
+
+  TOPIC Catalogues =
+
+    CLASS TypeInfluence EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code          : MANDATORY TEXT*36;
+      TypeInfluence : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END TypeInfluence;
+
+    STRUCTURE TypeInfluence_CatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) TypeInfluence;
+      TexteComplementaire  : TEXT*256;
+    END TypeInfluence_CatRef;
+
+    CLASS BaseLegale EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code             : MANDATORY TEXT*36;
+      Titre            : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abreviation      :           LocalisationCH_V1.MultilingualText;
+      NumeroOfficiel   : MANDATORY LocalisationCH_V1.MultilingualText;
+      TexteSurWeb      :           LocalisationCH_V1.MultilingualText;
+      Interlocuteur    : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END BaseLegale;
+
+    STRUCTURE BaseLegale_CatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) BaseLegale;
+      Article              : TEXT*30;
+    END BaseLegale_CatRef;
+
+    CLASS TypeSignalVoieNavigable EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code            : MANDATORY TEXT*36;
+      Reglementation  : MANDATORY LocalisationCH_V1.MultilingualText;
+      Materialisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Signification   : MANDATORY LocalisationCH_V1.MultilingualText;
+      Categorie       : MANDATORY LocalisationCH_V1.MultilingualText;
+      Symbole         : MANDATORY BLACKBOX BINARY;
+      UNIQUE Code;
+    END TypeSignalVoieNavigable;
+
+    STRUCTURE TypeSignalVoieNavigable_CatRef EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) TypeSignalVoieNavigable;
+      CartoucheAdditionel  : LocalisationCH_V1.MultilingualText;
+      TexteComplementaire  : TEXT*256;
+    END TypeSignalVoieNavigable_CatRef;
+
+  END Catalogues;
+
+END RestrictionsNavigationInterieure_Catalogues_V1.
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL RestrictionsNavigationInterieure_MN95_V1 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2022-07-26" TRANSLATION OF EinschraenkungenBinnenschifffahrt_LV95_V1 ["2022-07-26"] =
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS RestrictionsNavigationInterieure_Catalogues_V1;
+
+  TOPIC RNavInt =
+    DEPENDS ON RestrictionsNavigationInterieure_Catalogues_V1.Catalogues;
+
+    STRUCTURE GeometrieRayonInfluence =
+      Surface : GeometryCHLV95_V1.MultiSurface;
+      Ligne   : GeometryCHLV95_V1.MultiLine;
+      Point   : GeometryCHLV95_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Surface) OR DEFINED (Ligne) OR DEFINED (Point);
+    END GeometrieRayonInfluence;
+
+    STRUCTURE Validite =
+      DebutValidite  :  MANDATORY INTERLIS.XMLDate;
+      FinValidite    :            INTERLIS.XMLDate;
+      DateTraitement :  MANDATORY INTERLIS.XMLDate;
+      Statut         :  MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+    CLASS InfluenceNavigation (ABSTRACT) =
+      TypeInfluence    : MANDATORY RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.TypeInfluence_CatRef;
+      Commentaire      :           TEXT*256;
+      RayonInfluence   : MANDATORY GeometrieRayonInfluence;
+      NomInstallation  :           TEXT*50;
+      NomPlanEau       : MANDATORY TEXT*256;
+      DureeInfluence   :           TEXT*256;
+      Validite         : MANDATORY Validite;
+      IDcantonale      : MANDATORY TEXT*36;
+      MaitreDonnees    : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE IDcantonale, MaitreDonnees;
+    END InfluenceNavigation;
+
+    CLASS InfluenceNavigation_juridiquementContraignantes EXTENDS InfluenceNavigation =
+      BaseLegale : BAG OF RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.BaseLegale_CatRef;
+      Decision   : TEXT*256;
+    END InfluenceNavigation_juridiquementContraignantes;
+
+    CLASS InfluenceNavigation_informative EXTENDS InfluenceNavigation =
+    END InfluenceNavigation_informative;
+
+    CLASS SignalVoieNavigable =
+      TypeSignalVoieNavigable : MANDATORY RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.TypeSignalVoieNavigable_CatRef;
+      Commentaire             :           TEXT*256;
+      Emplacement             : MANDATORY GeometryCHLV95_V1.Coord2;
+      Orientation             :           TEXT*7;
+      ServiceCompetent        :           TEXT*256;
+      Validite                : MANDATORY Validite;
+      IDcantonale             : MANDATORY TEXT*36;
+      MaitreDonnees           : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE IDcantonale, MaitreDonnees;
+    END SignalVoieNavigable;
+
+    ASSOCIATION Influence_SignalAssoc =
+      rInfluence -- {1} InfluenceNavigation;
+      rSignal    -- {0..*} SignalVoieNavigable;
+    END Influence_SignalAssoc;
+
+  END RNavInt;
+
+END RestrictionsNavigationInterieure_MN95_V1 .
+
+!!@ IDGeoIV = "100.1"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/de/home/allgemeine-themen/fachthemen/geoinformation/geobasisdaten/einschraenkungen_binnenschifffahrt.html
+
+MODEL RestrictionsNavigationInterieure_MN03_V1 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2022-07-26" TRANSLATION OF EinschraenkungenBinnenschifffahrt_LV03_V1 ["2022-07-26"] =
+
+  IMPORTS GeometryCHLV03_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS RestrictionsNavigationInterieure_Catalogues_V1;
+
+  TOPIC RNavInt =
+    DEPENDS ON RestrictionsNavigationInterieure_Catalogues_V1.Catalogues;
+
+    STRUCTURE GeometrieRayonInfluence =
+      Surface : GeometryCHLV03_V1.MultiSurface;
+      Ligne   : GeometryCHLV03_V1.MultiLine;
+      Point   : GeometryCHLV03_V1.Coord2;
+      MANDATORY CONSTRAINT DEFINED (Surface) OR DEFINED (Ligne) OR DEFINED (Point);
+    END GeometrieRayonInfluence;
+
+    STRUCTURE Validite =
+      DebutValidite  :  MANDATORY INTERLIS.XMLDate;
+      FinValidite    :            INTERLIS.XMLDate;
+      DateTraitement :  MANDATORY INTERLIS.XMLDate;
+      Statut         :  MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+    CLASS InfluenceNavigation (ABSTRACT) =
+      TypeInfluence    : MANDATORY RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.TypeInfluence_CatRef;
+      Commentaire      :           TEXT*256;
+      RayonInfluence   : MANDATORY GeometrieRayonInfluence;
+      NomInstallation  :           TEXT*50;
+      NomPlanEau       : MANDATORY TEXT*256;
+      DureeInfluence   :           TEXT*256;
+      Validite         : MANDATORY Validite;
+      IDcantonale      : MANDATORY TEXT*36;
+      MaitreDonnees    : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE IDcantonale, MaitreDonnees;
+    END InfluenceNavigation;
+
+    CLASS InfluenceNavigation_juridiquementContraignantes EXTENDS InfluenceNavigation =
+      BaseLegale : BAG OF RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.BaseLegale_CatRef;
+      Decision   : TEXT*256;
+    END InfluenceNavigation_juridiquementContraignantes;
+
+    CLASS InfluenceNavigation_informative EXTENDS InfluenceNavigation =
+    END InfluenceNavigation_informative;
+
+    CLASS SignalVoieNavigable =
+      TypeSignalVoieNavigable : MANDATORY RestrictionsNavigationInterieure_Catalogues_V1.Catalogues.TypeSignalVoieNavigable_CatRef;
+      Commentaire             :           TEXT*256;
+      Emplacement             : MANDATORY GeometryCHLV03_V1.Coord2;
+      Orientation             :           TEXT*7;
+      ServiceCompetent        :           TEXT*256;
+      Validite                : MANDATORY Validite;
+      IDcantonale             : MANDATORY TEXT*36;
+      MaitreDonnees           : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE IDcantonale, MaitreDonnees;
+    END SignalVoieNavigable;
+
+    ASSOCIATION Influence_SignalAssoc =
+      rInfluence -- {1} InfluenceNavigation;
+      rSignal    -- {0..*} SignalVoieNavigable;
+    END Influence_SignalAssoc;
+
+  END RNavInt;
+
+END RestrictionsNavigationInterieure_MN03_V1 .

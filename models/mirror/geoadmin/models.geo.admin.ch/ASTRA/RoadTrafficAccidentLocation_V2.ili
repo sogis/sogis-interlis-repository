@@ -1,0 +1,131 @@
+INTERLIS 2.3;
+
+/* ==============================================================================
+ *  RoadTrafficAccidentLocation.ili
+ * ------------------------------------------------------------------------------
+ *
+ *  DE: GeoIV, Anhang 1
+ *  ===============
+ *  Identifikator GeoIV                       : 95.1
+ *  Bezeichnung GeoIV                         : Strassenverkehrsunfallorte
+ *  Zuständige Stelle (Fachstelle des Bundes) : Bund (ASTRA)
+ *  Zugangsberechtigungsstufe                 : B
+ *
+ *  FR: GeoIV, Annexe 1
+ *  ===============
+ *  Identificateur GeoIV                      : 95.1
+ *  Désignation GeoIV                         : Lieux des accidents de la circulation routière
+ *  Service compétent (Service spécialisé
+ *   de la Confédération)                     : Bund (OFROU)
+ *  Niveaux d’autorisation d’accès            : B
+ *
+ *  IT: GeoIV, Allegato 1
+ *  ===============
+ *  Identificatore GeoIV                      : 95.1
+ *  Denominazione GeoIV                       : Ubicazioni degli incidenti stradali
+ *  Servizio competente (servizio
+ *   specializzato della Confederazione)      : Bund (USTRA)
+ *  Livello di autorizzazione all’accesso     : B
+ *
+ * ------------------------------------------------------------------------------
+ *
+ *  Version    | Who | Modification
+ * ------------------------------------------------------------------------------
+ *  2012-05-26 | UB  | Final
+ *  2018-12-01 | ems | Version 2: Überarbeitung von Modellstruktur (Entfernung und Ergänzung von Attributen,
+ *                     Auslagerung von Wertebereichen in externen XML-Katalog, Bezugsrahmenwechsel LV95 etc.),
+ *                     Anpassung div. Links, qualifizierter Import externer Modelle, Entfernung vieler Kommentare
+ *
+ * ==============================================================================
+ */
+
+!!@ IDGeoIV=95.1
+!!@ technicalContact = mailto:gis@astra.admin.ch
+!!@ furtherInformation = https://www.astra.admin.ch/geoinformation/
+
+MODEL RoadTrafficAccidentLocation_V2 (en)
+  AT "https://models.geo.admin.ch/ASTRA/" VERSION "2018-12-01" =
+
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS CatalogueObjects_V1;
+  IMPORTS LocalisationCH_V1;
+
+  TOPIC RoadTrafficAccidentCatalogs
+    EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS AccidentType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code  : MANDATORY TEXT*8;
+      Text : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END AccidentType;
+
+    STRUCTURE AccidentTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) AccidentType;
+    END AccidentTypeRef;
+
+    CLASS RoadType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code  : MANDATORY TEXT*8;
+      Text : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END RoadType;
+
+    STRUCTURE RoadTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) RoadType;
+    END RoadTypeRef;
+
+    CLASS AccidentSeverityCategory
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code  : MANDATORY TEXT*8;
+      Text : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END AccidentSeverityCategory;
+
+    STRUCTURE AccidentSeverityCategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) AccidentSeverityCategory;
+    END AccidentSeverityCategoryRef;
+
+    CLASS AccidentWeekDay
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code  : MANDATORY TEXT*8;
+      Text : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Code;
+    END AccidentWeekDay;
+
+    STRUCTURE AccidentWeekDayRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) AccidentWeekDay;
+    END AccidentWeekDayRef;
+
+  END RoadTrafficAccidentCatalogs;
+
+  TOPIC RoadTrafficAccident =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON RoadTrafficAccidentLocation_V2.RoadTrafficAccidentCatalogs;
+
+    CLASS RoadTrafficAccident =
+      AccidentUID                 : MANDATORY TEXT*32;
+      AccidentType                : MANDATORY RoadTrafficAccidentLocation_V2.RoadTrafficAccidentCatalogs.AccidentTypeRef;
+      AccidentSeverityCategory    : MANDATORY RoadTrafficAccidentLocation_V2.RoadTrafficAccidentCatalogs.AccidentSeverityCategoryRef;
+      AccidentInvolvingPedestrian : MANDATORY INTERLIS.BOOLEAN;
+      AccidentInvolvingBicycle    : MANDATORY INTERLIS.BOOLEAN;
+      AccidentInvolvingMotorcycle : MANDATORY INTERLIS.BOOLEAN;
+      RoadType                    : MANDATORY RoadTrafficAccidentLocation_V2.RoadTrafficAccidentCatalogs.RoadTypeRef;
+      AccidentLocation            : MANDATORY GeometryCHLV95_V1.Coord3;
+      CantonCode                  : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      MunicipalityCode            : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      AccidentYear                : MANDATORY INTERLIS.GregorianYear;
+      AccidentMonth               : MANDATORY 1 .. 12 [INTERLIS.M];
+      AccidentWeekDay             : MANDATORY RoadTrafficAccidentLocation_V2.RoadTrafficAccidentCatalogs.AccidentWeekDayRef;
+      AccidentHour                :           0 .. 23 CIRCULAR [INTERLIS.h];
+    END RoadTrafficAccident;
+
+  END RoadTrafficAccident;
+
+END RoadTrafficAccidentLocation_V2.
+

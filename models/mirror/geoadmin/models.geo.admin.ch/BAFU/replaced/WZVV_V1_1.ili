@@ -1,0 +1,176 @@
+INTERLIS 2.3;
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=171.1
+MODEL WZVV_Codelisten_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-06-25"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /* Modell für externe Codelisten, die anschliessend importiert werden in die Modelle *_LV03* und *_LV95" */
+  TOPIC Codelisten =
+
+    CLASS WV_TYP_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*8;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END WV_TYP_Catalogue;
+
+    STRUCTURE WV_TYP_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) WV_TYP_Catalogue;
+    END WV_TYP_CatRef;
+
+  END Codelisten;
+  
+ END WZVV_Codelisten_V1_1. 
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=171.1
+MODEL WZVV_LV03_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-06-25"  =
+  IMPORTS Units,GeometryCHLV03_V1,LocalisationCH_V1,WZVV_Codelisten_V1_1;
+  
+  TOPIC WZVV =
+	DEPENDS ON WZVV_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+	/* Aufzählungslisten */		
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+	/* Flächen ohne Kreisbogen */
+	  Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+	/* Definition von Multipolygonen, analog CHBase Geometry */  
+	STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+	  
+	STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon; 	  
+
+	/* Klasse für die Schutzgebiet-Teilobjekte */  	  
+    CLASS Schutzkategorie =
+      Teilobj_Nr : MANDATORY TEXT;
+      WV_TYP : MANDATORY WZVV_Codelisten_V1_1.Codelisten.WV_TYP_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Schutzkategorie;
+
+   /* Klasse für das gesamte Wasser- und Zugvogelreservat */
+    CLASS WZVV =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : MANDATORY DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 1.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund_Text : LocalisationCH_V1.MultilingualMText;
+    END WZVV;
+
+    ASSOCIATION SchutzkategorieWZVV =
+      Schutzkategorie -- {1..*} Schutzkategorie;
+      WZVV -<#> {1} WZVV;
+    END SchutzkategorieWZVV;
+
+  END WZVV;
+
+END WZVV_LV03_V1_1.
+
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ IDGeoIV=171.1
+MODEL WZVV_LV95_V1_1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2015-06-25"  =
+  IMPORTS Units,GeometryCHLV95_V1,LocalisationCH_V1,WZVV_Codelisten_V1_1;
+  
+  TOPIC WZVV =
+	DEPENDS ON WZVV_Codelisten_V1_1.Codelisten;
+
+    DOMAIN
+
+	/* Aufzählungslisten */		
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+	
+	/* Flächen ohne Kreisbogen */
+	  Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+	/* Definition von Multipolygonen, analog CHBase Geometry */  
+	STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+	  
+	STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon; 	  
+	
+	/* Klasse für die Schutzgebiet-Teilobjekte */  
+    CLASS Schutzkategorie =
+      Teilobj_Nr : MANDATORY TEXT;
+      WV_TYP : MANDATORY WZVV_Codelisten_V1_1.Codelisten.WV_TYP_CatRef;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Schutzkategorie;
+
+    /* Klasse für das gesamte Wasser- und Zugvogelreservat */
+	CLASS WZVV =
+      ObjNummer : MANDATORY TEXT;
+      Name : MANDATORY TEXT*30;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : MANDATORY DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Obj_GesFlaeche : MANDATORY 1.000 .. 999999.000 [Units.ha];
+      Obj_GISFlaeche : MANDATORY 0.000 .. 999999.000 [Units.ha];
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund_Text : LocalisationCH_V1.MultilingualMText;
+    END WZVV;
+
+    ASSOCIATION SchutzkategorieWZVV =
+      Schutzkategorie -- {1..*} Schutzkategorie;
+      WZVV -<#> {1} WZVV;
+    END SchutzkategorieWZVV;
+
+  END WZVV;
+
+END WZVV_LV95_V1_1.

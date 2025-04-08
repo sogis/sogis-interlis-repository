@@ -1,0 +1,249 @@
+INTERLIS 2.3;
+
+!!============================================================================= 
+!! Eidgenoessisches Departement für Umwelt,
+!! Verkehr, Energie und Kommunikation UVEK
+!! Bundesamt für Umwelt BAFU
+!! Abteilung Wasser
+!! 3003 Bern
+!! www.bafu.admin.ch
+!!
+!! Geobasisdatensatz Nr. 141.1 Grundwasseraustritte, -fassungen und -anreicherungsanlagen
+!!============================================================================= 
+!! Revision History
+!! 2016.11.22    verabschiedete Version
+!! 2018.05.08    BAFU/KOGIS    Korrektur Einheit Liter/min in Zeilen 34,223
+!! 2024.07.01    BAFU  Neue Version 2.0 aufgrund neuer Informationsbedürfnisse
+!!============================================================================= 
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV="141.1"
+
+MODEL Grundwasseraustritte_V2_0 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2024-09-11" =
+
+  IMPORTS CHAdminCodes_V1,Units,GeometryCHLV95_V1,PlanerischerGewaesserschutz_V1_2;
+
+  UNIT
+
+    LiterPerMinute [lmin] = (Units.L / Units.min);
+    CubicmeterPerDay [m3day] = (Units.m3 / Units.d);
+
+  DOMAIN
+
+    LiterMinute = -1.00 .. 1000000.00 [lmin];
+
+    KubikmeterTag = -1.00 .. 1440000.00 [m3day];
+
+    JaNein = (
+      ja,
+      nein
+    ); 
+
+    JaNeinUnbestimmt = (
+        ja,
+        nein,
+        unbestimmt
+    );
+
+    IdentifikatorTyp = TEXT*255; !! value = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+
+    CHLine    = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    CHSurface = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC Grundwasseraustritte =
+    OID AS INTERLIS.UUIDOID;
+	DEPENDS ON PlanerischerGewaesserschutz_V1_2.GWSZonen,PlanerischerGewaesserschutz_V1_2.GSBereiche;
+    !! Domains
+    !!--------
+
+    DOMAIN
+
+      !! Quelle, Grundwasserbrunnen, Rueckgabebrunnen
+
+      Nutzungszustand = (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+
+  STRUCTURE Referenz = value : MANDATORY INTERLIS.STANDARDOID; END Referenz;
+
+    !! Classes
+    !!--------
+
+    CLASS Quelle =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*255;
+      Grundwasserleiter_Typ : MANDATORY(Lockergestein,Kluft,Karst,gemischt,unbestimmt);
+      Quelltyp: TEXT*255;
+      Fassungsart : MANDATORY (ungefasst,
+                               gefasst(
+                                 direkt, 
+                                 Fassungsstrang, 
+                                 Fassungsstollen, 
+                                 unbestimmt)
+                              );
+      Nutzungszustand : Nutzungszustand;
+      Trinkwasser : JaNeinUnbestimmt;
+      Zweck : TEXT*255;
+      Oeffentliches_Interesse : JaNeinUnbestimmt;
+      Schuettung_minimal: MANDATORY LiterMinute; 
+      Schuettung_mittel:  MANDATORY LiterMinute; 
+      Schuettung_maximal: MANDATORY LiterMinute; 
+      Zustroembereich_erforderlich : JaNeinUnbestimmt;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name_WV : TEXT*255;
+      Ref_GWSZone : BAG {0..*} OF Referenz;
+      Ref_GSBereich : BAG {0..*} OF Referenz;
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+   
+      !! Bei ungefassten Quellen (Fassungsart=ungefasst) muessen folgende Attribute undefiniert sein:
+      !! Nutzungszustand, Trinkwasser, Zweck, Oeffentliches_Interesse, Name_WV
+
+      !! Bei gefassten Quellen (Fassungsart=gefasst) muessen folgende Attribute definiert sein:
+      !! Nutzungszustand und Oeffentliches_Interesse
+
+      ((Fassungsart == #ungefasst) AND NOT (DEFINED(Nutzungszustand))
+                                   AND NOT (DEFINED(Trinkwasser))
+                                   AND NOT (DEFINED(Zweck))
+                                   AND NOT (DEFINED(Name_WV)))
+      OR
+
+      ((Fassungsart != #ungefasst) AND (DEFINED(Nutzungszustand))) 
+	OR 
+     ((Fassungsart != #ungefasst) AND (Nutzungszustand == #genutzt)) 
+						       AND (DEFINED(Trinkwasser)) 
+						       AND (DEFINED(Oeffentliches_Interesse));
+
+
+
+    MANDATORY CONSTRAINT
+
+      !! Bei Fassungen im öffentlichen Interesse (Attribut "Oeffentliches_Interesse = ja) muss das folgende Attribut definiert sein:
+      !! Zustroembereich_erforderlich
+	(Oeffentliches_Interesse != #ja) OR (DEFINED(Zustroembereich_erforderlich));
+
+    END Quelle;
+
+    CLASS Grundwasserbrunnen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*255;
+      Brunnenart : MANDATORY (Vertikalfilterbrunnen, Horizontalfilterbrunnen, Sod_Schachtbrunnen, andere);
+      Foerdermethode : MANDATORY (Pumpe, Heber, artesisch, unbestimmt);
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Trinkwasser : MANDATORY JaNeinUnbestimmt;
+      Zweck : TEXT*255;
+      Oeffentliches_Interesse : MANDATORY JaNeinUnbestimmt;
+      Pkonz : MANDATORY LiterMinute;
+      Pkonz_gruppe : LiterMinute;
+      Zustroembereich_erforderlich : JaNeinUnbestimmt;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Name_WV : TEXT*255;
+      Ref_GWSZone : BAG {0..*} OF Referenz;
+      Ref_GSBereich : BAG {0..*} OF Referenz;
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+
+      !! Bei Fassungen im öffentlichen Interesse (Attribut "Oeffentliches_Interesse = ja) muss das folgende Attribut definiert sein:
+      !! Zustroembereich_erforderlich
+	(Oeffentliches_Interesse != #ja) OR (DEFINED(Zustroembereich_erforderlich));
+
+    END Grundwasserbrunnen;
+
+    CLASS Rueckgabebrunnen = 
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*255;
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Zweck : TEXT*255;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    UNIQUE
+      Identifikator;
+
+    END Rueckgabebrunnen;
+
+    CLASS Anreicherungsanlage =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*255;
+      Typ : MANDATORY (oberirdisch, unterirdisch, kombiniert, unbestimmt);
+      Typ_Bemerkung : TEXT*255;
+      Max_Versickerung : KubikmeterTag;
+      Bezugsgewaesser : TEXT*255;
+      Zweck : TEXT*255;
+      GeometriePunkt : GeometryCHLV95_V1.Coord2;
+      GeometrieLinie : CHLine;
+      GeometrieFlaeche : CHSurface;
+      Name_WV : TEXT*255;
+      Ref_GWSZone : BAG {0..*} OF Referenz;
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+   
+      !! Genau eine Geometrie ist definiert
+
+      (    (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND     (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND     (DEFINED(GeometrieFlaeche)));
+
+    END Anreicherungsanlage;
+
+    CLASS Fassungsstrang_Stollen =  
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Typ : MANDATORY (Fassungsstrang, Fassungsstollen, unbestimmt);
+      Geometrie : MANDATORY CHLine;
+      Ref_GWSZone : BAG {0..*} OF Referenz;
+      Ref_GSBereich : BAG {0..*} OF Referenz;
+    UNIQUE
+      Identifikator;
+
+    END Fassungsstrang_Stollen;
+
+    ASSOCIATION Quelle_GWSZone =
+      Identifikator -- {0..*} Quelle;
+      IDentifikator (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GWSZonen.GWSZone;
+    END Quelle_GWSZone;
+
+    ASSOCIATION Quelle_GSBereich =
+      Identifikator_ -- {0..*} Quelle;
+      IDentifikator_ (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GSBereiche.GSBereich;
+    END Quelle_GSBereich;
+
+    ASSOCIATION Grundwasserbrunnen_GWSZone =
+      Identifikator -- {0..*} Grundwasserbrunnen;
+      IDentifikator (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GWSZonen.GWSZone;
+    END Grundwasserbrunnen_GWSZone;
+
+    ASSOCIATION Grundwasserbrunnen_GSBereich =
+      Identifikator_ -- {0..*} Grundwasserbrunnen;
+      IDentifikator_ (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GSBereiche.GSBereich;
+    END Grundwasserbrunnen_GSBereich;
+
+    ASSOCIATION Anreicherungsanlage_GWSZone =
+      Identifikator -- {0..*} Anreicherungsanlage;
+      IDentifikator (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GWSZonen.GWSZone;
+    END Anreicherungsanlage_GWSZone;
+
+    ASSOCIATION Fassungsstrang_GWSZone =
+      Identifikator -- {0..*} Fassungsstrang_Stollen;
+      IDentifikator (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GWSZonen.GWSZone;
+    END Fassungsstrang_GWSZone;
+
+    ASSOCIATION Fassungsstrang_Stollen_GSBereich =
+      Identifikator_ -- {0..*} Fassungsstrang_Stollen;
+      IDentifikator_ (EXTERNAL) -- {0..*} PlanerischerGewaesserschutz_V1_2.GSBereiche.GSBereich;
+    END Fassungsstrang_Stollen_GSBereich;
+
+  END Grundwasseraustritte;
+
+END Grundwasseraustritte_V2_0.

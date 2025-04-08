@@ -1,0 +1,63 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+
+MODEL EnergyAdviceServices_V1_1 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2019-03-28"  =
+  IMPORTS GeometryCHLV95_V1,WithOneState_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    PostalCode = 1000 .. 9999;
+    Text = TEXT*500;
+
+  TOPIC CategoryCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Category
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Category;
+
+    STRUCTURE CategoryRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Category;
+    END CategoryRef;
+
+  END CategoryCatalogue;
+
+  TOPIC EnergyAdviceServices_WithOneState =
+    DEPENDS ON EnergyAdviceServices_V1_1.CategoryCatalogue;
+
+    CLASS EnergyAdviceServices =
+      Name : MANDATORY EnergyAdviceServices_V1_1.Text;
+      Management : MANDATORY EnergyAdviceServices_V1_1.Text;
+      Address1 : EnergyAdviceServices_V1_1.Text;
+      Category : MANDATORY EnergyAdviceServices_V1_1.CategoryCatalogue.CategoryRef;
+      Address2 : MANDATORY EnergyAdviceServices_V1_1.Text;
+      PostOfficeBox : EnergyAdviceServices_V1_1.Text;
+      PostalCode : MANDATORY EnergyAdviceServices_V1_1.PostalCode;
+      Place : MANDATORY EnergyAdviceServices_V1_1.Text;
+      TelephoneNumber : MANDATORY EnergyAdviceServices_V1_1.Text;
+      Mail : MANDATORY EnergyAdviceServices_V1_1.Text;
+      WebAddress : MANDATORY INTERLIS.URI;
+      ClientPrivatePersons : MANDATORY BOOLEAN;
+      ClientCompanies : MANDATORY BOOLEAN;
+      ClientMunicipalities : MANDATORY BOOLEAN;
+      TopicBuildings : MANDATORY BOOLEAN;
+      TopicElectricDevicesLighting : MANDATORY BOOLEAN;
+      TopicMobility : MANDATORY BOOLEAN;
+      PaidConsultation : LocalisationCH_V1.MultilingualText;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      FreeConsultation : LocalisationCH_V1.MultilingualText;
+      Geometry : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END EnergyAdviceServices;
+
+  END EnergyAdviceServices_WithOneState;
+
+END EnergyAdviceServices_V1_1.

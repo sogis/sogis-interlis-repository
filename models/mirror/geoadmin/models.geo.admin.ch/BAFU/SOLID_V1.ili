@@ -1,0 +1,225 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!--------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | TOPIC-Dependency added (line 67),
+!!                      Property EXTERNAL added (line 46, 51, 56, 61),
+!!                      WITHOUT OVERLAPS added (line 86)
+!! 2018-02-21 | KOGIS | WITHOUT OVERLAPS corrected (line 86)
+
+!!@ furtherInformation=http://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=81.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL SOLID_V1 (de)
+AT "http://models.geo.admin.ch/BAFU"
+VERSION "2018-02-21"  =
+  IMPORTS GeometryCHLV95_V1,CoordSys,Units,CHAdminCodes_V1,CatalogueObjects_V1,LocalisationCH_V1,CodeISO;
+
+  TOPIC Codelisten =
+
+    CLASS Geologie_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*10;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Geologie_Catalogue;
+
+    CLASS Klimatische_Region_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Klimatische_Region_Catalogue;
+
+    CLASS StandortTyp_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*3;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END StandortTyp_Catalogue;
+
+    CLASS Tel_Typ_Catalogue
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*4;
+      Description : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Tel_Typ_Catalogue;
+
+    STRUCTURE Geologie_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Geologie_Catalogue;
+    END Geologie_CatRef;
+
+    STRUCTURE Klimatische_Region_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Klimatische_Region_Catalogue;
+    END Klimatische_Region_CatRef;
+
+    STRUCTURE StandortTyp_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) StandortTyp_Catalogue;
+    END StandortTyp_CatRef;
+
+    STRUCTURE Tel_Typ_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : REFERENCE TO (EXTERNAL) Tel_Typ_Catalogue;
+    END Tel_Typ_CatRef;
+
+  END Codelisten;
+
+  TOPIC Messort =
+    DEPENDS ON SOLID_V1.Codelisten;
+
+    UNIT
+
+      Gerinnedichte [km_pro_km2] = (Units.km / Units.km * Units.km);
+
+    DOMAIN
+
+      Exposition = (
+        N,
+        NW,
+        W,
+        SW,
+        S,
+        SE,
+        E,
+        NE
+      );
+
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    CLASS Adresse =
+      Strasse : MANDATORY TEXT;
+      Hausnummer : TEXT;
+      Adresszusatz : TEXT;
+      Postfach : TEXT;
+      PLZ : MANDATORY TEXT;
+      Ort : MANDATORY TEXT;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Land : MANDATORY CodeISO.CountryCodeISO;
+    END Adresse;
+
+    CLASS Messnetz =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      Beschreibung : LocalisationCH_V1.MultilingualMText;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Messnetz;
+
+    CLASS Telefon =
+      Nummer : MANDATORY TEXT*20;
+      Typ : MANDATORY SOLID_V1.Codelisten.Tel_Typ_CatRef;
+    END Telefon;
+
+    CLASS Verantwortlichkeit =
+      Vorname : TEXT;
+      Nachname : MANDATORY TEXT;
+      Email : MANDATORY INTERLIS.URI;
+      Position : TEXT;
+      Link : MANDATORY INTERLIS.URI;
+      Organisation : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abteilung : LocalisationCH_V1.MultilingualText;
+      Sektion : LocalisationCH_V1.MultilingualText;
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+    END Verantwortlichkeit;
+
+    CLASS Werterhebung =
+      Parameter : MANDATORY LocalisationCH_V1.MultilingualText;
+      Einheit : MANDATORY TEXT;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+    END Werterhebung;
+
+    CLASS Messgruppierung =
+      Gewaessername : MANDATORY TEXT;
+      Ortsbezeichnung : MANDATORY TEXT;
+      Code : MANDATORY TEXT;
+      Gueltig_von : MANDATORY INTERLIS.XMLDate;
+      Gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      Art_Gruppierung : MANDATORY LocalisationCH_V1.MultilingualText;
+      Geologie : MANDATORY SOLID_V1.Codelisten.Geologie_CatRef;
+      Exposition : MANDATORY Exposition;
+      Klimatische_Region : MANDATORY SOLID_V1.Codelisten.Klimatische_Region_CatRef;
+      Flaeche : MANDATORY 0.00 .. 5000.00 [Units.km2];
+      Maximale_Hoehe : MANDATORY 0 .. 5000 [INTERLIS.m];
+      Mittlere_Hoehe : MANDATORY 0 .. 4500 [INTERLIS.m];
+      Mittlere_Neigung : MANDATORY 0.0 .. 180.0 [Units.Angle_Degree];
+      Formkoeffizient : MANDATORY 0.0 .. 1.0;
+      Laenge_Hauptgerinne : MANDATORY 0.00 .. 500.00 [Units.km];
+      Quellhoehe : MANDATORY 0 .. 4500 [INTERLIS.m];
+      Mittl_Neigung_Gerinne : MANDATORY 0.0 .. 180.0 [CoordSys.Angle_Degree];
+      Kum_Gerinnelaenge : MANDATORY 0.00 .. 2000.00 [Units.km];
+      Gerinnedichte : MANDATORY 0.0 .. 100.0 [SOLID_V1.Messort.km_pro_km2];
+      Geschl_Wald : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Aufg_Wald : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Wies_Ackerland : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Alpweide_Bergwiese : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Unprod_Vegetation : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Gewaesser : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Gletscher : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Fels_Sand_Geroell : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      Siedlung : MANDATORY 0.00 .. 100.00 [Units.Percent];
+      URL_Datenblatt : INTERLIS.URI;
+      URL_Bericht : INTERLIS.URI;
+      UNIQUE Code;
+    END Messgruppierung;
+
+    CLASS Standort =
+      Punkt : MANDATORY GeometryCHLV95_V1.Coord3;
+      Polygon : MANDATORY Polygon;
+    END Standort;
+
+    ASSOCIATION AdresseVerantwortlichkeit =
+      Adresse -- {0..1} Adresse;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END AdresseVerantwortlichkeit;
+
+    ASSOCIATION MessstationMessnetz =
+      Werterhebung -- {1..*} Werterhebung;
+      Messnetz -- {1..*} Messnetz;
+    END MessstationMessnetz;
+
+    ASSOCIATION TelefonVerantwortlichkeit =
+      Telefon -- {0..*} Telefon;
+      Verantwortlichkeit -<#> {0..1} Verantwortlichkeit;
+    END TelefonVerantwortlichkeit;
+
+    ASSOCIATION VerantwortlichkeitMessnetz =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Messnetz -- {0..*} Messnetz;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessnetz;
+
+    ASSOCIATION VerantwortlichkeitWerterhebung =
+      Verantwortlichkeit -- {1..*} Verantwortlichkeit;
+      Werterhebung -- {0..*} Werterhebung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitWerterhebung;
+
+    ASSOCIATION Messgruppierung_Hierarchie =
+      Hierarchie -<> {0..*} Messgruppierung;
+      Messgruppierung -- {0..*} Messgruppierung;
+    END Messgruppierung_Hierarchie;
+
+    ASSOCIATION MessgruppierungWerterhebung =
+      Messgruppierung -- {1} Messgruppierung;
+      Werterhebung -- {1..*} Werterhebung;
+    END MessgruppierungWerterhebung;
+
+    ASSOCIATION StandortMessgruppierung =
+      Standort -- {1} Standort;
+      Messgruppierung -<#> {0..1} Messgruppierung;
+      Typ : MANDATORY SOLID_V1.Codelisten.StandortTyp_CatRef;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END StandortMessgruppierung;
+
+    ASSOCIATION VerantwortlichkeitMessgruppierung =
+      Verantwortlichkeit -- {0..*} Verantwortlichkeit;
+      Messgruppierung -- {0..*} Messgruppierung;
+      Name : MANDATORY TEXT;
+      Beschreibung : LocalisationCH_V1.MultilingualText;
+    END VerantwortlichkeitMessgruppierung;
+
+  END Messort;
+
+END SOLID_V1.

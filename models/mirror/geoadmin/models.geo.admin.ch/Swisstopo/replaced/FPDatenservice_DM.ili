@@ -1,0 +1,714 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!----------------------------------------------------------------------------------------
+!! 2020-04-28 | KOGIS | Constraints in ASSOCIATION RealisierungLV03AV and ASSOCIATION RealisierungLV95AV corrected
+!!                      Bug fixing (text length, enumeration etc.)
+!! 2022-11-08 | KOGIS | UNIQUE constraint in associations RealisierungLV03AV, RealisierungLV95AV and RealisierungCHTRFWISS corrected
+
+!! Datenmodell Fixpunkt-Datenservice (FPDS)
+!! Version 11 (de)
+!! Stand: 12.02.2007
+!! Sachbearbeiter: Michael Burkard (Prozess Geodaetische Landesvermessung)
+!! 24.06.2011: Migration DM-FPDS INTERLIS 2.2 -> INTERLIS 2.3
+!! 28.04.2020: enumeration type in constraints specified
+!!
+!!@ technicalContact = mailto:info@swisstopo.ch;
+!!@ furtherInformation = http://www.swisstopo.ch;
+!!@ IDGeoIV = "34.1 – 34.4";
+!! ***********************************************************************
+
+MODEL FPDatenservice_DM(de_CH)
+  AT "http://www.interlis.ch/models"
+  VERSION "2022-11-08" =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS CoordSys;
+
+  REFSYSTEM BASKET Coordsys ~ CoordSys.CoordsysTopic
+    OBJECTS OF GeoCartesian2D: CHLV03, CHLV95
+    OBJECTS OF GeoHeight: SwissEllipsoidalAlt;
+
+  UNIT
+    Jahr [Y] EXTENDS INTERLIS.TIME;
+    Monat [M] EXTENDS INTERLIS.TIME;
+    Tag [D] EXTENDS INTERLIS.TIME;
+    Meter_pro_Jahr [mProY] EXTENDS Units.Velocity = (INTERLIS.m / Y);
+    Meter_pro_Sekunde [mPros] EXTENDS Units.Velocity = (INTERLIS.m / INTERLIS.s);
+    Millimeter [mm] = 0.001 [INTERLIS.m];
+    Millimeter_pro_Jahr [mmProY] EXTENDS Units.Velocity = (mm / Y);
+    Zentimeter [cm] = 1 / 100 [INTERLIS.m];
+    Zentimeter_pro_Sekunde [cmPros] = 1 / 100 [mPros];
+    gal EXTENDS Units.Acceleration = (cmPros / INTERLIS.s);
+    mgal = 1 / 1000 [gal]; !! 1mgal = 10E-5m/s2;
+    GPU = (INTERLIS.m * INTERLIS.m / INTERLIS.s * INTERLIS.s); !! geopotential unit (m2/s2)
+
+  DOMAIN
+    CHLKoord03 = COORD 480000.0000 .. 850000.0000 [INTERLIS.m] {CHLV03[1]}, !! Y
+                       70000.0000 .. 310000.0000 [INTERLIS.m] {CHLV03[2]},  !! X
+                       ROTATION 2 -> 1;
+
+    CHLKoord95 = COORD 2480000.0000 .. 2850000.0000 [INTERLIS.m] {CHLV95[1]}, !! false easting E
+                       1070000.0000 .. 1310000.0000 [INTERLIS.m] {CHLV95[2]}, !! false northing N
+                       ROTATION 2 -> 1;
+
+    CHTRF = COORD 2480000.0000 .. 2850000.0000 [INTERLIS.m] {CHLV95[1]}, !! false easting E
+                  1070000.0000 .. 1310000.0000 [INTERLIS.m] {CHLV95[2]}, !! false northing N
+                  -200.00000 .. 5000.00000 [INTERLIS.m] {SwissEllipsoidalAlt[2]}, !! H_ell
+                  ROTATION 2 -> 1;
+
+    CHHoehe02 = -200.00000 .. 5000.00000 [INTERLIS.m]; !! h_usual
+
+    CHHoehe95ortho = -200.00000 .. 5000.00000 [INTERLIS.m]; !! h_ortho
+
+    CHHoehe95ell = -200.00000 .. 5000.00000 [INTERLIS.m]; !! H_ell
+
+    Genauigkeit = 0.00 .. 700.00 [cm];
+
+    Zuverlaessigkeit = BOOLEAN;
+
+    Datum = FORMAT INTERLIS.XMLDate "1582-10-15" .. "2999-12-31";
+
+    Verschiebung_hori = -100.0000 .. 100.0000 [mProY];
+    Verschiebung_vert = -100.00000 .. 100.00000 [mProY];
+
+    NBIdent = TEXT*12;
+
+    Herkunftsart = (
+      terrestrisch (
+        Trigonometrische_Punktbestimmung,
+        Praezisionsnivellement,
+        Technisches_Nivellement,
+        weitere),
+      GPS,
+      photogrammetrisch (
+        Aerotriangulation,
+        weitere),
+      Planabgriff,
+      konstruiert,
+      unbekannt,
+      weitere);
+
+    Kennzeichnung = (
+      Bohrduebel,
+      Bohrloch,
+      Bolzen (
+        Bolzen,
+        Bolzen_horizontal,
+        Bolzen_mit_Stiftloch,
+        Bolzen_vertikal,
+        Dreieckbolzen,
+        Eisenbolzen,
+        Kappenbolzen,
+        Lochbolzen,
+        LT_Bolzen,
+        Nivellementsbolzen,
+        Porzellanbolzen,
+        PP_Bolzen,
+        weitere),
+      Bronzeplatte,
+      Denkmal,
+      Eisendorn,
+      Felszahn,
+      Gebaeudeteil (
+        Blitzableiter,
+        Dachecke,
+        Dachgiebel,
+        Dachreiter,
+        Ecke,
+        Kamin,
+        Sirene,
+        weitere),
+      Hochkamin,
+      Kernplatte,
+      Knopf,
+      Kreuz,
+      Kunststoffzeichen,
+      !! fuer detailliertere Informationen betreffend die Punktcodes
+      !! des Landesnivellements wird auf die Erlaeterungen zum eidg.
+      !! Nivellement Verzeichnis (ENV) und zum neuen Landes-Nivelle-
+      !! ment Verzeichnis vom Mai 1986 verwiesen.
+      Landesnivellement (
+        T0V, !! Radschraube und Niete der L+T
+        T0H, !! Stift der L+T
+        T1V, !! Bronzeplatte Schweiz. Geod. Kommission
+        T2V, !! Eingemeisselte Fixpunkte der Schweiz. Geod. Kommission
+             !! und der L+T
+        T3V, !! Bronzeschild der L+T, vertikal
+        T3H, !! Bronzeschild der L+T, horizontal
+        T4V, !! Bronzebolzen der L+T, vertikal
+        T4H, !! Bronzebolzen der L+T, horizontal
+        T5V, !! Kappenbolzen der L+T, vertikal
+        T5H, !! Kappenbolzen der L+T, horizontal
+        H1V, !! Bronzeplatte des eidg. Amt fuer Wasserwirtschaft, vertikal
+        H1H, !! Bronzeplatte des eidg. Amt fuer Wasserwirtschaft,
+             !! horizontal
+        H2V, !! Bronzebolzen der Landeshydrologie, neues Modell, vertikal
+             !! oder: Bronzebolzen des eidg. Amt fuer Wasserw., vertikal,
+        H2H, !! Bronzebolzen der Landeshydrologie
+             !! neues Modell, horizontal
+        H3H, !! Bronzebolzen des eidg. Amt fuer Wasserw., vertikal,
+             !! grosses Modell, oder: Bronzebolzen, kleines Modell
+        H4V, !! Bolzen des eidg. Amt fuer Wasserw. (Hydrometrie), vertikal
+        H4H, !! Bolzen des eidg. Amt fuer Wasserw. (Hydrometrie), horizontal
+        H5V, !! Niete des eidg. Amt fuer Wasserw.
+        D1V, !! Kant. Nivellementsbolzen, normal oder mit Loch, vertikal
+        D1H, !! Kant. Nivellementsbolzen, normal oder mit Loch, horizontal
+        D2V, !! Nicht eidg. Fixpunkte von Werkanlagen, Gemeindenivellements
+             !! oder Ingenieurbueros, vertikal
+        D2H, !! Nicht eidg. Fixpunkte von Werkanlagen, Gemeindenivellements
+             !! oder Ingenieurbueros, horizontal
+        D3V, !! Fixpunkte von Nachbarstaaten, vertikal
+        D3H, !! Fixpunkte von Nachbarstaaten, horizontal
+        weitere),
+      Mast_Antenne (
+        Antenne,
+        Fahnenstange,
+        GPS_Antenne,
+        Hochspannungsmast,
+        Letrona_Mast,
+        Mast,
+        Scheinwerfer,
+        Signalstange,
+        Umsetzer,
+        weitere),
+      Metallzylinder,
+      Nicht_gekennzeichnet,
+      Niete (
+        Niete,
+        Niete_aus_Eisen,
+        weitere),
+      Pfeiler (
+        Beobachtungspfeiler,
+        Granitpfeiler,
+        Betonpfeiler,
+        LT_Pfeiler,
+        Pfeiler,
+        Turmpfeiler,
+        weitere),
+      Pyramide,
+      Radschraube,
+      Rohr (
+        Aluminiumrohr,
+        Eisenrohr,
+        Gasrohr,
+        Rohr,
+        weitere),
+      Signaltafel,
+      Stein (
+        Alter_Grenzstein,
+        Amts_Kalkstein,
+        Bezirksgrenzstein,
+        Eisenstein,
+        Flyschstein,
+        Gemeindegrenzstein,
+        Gneisstein,
+        Granitstein,
+        Jurakalkstein,
+        Kalkstein,
+        Kantonsgrenzstein,
+        Kieselstein,
+        Lagerstein,
+        Landesgrenzstein,
+        Marmorstein,
+        Muschelkalkstein,
+        Muschelsandstein,
+        Sandstein,
+        Schieferstein,
+        Stein,
+        Steinplatte,
+        weitere),
+      Steinmann,
+      Turm (
+        Aussichtsturm,
+        Beobachtungsturm,
+        Kirchturm,
+        Tuermchen,
+        Turm,
+        Zeitturm,
+        weitere),
+      unterirdische_Versicherung (
+        Betonplatte,
+        Bolzen,
+        Granitplatte,
+        Kalksteinplatte,
+        Kunststoffplatte,
+        Sandsteinplatte,
+        Schieferplatte,
+        Tonplatte,
+        Zementplatte,
+        weitere),
+      Winkeleisen,
+      weitere);
+
+    Signatur = (
+      andere_Markierung,
+      Beobachtungsturm,
+      Giebel_TOPO,
+      HSP_andere_Markierung,
+      HSP_Lochbolzen,
+      Kappenbolzen,
+      Keine_Signatur_auf_Punktkarte, !! dadurch wird der Punkt nicht dargestellt
+      Kirchturm,
+      Kirchturm_TOPO,
+      Lochbolzen,
+      Mast_Kamin,
+      Mast_Kamin_TOPO,
+      Nivellement_horizontal,
+      Nivellement_Niete,
+      Nivellement_vertikal,
+      Permanentreferenzstation,
+      Pfeiler,
+      Pfeiler_TOPO,
+      Pyramide_andere_Markierung,
+      Pyramide_HSP_andere_Markierung,
+      Pyramide_HSP_Lochbolzen,
+      Pyramide_Kappenbolzen,
+      Pyramide_Lochbolzen,
+      Pyramide_Pfeiler,
+      Pyramide_Stein,
+      Stein,
+      Topopunkt,
+      Turm,
+      Turm_TOPO,
+      zusaetzlicher_Punkt);
+
+    Kt = (
+          ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+          AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, CH, FL);
+
+!! ************************************************************************
+
+  TOPIC Fixpunkte =
+
+    CLASS Referenzsystem =
+      Name : MANDATORY (
+        CH1903,
+        CH1903plus,
+        CHTRS95,
+        weitere);
+      UNIQUE
+        Name;
+    END Referenzsystem;
+
+    CLASS Rahmen =
+      Name : MANDATORY (
+        LN02,
+        LV03,
+        LV95,
+        LHN95,
+        CHTRF,
+        weitere);
+      Verwendungszweck : MANDATORY (
+        AV,
+        Wissenschaft,
+        provisorisch,
+        weitere);
+      UNIQUE
+        Name, Verwendungszweck;
+    END Rahmen;
+
+    ASSOCIATION ReferenzsystemRahmenAssoc =
+      ReferenzsystemAssoc -- {1} Referenzsystem;
+      RahmenAssoc -- {0..*} Rahmen;
+    END ReferenzsystemRahmenAssoc;
+
+    CLASS Mutation =
+      NBIdent : MANDATORY TEXT*12; !! Verweis auf einen Nummerierungsbereich der AV
+      Identifikator : MANDATORY TEXT*12; !! z.B. Nummer des techn. Dossiers
+      Status : MANDATORY (
+        in_Bearbeitung,
+        in_Verifikation,
+        verifiziert);
+      Beschreibung : MANDATORY TEXT*30; !! z.B. "Einfuehrung FPDatenservice"
+      Bemerkung : TEXT*50; !! ein optionaler Text zur Mutation
+      Eroeffnung : MANDATORY Datum;
+      Messdatum : Datum;
+      Berechnungsdatum : Datum;
+      Abschluss : Datum;
+      Verifikation : Datum;
+      Dokumentation : TEXT*50;
+      UNIQUE
+        NBIdent, Identifikator;
+      MANDATORY CONSTRAINT
+          ((NOT (DEFINED (Abschluss))) AND
+           (NOT (DEFINED (Verifikation))) AND
+            Status == #in_Bearbeitung)
+        OR
+          ((DEFINED (Abschluss)) AND
+           (NOT (DEFINED (Verifikation))) AND
+            Status == #in_Verifikation)
+        OR
+          ((DEFINED (Abschluss)) AND
+           (DEFINED (Verifikation)) AND
+            Status == #verifiziert);
+    END Mutation;
+
+    CLASS Adresse =
+      Firmenname : TEXT*100;
+      Name : TEXT*40;
+      Vorname : TEXT*40;
+      Strasse : TEXT*40;
+      PLZ : 1000 .. 999999;
+      Ort : TEXT*40;
+      Land : TEXT*40;
+      Telefon : TEXT*30;
+      Handy : TEXT*30;
+      Fax : TEXT*30;
+      Email : TEXT*255;
+      Homepage : INTERLIS.URI;
+      UNIQUE
+        Firmenname, Name, Vorname, Email;
+    END Adresse;
+
+    ASSOCIATION MutationBeteiligter =
+      MutationAssoc -- {0..*} Mutation;
+      AdresseAssoc -- {0..*} Adresse;
+      Rolle : MANDATORY (
+        Melder,
+        Verantwortlicher,
+        Verursacher,
+        Verifikator,
+        weitere);
+      AbrechnungsDatum : Datum;
+      Bemerkung : TEXT*255;
+    END MutationBeteiligter;
+
+    STRUCTURE Punktgeschichte =
+      MutationObject : REFERENCE TO Mutation;
+      Datum : MANDATORY Datum;
+      Arbeitskuerzel : MANDATORY TEXT*60;
+      Arbeitsbeschreibung : TEXT*100;
+      IdentitaetBeziehung : TEXT*240; !! size changed from 80 to 240, 28.04.2020 @BUM
+      Herkunft : TEXT*10; !! nur fuers Landesnivellement (dort aber MANDATORY)
+    END Punktgeschichte;
+
+    STRUCTURE Administratives =
+      Land : MANDATORY (
+        DE,
+        FR,
+        FL,
+        IT,
+        AU,
+        CH);
+      BFSNr : MANDATORY 1 .. 9999;
+      Kreis : TEXT*4;
+      PlanNr : TEXT*4;
+      Parzelle : TEXT*5;
+      AnmerkungGB : TEXT*20;
+      GemeindeNachbarland : TEXT*30;
+    END Administratives;
+
+    STRUCTURE Schweremessung =
+      Messdatum : MANDATORY Datum;
+      Messwert : MANDATORY 0.0 .. 1000000.0 [mgal];
+    END Schweremessung;
+
+    CLASS Pixelkarte25000 =
+      PKNummer : MANDATORY 1000 .. 2240;
+      Name : MANDATORY TEXT*30;
+      NBIdent : MANDATORY NBIdent; !! Verweis auf einen Nummerierungsbereich der AV
+      Sprache : MANDATORY (
+        deutsch_franzoesisch,
+        franzoesisch_deutsch,
+        deutsch_italienisch,
+        italienisch_deutsch);
+      Ausgabedatum : MANDATORY Datum;
+      Nachfuehrungsstand : MANDATORY Datum;
+      EckeObenLinks : MANDATORY CHLKoord03;
+      EckeUntenRechts : MANDATORY CHLKoord03;
+      UNIQUE
+        PKNummer;
+      UNIQUE
+        Name;
+      UNIQUE
+        PKNummer, Name;
+    END Pixelkarte25000;
+
+    STRUCTURE Bildquelle =
+      Bildquelle : MANDATORY TEXT*255;
+      Typ : MANDATORY (
+        Kroki,
+        Foto,
+        GPS_Profil);
+      BildbreitePx : MANDATORY 0 .. 10000;
+      BildhoehePx : MANDATORY 0 .. 10000;
+      Druckbreite : MANDATORY 0.00 .. 99.00 [cm];
+      Druckhoehe : MANDATORY 0.00 .. 99.00 [cm];
+      Datum : Datum;
+      BemerkungOben : TEXT*1024;
+      BemerkungUnten : TEXT*1024;
+    END Bildquelle;
+
+    CLASS Punkt =
+      ZustaendigkeitHaupt : MANDATORY Kt;
+      Zustaendigkeit : MANDATORY Kt;
+      ZustaendigkeitVon : MANDATORY Kt;
+      ZustaendigkeitAn : MANDATORY Kt;
+      Punktbeschreibung : MANDATORY TEXT*512; !! rahmenunabhaengige Punktbeschreibung, size changed from 255 to 512, 28.04.2020 @BUM
+      Schutzart : (
+        kein_Schutz,
+        Schacht,
+        ueberdeckt);
+      Punktzeichen : MANDATORY Kennzeichnung;
+      Verankerung : (
+        in_Bruecke,
+        in_Fels,
+        in_Gebaeude,
+        in_Mauer);
+      RichtungDesDreiecks : TEXT*40;
+      SichtbarePunktbezeichnung : TEXT*4;
+      TSPFINELTRA : MANDATORY (
+        kein_TSP,
+        Kontrollpunkt,
+        TSP1,
+        TSP2);
+      Stabilitaet : MANDATORY (
+        stabil,
+        instabil);
+      InstabilitaetDatum : Datum;                    !! falls Punkt instabil
+      GeschwindigkeitY : Verschiebung_hori;          !! falls Punkt instabil
+      GeschwindigkeitX : Verschiebung_hori;          !! falls Punkt instabil
+      GeschwindigkeitHoehe : Verschiebung_vert;      !! falls Punkt instabil
+      AnzNKSGeschwindigkeitLage : 0 .. 4;
+      AnzNKSGeschwindigkeitHoehe : 0 .. 5;
+      Begehbarkeit : MANDATORY (
+        begehbar,
+        nicht_begehbar);
+      Zugang : TEXT*100;
+      GPSSichtbarkeit : (
+        gut,
+        mittel,
+        schlecht);
+      GSMEmpfang : (
+        gut,
+        mittel,
+        schlecht);
+      Ortsbezeichnung : TEXT*160;
+      Flurname : TEXT*40;
+      Punktgeschichte : BAG {1..*} OF Punktgeschichte;
+      !! der erste Datensatz im Attribut 'Administratives' legt den
+      !! zustaendigen Kanton fest
+      Administratives : LIST {1..*} OF Administratives;
+      Schweremessung : BAG {0..*} OF Schweremessung;
+      Bild : LIST {1..9} OF Bildquelle;
+      MANDATORY CONSTRAINT
+          ((Stabilitaet == #stabil) AND
+           (NOT (DEFINED (InstabilitaetDatum))) AND
+           (NOT (DEFINED (GeschwindigkeitY))) AND
+           (NOT (DEFINED (GeschwindigkeitX))) AND
+           (NOT (DEFINED (GeschwindigkeitHoehe))))
+        OR
+          ((Stabilitaet == #instabil) AND
+           (DEFINED (InstabilitaetDatum)) AND
+           (DEFINED (GeschwindigkeitY)) AND
+           (DEFINED (GeschwindigkeitX)) AND
+           (DEFINED (GeschwindigkeitHoehe)))
+        OR
+          ((Stabilitaet == #instabil) AND
+           (DEFINED (InstabilitaetDatum)) AND
+           (NOT (DEFINED (GeschwindigkeitY))) AND
+           (NOT (DEFINED (GeschwindigkeitX))) AND
+           (NOT (DEFINED (GeschwindigkeitHoehe))));
+    END Punkt;
+
+    ASSOCIATION PixelkartePunktAssoc =
+      Pixelkarte25000Assoc -- {1} Pixelkarte25000;
+      PunktAssoc -- {0..*} Punkt;
+    END PixelkartePunktAssoc;
+
+    ASSOCIATION Realisierung (ABSTRACT) =
+      RahmenAssoc -- {1..*} Rahmen;
+      PunktAssoc -- {0..*} Punkt;
+      Qualitaet : MANDATORY (
+        kontrolliert,
+        unkontrolliert);
+      Nummer : MANDATORY TEXT*12;
+      NBIdent : MANDATORY NBIdent; !! Verweis auf einen Nummerierungsbereich der AV
+      Ordnung : MANDATORY (
+        EUREF (EUREF, geloescht),  !! ein offizieller EUREF-Punkt
+        HFP1 (HFP1, Hilfspunkt, ersetzt, geloescht, zerstoert),
+        HFP2 (HFP2, Hilfspunkt, deklassierterHFP1, geloescht),
+        HFP3 (deklassierterHFP1, deklassierterHFP2),
+        LFP1 (Ordnung1, Ordnung2, Ordnung3, geloescht),
+        LFP2 (Ordnung4, deklassierterLFP1, TOPO, geloescht),
+        LFP3 (deklassierterLFP1, deklassierterLFP2, TSP),
+        GP (TSP),                  !! ein Grenzpunkt für die Dreieksvermaschungen
+        VP (TSP),                  !! ein virtueller Punkt für die Dreiecksvermaschung
+        LV95 (LV95, Hauptpunkt, Verdichtungspunkt, geloescht), !! ein Punkt der neuen Landesvermessung LV95 (L+T)
+        AGNES (AGNES, geloescht));
+      Signatur : MANDATORY Signatur;
+      Herkunft : MANDATORY Herkunftsart;
+      Akten : TEXT*40;
+      Bemerkung : TEXT*10000;
+      ProtokollURLInternet : TEXT*255;
+      BildPosition1 : 1 .. 9;
+      BildPosition2 : 1 .. 9;
+      BildPosition3 : 1 .. 9;
+    END Realisierung;
+
+    ASSOCIATION MutationRealisierungAssoc =
+      MutationAssoc -- {1} Mutation;
+      RealisierungAssoc -- {0..*} Realisierung;
+    END MutationRealisierungAssoc;
+
+    STRUCTURE Rueckversicherung =
+      Punktbezeichnung : MANDATORY TEXT*30;
+      Punktzeichen : MANDATORY Kennzeichnung;
+      Azimut : MANDATORY 0.0000 .. 399.9999 CIRCULAR [Units.Gon];
+      AnzNKSAzimut : 0 .. 4;
+      Distanz : MANDATORY 0.0000 .. 1000.0000 [INTERLIS.m];
+      AnzNKSDistanz : 0 .. 4;
+      Hoehendifferenz : MANDATORY -1000.00000 .. 1000.00000 [INTERLIS.m];
+      AnzNKSHoehendifferenz : 0 .. 5;
+      Bemerkung : TEXT*255;
+    END Rueckversicherung;
+
+    !! **************** LV03AV ********************************************
+
+    CLASS TrigoOperat =
+      ATTRIBUTE
+        Operatsnummer: MANDATORY TEXT*4; !! Operatsnummer bei alten Op.
+        Operatsname: MANDATORY TEXT*50; !! Operatsname bei alten Op., size changed from 30 to 50, 28.04.2020 @BUM
+        Sektionsnummer: TEXT*10; !! Sektionsnummer bei alten Op., size changed from 4 to 10, 28.04.2020 @BUM
+        Kantonskuerzel: MANDATORY Kt;
+        Bemerkung: TEXT*100;
+    END TrigoOperat;
+
+    ASSOCIATION RealisierungLV03AV EXTENDS Realisierung =
+      Punktname : TEXT*40;
+      PunktnummerZusatz : TEXT*8; !! size changed from 4 to 8, 28.04.2020 @BUM
+      AlteNummer : TEXT*40;
+      AlterPunktInformation : TEXT*50;
+      LageGeom : MANDATORY CHLKoord03;
+      AnzNKSLageGeom : 0 .. 4;
+      LageGen : MANDATORY Genauigkeit;
+      LageZuv : MANDATORY Zuverlaessigkeit;
+      FINELTRA : MANDATORY (
+        berechnet,
+        transformiert);
+      Rueckversicherung : BAG {0..*} OF Rueckversicherung;
+      MANDATORY CONSTRAINT
+        RahmenAssoc->Name == #LV03 AND RahmenAssoc->Verwendungszweck == #AV;
+      MANDATORY CONSTRAINT
+        ((Ordnung == #LFP1.Ordnung1 OR Ordnung == #LFP1.Ordnung2 OR Ordnung == #LFP1.Ordnung3 OR Ordnung == #LFP1.geloescht) AND
+          (DEFINED (Punktname)))
+        OR
+          ((Ordnung <> #LFP1.Ordnung1 AND Ordnung <> #LFP1.Ordnung2 AND Ordnung <> #LFP1.Ordnung3 AND Ordnung <> #LFP1.geloescht));
+      UNIQUE
+        (LOCAL) Rueckversicherung: Punktbezeichnung;
+    END RealisierungLV03AV;
+
+    ASSOCIATION RealisierungLV03AVTrigoOperatAssoc =
+      TrigoOperatAssoc -- {0..1} TrigoOperat;
+      RealisierungLV03AVAssoc -- {0..*} RealisierungLV03AV;
+    END RealisierungLV03AVTrigoOperatAssoc;
+
+    ASSOCIATION AnschlusspunktLV03AV =
+      RealisierungLV03AVAssoc -- {1..*} RealisierungLV03AV;
+      AnschlussPunktAssoc -- {1..*} Punkt;
+    END AnschlusspunktLV03AV;
+
+    !! **************** LV95AV ********************************************
+
+    ASSOCIATION RealisierungLV95AV EXTENDS Realisierung =
+      Punktname : TEXT*40;
+      LageGeom : MANDATORY CHLKoord95;
+      AnzNKSLageGeom : 0 .. 4;
+      LageGen : MANDATORY Genauigkeit;
+      LageZuv : MANDATORY Zuverlaessigkeit;
+      FINELTRA : MANDATORY (
+        berechnet,
+        transformiert);
+      HoeheGeom : CHHoehe95ell; !! bug fixing 28.04.2020 @BUM
+      AnzNKSHoeheGeom : 0 .. 5;
+      HoeheGen : MANDATORY Genauigkeit;
+      HoeheZuv : MANDATORY Zuverlaessigkeit;
+      Rueckversicherung : BAG {0..*} OF Rueckversicherung;
+      MANDATORY CONSTRAINT
+        RahmenAssoc->Name == #LV95 AND RahmenAssoc->Verwendungszweck == #AV;
+      MANDATORY CONSTRAINT
+        !! jeder offizielle LV95-Punkt der L+T hat einen Punktnamen
+        (((Ordnung == #EUREF.EUREF OR Ordnung == #EUREF.geloescht) OR
+          (Ordnung == #LV95.LV95 OR Ordnung == #LV95.Hauptpunkt OR Ordnung == #LV95.Verdichtungspunkt OR Ordnung == #LV95.geloescht)) AND
+          (DEFINED (Punktname)))
+        OR
+          ((Ordnung <> #EUREF.EUREF AND Ordnung <> #EUREF.geloescht) AND
+          (Ordnung <> #LV95.LV95 AND Ordnung <> #LV95.Hauptpunkt AND Ordnung <> #LV95.Verdichtungspunkt AND Ordnung <> #LV95.geloescht));
+      UNIQUE
+        (LOCAL) Rueckversicherung: Punktbezeichnung;
+    END RealisierungLV95AV;
+
+    !! **************** CHTRFWISS *********************************************
+
+    ASSOCIATION RealisierungCHTRFWISS EXTENDS Realisierung =
+      Punktname : MANDATORY TEXT*40;
+      Epoche : MANDATORY TEXT*6;
+      Geometrie : MANDATORY CHTRF;
+      AnzNKSGeometrieLage : 0 .. 4;
+      GenauigkeitE : MANDATORY 0.0000 .. 10.0000 [INTERLIS.m];
+      GenauigkeitN : MANDATORY 0.0000 .. 10.0000 [INTERLIS.m];
+      LageZuv : MANDATORY Zuverlaessigkeit;
+      AnzNKSGeometrieHell : 0 .. 5;
+      GenauigkeitHell : MANDATORY 0.00000 .. 10.00000 [INTERLIS.m];
+      HoeheZuv : MANDATORY Zuverlaessigkeit;
+      GeschwindigkeitE : Verschiebung_hori;
+      GeschwindigkeitN : Verschiebung_hori;
+      GeschwindigkeitHell : Verschiebung_vert;
+      GenauigkeitGeschwindigkeitE : 0.0000 .. 10.0000 [mProY];
+      GenauigkeitGeschwindigkeitN : 0.0000 .. 10.0000 [mProY];
+      GenauigkeitGeschwindigkeitHell : 0.00000 .. 10.00000 [mProY];
+      AnzNKSGeschwindigkeitE : 0 .. 4;
+      AnzNKSGeschwindigkeitN : 0 .. 4;
+      AnzNKSGeschwindigkeitHell : 0 .. 5;
+      Rueckversicherung : BAG {0..*} OF Rueckversicherung;
+      !! nachfolgende Attribute sind fuer AGNES-Stationen vorgesehen
+      Empfaengertyp : TEXT*40;
+      Empfaengernummer : TEXT*10;
+      Antennentyp : TEXT*40;
+      Antennennummer : TEXT*10;
+      Antennenhoehe : -100.00000 .. 100.00000 [INTERLIS.m];
+      ProcessingBemerkung : TEXT*255;
+      MANDATORY CONSTRAINT
+        RahmenAssoc->Name == #CHTRF AND RahmenAssoc->Verwendungszweck == #Wissenschaft;
+      UNIQUE
+        (LOCAL) Rueckversicherung: Punktbezeichnung;
+    END RealisierungCHTRFWISS;
+
+    !! **************** LN02AV ********************************************
+
+    ASSOCIATION RealisierungLN02AV EXTENDS Realisierung =
+      ATTRIBUTE
+        HoeheGeom: CHHoehe02; !! bug fixing 28.04.2020 @BUM
+        AnzNKSHoeheGeom: 0 .. 5;
+        HoeheGen: MANDATORY Genauigkeit;
+        HoeheZuv: MANDATORY Zuverlaessigkeit;
+        Linie: TEXT*3;      !! Kantonsnivellement
+        Seite: TEXT*3;      !! Kantonsnivellement
+        Sektor: TEXT*1;     !! Landesnivellement
+        ENVNummer: TEXT*3;  !! Landesnivellement
+      MANDATORY CONSTRAINT
+        RahmenAssoc->Name == #LN02 AND RahmenAssoc->Verwendungszweck == #AV;
+    END  RealisierungLN02AV;
+
+    !! **************** LHN95WISS *******************************************
+
+    ASSOCIATION RealisierungLHN95WISS EXTENDS Realisierung =
+      HoeheGeom : MANDATORY CHHoehe95ortho;
+      BerechnungsOrdnungLHN95 : MANDATORY 0 .. 4;
+      GeschwBerechnet : -30.00 .. 10.00 [mmProY];
+      GeschwInterpoliert : MANDATORY -1.00 .. 2.00 [mmProY];
+      HoeheTRFLN02 : MANDATORY CHHoehe02;
+      Potential : MANDATORY 0 .. 5000 [GPU];
+      SchwereBeobachtet : 979500 .. 981000 [mgal];
+      SchwereInterpoliert : MANDATORY 979500 .. 981000 [mgal];
+      SchwereMittel : MANDATORY 979500 .. 981000 [mgal];
+      Stabilitaet : MANDATORY 0 .. 5;
+      MANDATORY CONSTRAINT
+        RahmenAssoc->Name == #LHN95 AND RahmenAssoc->Verwendungszweck == #Wissenschaft;
+    END RealisierungLHN95WISS;
+
+  END Fixpunkte;  !! END TOPIC
+
+END FPDatenservice_DM.  !! END MODEL

@@ -1,0 +1,60 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+MODEL PilotAndDemonstrationProjects_V2 (en) AT "https://models.geo.admin.ch/BFE/" VERSION "2020-10-30"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1,GeometryCHLV95_V1;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC ProjectStatusCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS ProjectStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ProjectStatus : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ProjectStatus;
+
+    STRUCTURE ProjectStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ProjectStatus;
+    END ProjectStatusRef;
+
+  END ProjectStatusCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC TopicCatalogue
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Topic
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Topic : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Topic;
+
+    STRUCTURE TopicRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Topic;
+    END TopicRef;
+
+  END TopicCatalogue;
+
+!! ****************************************************
+!! ****************************************************
+  TOPIC Projects =
+    DEPENDS ON PilotAndDemonstrationProjects_V2.ProjectStatusCatalogue,PilotAndDemonstrationProjects_V2.TopicCatalogue;
+
+    CLASS Project =
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      ProjectStart : MANDATORY INTERLIS.XMLDate;
+      ProjectEnd : INTERLIS.XMLDate;
+      ProjectStatus : MANDATORY PilotAndDemonstrationProjects_V2.ProjectStatusCatalogue.ProjectStatusRef;
+      ProjectTitle : MANDATORY LocalisationCH_V1.MultilingualText;
+      Description : LocalisationCH_V1.MultilingualText;
+      Topic : BAG {1..3} OF PilotAndDemonstrationProjects_V2.TopicCatalogue.TopicRef;
+      LinkToAramis : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Project;
+
+  END Projects;
+
+END PilotAndDemonstrationProjects_V2.

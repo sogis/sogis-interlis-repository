@@ -1,0 +1,110 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! BuildingLinesForMotorways_V2_1.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 88
+!! Bezeichnung GeoIV                         : Baulinien Nationalstrassen
+!! Zuständige Stelle (Fachstelle des Bundes) : Bund (ASTRA)
+!! Zugangsberechtigungsstufe                 : A
+!! 
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Wer | Modifikation
+!!------------------------------------------------------------------------------
+!! 2013-02-26 | LS  | V1 publiziert
+!! 2014-09-22 | LS  | V2 Ergänzung Baubeschränkungsflächen, Geometrien mit Bögen, Modellname mit Versionskennung ergänzt (_V2)
+!! 2017-10-02 | ems | V2.1 Übersetzung des Modells von Deutsch nach Englisch, Ergänzung Modell für LV95,
+!!                    Aktualisierung Metainformationen (technicalContact, furtherInformation, IDGeoIV, Modellablage etc.),
+!!                    qualifizierter Import von GeometryCHLV03_V1, Auslagerung von Wertebereichen (Domains) in eigenes Modell,
+!!                    Entfernen von Domains die bereits in CH-Base/INTERLIS definiert sind (Linie, Perimeter, WebReference)
+!!                    Anpassung an neue Version Transferstruktur ÖREB-Rahmenmodell
+!!                    Format: Entfernung von Tabulatoren
+!!==============================================================================
+
+!!@ IDGeoIV=88.1
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ furtherInformation=https://www.astra.admin.ch/geoinformation
+
+MODEL BuildingLinesForMotorways_Catalogs_V2_1 (en)
+  AT "https://models.geo.admin.ch/ASTRA/" VERSION "2017-10-02" =
+
+    DOMAIN
+      StatusBuildingLine = (inForce,                             !!StatusBaulinie: inKraft
+                            existing,                            !!Bestehend
+                            inApproval,                          !!inGenehmigung
+                            inRepeal);                           !!Aufzuheben
+
+END BuildingLinesForMotorways_Catalogs_V2_1.
+
+!!@ IDGeoIV=88.1
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ furtherInformation=https://www.astra.admin.ch/geoinformation
+
+MODEL BuildingLinesForMotorways_LV03_V2_1 (en)                   !!BaulinienNS
+  AT "https://models.geo.admin.ch/ASTRA/" VERSION "2017-10-02" =
+
+  IMPORTS GeometryCHLV03_V1, BuildingLinesForMotorways_Catalogs_V2_1;
+
+  TOPIC BuildingLines =                                          !!BaulinienNS
+
+    CLASS BuildingLine =                                         !!Baulinie NS
+      Status               : MANDATORY BuildingLinesForMotorways_Catalogs_V2_1.StatusBuildingLine; !!Status
+      ApprovalDate         : MANDATORY INTERLIS.XMLDate;         !!DatumGenehmigung
+      PublicationDate      : MANDATORY INTERLIS.XMLDate;         !!DatumBekanntmachung
+      ApprovingAuthority   : MANDATORY TEXT*72;                  !!Genehmigungsorgan
+      WebLink              : MANDATORY INTERLIS.URI;             !!TextImWeb
+      Geometry             : MANDATORY GeometryCHLV03_V1.Line;   !!Geometrie
+    END BuildingLine;
+
+    CLASS BuildingRestrictionArea =                              !!BaubeschraenkungsflaecheNS
+      Geometry : MANDATORY GeometryCHLV03_V1.Surface;            !!Geometrie
+    END BuildingRestrictionArea;
+
+    ASSOCIATION BuildingLine_BuildingRestrictionArea =
+      rBuildingRestrictionArea -- {1..*} BuildingRestrictionArea;
+      rBuildingLine -- {1..*} BuildingLine;
+    END BuildingLine_BuildingRestrictionArea;
+
+  END BuildingLines;
+
+END BuildingLinesForMotorways_LV03_V2_1 .
+
+
+!!==============================================================================
+
+!!@ IDGeoIV=88.1
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ furtherInformation=https://www.astra.admin.ch/geoinformation
+
+MODEL BuildingLinesForMotorways_LV95_V2_1 (en)                   !!BaulinienNS
+  AT "https://models.geo.admin.ch/ASTRA/" VERSION "2017-10-02" =
+
+  IMPORTS GeometryCHLV95_V1, BuildingLinesForMotorways_Catalogs_V2_1;
+
+  TOPIC BuildingLines =                                          !!BaulinienNS
+
+    CLASS BuildingLine =                                         !!Baulinie NS
+      Status               : MANDATORY BuildingLinesForMotorways_Catalogs_V2_1.StatusBuildingLine; !!Status
+      ApprovalDate         : MANDATORY INTERLIS.XMLDate;         !!DatumGenehmigung
+      PublicationDate      : MANDATORY INTERLIS.XMLDate;         !!DatumBekanntmachung
+      ApprovingAuthority   : MANDATORY TEXT*72;                  !!Genehmigungsorgan
+      WebLink              : MANDATORY INTERLIS.URI;             !!TextImWeb
+      Geometry             : MANDATORY GeometryCHLV95_V1.Line;   !!Geometrie
+    END BuildingLine;
+
+    CLASS BuildingRestrictionArea =                              !!BaubeschraenkungsflaecheNS
+      Geometry : MANDATORY GeometryCHLV95_V1.Surface;            !!Geometrie
+    END BuildingRestrictionArea;
+
+    ASSOCIATION BuildingLine_BuildingRestrictionArea =
+      rBuildingRestrictionArea -- {1..*} BuildingRestrictionArea;
+      rBuildingLine -- {1..*} BuildingLine;
+    END BuildingLine_BuildingRestrictionArea;
+
+  END BuildingLines;
+
+END BuildingLinesForMotorways_LV95_V2_1 .

@@ -1,0 +1,130 @@
+INTERLIS 2.4;
+
+!!@ furtherInformation=https://www.cadastre-manual.admin.ch/de/modelldokumentation-dmav
+!!@ IDGeoIV=228.2
+!!@ technicalContact=mailto:dmav@swisstopo.ch
+MODEL DMAV_PointsFixesMOCategorie3_V1_0 (fr)
+  AT "https://models.geo.admin.ch/V_D/"
+  VERSION "2024-05-15"
+  TRANSLATION OF DMAV_FixpunkteAVKategorie3_V1_0 ["2024-05-15"]
+  =
+  IMPORTS GeometryCHLV95_V2;
+  IMPORTS DMAVTYM_GeometrieFR_V1_0;
+  IMPORTS DMAVTYM_Marquage_V1_0;
+  IMPORTS DMAVTYM_Qualite_V1_0;
+  IMPORTS DMAVTYM_Grafique_V1_0;
+
+  TOPIC PointsFixesMOCategorie3 =
+    BASKET OID AS INTERLIS.UUIDOID;
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      GenrePFP = (
+        PFP3,
+        point_fixe_auxiliaire
+      );
+      GenreProtection = (
+        sans_protection,
+        regard,
+        recouvert
+      );
+      FonctionPointLimite = (
+        aucune,
+        point_limite,
+        point_limite_territoriale
+      );
+
+    CLASS MiseAJourPFP3 =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH020101: IdentDN, Identification;
+    END MiseAJourPFP3;
+
+    CLASS PFP3 =
+      IdentDN : MANDATORY TEXT*12;
+      Numero : MANDATORY TEXT*12;
+      GenrePFP : MANDATORY GenrePFP;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : DMAVTYM_Qualite_V1_0.Fiabilite;
+      Signe : MANDATORY DMAVTYM_Marquage_V1_0.GenreAbornement;
+      GenreProtection : GenreProtection;
+      FonctionPointLimite : MANDATORY FonctionPointLimite;
+      EntretienActif : MANDATORY BOOLEAN;
+      OriSymbole : DMAVTYM_Grafique_V1_0.Rotation;
+      MANDATORY CONSTRAINT CH020201: DEFINED(GeometrieAltitude) == DEFINED(PrecisionAltimetrie);
+      MANDATORY CONSTRAINT CH020202: DEFINED(GeometrieAltitude) == DEFINED(EstFiableAltimetrie);
+      MANDATORY CONSTRAINT CH020203: GenrePFP <> #PFP3 OR Signe <> #NonMaterialise;
+    END PFP3;
+
+    ASSOCIATION Origine_PFP3 =
+      Origine -- {1} MiseAJourPFP3;
+      PFP3_bientotcree -- {0..*} PFP3;
+    END Origine_PFP3;
+
+    ASSOCIATION Caducite_PFP3 =
+      Caducite  -- {0..1} MiseAJourPFP3;
+      PFP3_bientotcaduc -- {0..*} PFP3;
+    END Caducite_PFP3;
+
+    VIEW PFP3_Valable
+      PROJECTION OF PFP3;
+      WHERE
+        DEFINED(PFP3->Origine) AND NOT (DEFINED(PFP3->Caducite ));
+      =
+      ALL OF PFP3;
+      UNIQUE CH020501: Geometrie;
+      UNIQUE CH020502: IdentDN, Numero;
+    END PFP3_Valable;
+
+    CLASS MiseAJourPFA3 =
+      IdentDN : MANDATORY TEXT*12;
+      Identification : MANDATORY TEXT*12;
+      Description : MANDATORY TEXT*60;
+      Perimetre : SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V2.Coord2
+         WITHOUT OVERLAPS > 0.002;
+      EnVigueur : MANDATORY DATETIME;
+      UNIQUE CH020601: IdentDN, Identification;
+    END MiseAJourPFA3;
+
+    CLASS PFA3 =
+      IdentDN : MANDATORY TEXT*12;
+      Numero : MANDATORY TEXT*12;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      GeometrieAltitude : MANDATORY DMAVTYM_GeometrieFR_V1_0.Altitude;
+      PrecisionPlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiablePlanimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+      PrecisionAltimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Precision;
+      EstFiableAltimetrie : MANDATORY DMAVTYM_Qualite_V1_0.Fiabilite;
+    END PFA3;
+
+    ASSOCIATION Origine_PFA3 =
+      Origine -- {1} MiseAJourPFA3;
+      PFA3_bientotcree -- {0..*} PFA3;
+    END Origine_PFA3;
+
+    ASSOCIATION Caducite_PFA3 =
+      Caducite  -- {0..1} MiseAJourPFA3;
+      PFA3_bientotcaduc -- {0..*} PFA3;
+    END Caducite_PFA3;
+
+    VIEW PFA3_Valable
+      PROJECTION OF PFA3;
+      WHERE
+        DEFINED(PFA3->Origine) AND NOT (DEFINED(PFA3->Caducite ));
+      =
+      ALL OF PFA3;
+      UNIQUE CH020901: IdentDN, Numero;
+      UNIQUE CH020902: Geometrie;
+    END PFA3_Valable;
+
+  END PointsFixesMOCategorie3;
+
+END DMAV_PointsFixesMOCategorie3_V1_0.

@@ -1,0 +1,53 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+MODEL PipelinesystemUnderSupervisionByFederalGovernmentExtended_V1 (en)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2023-06-19"  =
+  IMPORTS PipelinesystemUnderSupervisionByFederalGovernment_V1,Units,CatalogueObjects_V1,GeometryCHLV95_V1,LocalisationCH_V1;
+
+  TOPIC ProtectionMeasureTypeCatalogue =
+
+    CLASS ProtectionMeasureType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ProtectionMeasureType : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ProtectionMeasureType;
+
+    STRUCTURE ProtectionMeasureTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ProtectionMeasureType;
+    END ProtectionMeasureTypeRef;
+
+  END ProtectionMeasureTypeCatalogue;
+
+  TOPIC PipelinesystemUnderSupervisionByFederalGovernmentExtended
+  EXTENDS PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelinesystemUnderSupervisionByFederalGovernment =
+    DEPENDS ON PipelinesystemUnderSupervisionByFederalGovernmentExtended_V1.ProtectionMeasureTypeCatalogue;
+
+    CLASS ContainterExtended
+    EXTENDS PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelinesystemUnderSupervisionByFederalGovernment.Container =
+      MaximumOperatingPressure : MANDATORY 0.00 .. 999.99 [Units.bar];
+      Volume : MANDATORY 0.000 .. 99999.999 [Units.m3];
+    END ContainterExtended;
+
+    CLASS PipelineProtectionMeasure
+    EXTENDS PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelinesystemUnderSupervisionByFederalGovernment.Pipelinesystem =
+      Geometry : MANDATORY GeometryCHLV95_V1.Line;
+      NameOfMeasure : PipelinesystemUnderSupervisionByFederalGovernment_V1.Text;
+      ProtectionMeasureType : MANDATORY PipelinesystemUnderSupervisionByFederalGovernmentExtended_V1.ProtectionMeasureTypeCatalogue.ProtectionMeasureTypeRef;
+    END PipelineProtectionMeasure;
+
+    CLASS RouteMarkingExtended
+    EXTENDS PipelinesystemUnderSupervisionByFederalGovernment_V1.PipelinesystemUnderSupervisionByFederalGovernment.RouteMarking =
+      DistanceToPipeline : MANDATORY 0.00 .. 99.99 [INTERLIS.m];
+      PipelineCover : MANDATORY 0.00 .. 99.99 [INTERLIS.m];
+    END RouteMarkingExtended;
+
+  END PipelinesystemUnderSupervisionByFederalGovernmentExtended;
+
+END PipelinesystemUnderSupervisionByFederalGovernmentExtended_V1.

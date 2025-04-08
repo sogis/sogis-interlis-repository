@@ -1,0 +1,257 @@
+INTERLIS 2.3;
+
+/** [DE] Zonenpläne für die Notfallplanung des ENSI -
+ *  [FR] Plans des zones de planification des cas d'urgence de l'ENSI.
+ *  [DE] Kernanlagen, Zonen/Sektoren für die Notfallplanung, Gemeinden/Bevölkerungszahlen -
+ *  [FR] Installations nucléaires, zones/sécteurs de planification des cas d'urgence, communes/population.
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2014-06-23 | KOGIS | TOPIC-Dependency added (line 164)
+!! 2015-08-12 | KOGIS | Enumeration ENSICantonCode modified (line 27)
+
+!!@technicalContact = mailto:ernst.blust@ensi.ch
+!!@IDGeoIV = "178"
+!!@furtherInformation = http://www.ensi.ch/de/notfallschutz/notfallschutz-und-zonenplaene/
+
+MODEL Zones_for_Emergency_Planning_V1 (en) AT "http://www.ensi.ch"
+VERSION "2015-08-12"  =
+  IMPORTS INTERLIS,LocalisationCH_V1,GeometryCHLV03_V1,CHAdminCodes_V1;
+
+  DOMAIN
+
+    /** [DE] Gebräuchliche Abkürzungen der Schweizer Kantone. Aufgeführt sind nur jene Kantone, von denen Gemeinden den Zonen zugeteilt sind.
+     * [FR] Abbréviations courantes des cantons suisses ...
+     */
+    ENSICantonCode = (
+      /** Aargau/Argovie
+       */
+      AG,
+      /** Bern/Berne
+       */
+      BE,
+      /** Basel-Landschaft/Bâle-Campagne
+       */
+      BL,
+      /** Fribourg/Freiburg
+       */
+      FR,
+      /** Luzern/Lucerne
+       */
+      LU,
+      /** Neuchâtel/Neuenburg
+       */
+      NE,
+      /** Solothurn/Soleure
+       */
+      SO,
+      /** Vaud/Waadt
+       */
+      VD,
+      /** Zürich/Zurich
+       */
+      ZH
+    );
+
+    /** [DE] Klassifizierung der Kernanlagen nach Standort
+     * [FR] Classification des installations nucléaires selon leur emplacement
+     */
+    NuclearFacility = (
+      /** Kernkraftwerk/centrale nucléaire Beznau/AG
+       */
+      KKW_Beznau,
+      /** Kernkraftwerk/centrale nucléaire Gösgen/SO
+       */
+      KKW_Goesgen,
+      /** Kernkraftwerk/centrale nucléaire Leibstadt/AG
+       */
+      KKW_Leibstadt,
+      /** Kernkraftwerk/centrale nucléaire Mühleberg/BE
+       */
+      KKW_Muehleberg,
+      /** Paul-Scherrer-Institut Villigen/AG
+       * ZWILAG Würenlingen/AG
+       */
+      PSI_ZWILAG
+    );
+
+  /** [DE] Thema der Kernanlagen, der Zonen und Sektoren
+   * [FR] Thème des installations nucleaires, des zones et des secteurs
+   */
+  TOPIC Zones_Sectors =
+
+    /** [DE] Klasse der Kernanlagen
+     * [FR] Classe des installations nucléaires
+     */
+    CLASS NuclearFacility =
+      /** [DE] Standort der Kernanlage, Punktgeometrie
+       * [FR] ...
+       */
+      Geometry : MANDATORY GeometryCHLV03_V1.Coord2;
+      /** [DE] Klassifizierung der Kernanlagen nach Standort
+       * [FR] Classification des installations nucléaires selon leur emplacement
+       */
+      Facility : MANDATORY Zones_for_Emergency_Planning_V1.NuclearFacility;
+    END NuclearFacility;
+
+    /** [DE] Klasse der Gefahrensektoren
+     * [FR] Classe des secteurs de danger
+     */
+    CLASS Sector =
+      /** [DE] Einzelflächen, die sich im Allgemeinen überlappen dürfen. Aneinander grenzende Sektoren von ca. 120° überlappen sich zu jeweils ca. 60°.
+       * [FR] ...
+       */
+      Geometry : MANDATORY GeometryCHLV03_V1.Surface;
+      /** [DE] Sektoren werden im Uhrzeigersinn nummeriert, der Sektor 1 deckt das Gebiet von 0° (Nord) bis 120° (Südost) ab, Sektor 2 von 60° (Nordost) bis 180° (Süd) usw.
+       * [FR] ...
+       */
+      SectorNr (FINAL) : MANDATORY 1 .. 6 CIRCULAR;
+    END Sector;
+
+    /** [DE] Klasse der Gefährdungszonen
+     * [FR] Classe des zones de danger
+     */
+    CLASS Zone =
+      /** [DE] Einzelflächen, die sich im Allgemeinen überlappen dürfen. Zusammengehörige Zonen 1 und 2 dürfen sich allerdings nicht überlappen.
+       * [FR] ...
+       */
+      Geometry : MANDATORY GeometryCHLV03_V1.Surface;
+      /** [DE] Klassifizierung der vorkommenden Zonentypen
+       * [FR] Classification des types de zones existants
+       */
+      ZoneType : MANDATORY (
+        Zone_1,
+        Zone_2,
+        Zone_PSI_ZWILAG
+      );
+    END Zone;
+
+    /** [DE] Einem KKW sind jeweils genau zwei Zonen (Zone_1, Zone_2) zugeordnet; KKB/KKL  besitzen gemeinsame Zonen; PSI/ZWILAG nur die Zone PSI_ZWILAG
+     * [FR] ...
+     */
+    ASSOCIATION NucFacilZoneAssoc =
+      /** [DE] Rolle: Kernanlage(n)
+       * [FR] Rôle: Installation(s) nucléaires
+       */
+      nuclearfacility -<> {1..2} NuclearFacility;
+      /** [DE] Rolle: Zone(n)
+       * [FR] Rôle: Zone(s)
+       */
+      zone -- {1..2} Zone;
+    END NucFacilZoneAssoc;
+
+    /** [DE] Einer Zone 2 sind normalerweise sechs Sektoren zugeordnet. Für KKB/KKL bestehen nur fünf Zonen. Die Beziehung wird nur für Zonen des Typs Zone_2 realisiert.
+     * [FR] ...
+     */
+    ASSOCIATION Zone2SectorAssoc =
+      /** [DE] Rolle: Sektoren
+       * [FR] Rôle: Secteurs
+       */
+      sector -- {5..6} Sector;
+      /** [DE] Rolle: Zone
+       * [FR] Rôle: Zone
+       */
+      zone -<#> {1} Zone;
+    END Zone2SectorAssoc;
+
+  END Zones_Sectors;
+
+  /** [DE] Thema der Gemeinden, der Gemeindeteile sowie der Bevölkerungszahlen
+   * [FR] Thème des communes, des parts de communes et des nombres d'habitants
+   */
+  TOPIC Municipalities =
+    DEPENDS ON Zones_for_Emergency_Planning_V1.Zones_Sectors;
+
+    /** [DE] Klasse der politischen Gemeinden
+     * [FR] Classe des communes
+     */
+    CLASS Municipality =
+      /** [DE] Name der politischen Gemeinde
+       * [FR] Nom de la commune
+       */
+      MunicipalityName : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** [DE] Kantonskürzel der Gemeinde
+       * [FR] Abbréviation du canton de la commune
+       */
+      Canton : MANDATORY Zones_for_Emergency_Planning_V1.ENSICantonCode;
+      /** [DE] Name des Bezirks/Amts/Distrikts
+       * [FR] Nom du district
+       */
+      District : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** [DE] Offizielle Gemeindenummer des BFS
+       * [FR] Numéro officiel de la commune de l'OFS
+       */
+      BFSNr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+    END Municipality;
+
+    /** [DE] Klasse der Gemeindeteile: Ortschaften, Weiler etc.
+     * [FR] Classe des parts de commune: bourgeons, hameaux etc.
+     */
+    CLASS MunicipalityPart =
+      /** [DE] Name des Gemeindeteils
+       * [FR] Nom d'une part de commune
+       */
+      MunicpalityPartName : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** [DE] Einwohnerzahl eines Gemeindeteils. Über die Summe der Einwohner aller Gemeindeteile kann die Einwohnerzahl einer Gemeinde ermittelt werden.
+       * [FR] Nombre d'habitants d'une part de commune...
+       */
+      Population : MANDATORY 1 .. 999999;
+      /** [DE] Siedlungsschwerpunkt, Punktgeometrie
+       * [FR] ...
+       */
+      Geometry : MANDATORY GeometryCHLV03_V1.Coord2;
+      /** [DE] Liste von kleinen Ortschaften, Weilern und/oder Einzelhöfen; nähere Bezeichnung des Gemeindeteils
+       * [FR] Liste des bourgeons, hameaux et/ou des fermes; ...
+       */
+      PopulatedPlaces : TEXT*200;
+    END MunicipalityPart;
+
+    /** [DE] Zuordnung von Gemeindeteilen zu einer Gemeinde
+     * [FR] Attribution des parts de commune à une commune
+     */
+    ASSOCIATION MunMunPartAssoc =
+      /** [DE] Rolle: Gemeinde
+       * [FR] Rôle: commune
+       */
+      mun -<#> {1} Municipality;
+      /** [DE] Rolle: Gemeindeteil
+       * [FR] Rôle: part de commune
+       */
+      munpart -- {1..*} MunicipalityPart;
+    END MunMunPartAssoc;
+
+    /** [DE] Jeder Gemeindeteil ist einem oder mehreren Sektoren zugeordnet; ein Sektor umfasst mehrere Gemeindeteile
+     * [FR] ...
+     */
+    ASSOCIATION MunPartSectorAssoc =
+      /** [DE] Rolle: Sektoren
+       * [FR] Rôle: secteurs
+       */
+      sector (EXTERNAL) -<> {1..*} Zones_for_Emergency_Planning_V1.Zones_Sectors.Sector;
+      /** [DE] Rolle: Gemeindeteil
+       * [FR] Rôle: Part de commune
+       */
+      municipalitypart -- {1..*} MunicipalityPart;
+    END MunPartSectorAssoc;
+
+    /** [DE] Jeder Gemeindeteil ist einer oder zwei Zonen zugeordnet; eine Zone umfasst mehrere Gemeindeteile
+     * [FR] ...
+     */
+    ASSOCIATION MunPartZoneAssoc =
+      /** [DE] Rolle: Zone(n)
+       * [FR] Rôle: zone(s)
+       */
+      zone (EXTERNAL) -<> {1..2} Zones_for_Emergency_Planning_V1.Zones_Sectors.Zone;
+      /** [DE] Rolle: Gemeindeteil
+       * [FR] Rôle: Part de commune
+       */
+      municipalitypart -- {1..*} MunicipalityPart;
+    END MunPartZoneAssoc;
+
+  END Municipalities;
+
+END Zones_for_Emergency_Planning_V1.
+
+/** ###########################################################
+ */

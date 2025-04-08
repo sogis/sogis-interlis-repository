@@ -1,0 +1,1232 @@
+!! VSADSSMINI_2015_2_d_LV95-20231031.ili
+
+INTERLIS 2.3;
+
+MODEL VSADSSMINI_2015_LV95 (de) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  !! IMPORTS UNQUALIFIED IGSFunction;
+  !! IMPORTS UNQUALIFIED MINIFunction;
+  IMPORTS Units;
+  IMPORTS Base_LV95;
+  IMPORTS SIA405_Base_LV95;
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Verband Schweizer Abwasser- und Gewässerschutzfachleute (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Freigegeben für öffentlichen Gebrauch und kommerzielle Anwendung"
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = "Geprüft mit Compiler Version 5.3.3 (03.08.2023)"
+
+
+!! 18.11.2019 Fehlerkorrektur - fehlende UNIQUE constraints ergänzt UNIQUE Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013) bei Knoten, Leitung, Ueberlauf_Foerderaggregat und Teileinzugsgebiet
+
+!! 31.10.2023 Lizenzbestimmungen angepasst
+!! 31.10.2023 LV03 Version aufgehoben und entfernt, nur noch LV95
+
+
+UNIT
+  Einwohner_pro_Hektare [EWha] = (Units.CountedObjects/Units.ha);
+  Liter_pro_Sekunde_Hektare [lsha] = (SIA405_Base_LV95.ls/Units.ha);
+
+TOPIC VSADSSMini =
+
+
+DOMAIN
+
+
+Statuswerte EXTENDS SIA405_Base_LV95.Status = (  !! Betriebs- und Planungszustand. 
+!! 11.2.2012 Anpassung auf neue Variante von SIA405_Base_LV95.Status - Erweiterung Basiswerte im Medium, hierarchische Modellierung und Anpassung auf Compiler 4.5.13
+      !! 17.7.2015 ausser_Betrieb,   !! fasst ausser_Betrieb und folgende Werte zusammen
+        !!  Reserve !! existiert nicht im Medium Abwasser
+      in_Betrieb (  !! fasst in_Betrieb und folgende Werte zusammen
+         !! 17.7.2015 in_Betrieb,
+         provisorisch,
+         wird_aufgehoben
+      ),
+      tot (  !! fasst tot und folgende Werte zusammen
+         !!  tot,   !! existiert nicht im Medium Abwasser
+        aufgehoben_nicht_verfuellt,
+        aufgehoben_unbekannt,
+        verfuellt
+      ),
+      !! 17.7.2015 unbekannt,
+      weitere ( !! fasst folgende Werte zusammen
+         Berechnungsvariante,
+         geplant,
+         Projekt
+      )
+    );    !! Erweitert Wertebereich von SIA405 Status
+!! neu 17.7.2015  
+    Status = ALL OF Statuswerte;    !! Erweitert Wertebereich von SIA405 Status
+
+
+Einwohnerdichte = 0 .. 10000 [EWha];    !! Einwohner pro Hektare [Einwohner / ha]
+
+
+EGW = 0 .. 300000 [Units.CountedObjects];    !! Einwohnergleichwert [EGW]
+
+
+ARANr = 1 .. 999999 [Units.CountedObjects];    !! 
+
+
+Ueberlaufhaeufigkeit = 0.0 .. 999.9;    !! [Anzahl Überläufe/Jahr]
+
+
+Aggregatezahl = 1 .. 9  [Units.CountedObjects];    !! 
+
+
+Lichte_Hoehe = 0 .. 99999 [Units.mm];    !! Milimeter [mm]
+
+
+Foerderhoehe = 0.00 .. 30000.00 [m];    !! Meter [m], 2 Dezimalstellen
+
+
+CLASS Knoten EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! (Punktueller) Ort im Entwässerungsnetz mit baulicher und/oder hydraulischer Funktion
+  ATTRIBUTE
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    BaulicherZustand: (          !! Zustandsklassen 0 bis 4 gemäss VSA-Richtline "Erhaltung von Kanalisationen". Beschreibung des baulichen Zustands des Abwasserbauwerks. Nicht zu verwechseln mit den Sanierungsstufen, welche die Prioritäten der Massnahmen bezeichnen (Attribut Sanierungsbedarf).
+      unbekannt,
+      Z0,  !! Nicht mehr funktionstüchtig: Das Abwasserbauwerk ist bereits oder demnächst nicht mehr durchgängig: Bauwerk eingestürzt, totale Verwurzelung oder andere Abflusshindernisse. Das Bauwerk verliert Wasser (Exfiltration / mögliche Grundwasserverschmutzung).
+      Z1,  !! Starke Mängel: Bauliche Schäden, bei welchen die statische Sicherheit, Hydraulik oder Dichtheit nicht mehr gewährleistet ist: Brüche axial oder radial, (Rohr-)deformationen, visuell sichtbare Wassereintritte oder Wasseraustritte, Löcher in der Wand, stark vorstehende seitliche Anschlüsse, starke Verwurzelungen, Wand stark ausgewaschen. Ungeeignetes (Rohr-)material.
+      Z2,  !! Mittlere Mängel: Bauliche Mängel, welche die Statik, Hydraulik oder Dichtheit beeinträchtigen: breite (Rohr-)fugen, nicht verputzte Einläufe, Risse, leichte Abflusshindernisse wie Verkalkungen, vorstehende seitliche Anschlüsse, leichte Wandbeschädigungen, einzelne Wurzeleinwüchse, (Rohr-)wand ausgewaschen usw.
+      Z3,  !! Leichte Mängel: Bauliche Mängel oder Vorkommnisse, welche für die Dichtheit, Hydraulik oder Statik einen unbedeutenden Einfluss haben: breite (Rohr-)fugen, schlecht verputzte seitlichen Anschlüsse, leichte Deformation bei Bauwerken aus Kunststoff, leichte Auswaschungen etc.
+      Z4  !! Keine Mängel
+    );
+    Bemerkung: TEXT*80;  !! Allgemeine Bemerkungen
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Bezeichnung: MANDATORY TEXT*20;  !! Pro Datenherr eindeutige Bezeichnung
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Detailgeometrie: Base_LV95.Surface;  !! Detaillierte Geometrie insbesondere bei Spezialbauwerken. Für Normschächte i.d. R.  Dimension1 und 2 verwenden. Dito bei normierten Versickerungsanlagen.  Kanäle haben normalerweise keine Detailgeometrie.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde und nicht Gemeinde. Oder Abwasserverband ARA Muster und nicht nur Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Finanzierung: (          !! Finanzierungart (Finanzierung gemäss GschG Art. 60a).
+      oeffentlich,  !! Gesamtheit aller erdverlegten Leitungen und Bauwerke, die über Abwassergebühren gemäss Art. 60a des Gewässerschutzgesetzes finanziert werden
+      privat,  !! Gesamtheit aller erdverlegten Leitungen und Bauwerke, die nicht über Abwassergebühren gemäss Art. 60a des Gewässerschutzgesetzes finanziert werden
+      unbekannt
+    );
+    Funktion: (          !! Das Attribut "Funktion" entscheidet darüber, ob ein Knoten ein Sonderbauwerk ist und welche Stammkarte gegebenenfalls auszufüllen ist. Es ist deshalb wichtig, dass die Funktion korrekt attributiert wird.
+      abflussloseGrube,  !! Abflusslose Grube
+      Absturzbauwerk,  !! Ein Absturzschacht ist ein spezielles Bauwerk im Kanalisationsnetz zur Überwindung von Höhenunterschieden auf kurze Entfernung bei gleichzeitiger Energieumwandlung
+      Abwasserfaulraum,  !! Abwasserfaulraum: 3 Kammern
+      andere,  !! Nur verwenden, wenn kein anderer Wert zutrifft. Die Funktion des Bauwerkes im Attribut  Bemerkung beschreiben
+      Be_Entlueftung,  !! Vorrichtung zum gewünschten Luftaustausch in Abwasserbauwerken
+      Dachwasserschacht,  !! Schacht im Bereich der Liegenschaftsentwässerung, in den in der Regel Abflussrohre vom Dach einmünden
+      Duekerkammer,  !! Spezialbauwerk bei einem Abwasserdüker zur Entleerung der Leitungen am tiefsten Punkt
+      Duekeroberhaupt,  !! Bauwerk zur Aufteilung des Abflusses auf mehrere Dükerrohre
+      Einlaufschacht,  !! Ablauf zur Fassung des Oberflächenwasssers  bestehend aus einem Schacht mit einem Aufsatz aus einem Rahmen und einem Rost (VSS, SN 640 356)
+      Einleitstelle_gewaesserrelevant,  !! Auslauf einer Kanalisationsleitung in ein Oberflächengewässer mit oder ohne Einleitbauwerk, der den Gewässerzustand oder die Verhältnisse im Gewässer beeinflusst. Neben den Einleitstellen von PAA-Netzen, die per Definition als gewässerrelevant gelten, können auch Einleitstellen von SAA-Leitungsnetzen gewässerrelevant sein
+      Einleitstelle_nicht_gewaesserrelevant,  !! Auslauf einer SAA-Kanalisationsleitung in ein Oberflächengewässer mit oder ohne Einleitbauwerk, der den Gewässerzustand oder die Verhältnisse im Gewäs¬ser nicht wesentlich beeinflusst.
+      Entwaesserungsrinne,  !! Längliches Bauelement mit geschlitzten Öffnungen zur Aufnahme von abfliessendem Oberflächenwasser
+      Faulgrube,  !! Faulgrube: 2 Kammern
+      Gelaendemulde,  !! Natürliche oder künstliche Vertiefung im Boden, um abfliessendes Wasser zurückzuhalten
+      Geleiseschacht,  !! Normschacht zur Entwässerung von Geleiseanlagen
+      Geschiebefang,  !! Spezialbauwerk in einem offenen Gewässer zur Aufnahme von im Wasser mitgeführtem Material. Häufig am Übergang zu einem eingedolten Abschnitt
+      Guellegrube,  !! Gülle- oder Jauchegrube
+      Klaergrube,  !! Eine Klärgrube (1 Kammer) dient der Entwässerung einer Liegenschaft, die nicht an die öffentliche Kanalisation angeschlossen ist. Eine Klärgrube ist üblicherweise ein beckenartiges, unterirdisches Bauwerk, in dem sich die festen Stoffe am Boden absetzen, Klärgruben müssen periodisch geleert werden.
+      Kontrollschacht,  !! Bauwerk, das den Zugang für Unterhalts- und Kontrollzwecke zu Abwasser- und Sickerleitungen ermöglicht
+      Leitungsknoten,  !! Leitungsknoten dienen der Abbildung spezieller topologischer Knoten, die nicht über ein ihnen spezifisch zuweisbares Abwasserbauwerk verfügen. Leitungsknoten sind u.a. zu erfassen bei: a) Vereinigung von mehreren PAA- oder mehreren SAA-Leitungen ohne Schacht, b) Gefälls-, Profil-, Material- oder Baujahrwechsel ohne Schacht, c) Leitungsbeginn ohne Schacht oder d) Leitungsbeginn auf der Entlastungsseite von Sonderbauwerken mit mehreren, hydraulisch getrennten Ausläufen, z.B. bei Regenüberlauf, Regenbecken oder Trennbauwerken.
+      Messstelle,  !! Die Funktion "Messstelle" wird nur Knoten zugewiesen, die keine andere Sonderbauwerksfunktion aufweisen (reine Messschächte). Beispielsweise wird einem Überlauf mit Durchflussmessung die Funktion "Regenueberlauf" zugewiesen und nicht die Funktion "Messstelle". Das Messgerät wird in diesem Fall als Bauwerkskomponente auf der Stammkarte "Regenüberlauf" erfasst.
+      Oelabscheider,  !! Ein Ölabscheider ist ein spezielles Bauwerk zum Abscheiden von Leichtflüssigkeiten von Abwasser. Es verhindert das Einleiten von Öl in den Vorfluter.
+      Pumpwerk,  !! Anlage zum Heben von Abwasser innerhalb eines Kanalnetzes
+      Regenbecken_Durchlaufbecken,  !! Bauwerk in Mischabwassernetzen zur Absetzung von partikulären Stoffen und zur Speicherung von Mischabwasser (Sekundärwirkung, es können nur kleine Regenmengen gespeichert werden)
+      Regenbecken_Fangbecken,  !! Regenüberlaufbecken, dass zum Fangen des ersten Schmutzstosses dient.
+      Regenbecken_Fangkanal,  !! Speicherleitung mit oberhalb liegendem Überlauf ins Gewässer.
+      Regenbecken_Regenklaerbecken,  !! Absetzbecken für Regenabwasser im Trennsystem.
+      Regenbecken_Regenrueckhaltebecken,  !! Speicherraum für Regenabflussspitzen im Misch- oder Regenabwassernetz. Er dient der Entlastung der Kanalisation bei starkem Regen und hat im Gegensatz zu Regenüberlaufbecken keinen Überlauf oder nur einen Notüberlauf zum Gewässer
+      Regenbecken_Regenrueckhaltekanal,  !! Speicherkanal mit der gleichen Funktionsweise wie das Regenrückhaltebecken.
+      Regenbecken_Stauraumkanal,  !! Speicherleitung mit unterhalb liegendem Überlauf ins Gewässer
+      Regenbecken_Verbundbecken,  !! Kombination von Fangbecken und Klärbecken
+      Regenueberlauf,  !! Sonderbauwerk, welches Mischabwasser auftrennt und einen Teil davon direkt dem Gewässer zuführt
+      Schlammsammler,  !! Ablauf zur Fassung des Oberflächenwassers bestehend aus einem Schacht mit Absetzraum mit einem Aufsatz aus einem Rahmen und einem Rost (VSS, SN 640 356)
+      Schwimmstoffabscheider,  !! Schlammsammler mit einem verlängerten Tauchbogen oder einer Tauchwand. Wird insbesondere bei Versickerungsanlagen als Vorbehandlung gebraucht
+      seitlicherZugang,  !! Ebenerdiger Zugang zu einem Bauwerk
+      Spuelschacht,  !! Schacht der zu Spülzwecken benötigt wird
+      Trennbauwerk,  !! Bauwerk, welches Abwasser im System auftrennt, aber nicht aus dem System entlastet. Ein oder mehrere Zuläufe, zwei oder mehr Abläufe
+      unbekannt,
+      Versickerungsanlage,  !! Oberirdisches oder unterirdisches Bauwerk, welches zum Zweck der künstlichen Versickerung von Regenwasser erstellt wird. Als Versickerungsanlagen gelten auch bewusst für die Versickerung reservierte Bodenflächen, in welchen eine Schadstoffanreicherung langfristig in Kauf genommen wird. Dies ist in der Regel der Fall, wenn das Verhältnis Entwässerungsfläche zu Versickerungsfläche grösser als 5 ist.
+      Wirbelfallschacht  !! Bauwerk zur möglichst schadlos geführten Ableitung von Wasser über eine gewisse  Höhenstufe. Das Bauwerk besteht aus Drallkammer, Fallrohr, Toskammer und Rezirkulationsbelüftungsrohr
+    );
+    FunktionHierarchisch: (          !! Abgeleitetes Attribut - Bildungsregel: Alle Knoten, die mit einer PAA-Leitung verbunden sind (Zufluss oder Abfluss) gehören zum PAA Netz. Das Attribut dient der einfachern fachlichen Prüfung, weil viel fachliche Regeln abhängig davon sind, ob es sekundäre oder primäre Abwasseranlagen sind.
+      PAA,  !! Primäre Abwasseranlage
+      SAA  !! Sekundärer Abwasseranlage
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Lagegenauigkeit: (          !! Quantifizierung der Genauigkeit der Lage des Deckels (Pickelloch)
+      groesser_50cm,
+      plusminus_10cm,
+      plusminus_3cm,
+      plusminus_50cm,
+      unbekannt
+    );
+    OBJ_ID_Abwasserbauwerk: TEXT*16;  !! OBJ_ID des zugehörigen Abwasserbauwerks in der VSA-DSS, nur für Modelltransfers
+    OBJ_ID_Deckel: TEXT*16;  !! OBJ_ID des Hauptdeckels (wichtig falls mehrere),  nur für Modelltransfers
+    Sanierungsbedarf: (          !! Dringlichkeitsstufen und Zeithorizont für bauliche Massnahmen gemäss VSA-Richtline "Erhaltung von Kanalisationen"
+      dringend,  !! Die Massnahmen sind dringend auszuführen. Sofortmassnahmen wie bei kurzfristig sind zu prüfen. Zeithorizont 3-4 Jahre.
+      keiner,  !! Es sind keine Massnahmen bis zur nächsten Zustandserfassung und Zustandsbeurteilung erforderlich. Zeithorizont >= 10 Jahre.
+      kurzfristig,  !! Die Massnahmen sind sehr dringend und kurzfristig auszuführen. Im Sinne von Sofortmassnahmen können durch provisorische, lokale Reparaturen weitere Schäden temporär verhindert werden. Zeithorizont <= 2 Jahre
+      langfristig,  !! Die Massnahmen können längerfristig geplant werden. Zeithorizont 7-10 Jahre.
+      mittelfristig,  !! Die Massnahmen sind mittelfristig erforderlich. Zeithorizont 5-7 Jahre.
+      unbekannt
+    );
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Zugaenglichkeit: (          !! Möglichkeit der Zugänglichkeit ins Innere eines Abwasserbauwerks für eine Person (nicht für ein Fahrzeug)
+      ueberdeckt,  !! Hier muss man z.B. zuerst graben, bis man  z.B. den Deckel öffnen kann
+      unbekannt,
+      unzugaenglich,
+      zugaenglich  !! Zugänglich für eine Person (und nicht unbedingt ein Fahrzeug)
+    );
+UNIQUE 
+    Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013)
+END Knoten;
+
+CLASS Leitung EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Baulich und hydraulisch homogenes, offenes oder geschlossenes Gerinne zur Ableitung von Abwasser
+  ATTRIBUTE
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    BaulicherZustand: (          !! Zustandsklassen 0 bis 4 gemäss VSA-Richtline "Erhaltung von Kanalisationen". Beschreibung des baulichen Zustands des Abwasserbauwerks. Nicht zu verwechseln mit den Sanierungsstufen, welche die Prioritäten der Massnahmen bezeichnen (Attribut Sanierungsbedarf).
+      unbekannt,
+      Z0,  !! Nicht mehr funktionstüchtig: Das Abwasserbauwerk ist bereits oder demnächst nicht mehr durchgängig: Bauwerk eingestürzt, totale Verwurzelung oder andere Abflusshindernisse. Das Bauwerk verliert Wasser (Exfiltration / mögliche Grundwasserverschmutzung).
+      Z1,  !! Starke Mängel: Bauliche Schäden, bei welchen die statische Sicherheit, Hydraulik oder Dichtheit nicht mehr gewährleistet ist: Brüche axial oder radial, (Rohr-)deformationen, visuell sichtbare Wassereintritte oder Wasseraustritte, Löcher in der Wand, stark vorstehende seitliche Anschlüsse, starke Verwurzelungen, Wand stark ausgewaschen. Ungeeignetes (Rohr-)material.
+      Z2,  !! Mittlere Mängel: Bauliche Mängel, welche die Statik, Hydraulik oder Dichtheit beeinträchtigen: breite (Rohr-)fugen, nicht verputzte Einläufe, Risse, leichte Abflusshindernisse wie Verkalkungen, vorstehende seitliche Anschlüsse, leichte Wandbeschädigungen, einzelne Wurzeleinwüchse, (Rohr-)wand ausgewaschen usw.
+      Z3,  !! Leichte Mängel: Bauliche Mängel oder Vorkommnisse, welche für die Dichtheit, Hydraulik oder Statik einen unbedeutenden Einfluss haben: breite (Rohr-)fugen, schlecht verputzte seitlichen Anschlüsse, leichte Deformation bei Bauwerken aus Kunststoff, leichte Auswaschungen etc.
+      Z4  !! Keine Mängel
+    );
+    Bemerkung: TEXT*80;  !! Allgemeine Bemerkungen
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde und nicht Gemeinde. Oder Abwasserverband ARA Muster und nicht nur Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Bezeichnung: MANDATORY TEXT*41; !! Einzigartige Bezeichnung für jeden Datenherrn
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde und nicht Gemeinde. Oder Abwasserverband ARA Muster und nicht nur Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Finanzierung: (          !! Finanzierungart (Finanzierung gemäss GschG Art. 60a).
+      oeffentlich,  !! Gesamtheit aller erdverlegten Leitungen und Bauwerke, die über Abwassergebühren gemäss Art. 60a des Gewässerschutzgesetzes finanziert werden
+      privat,  !! Gesamtheit aller erdverlegten Leitungen und Bauwerke, die nicht über Abwassergebühren gemäss Art. 60a des Gewässerschutzgesetzes finanziert werden
+      unbekannt
+    );
+    FunktionHierarchisch: (       !! Art des Kanals hinsichtlich Bedeutung im Entwässerungssystem
+      PAA (
+        andere,  !! Andere primäre Abwasseranlagen
+         Gewaesser,  !! Erfassung aus Kanalperspektive (z.B. weil hydraulische Berechnung notwendig)
+         Hauptsammelkanal,  !! Übergeordneter Sammelkanal. Kann je nach Netzhierarchie vorgenommen werden.
+         Hauptsammelkanal_regional,  !! Hauptsammelkanal mit regionaler Bedeutung zur Gliederung des Netzes bei Regionalem GEP, z.B. auf regionalem Übersichtsplan, da dies z.T. nicht über die Beziehung Eigentümer gelöst werden kann.
+         Liegenschaftsentwaesserung,  !! Liegenschaftsentwässerung (hydraulisch relevant). Abgrenzung Liegenschaftsentwässerung von Gebäudeentwässerung gemäss Norm "Planung und Erstellung von Anlagen für die Liegenschaftsentwässerung (SN 592 000)"
+         Sammelkanal,  !! Kanal, der das Abwasser aus Liegenschafts- und Strassenentwässerungen aufnimmt.
+         Sanierungsleitung,  !! Entwässerungsleitung (hydraulisch relevant) zum abwassertechnischen Anschluss von abgelegenen Liegenschaften an die Kanalisation, bei deren Planung und Erstellung gewisse Vereinfachungen zulässig sind.
+         Strassenentwaesserung,  !! Entwässerung von Strassen (hydraulisch relevant)
+         unbekannt
+      ),
+      SAA (
+         andere,  !! Andere sekundäre Abwasseranlage
+         Liegenschaftsentwaesserung,  !! Liegenschaftsentwässerung (hydraulisch nicht relevant). Abgrenzung Liegenschaftsentwässerung von Gebäudeentwässerung gemäss Norm "Planung und Erstellung von Anlagen für die Liegenschaftsentwässerung (SN 592 000)"
+         Sanierungsleitung,  !! Entwässerungsleitung (hydraulisch nicht relevant) zum abwassertechnischen Anschluss von abgelegenen Liegenschaften an die Kanalisation, bei deren Planung und Erstellung gewisse Vereinfachungen zulässig sind.
+         Strassenentwaesserung,  !! Entwässerung von Strassen (hydraulisch nicht relevant)
+         unbekannt  !! Entwässerung von Strassen (hydraulisch nicht relevant)
+      )
+    );
+    FunktionHydraulisch: (          !! Art des Kanals hinsichtlich hydraulischer Ausführung
+      andere,
+      Drainagetransportleitung,  !! Kanal, welcher Wasser aus Drainageleitungen transportiert
+      Drosselleitung,  !! Kanal mit vermindertem Querschnitt zur bewussten Begrenzung, resp. Verminderung des Abflusses. Die Funktionsweise basiert auf Abflussverhältnissen unter Druck.
+      Duekerleitung,  !! Geschlossenes Leitungssystem zur Unterfahrung eines Hindernisses als Abwasserdruckleitung.
+      Freispiegelleitung,  !! Die Freispiegelleitung ist eine Rohrleitung, in der das Wasser gemäss dem Gesetz der Schwerkraft von einem höher gelegenen Anfangspunkt zu einem tiefer gelegenen Endpunkt gelangt. (arb)
+      Pumpendruckleitung,  !! Druckleitung im Anschluss an ein Pumpwerk
+      Sickerleitung,  !! 1. Erdverlegte Leitung zur Sammlung und Ableitung von Hang- und Sickerwasser (SN 592 000) 2. Drainageleitung mit undichten Stossfugen, geschlitzten Rohren oder wasserdurchlässigem Rohrmaterial zur Entwässerung des Baugrundes. (arb)
+      Speicherleitung,  !! Zur bewussten Rückhaltung von Abwassermengen dimensionierte Leitung bei einem Regenrückhalte-, einem Fang- oder einem Stauraumkanal
+      Spuelleitung,  !! Leitung mit spezieller Funktion zum Spülen einer Entwässerungsanlage
+      unbekannt,
+      Vakuumleitung
+    );
+    Hoehengenauigkeit_nach: (          !! Höhengenauigkeit der Kote beim Leitungsende
+      groesser_6cm,
+      plusminus_1cm,
+      plusminus_3cm,
+      plusminus_6cm,
+      unbekannt
+    );
+    Hoehengenauigkeit_von: (          !! Höhengenauigkeit der Kote beim Leitungsanfang
+      groesser_6cm,
+      plusminus_1cm,
+      plusminus_3cm,
+      plusminus_6cm,
+      unbekannt
+    );
+    Kote_nach: Base_LV95.Hoehe;  !! Sohlenkote beim Leitungsende. Falls Kote unbekannt ist, interpolieren und im Attribut "Hoehengenauigkeit_nach" entsprechend dokumentieren.
+    Kote_von: Base_LV95.Hoehe;  !! Sohlenkote beim Leitungsanfang. Falls Kote unbekannt ist, interpolieren und im Attribut "Hoehengenauigkeit_von" entsprechend dokumentieren.
+    LaengeEffektiv: 0.00 .. 30000.00 [m];  !! Tatsächliche schräge Länge (d.h. nicht in horizontale Ebene projiziert)  inklusive Kanalkrümmungen
+    Lagebestimmung: (          !! Definiert die Lagegenauigkeit der Verlaufspunkte.
+      genau,  !! +/- 10 cm, bei der Lagebestimmung aus unterschiedlichen Messungen das Dreifache, d.h. +/- 30 cm (Norm SIA405)
+      unbekannt,
+      ungenau  !! Siehe genau
+    );
+    Lichte_Breite: SIA405_Base_LV95.Abmessung;  !! Maximale Innenbreite des Profils
+    Lichte_Hoehe: Lichte_Hoehe;  !! Maximale Innenhöhe des Kanalprofiles
+    Material: (          !! Rohrmaterial
+      andere,
+      Asbestzement,
+      Beton_Normalbeton,
+      Beton_Ortsbeton,
+      Beton_Pressrohrbeton,
+      Beton_Spezialbeton,
+      Beton_unbekannt,
+      Faserzement,
+      Gebrannte_Steine,
+      Guss_duktil,
+      Guss_Grauguss,
+      Kunststoff_Epoxydharz,
+      Kunststoff_Hartpolyethylen,
+      Kunststoff_Polyester_GUP,
+      Kunststoff_Polyethylen,
+      Kunststoff_Polypropylen,
+      Kunststoff_Polyvinilchlorid,  !! Ein Polymerisatkunstoff, der hart, weich oder niedrig­molekular eingestellt werden kann. In der Abwassertechnik als Rohstoff für Rohre verwendet. (arb)
+      Kunststoff_unbekannt,  !! Kunststoff unbekannter Art
+      Stahl,
+      Stahl_rostfrei,
+      Steinzeug,
+      Ton,
+      unbekannt,
+      Zement
+    );
+    Nutzungsart_geplant: (          !! Durch das Konzept vorgesehene Nutzung (vergleiche auch Nutzungsart_Ist)
+      andere,  !! Z.B. auch Zugang, Be- und Entlüftung
+      Bachwasser,  !! Wasser eines Fliessgewässers, das gemäss seinem natürlichen Zustand oberflächlich, aber an einigen Orten auch in unterirdischen Leitungen abfliesst.
+      entlastetes_Mischabwasser,  !! Wasser aus einem Entlastungsbauwerk, welches zum Vorfluter geführt wird. In diesen Kanal darf kein Schmutzabwasser eingeleitet werden.
+      Industrieabwasser,  !! Unter Industrieabwasser werden alle Abwässer verstanden, die bei Produktions- und Verarbeitungsprozessen in der Industrie anfallen. Industrieabwässer müssen i.d.R. vorbehandelt werden, bevor sie in öffentliche Kläranlagen eingeleitet werden können (siehe Indirekteinleiter). Bei direkter Einleitung in Gewässer (siehe Direkteinleiter) ist eine umfangreiche Reinigung in speziellen werkseigenen Kläranlagen erforderlich.
+      Mischabwasser,  !! 1. Mischung von Schmutz- und Regenabwasser, die gemeinsam abgeleitet werden 2. Abwasser welches aus einer Mischung von Schmutzabwasser und Regenabwasser besteht
+      Regenabwasser,  !! Wasser aus natürlichem Niederschlag, das nicht durch Gebrauch verunreinigt wurde. Die Zuordnung zu verschmutztem oder unverschmutztem Abwasser erfolgt nach der Gewässerschutzgesetzgebung bzw. nach Anleitung der VSA-Richtlinie "Regenwasserentsorgung"
+      Reinabwasser,  !! Sicker-, Grund-, Quell- und Brunnenwasser sowie Kühlwasser aus Durchlaufkühlungen. Gemäss Gewässerschutzgesetz gilt Reinabwasser als unverschmutztes Abwasser  (SN 592 000).
+      Schmutzabwasser,  !! Durch Gebrauch verändertes Wasser (häusliches, gewerbliches oder industrielles Abwasser), das in eine Entwässerungsanlage eingeleitet und einer Abwasserbehandlung zugeführt werden muss. Schmutzabwasser gilt als verschmutztes Abwasser im Sinne des Gewässerschutzgesetzes (SN 592 000)
+      unbekannt
+    );
+    Nutzungsart_Ist: (          !! Für primäre Abwasseranlagen gilt: Heute zulässige Nutzung. Für sekundäre Abwasseranlagen gilt: Heute tatsächliche Nutzung
+      andere,  !! Z.B. auch Zugang, Be- und Entlüftung
+      Bachwasser,  !! Wasser eines Fliessgewässers, das gemäss seinem natürlichen Zustand oberflächlich, aber an einigen Orten auch in unterirdischen Leitungen abfliesst.
+      entlastetes_Mischabwasser,  !! Wasser aus einem Entlastungsbauwerk, welches zum Vorfluter geführt wird. In diesen Kanal darf kein Schmutzabwasser eingeleitet werden.
+      Industrieabwasser,  !! Unter Industrieabwasser werden alle Abwässer verstanden, die bei Produktions- und Verarbeitungsprozessen in der Industrie anfallen. Industrieabwässer müssen i.d.R. vorbehandelt werden, bevor sie in öffentliche Kläranlagen eingeleitet werden können (siehe Indirekteinleiter). Bei direkter Einleitung in Gewässer (siehe Direkteinleiter) ist eine umfangreiche Reinigung in speziellen werkseigenen Kläranlagen erforderlich.
+      Mischabwasser,  !! 1. Mischung von Schmutz- und Regenabwasser, die gemeinsam abgeleitet werden 2. Abwasser welches aus einer Mischung von Schmutzabwasser und Regenabwasser besteht
+      Regenabwasser,  !! Wasser aus natürlichem Niederschlag, das nicht durch Gebrauch verunreinigt wurde. Die Zuordnung zu verschmutztem oder unverschmutztem Abwasser erfolgt nach der Gewässerschutzgesetzgebung bzw. nach Anleitung der VSA-Richtlinie "Regenwasserentsorgung"
+      Reinabwasser,  !! Sicker-, Grund-, Quell- und Brunnenwasser sowie Kühlwasser aus Durchlaufkühlungen. Gemäss Gewässerschutzgesetz gilt Reinabwasser als unverschmutztes Abwasser (SN 592 000).
+      Schmutzabwasser,  !! Durch Gebrauch verändertres Wasser (häusliches, gewerbliches oder industrielles Abwasser), das in eine Entwässerungsanlage eingeleitet und einer Abwasserbehandlung zugeführt werden muss. Schmutzabwasser gilt als verschmutztes Abwasser im Sinne des Gewässerschutzgesetzes (SN 592 000)
+      unbekannt
+    );
+    OBJ_ID_Abwasserbauwerk: TEXT*16;  !! OBJ_ID des zugehörigen Abwasserbauwerks (Kanal), nur gebraucht beim Modelltransfer
+    OBJ_ID_nachHaltungspunkt: TEXT*16;  !! OBJ_ID des zugehörigen nachHaltungspunkts in der VSA-DSS, nur gebraucht beim Modelltransfer
+    OBJ_ID_Rohrprofil: TEXT*16;  !! OBJ_ID des zugehörigen Rohrprofils aus der VSA-DSS, nur gebraucht beim Modelltransfer
+    OBJ_ID_vonHaltungspunkt: TEXT*16;  !! OBJ_ID des zugehörigen vonHaltungspunkts in der VSA-DSS, nur gebraucht beim Modelltransfer
+    Profiltyp: (          !! Typ des Profils
+      Eiprofil,  !! Nur für Norm-Eiprofile gemäss DIN 4263 mit Höhenbreitenverhältnis von 1.5 verwenden. Andere Eiprofile, auch solche mit Einbauten, sind als „Spezialprofil“ zu attributieren und die Profildefinition ist mitzuliefern.
+      Kreisprofil,  !! Nur für reine Kreisprofile ohne Trockenwetterrinne oder andere Einbauten verwenden. Sonst als „Spezialprofil“ attributieren und die Profildefinition mitliefern.
+      Maulprofil,  !! Nur für Norm-Maulprofile gemäss DIN 4263 verwenden. Abweichende Varianten, auch solche mit Einbauten, sind als „Spezialprofil“ zu attributieren und die Profildefinition ist mitzuliefern.
+      offenes_Profil,  !! Für offene Profile. Profildefinition mitliefern
+      Rechteckprofil,  !! Nur für reine Rechteckprofile ohne Trockenwetterrinne oder andere Einbauten verwenden. Sonst als „Spezialprofil“ attributieren und die Profildefinition mitliefern.
+      Spezialprofil,  !! Für geschlossene nicht-Normprofile. Profildefinition mitliefern.
+      unbekannt
+    );
+    Sanierungsbedarf: (          !! Dringlichkeitsstufen und Zeithorizont für bauliche Massnahmen gemäss VSA-Richtline "Erhaltung von Kanalisationen"
+      dringend,  !! Die Massnahmen sind dringend auszuführen. Sofortmassnahmen wie bei kurzfristig sind zu prüfen. Zeithorizont 3-4 Jahre.
+      keiner,  !! Es sind keine Massnahmen bis zur nächsten Zustandserfassung und Zustandsbeurteilung erforderlich. Zeithorizont >= 10 Jahre.
+      kurzfristig,  !! Die Massnahmen sind sehr dringend und kurzfristig auszuführen. Im Sinne von Sofortmassnahmen können durch provisorische, lokale Reparaturen weitere Schäden temporär verhindert werden. Zeithorizont <= 2 Jahre
+      langfristig,  !! Die Massnahmen können längerfristig geplant werden. Zeithorizont 7-10 Jahre.
+      mittelfristig,  !! Die Massnahmen sind mittelfristig erforderlich. Zeithorizont 5-7 Jahre.
+      unbekannt
+    );
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Verlauf: Base_LV95.Polyline;  !! Anfangs-, Knick- und Endpunkte der Leitung
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    WBW_Bauart: (          !! Grobe Einteilung der Bauart des Abwasserbauwerks als Inputwert für die Berechnung des Wiederbeschaffungswerts.
+      andere,
+      Feld,  !! Im Feld (Profiltypen für Grabenarbeiten nach Norm SIA 190)
+      Sanierungsleitung_Bagger,  !! Bei Sanierungsleitungen, die mit einem Bagger gebaut wurden
+      Sanierungsleitung_Grabenfraese,  !! Bei Sanierungsleitungen, die mit einer Grabenfräse gebaut wurden
+      Strasse,  !! In der Strasse (Profiltypen für Grabenarbeiten nach Norm SIA 190)
+      unbekannt
+    );
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+UNIQUE 
+    Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013)
+END Leitung;
+
+ASSOCIATION Leitung_Knoten_nachAssoc =    !! Assoziation
+  Knoten_nachRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Leitung_Knoten_nachAssocRef -- {0..*} Leitung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Leitung_Knoten_nachAssoc;
+
+ASSOCIATION Leitung_Knoten_vonAssoc =    !! Assoziation
+  Knoten_vonRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Leitung_Knoten_vonAssocRef -- {0..*} Leitung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Leitung_Knoten_vonAssoc;
+
+ASSOCIATION Leitung_Leitung_nachAssoc =    !! Assoziation
+  Leitung_nachRef  -- {0..1} Leitung; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Leitung_Leitung_nachAssocRef -- {0..*} Leitung; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Leitung_Leitung_nachAssoc;
+
+CLASS Teileinzugsgebiet EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Grösstmögliche zusammenhängende Fläche, von der das darauf anfallende Abwasser an den gleichen Punkt im Kanalnetz entwässert.
+  ATTRIBUTE
+    Abflussbegrenzung_geplant: 0.0 .. 999.9 [lsha];  !! Abflussbegrenzung, falls eine entsprechende Auflage aus dem Entwässerungskonzept vorliegt. Dieses Attribut hat Auflagecharakter. Es ist verbindlich für die Beurteilung von Baugesuchen
+    Abflussbegrenzung_Ist: 0.0 .. 999.9 [lsha];  !! Abflussbegrenzung, falls eine entsprechende Auflage bereits umgesetzt ist.
+    Abflussbeiwert_RW_geplant: 0.00 .. 100.00 [Units.Percent];  !! Abflussbeiwert für den Regenabwasseranschluss im Planungszustand
+    Abflussbeiwert_RW_Ist: 0.00 .. 100.00 [Units.Percent];  !! Abflussbeiwert für den Regenabwasseranschluss im Ist-Zustand
+    Abflussbeiwert_SW_geplant: 0.00 .. 100.00 [Units.Percent];  !! Abflussbeiwert für den Schmutz- oder Mischabwasseranschluss im Planungszustand
+    Abflussbeiwert_SW_Ist: 0.00 .. 100.00 [Units.Percent];  !! Abflussbeiwert für den Schmutz- oder Mischabwasseranschluss im Ist-Zustand
+    Befestigungsgrad_RW_geplant: 0.00 .. 100.00 [Units.Percent];  !! Befestigungsgrad für den Regenabwasseranschluss im Planungszustand
+    Befestigungsgrad_RW_Ist: 0.00 .. 100.00 [Units.Percent];  !! Befestigungsgrad für den Regenabwasseranschluss im Ist-Zustand
+    Befestigungsgrad_SW_geplant: 0.00 .. 100.00 [Units.Percent];  !! Befestigungsgrad für den Schmutz- oder Mischabwasseranschluss im Planungszustand
+    Befestigungsgrad_SW_Ist: 0.00 .. 100.00 [Units.Percent];  !! Befestigungsgrad für den Schmutz- oder Mischabwasseranschluss im Ist-Zustand
+    Bemerkung: TEXT*80;  !! Allgemeine Bemerkungen
+    Bezeichnung: MANDATORY TEXT*20;
+    Direkteinleitung_in_Gewaesser_geplant: (          !! Das Regenabwasser wird in Zukunft ganz oder teilweise über eine SAA-Leitung in ein Gewässer eingeleitet
+      ja,
+      nein,
+      unbekannt
+    );
+    Direkteinleitung_in_Gewaesser_Ist: (          !! Das Regenabwasser wird ganz oder teilweise über eine SAA-Leitung in ein Gewässer eingeleitet
+      ja,
+      nein,
+      unbekannt
+    );
+    Einwohnerdichte_geplant: Einwohnerdichte;  !! Dichte der (physischen) Einwohner im Planungszustand
+    Einwohnerdichte_Ist: Einwohnerdichte;  !! Dichte der (physischen) Einwohner im Ist-Zustand
+    Entwaesserungssystem_geplant: (          !! Entwässerungsart im Planungszustand (nach Umsetzung des Entwässerungskonzepts). Dieses Attribut hat Auflagecharakter. Es ist verbindlich für die Beurteilung von Baugesuchen
+      Mischsystem,  !! Das Schmutzabwasser und das nicht versickerbare Regenabwasser sind an das Mischabwassernetz anzuschliessen. Verbindung zu SW/MW-Knoten obligatorisch, Verbindung zu RW-Knoten nicht zulässig.
+      ModifiziertesSystem,  !! Im Unterschied zum reinen Trennsystem, wird beim modifizierten System nicht nur der minimale Anteil an „verschmutztem“ Regenabwasser auf die Abwasserreinigungsanlage abgeleitet (gemäss der aktuellen Gewässerschutzgesetzgebung vorgeschriebenen Anteil) sondern zusätzlich auch noch ein Teil „nicht verschmutztes“ Regenabwasser. Verbindung zu SW/MW-Knoten ist obligatorisch. Verbindung zu RW-Knoten ist zulässig.
+      nicht_angeschlossen,  !! Teileinzugsgebiet, das entwässert wird, aber (auch in Zukunft) nicht an eine PAA angeschlossen ist. Z.B. eine Fläche, die über eine SAA direkt in ein Gewässer entwässert wird, oder eine Fläche mit Versickerung über die Schulter. Keine Verbindung mit dem Kanalnetz zulässig.
+      nicht_entwaessert,  !! Fläche innerhalb des öffentlichen Kanalisationsbereichs, die auch in Zukunft nicht erschlossen wird (seltener Fall). Keine Verbindung mit dem Kanalnetz zulässig.
+      Trennsystem,  !! Entwässerungssystem, üblicherweise bestehend aus zwei Leitungs-/Kanalsystemen für die getrennte Ableitung von Schmutz- und Regenabwasser. Schmutzabwasser und Regenabwasser welches gemäss aktueller Gesetzgebung als verschmutzt gilt, sind an das Schmutzabwassernetz anzuschliessen; nicht verschmutztes Regenabwasser, das nicht versickert werden kann, an das Regenabwassernetz. Verbindung zu SW/MW-Knoten ist obligatorisch. Verbindung zu RW-Knoten ist zulässig.
+      unbekannt  !! Dieser Wert ist nur bei einer noch nicht abgeschlossenen GEP-Bearbeitung zulässig. Keine Regeln bezüglich Verbindung zum Kanalnetz.
+    );
+    Entwaesserungssystem_Ist: (          !! Effektive Entwässerungsart im Ist-Zustand
+      Mischsystem,  !! Schmutz- und Regenabwasser sind an das Mischabwassernetz angeschlossen. Verbindung zu SW/MW-Knoten obligatorisch, Verbindung zu RW-Knoten nicht zulässig.
+      ModifiziertesSystem,  !! Im Unterschied zum reinen Trennsystem, ist beim modifizierten System nicht nur der minimale Anteil an „verschmutztem“ Regenabwasser auf die Abwasserreinigungsanlage abgeleitet (gemäss der aktuellen Gewässerschutzgesetzgebung vorgeschriebenen Anteil) sondern zusätzlich auch noch ein Teil „nicht verschmutztes“ Regenabwasser. Verbindung zu SW/MW-Knoten ist obligatorisch. Verbindung zu RW-Knoten zulässig.
+      nicht_angeschlossen,  !! Teileinzugsgebiet das entwässert wird, aber nicht an eine PAA angeschlossen ist. Z.B. eine Fläche, die über eine SAA direkt in ein Gewässer entwässert wird, oder eine Fläche mit Versickerung über die Schulter. Keine Verbindung mit dem Kanalnetz zulässig.
+      nicht_entwaessert,  !! Entwässerungstechnisch (noch) nicht erschlossene Fläche innerhalb des öffentlichen Kanalisationsbereichs. Z.B. noch nicht überbaute Parzelle innerhalb der Bauzone. Keine Verbindung mit dem Kanalnetz zulässig.
+      Trennsystem,  !! Entwässerungssystem, üblicherweise bestehend aus zwei Leitungs-/Kanalsystemen für die getrennte Ableitung von Schmutz- und Regenabwasser. Schmutzabwasser und Regenabwasser welches gemäss aktueller Gesetzgebung als verschmutzt gilt, sind an das Schmutzabwassernetz angeschlossen, nicht verschmutztes Regenabwasser an das Regenabwassernetz. Verbindung zu SW/MW-Knoten ist obligatorisch. Verbindung zu RW-Knoten zulässig.
+      unbekannt  !! Das Entwässerungssystem ist noch nicht bekannt. Dieser Wert ist nur bei einer noch nicht abgeschlossenen GEP-Bearbeitung zulässig. Keine Regeln bezüglich Verbindung zum Kanalnetz.
+    );
+    Flaeche: 0.0000 .. 100000.0000 [Units.ha];  !! Redundantes Attribut Flaeche, welches die aus dem Perimeter errechnete Flaeche [ha] enthält
+    Fremdwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Mittlerer Fremdwasseranfall, der im Planungszustand in die Schmutz- oder Mischabwasserkanalisation eingeleitet wird.
+    Fremdwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Mittlerer Fremdwasseranfall, der im Ist-Zustand in die Schmutz- oder Mischabwasserkanalisation eingeleitet wird
+    OBJ_ID_Einzugsgebiet_RW_geplant: TEXT*16;  !! OBJ_ID des Regenwettereinzugsgebiets im Planungszustand
+    OBJ_ID_Einzugsgebiet_RW_Ist: TEXT*16;  !! OBJ_ID des Regenwettereinzugsgebiets im aktuellen Zustand
+    OBJ_ID_Einzugsgebiet_SW_geplant: TEXT*16;  !! OBJ_ID des Trockenwettereinzugsgebiets im Planungszustand
+    OBJ_ID_Einzugsgebiet_SW_Ist: TEXT*16;  !! OBJ_ID des Trockenwettereinzugsgebiets im aktuellen Zustand
+    Perimeter: Base_LV95.Surface;  !! Begrenzungspunkte des Teileinzugsgebiets
+    Retention_geplant: (          !! Das Regen- oder Mischabwasser wird in Zukunft über Rückhalteeinrichtungen verzögert ins Kanalnetz eingeleitet.
+      ja,
+      nein,
+      unbekannt
+    );
+    Retention_Ist: (          !! Das Regen- oder Mischabwasser wird über Rückhalteeinrichtungen verzögert ins Kanalnetz eingeleitet.
+      ja,
+      nein,
+      unbekannt
+    );
+    Schmutzabwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Mittlerer Schmutzabwasseranfall, der im Planungszustand in die Schmutz- oder Mischabwasserkanalisation eingeleitet wird.
+    Schmutzabwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Mittlerer Schmutzabwasseranfall, der im Ist-Zustand in die Schmutz- oder Mischabwasserkanalisation eingeleitet wird
+    TextPos: Base_LV95.LKoord;  !! Beschriftungsposition des Teileinzugsgebiets
+    Versickerung_geplant: (          !! Das Regenabwasser wird in Zukunft ganz oder teilweise einer Versickerungsanlage zugeführt
+      ja,
+      nein,
+      unbekannt
+    );
+    Versickerung_Ist: (          !! Das Regenabwasser wird ganz oder teilweise einer Versickerungsanlage zugeführt
+      ja,
+      nein,
+      unbekannt
+    );
+UNIQUE 
+    Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013)
+END Teileinzugsgebiet;
+
+ASSOCIATION Teileinzugsgebiet_Knoten_RW_IstAssoc =    !! Assoziation
+  Knoten_RW_IstRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Teileinzugsgebiet_Knoten_RW_IstAssocRef -- {0..*} Teileinzugsgebiet; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Teileinzugsgebiet_Knoten_RW_IstAssoc;
+
+ASSOCIATION Teileinzugsgebiet_Knoten_RW_geplantAssoc =    !! Assoziation
+  Knoten_RW_geplantRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Teileinzugsgebiet_Knoten_RW_geplantAssocRef -- {0..*} Teileinzugsgebiet; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Teileinzugsgebiet_Knoten_RW_geplantAssoc;
+
+ASSOCIATION Teileinzugsgebiet_Knoten_SW_IstAssoc =    !! Assoziation
+  Knoten_SW_IstRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Teileinzugsgebiet_Knoten_SW_IstAssocRef -- {0..*} Teileinzugsgebiet; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Teileinzugsgebiet_Knoten_SW_IstAssoc;
+
+ASSOCIATION Teileinzugsgebiet_Knoten_SW_geplantAssoc =    !! Assoziation
+  Knoten_SW_geplantRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Teileinzugsgebiet_Knoten_SW_geplantAssocRef -- {0..*} Teileinzugsgebiet; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Teileinzugsgebiet_Knoten_SW_geplantAssoc;
+
+CLASS Ueberlauf_Foerderaggregat EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Topologische Verbindung von zwei Knoten zur Abbildung von Wehren und Pumpen
+  ATTRIBUTE
+    Art: (          !! Art des Überlaufs bzw. Förderaggregats
+      Foerderaggregat,
+      Leapingwehr,
+      Streichwehr
+    );
+    Bezeichnung: MANDATORY TEXT*20;
+UNIQUE 
+    Bezeichnung, Metaattribute->Datenherr;  !! Neben UNIQUE OBJ_ID zusätzlich auch Kombination Bezeichnung, Datenherr, damit mit VSA-DSS-Mini kompatibel (Wegleitung GEP-Daten 2013)
+END Ueberlauf_Foerderaggregat;
+
+ASSOCIATION Ueberlauf_Foerderaggregat_KnotenAssoc =    !! Assoziation
+  KnotenRef  -- {1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Ueberlauf_Foerderaggregat_KnotenAssocRef -- {0..*} Ueberlauf_Foerderaggregat; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Ueberlauf_Foerderaggregat_KnotenAssoc;
+
+ASSOCIATION Ueberlauf_Foerderaggregat_Knoten_nachAssoc =    !! Assoziation
+  Knoten_nachRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Ueberlauf_Foerderaggregat_Knoten_nachAssocRef -- {0..*} Ueberlauf_Foerderaggregat; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Ueberlauf_Foerderaggregat_Knoten_nachAssoc;
+
+CLASS SK (ABSTRACT) EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Stammkarte (Superklasse), Attribute siehe Subklassen
+  ATTRIBUTE
+END SK;
+
+ASSOCIATION SK_HauptbauwerkAssoc =    !! Assoziation
+  HauptbauwerkRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SK_HauptbauwerkAssocRef -- {0..*} SK; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SK_HauptbauwerkAssoc;
+
+ASSOCIATION SK_PAA_KnotenAssoc =    !! Assoziation
+  PAA_KnotenRef  -- {1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SK_PAA_KnotenAssocRef -- {0..1} SK; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SK_PAA_KnotenAssoc;
+
+CLASS SK_Autonome_Messstelle EXTENDS SK =  
+!! Stammkarte Autonome Messstelle: Die Funktion "Autonome Messstelle" wird nur Knoten zugewiesen, die keine andere Sonderbauwerksfunktion aufweisen (reine Messschächte). Beispielsweise wird einem Regenüberlauf mit Durchflussmessung die Funktion "Regenüberlauf" zugewiesen und nicht die Funktion "Autonome Messstelle". Das Messgerät wird in diesem Fall als Bauwerkskomponente auf der Stammkarte "Regenüberlauf" erfasst.
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Autonome_Messstelle;
+
+CLASS SK_Duekeroberhaupt EXTENDS SK =  
+!! Stammkarte Duekeroberhaupt: Als Dükeroberhaupt wird das Einlauf-Bauwerk des Dükers bezeichnet, wo normalerweise die Abwassermengen auf die verschiedenen Leitungssysteme zur Unterquerung eines Hindernisses aufgeteilt werden. Dieses Bauwerk wird in einer Stammkarte erfasst. Für die Dükerleitungen und das Auslaufbauwerk ist keine spezielle, über die Kanalnetzdaten hinausgehende Dokumentation vorgesehen. Falls im Dükeroberhaupt Mischabwasser entlastet wird, ist die Stammkarte Regenüberlauf auszufüllen. Die Aufteilung der Weiterleitungsmenge auf die verschiedenen Dükerrohre wird, falls vorhanden, mittels der Bauwerkskomponente Überlauf in dieser Stammkarte dokumentiert.
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Duekeroberhaupt;
+
+CLASS SK_Einleitstelle EXTENDS SK =  
+!! Stammkarte Einleitstelle: Einleitstellen in Gewässer aus Entlastungsanlagen (Regenüberläufen, Regenüberlaufbecken, Notentlastungen von Pumpwerken) und aus Trennsystemen des primären Abwassernetzes werden in einer Stammkarte erfasst. Bei Bedarf kann auch eine Stammkarte für Einleitstellen von sekundären Leitungsnetzen ausgefüllt werden. Dafür muss die Einleitstelle in den Kanalnetzdaten mit der Funktion "Einleitstelle_gewaesserrelevant" erfasst werden
+  ATTRIBUTE
+    Aeusserer_Aspekt_Einleitung: (          !! Beeinträchtigung des Gewässers durch die Einleitung:  Äusserer Aspekt
+      grosser_Einfluss,
+      kein_Einfluss,
+      keine_Aussage_moeglich,
+      kleiner_Einfluss,
+      mittlerer_Einfluss,
+      unklar
+    );
+    Aeusserer_Aspekt_oberhalb: (          !! Gewässerzustand oberhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Äusserer Aspekt (GSchV Anhang 2).
+      Anforderungen_erfuellt,
+      Anforderungen_nicht_erfuellt,
+      Erfuellung_fraglich,
+      keine_Aussage_moeglich,
+      unbekannt
+    );
+    Aeusserer_Aspekt_unterhalb: (          !! Gewässerzustand unterhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Äusserer Aspekt (GSchV Anhang 2).
+      Anforderungen_erfuellt,
+      Anforderungen_nicht_erfuellt,
+      Erfuellung_fraglich,
+      keine_Aussage_moeglich,
+      unbekannnt
+    );
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Ausfuehrende_Firma: SIA405_Base_LV95.OrganisationBezeichnung;  !! Ausführende Firma oder Verwaltung
+    Ausfuehrender: TEXT*50;  !! Sachbearbeiter Firma oder Verwaltung (kann auch Operateur sein bei Untersuchung);
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Biol_oekol_Gesamtbeurteilung_Bemerkung: TEXT*80;  !! Wichtige Bemerkungen zur biologisch-ökologischen Gesamtbeurteilung aus Sicht des Bearbeiters.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Datum_letzte_Untersuchung: INTERLIS_1_DATE;  !! Datum der letzten Untersuchung, falls vorhanden. Das Datum der aktuellen Untersuchung wird Attribut "Datum_Untersuchung (VSA-DSS-Mini) bzw. Zeitpunkt (VSA-DSS) erfasst.
+    Datum_Untersuchung: INTERLIS_1_DATE;  !! Das Datum der aktuellen Untersuchung muss ausgefüllt werden.
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Gesamtbeeintraechtigung: (          !! Gesamtbeeinträchtigung des Gewässers durch die Einleitung
+      grosser_Einfluss,
+      kein_Einfluss,
+      keine_Aussage_moeglich,
+      kleiner_Einfluss,
+      mittlerer_Einfluss,
+      unklar
+    );
+    Gewaesserart: (          !! gemäss Tabelle 2.1 STORM Richtlinie des VSA (2007)
+      Fluss_Stau,
+      Groesseres_Fliessgewaesser,
+      Grosser_Mittellandbach,
+      Grosser_See,
+      Grosser_Voralpenbach,
+      Grosses_Fliessgewaesser,
+      Kleiner_Mittellandbach,
+      Kleiner_See,
+      Kleiner_Voralpenbach,
+      Quellgewaesser,
+      unbekannt
+    );
+    Handlungsbedarf: (          !! Handlungsbedarf resultierend aus der Beeinträchtigung der Einleitstelle auf das Gewässer, der zu einer Massnahme im Massnahmenplan führt.
+      ja_kurzfristig,
+      ja_laengerfristig,
+      nein,
+      unbekannt
+    );
+    Immissionsorientierte_Berechnung: (          !! Immissionsorientierte Berechnung vorhanden.
+      ja,
+      nein,
+      unbekannt
+    );
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Oberflaechengewaesser: TEXT*20;  !! Gewässername gemäss kantonalen Vorgaben
+    OBJ_ID_Biol_oekol_Gesamtbeurteilung: TEXT*16;  !! OBJ_ID der zugehörigen Biol_oekol_Gesamtbeurteilung in der VSA-DSS, nur für Modelltransfers
+    Pflanzlicher_Bewuchs_Einleitung: (          !! Beeinträchtigung des Gewässers durch die Einleitung:  Pflanzlicher Bewuchs
+      grosser_Einfluss,
+      kein_Einfluss,
+      keine_Aussage_moeglich,
+      kleiner_Einfluss,
+      mittlerer_Einfluss,
+      unklar
+    );
+    Pflanzlicher_Bewuchs_oberhalb: (          !! Gewässerzustand oberhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Pflanzlicher Bewuchs (GSchV Anhang 2).
+      Anforderungen_erfuellt,
+      Anforderungen_nicht_erfuellt,
+      Erfuellung_fraglich,
+      keine_Aussage_moeglich,
+      unbekannt
+    );
+    Pflanzlicher_Bewuchs_unterhalb: (          !! Gewässerzustand unterhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Pflanzlicher Bewuchs (GSchV Anhang 2).
+      Anforderungen_erfuellt,
+      Anforderungen_nicht_erfuellt,
+      Erfuellung_fraglich,
+      keine_Aussage_moeglich,
+      unbekannt
+    );
+    Q347: 0.000 .. 10000.000 [SIA405_Base_LV95.m3s];  !! Menge aus hydrologischen Jahrbüchern. Fehlt diese Angabe in den Jahrbüchern, ist eine Menge zu bestimmen.
+    relevantes_Gefaelle: 0 .. 1000;  !! Relevantes Gefälle [%] bei der Einleitstelle (für STORM Berechnung). Falls unbekannt muss das Gefälle im Feld oder aufgrund von Plangrundlagen bestimmt werden
+    Relevanzmatrix: (          !! Relevanzmatrix gemäss den Vorgaben in der Richtlinie STORM vorhanden.
+      ja,
+      nein,
+      unbekannt
+    );
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Vergleich_letzte_Untersuchung: (          !! Die Veränderung der Gesamtbeurteilung und eventuelle massgebende veränderte Untersuchungsresultate gegenüber der letzten Untersuchung müssen dokumentiert werden.
+      gleich,
+      kein_Vergleich_moeglich,
+      unklar,
+      Verbesserung,
+      Verschlechterung
+    );
+    Wasserspiegel_Hydraulik: Base_LV95.Hoehe;  !! Wasserspiegelkote für die hydraulische Berechnung (IST-Zustand). Berechneter Wasserspiegel bei der Einleitstelle. Wo nichts anders gefordert, ist der Wasserspiegel bei einem HQ30 einzusetzen.
+    Wasserwirbellose_Einleitung: (          !! Beeinträchtigung des Gewässers durch die Einleitung:  Wasserwirbellose
+      grosser_Einfluss,
+      kein_Einfluss,
+      keine_Aussage_moeglich,
+      kleiner_Einfluss,
+      mittlerer_Einfluss,
+      unklar
+    );
+    Wasserwirbellose_oberhalb: (          !! Gewässerzustand oberhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Wasserwirbellose (GSchV Anhang 1).
+      keine_Aussage_moeglich,
+      oekologische_Ziele_erreicht,
+      oekologische_Ziele_fraglich,
+      oekologische_Ziele_nicht_erreicht,
+      unbekannt
+    );
+    Wasserwirbellose_unterhalb: (          !! Gewässerzustand unterhalb der Einleitstelle gemäss GSchV Anhang 1 und 2 (Vorbelastung): Wasserwirbellose (GSchV Anhang 1).
+      keine_Aussage_moeglich,
+      oekologische_Ziele_erreicht,
+      oekologische_Ziele_fraglich,
+      oekologische_Ziele_nicht_erreicht,
+      unbekannt
+    );
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Einleitstelle;
+
+CLASS SK_Pumpwerk EXTENDS SK =  
+!! Stammkarte Pumpwerk: Anlage zum Heben von Abwasser innerhalb eines Kanalnetzes.
+  ATTRIBUTE
+    Aggregatezahl: Aggregatezahl;
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Foerderaggregat_Nutzungsart_Ist: (          !! Nutzungsart_Ist des gepumpten Abwassers.
+      andere,
+      Bachwasser,  !! Wasser eines Fliessgewässers, das gemäss seinem natürlichen Zustand oberflächlich, aber an einigen Orten auch in unterirdischen Leitungen abfliesst.
+      entlastetes_Mischabwasser,  !! Wasser aus einem Entlastungsbauwerk, welches zum Vorfluter geführt wird. In diesen Kanal darf kein Schmutzabwasser eingeleitet werden.
+      Industrieabwasser,  !! Unter Industrieabwasser werden alle Abwässer verstanden, die bei Produktions- und Verarbeitungsprozessen in der Industrie anfallen.Industrieabwässer müssen i.d.R. vorbehandelt werden, bevor sie in öffentliche Kläranlagen eingeleitet werden können (siehe Indirekteinleiter). Bei direkter Einleitung in Gewässer (siehe Direkteinleiter) ist eine umfangreiche Reinigung in speziellen werkseigenen Kläranlagen erforderlich.
+      Mischabwasser,  !! 1. Mischung von Schmutz- und Regenabwasser, die gemeinsam abgeleitet werden 2. Abwasser welches aus einer Mischung von Schmutzabwasser und Regenabwasser besteht
+      Regenabwasser,  !! Wasser aus natürlichem Niederschlag, das nicht durch Gebrauch verunreinigt wurde. Die Zuordnung zu verschmutztem oder unverschmutztem Abwasser erfolgt nach der Gewässerschutzgesetzgebung bzw. nach Anleitung der VSA-Richtlinie "Regenwasserentsorgung"
+      Reinabwasser,  !! Sicker-, Grund-, Quell- und Brunnenwasser sowie Kühlwasser aus Durchlaufkühlungen. Gemäss Gewässerschutzgesetz gilt Reinabwasser als unverschmutztes Abwasser  (SN 592 000).
+      Schmutzabwasser,  !! Durch Gebrauch verändertres Wasser (häusliches, gewerbliches oder industrielles Abwasser), das in eine Entwässerungsanlage eingeleitet und einer Abwasserbehandlung zugeführt werden muss. Schmutzabwasser gilt als verschmutztes Abwasser im Sinne des Gewässerschutzgesetzes (SN 592 000)
+      unbekannt
+    );
+    Foerderhoehe_geodaetisch: Foerderhoehe;
+    FoerderstromMax: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Maximaler Förderstrom der Pumpen (gesamtes Bauwerk). Tritt in der Regel bei der minimalen Förderhöhe ein.
+    FoerderstromMin: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Minimaler Förderstrom der Pumpen zusammen (gesamtes Bauwerk). Tritt in der Regel bei der maximalen Förderhöhe ein.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Pumpenregime: (          !! Bei speziellen Betriebsarten ist die Funktion separat zu dokumentieren und der Stammkarte beizulegen.
+      alternierend,
+      andere,
+      einzeln,
+      parallel,
+      unbekannt
+    );
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Stauraum: 0.00 .. 10000000.00 [Units.m3];  !! Speicherinhalt im Becken und im Zulauf zwischen Wehrkrone und dem Wasserspiegel bei Qan. Bei Regenbeckenüberlaufbecken im Nebenschluss ist der Stauraum beim vorgelagerten Trennbauwerk bzw. Regenüberlauf zu erfassen (vgl. Erläuterungen Inhalt_Fangteil reps. _Klaerteil). Bei Pumpen: Speicherinhalt im Zulaufkanal unter dem Wasserspiegel beim Einschalten der Pumpe (höchstes Einschaltniveau bei mehreren Pumpen);
+    Volumen_Pumpensumpf: 0.00 .. 10000000.00 [Units.m3];  !! Volumen des Pumpensumpfs von der Sohle bis zur maximal möglichen Wasserspiegellage (inkl. Kanalspeichervolumen im Zulaufkanal).
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Pumpwerk;
+
+CLASS SK_Regenueberlauf EXTENDS SK =  
+!! Stammkarte Regenueberlauf (RÜ): Bauwerk zur Entlastung hoher Mischabwasserabflussspitzen aus dem Kanalnetz ohne vorherige Behandlung in einem Becken. Heute werden dafür teilweise auch die Begriffe Hochwasserentlastung, Regenwasserentlastung, Mischwasserüberlauf, etc. verwendet. Zukünftig soll nur noch die Bezeichnung "Regenüberlauf" verwendet werden. Dabei wird nicht unterschieden zwischen Regenüberlauf, Spitzenentlastung, Notüberlauf (nicht zu verwechseln mit einer Notentlastung in einem Pumpwerk, die nur eine Bauwerkskomponente dieses Pumpwerks ist). Ob eine Regenüberlauf im Normalbetrieb effektiv anspringt, oder nur bei einem Betriebsversagen, wird mit dem Attribut "springt an" auf der Stammkarte erfasst.
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Einwohner_geplant: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Einwohner_Ist: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Flaeche_bef_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_bef_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des direkten Einzugsgebietes im Misch- resp. Trennsystem gemäss Abbildung.
+    Flaeche_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung.
+    Flaeche_red_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_red_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Fremdwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Fremdwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Fremdwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Fremdwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Kennlinie_digital_geplant: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist_optimiert: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Mehrbelastung_geplant: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung nach der Umsetzung der Massnahmen.
+    Mehrbelastung_Ist: 0.00 .. 100.00 [Units.Percent];  !! Mehrbelastung der untenliegenden Kanäle beim Dimensionierungsereignis = 100 * (Qab – Qan) / Qan 	[%]. Verhältnis zwischen der abgeleiteten Abwassermengen Richtung ARA beim Anspringen des Entlastungsbauwerkes (Qan) und Qab (Abwassermenge, welche beim Dimensionierungsereignis (z=5) weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird). Beispiel: Qan = 100 l/s, Qab = 150 l/s -> Mehrbelastung = 50%
+    Mehrbelastung_Ist_optimiert: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Qan_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge nach der Umsetzung der Massnahmen.
+    Qan_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Qan im heutigen Zustand, Ist-Wert aufgrund von Blechöffnungen, Drosselstrecken, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    Qan_Ist_optimiert: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Schmutzabwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Schmutzabwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Schmutzabwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Schmutzabwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Springt_an: (          !! Angabe, ob die Entlastung beim Dimensionierungsereignis anspringt
+      ja,
+      nein,
+      unbekannt
+    );
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Stauraum: 0.00 .. 10000000.00 [Units.m3];  !! Speicherinhalt im Becken und im Zulauf zwischen Wehrkrone und dem Wasserspiegel bei Qan. Bei Regenbeckenüberlaufbecken im Nebenschluss ist der Stauraum beim vorgelagerten Trennbauwerk bzw. Regenüberlauf zu erfassen (vgl. Erläuterungen Inhalt_Fangteil reps. _Klaerteil). Bei Pumpen: Speicherinhalt im Zulaufkanal unter dem Wasserspiegel beim Einschalten der Pumpe (höchstes Einschaltniveau bei mehreren Pumpen);
+    Ueberlauf_Bemerkung: TEXT*80;  !! Aus Sicht des Erfassers massgebende Informationen zur Funktion des Ueberlaufs
+    Ueberlaufdauer_geplant: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Berechnung mit geplanten Massnahmen
+    Ueberlaufdauer_Ist: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Durchschnittliche Überlaufdauer pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufdauer_Ist_optimiert: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Ueberlaufhaeufigkeit_geplant: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Berechnung mit Einstellungen nach der Umsetzung der Massnahmen.
+    Ueberlaufhaeufigkeit_Ist: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Durchschnittliche Überlaufhäufigkeit pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufhaeufigkeit_Ist_optimiert: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Ueberlaufmenge_geplant: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Berechnung mit Einstellungen nach der Umsetzung der Massnahmen.
+    Ueberlaufmenge_Ist: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Durchschnittliche Überlaufmenge pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufmenge_Ist_optimiert: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wehr_Art: (          !! Art des Wehrs im Regenüberlauf
+      andere,
+      Leapingwehr,  !! mit Bodenöffnung
+      Streichwehr_hochgezogen,  !! Streichwehr mit hochgezogener Wehrschwelle
+      Streichwehr_niedrig  !! Streichwehr mit niedriger Wehrschwelle
+    );
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Regenueberlauf;
+
+ASSOCIATION SK_Regenueberlauf_EinleitstelleAssoc =    !! Assoziation
+  EinleitstelleRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SK_Regenueberlauf_EinleitstelleAssocRef -- {0..*} SK_Regenueberlauf; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SK_Regenueberlauf_EinleitstelleAssoc;
+
+CLASS SK_Regenueberlaufbecken EXTENDS SK =  
+!! Stammkarte Regenüberlaufbecken (RÜB)
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Beckentyp: (        
+      Durchlaufbecken,
+      Fangbecken,
+      Fangkanal,
+      Stauraumkanal,
+      Verbundbecken
+    );
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Einwohner_Dim_geplant: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Einwohner_Dim_Ist: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet (Dimensionoierung) als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Einwohner_geplant: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Einwohner_Ist: EGW;  !! Anzahl Einwohner im direkten Einzugsgebiet als informativer Wert. Der massgebende Schmutzabwasseranfall ist im gleichnamigen entsprechenden Attribut anzugeben.
+    Flaeche_bef_Dim_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des Einzugsgebiets Dimensionierung im Misch- resp. Trennsystem (nur Regenüberlaufbecken). Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_bef_Dim_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des Einzugsgebiets Dimensionierung im Misch- resp. Trennsystem (nur Regenüberlaufbecken). Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_bef_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_bef_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Befestigte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene befestigte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_Dim_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des Einzugsgebiets Dimensionierung. Dieses Einzugsgebiet umfasst in der Regel alle obenliegenden Flächen des Regenbeckenüberlaufbeckens (inkl. denjenigen von Regenüberläufen, Pumpwerken, etc.) oder alle obenliegenden Flächen bis zum nächsten Regenüberlaufbecken.
+    Flaeche_Dim_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des Einzugsgebiets Dimensionierung. Dieses Einzugsgebiet umfasst in der Regel alle obenliegenden Flächen des Regenbeckenüberlaufbeckens (inkl. denjenigen von Regenüberläufen, Pumpwerken, etc.) oder alle obenliegenden Flächen bis zum nächsten Regenüberlaufbecken.
+    Flaeche_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des direkten Einzugsgebietes im Misch- resp. Trennsystem gemäss Abbildung.
+    Flaeche_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Bruttofläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung.
+    Flaeche_red_Dim_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des Einzugsgebiets Dimensionierung im Misch- resp. Trennsystem (nur Regenüberlaufbecken). Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_red_Dim_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des Einzugsgebiets Dimensionierung im Misch- resp. Trennsystem (nur Regenüberlaufbecken). Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_red_geplant: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser ange-schlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Flaeche_red_Ist: 0.0000 .. 100000.0000 [Units.ha];  !! Reduzierte Fläche des direkten Einzugsgebiets im Misch- resp. Trennsystem gemäss Abbildung. Im Trennsystem ist für die Stammkarte die an das Schmutzabwasser angeschlossene reduzierte Fläche anzugeben. Es muss mindestens eine Fläche (befestigt oder reduziert) angegeben werden.
+    Fremdwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Fremdwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Fremdwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Fremdwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Kennlinie_digital_geplant: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist_optimiert: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Mehrbelastung_geplant: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung nach der Umsetzung der Massnahmen.
+    Mehrbelastung_Ist: 0.00 .. 100.00 [Units.Percent];  !! Mehrbelastung der untenliegenden Kanäle beim Dimensionierungsereignis = 100 * (Qab – Qan) / Qan 	[%]. Verhältnis zwischen der abgeleiteten Abwassermengen Richtung ARA beim Anspringen des Entlastungsbauwerkes (Qan) und Qab (Abwassermenge, welche beim Dimensionierungsereignis (z=5) weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird). Beispiel: Qan = 100 l/s, Qab = 150 l/s -> Mehrbelastung = 50%
+    Mehrbelastung_Ist_optimiert: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Nutzinhalt_Fangteil: 0.00 .. 10000000.00 [Units.m3];  !! Inhalt der Kammer unterhalb der Wehrkrone ohne Stauraum im Zulaufkanal. Letzterer wird unter dem Attribut Stauraum erfasst (bei Anordnung im Hauptschluss auf der Stammkarte des Hauptbauwerkes, bei Anordnung im Nebenschluss auf der Stammkarte des vorgelagerten Trennbauwerkes oder Regenüberlaufs);
+    Nutzinhalt_Klaerteil: 0.00 .. 10000000.00 [Units.m3];  !! Inhalt der Kammer unterhalb der Wehrkrone inkl. Einlaufbereich, Auslaufbereich und Sedimentationsbereich, ohne Stauraum im Zulaufkanal. Letzterer wird unter dem Attribut Stauraum erfasst (bei Anordnung im Hauptschluss auf der Stammkarte des Hauptbauwerkes, bei Anordnung im Nebenschluss auf der Stammkarte des vorgelagerten Trennbauwerkes oder Regenüberlaufs);
+    Qan_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge nach der Umsetzung der Massnahmen.
+    Qan_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Qan im heutigen Zustand, Ist-Wert aufgrund von Blechöffnungen, Drosselstrecken, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    Qan_Ist_optimiert: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Regenbecken_Anordnung: (          !! Anordnung des Regenbeckens im System. Zusätzlich zu erfassen falls Spezialbauwerk.Funktion = Regenbecken_*
+      Hauptschluss,  !! Durchfluss des Beckens bei Trockenwetter und teilweiser Durchfluss bei Regenwetter
+      Nebenschluss,  !! Durchfluss des Beckens nur bei Regenwetter
+      unbekannt
+    );
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Schmutzabwasseranfall_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Schmutzabwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Schmutzabwasseranfall_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Totaler Schmutzabwasseranfall beim Bauwerk inkl. aller obenliegenden Gebiete. Angabe Jahresmittelwert (24 Std.-Mittel) in l/s.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Stauraum: 0.00 .. 10000000.00 [Units.m3];  !! Speicherinhalt im Becken und im Zulauf zwischen Wehrkrone und dem Wasserspiegel bei Qan. Bei Regenbeckenüberlaufbecken im Nebenschluss ist der Stauraum beim vorgelagerten Trennbauwerk bzw. Regenüberlauf zu erfassen (vgl. Erläuterungen Inhalt_Fangteil reps. _Klaerteil). Bei Pumpen: Speicherinhalt im Zulaufkanal unter dem Wasserspiegel beim Einschalten der Pumpe (höchstes Einschaltniveau bei mehreren Pumpen);
+    Ueberlauf_Bemerkung: TEXT*80;  !! Aus Sicht des Erfassers massgebende Informationen zur Funktion des Ueberlaufs
+    Ueberlaufdauer_geplant: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Berechnung mit geplanten Massnahmen
+    Ueberlaufdauer_Ist: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Durchschnittliche Überlaufdauer pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufdauer_Ist_optimiert: 0.0 .. 10000.0 [Units.h];  !! Mittlere Überlaufdauer pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Ueberlaufhaeufigkeit_geplant: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Berechnung mit Einstellungen nach der Umsetzung der Massnahmen.
+    Ueberlaufhaeufigkeit_Ist: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Durchschnittliche Überlaufhäufigkeit pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufhaeufigkeit_Ist_optimiert: Ueberlaufhaeufigkeit;  !! Mittlere Überlaufhäufigkeit pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Ueberlaufmenge_geplant: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Berechnung mit Einstellungen nach der Umsetzung der Massnahmen.
+    Ueberlaufmenge_Ist: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Durchschnittliche Überlaufmenge pro Jahr von Entlastungsanlagen gemäss Langzeitsimulation (Dauer mindestens 10 Jahre).
+    Ueberlaufmenge_Ist_optimiert: 0.00 .. 10000000.00 [Units.m3];  !! Mittlere Überlaufwassermenge pro Jahr. Berechnung mit optimierten Einstellungen im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Regenueberlaufbecken;
+
+ASSOCIATION SK_Regenueberlaufbecken_EinleitstelleAssoc =    !! Assoziation
+  EinleitstelleRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  SK_Regenueberlaufbecken_EinleitstelleAssocRef -- {0..*} SK_Regenueberlaufbecken; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END SK_Regenueberlaufbecken_EinleitstelleAssoc;
+
+CLASS SK_Regenrueckhaltebecken_kanal EXTENDS SK =  
+!! Stammkarte Regenrückhaltebecken / -kanal
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Beckentyp: (        
+      Regenrueckhaltebecken,
+      Regenrueckhaltekanal
+    );
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Kennlinie_digital_geplant: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist_optimiert: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Notueberlauf: (          !! Das Attribut beschreibt, wohin die das Volumen übersteigende Menge abgeleitet wird (bei Regenrückhaltebecken / Regenrückhaltekanal).
+      andere,
+      inMischabwasserkanalisation,
+      inRegenabwasserkanalisation,
+      inSchmutzabwasserkanalisation,
+      keiner,
+      unbekannt
+    );
+    Nutzinhalt: 0.00 .. 10000000.00 [Units.m3];  !! Inhalt der Kammer unterhalb Notüberlauf oder Bypass (maximal mobilisierbares Volumen, inkl. Stauraum im Zulaufkanal). Für RRB und RRK. Für RÜB Nutzinhalt_Fangteil und Nutzinhalt_Klaerteil benutzen. Zusätzlich auch Stauraum erfassen.
+    Qab_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Qab im geplanten Zustand gemäss GEP.  (Ausfüllen bei Regenrückhaltebecken / Regenrückhaltekanal);
+    Qab_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Qab im heutigen Zustand, Ist-Wert aufgrund von Blechöffnungen, Drosselstrecken, etc. Qab ist die Abwassermenge, welche beim Dimensionierungsereignis (z=5) weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. (Ausfüllen bei Regenrückhaltebecken / Regenrückhaltekanal);
+    Qab_Ist_optimiert: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Berechneter Wert Qab, welcher aufgrund der Randbedingungen im heutigen Zustand einen gemäss Gesetzen und Richtlinien geforderten Zustand gewährleistet.  (Ausfüllen bei Regenrückhaltebecken / Regenrückhaltekanal);
+    Regenbecken_Anordnung: (          !! Anordnung des Regenbeckens im System. Zusätzlich zu erfassen falls Spezialbauwerk.Funktion = Regenbecken_*
+      Hauptschluss,  !! Durchfluss des Beckens bei Trockenwetter und teilweiser Durchfluss bei Regenwetter
+      Nebenschluss,  !! Durchfluss des Beckens nur bei Regenwetter
+      unbekannt
+    );
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Stauraum: 0.00 .. 10000000.00 [Units.m3];  !! Speicherinhalt im Becken und im Zulauf zwischen Wehrkrone und dem Wasserspiegel bei Qan. Bei Regenbeckenüberlaufbecken im Nebenschluss ist der Stauraum beim vorgelagerten Trennbauwerk bzw. Regenüberlauf zu erfassen (vgl. Erläuterungen Inhalt_Fangteil reps. _Klaerteil). Bei Pumpen: Speicherinhalt im Zulaufkanal unter dem Wasserspiegel beim Einschalten der Pumpe (höchstes Einschaltniveau bei mehreren Pumpen);
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Regenrueckhaltebecken_kanal;
+
+CLASS SK_Trennbauwerk EXTENDS SK =  
+!! Stammkarte Trennbauwerk: Bauwerk, welches Abwasser im System auftrennt, aber nicht aus dem System entlastet. Ein oder mehrere Zuläufe, zwei oder mehr Abläufe.
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Art: (          !! Die Art des Trennbauwerkes ist anzugeben.
+      freie_Aufteilung,  !! Freie Aufteilung bedeutet Aufteilung des Abflusses infolge der hydraulischen Randbedingungen. Dann ist kein Ueberlauf zu erfassen (in VSA-DSS)
+      Leapingwehr,  !! Leapingwehr (Bodenöffnung)
+      Sekundaerrichtung_geschlossen,  !! Bisher keine direkte Entsprechung in der VSA-DSS. Sekundärrichtung_geschlossen, wenn abgehender Kanal.Status ausser_Betrieb (und entsprechende Subwerte)
+      Streichwehr,  !! Streichwehr oder anderer Überfall
+      unbekannt
+    );
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Kennlinie_digital_geplant: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Kennlinie_digital_Ist_optimiert: (          !! Falls Kennlinie_digital_* = ja muss eine entsprechende Kennlinie in der Tabelle Kennlinie vorhanden sein.
+      ja,
+      nein,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Mehrbelastung_geplant: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung nach der Umsetzung der Massnahmen.
+    Mehrbelastung_Ist: 0.00 .. 100.00 [Units.Percent];  !! Mehrbelastung der untenliegenden Kanäle beim Dimensionierungsereignis = 100 * (Qab – Qan) / Qan 	[%]. Verhältnis zwischen der abgeleiteten Abwassermengen Richtung ARA beim Anspringen des Entlastungsbauwerkes (Qan) und Qab (Abwassermenge, welche beim Dimensionierungsereignis (z=5) weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird). Beispiel: Qan = 100 l/s, Qab = 150 l/s -> Mehrbelastung = 50%
+    Mehrbelastung_Ist_optimiert: 0.00 .. 100.00 [Units.Percent];  !! Optimale Mehrbelastung im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Primaerrichtung_Knoten: TEXT*20;  !! Es ist der nächste Knoten in Primärrichtung anzugeben. Primärrichtung: Richtung, in der das Abwasser im Normalfall (beispielsweise Trockenwetterfall im Mischsystem) abfliesst.
+    Qan_geplant: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge nach der Umsetzung der Massnahmen.
+    Qan_Ist: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Qan im heutigen Zustand, Ist-Wert aufgrund von Blechöffnungen, Drosselstrecken, etc. Qan ist die Abwassermenge, welche beim Anspringen des Überlaufs weiter im Kanalnetz Richtung Abwasserreinigungsanlage abgeleitet wird. Wassermenge bei welcher der Überlauf tatsächlich anspringt (Ist-Zustand);
+    Qan_Ist_optimiert: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Optimale Menge im Ist-Zustand vor der Umsetzung von allfälligen weiteren Massnahmen.
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    Stauraum: 0.00 .. 10000000.00 [Units.m3];  !! Speicherinhalt im Becken und im Zulauf zwischen Wehrkrone und dem Wasserspiegel bei Qan. Bei Regenbeckenüberlaufbecken im Nebenschluss ist der Stauraum beim vorgelagerten Trennbauwerk bzw. Regenüberlauf zu erfassen (vgl. Erläuterungen Inhalt_Fangteil reps. _Klaerteil). Bei Pumpen: Speicherinhalt im Zulaufkanal unter dem Wasserspiegel beim Einschalten der Pumpe (höchstes Einschaltniveau bei mehreren Pumpen);
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Trennbauwerk;
+
+CLASS SK_Uebrige EXTENDS SK =  
+!! Stammkarte Uebrige: Bauwerke, die eine spezielle Funktion im Entwässerungsnetz wahrnehmen und entsprechend dokumentiert werden sollen, sich aber keiner anderen Stammkarten Kategorien zuordnen lassen.
+  ATTRIBUTE
+    Akten: MTEXT*255;  !! Plan Nr. der Ausführungsdokumentation. Kurzbeschrieb weiterer Akten (Betriebsanleitung vom …, etc.);
+    ARA_Nr: ARANr;  !! An ARA „Beispiel“ angeschlossen (ARA Nummer des BAFU). Anlagenummer
+    Baujahr: SIA405_Base_LV95.Jahr;  !! Jahr der Inbetriebsetzung (Schlussabnahme). Falls unbekannt = 1800 setzen (tiefster Wert des Wertebereichs);
+    Bemerkung: TEXT*80;
+    Beschrieb: MTEXT*255;  !! Beschrieb des Sonderbauwerkes
+    Betreiber: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Buero: SIA405_Base_LV95.OrganisationBezeichnung;  !! Name des Ingenieurbüros, welches die Stammkarte erstellt hat
+    Deckelkote: Base_LV95.Hoehe;  !! Kote der Abdeckung des Bauwerks. Bei mehreren Deckeln ist die Kote des Hauptdeckels anzugeben.
+    Eigentuemer: SIA405_Base_LV95.OrganisationBezeichnung;  !! Es wird empfohlen, reale Namen zu verwenden, z.B. Mustergemeinde anstatt Gemeinde. Oder Abwasserverband ARA Muster anstatt Abwasserverband, da es sonst Probleme gibt bei der Zusammenführung der Daten.
+    Informationsquelle: (          !! Für die Quellen stehen die angegebenen Möglichkeiten zur Verfügung.
+      andere,
+      GEP_ARA_Einzugsgebiet,
+      GEP_Traegerschaft,
+      unbekannt
+    );
+    Lage: Base_LV95.LKoord;  !! Lage des Knotens, massgebender Bezugspunkt für die Kanalnetzberechnung. (In der Regel Lage des Pickellochs oder Lage des Trockenwetterauslaufs);
+    Sachbearbeiter: TEXT*50;  !! Sachbearbeiter, der die Stammkarte erstellt hat.
+    Sohlenkote: Base_LV95.Hoehe;  !! Tiefster Punkt des Abwasserbauwerks
+    Standortname: TEXT*50;  !! Strassenname oder Ortsbezeichnung  zum Bauwerk
+    Status: Status;  !! Betriebs- bzw. Planungszustand des Bauwerks
+    WBW_Basisjahr: SIA405_Base_LV95.Jahr;  !! Basisjahr für die Kalkulation des Wiederbeschaffungswerts (siehe auch Attribut Wiederbeschaffungswert);
+    Wiederbeschaffungswert: 0.00 .. 99999999.99 [Units.CHF];  !! Wiederbeschaffungswert des Bauwerks. Zusätzlich muss auch das Attribut WBW_Basisjahr erfasst werden
+END SK_Uebrige;
+
+CLASS Kennlinie_Stuetzpunkt EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Die Kennlinie des Bauwerks beschreibt den Verlauf der Wassermenge Richtung ARA aus dem Entlastungsbauwerkes bei verschiedenen Zufluss-Verhältnissen. Sie muss aus mindestens 2 Stützpunkten bestehen. Kann zusätzlich als Tabelle oder Ausdruck aus dem Berechnungsmodell abgegeben werden. Die Kennlinie ist als Q/Q oder H/Q- Tabelle zu dokumentieren. Q(1) / Q(2) -Grafik: Q1 =Q Zuflaufss [l/s], Q2 = Abfluss Richtung ARA [l/s]. H/Q- Grafik: H = Wasserspiegel beim Überlauf [m.ü.M.], Q = Abfluss Richtung ARA [l/s]. Bei Abflussverhältnissen in Einstaubereichen ist die Funktion separat in einer Beilage zu beschreiben.
+  ATTRIBUTE
+    Abfluss: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Abflussmenge (Q2) Richtung ARA
+    Hoehe: Base_LV95.Hoehe;  !! Zum Abfluss (Q2) korrelierender Wasserspiegel (h);
+    OBJ_ID_HQ_Relation: TEXT*16;  !! OBJ_ID der zugehörigen HQ_Relation in der VSA-DSS, nur für Modelltransfers
+    Status: (        
+      geplant,
+      Ist,
+      Ist_optimiert
+    );
+    Zufluss: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Zufluss (Q1);
+END Kennlinie_Stuetzpunkt;
+
+ASSOCIATION Kennlinie_Stuetzpunkt_SK_RegenueberlaufAssoc =    !! Assoziation
+  SK_RegenueberlaufRef  -- {0..1} SK_Regenueberlauf; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Kennlinie_Stuetzpunkt_SK_RegenueberlaufAssocRef -- {0..*} Kennlinie_Stuetzpunkt; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Kennlinie_Stuetzpunkt_SK_RegenueberlaufAssoc;
+
+ASSOCIATION Kennlinie_Stuetzpunkt_SK_TrennbauwerkAssoc =    !! Assoziation
+  SK_TrennbauwerkRef  -- {0..1} SK_Trennbauwerk; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Kennlinie_Stuetzpunkt_SK_TrennbauwerkAssocRef -- {0..*} Kennlinie_Stuetzpunkt; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Kennlinie_Stuetzpunkt_SK_TrennbauwerkAssoc;
+
+ASSOCIATION Kennlinie_Stuetzpunkt_SK_RegenueberlaufbeckenAssoc =    !! Assoziation
+  SK_RegenueberlaufbeckenRef  -- {0..1} SK_Regenueberlaufbecken; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Kennlinie_Stuetzpunkt_SK_RegenueberlaufbeckenAssocRef -- {0..*} Kennlinie_Stuetzpunkt; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Kennlinie_Stuetzpunkt_SK_RegenueberlaufbeckenAssoc;
+
+ASSOCIATION Kennlinie_Stuetzpunkt_SK_Regenrueckhaltebecken_kanalAssoc =    !! Assoziation
+  SK_Regenrueckhaltebecken_kanalRef  -- {0..1} SK_Regenrueckhaltebecken_kanal; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Kennlinie_Stuetzpunkt_SK_Regenrueckhaltebecken_kanalAssocRef -- {0..*} Kennlinie_Stuetzpunkt; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Kennlinie_Stuetzpunkt_SK_Regenrueckhaltebecken_kanalAssoc;
+
+CLASS Bauwerkskomponente EXTENDS SIA405_Base_LV95.SIA405_BaseClass =  
+!! Bauwerkskomponente der Stammkarte, Ausrüstungen resp. Hilfsbetriebe
+  ATTRIBUTE
+    Art: (          !! Art der Bauwerkskomponente (zwingend). Pro Datensatz eine Bauwerkskomponente. Deren Angaben müssen jeweils vollständig sein, auch wenn in INTERLIS optional gesetzt.
+      Beckenentleerung,
+      Beckenreinigung,
+      Drosselorgan,
+      Feststoffrueckhalt,
+      Foerderaggregat,
+      Messgeraet,  !! Die Komponente Messgerät wird verwendet, wenn eine Messung beispielsweise zur Steuerung / Regelung der Abwassermenge Richtung Kläranlage des Bauwerks dient.
+      Notentlastung,
+      Rueckstausicherung,
+      Ueberlauf
+    );
+    Beckenentleerung_Art: (          !! Die Bauwerkskomponente Beckenentleerung darf nur einmal ausgefüllt werden. Wird ein Regenbecken beispielsweise mit mehreren Pumpen entleert, wird in der Bauwerkskomponente die Gesamtleistung aller Pumpen erfasst.
+      andere,
+      keine,  !! Der Wert „keine“ wird verwendet, wenn das Bauwerk ohne Hilfsbetrieb entleert wird.
+      Pumpe,  !! Bei mehreren Pumpen muss die maximale Gesamtmenge erfasst werden.
+      Schieber  !! Bei mehreren Schiebern muss die maximale Gesamtmenge erfasst werden.
+    );
+    Beckenentleerung_Leistung: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Bei mehreren Pumpen / Schiebern muss die maximale Gesamtmenge erfasst werden.
+    Beckenreinigung_Art: (        
+      Air_Jet,  !! Druckluftstrom, auch Injektorpumpe genannt
+      andere,
+      keine,  !! Der Wert „keine“ wird verwendet, wenn das Bauwerk ohne Hilfsbetrieb gereinigt wird.
+      Schwallspuelung,
+      Spuelkippe
+    );
+    Drosselorgan_Art: (        
+      Abflussregulator,
+      andere,
+      Drosselstrecke,  !! Bei einer Drosselstrecke ist sowohl ein (Absperr_)Drosselorgan als auch eine Leitung.FunktionHydraulisch=Drosselleitung zu erfassen (Erfassungsregel).
+      Leapingwehr,
+      Pumpe,  !! Stammkarte Pumpwerk zusätzlich ausfüllen
+      Schieber_fix,
+      Schieber_geregelt,
+      Schieber_gesteuert,
+      unbekannt
+    );
+    Drosselorgan_Oeffnung_Ist: Lichte_Hoehe;  !! Folgende Werte sind anzugeben: Leapingwehr: Schrägdistanz der Blech- resp. Bodenöffnung. Drosselstrecke: keine zusätzlichen Angaben. Schieber / Schütz: lichte Höhe der Öffnung (ab Sohle bis UK Schieberplatte, tiefster Punkt). Abflussregulator: keine zusätzlichen Angaben. Pumpe: zusätzlich in Stammkarte Pumpwerk erfassen
+    Drosselorgan_Oeffnung_Ist_optimiert: Lichte_Hoehe;  !! Folgende Werte sind anzugeben: Leapingwehr: Schrägdistanz der Blech- resp. Bodenöffnung. Drosselstrecke: keine zusätzlichen Angaben. Schieber / Schütz: lichte Höhe der Öffnung (ab Sohle bis UK Schieberplatte, tiefster Punkt). Abflussregulator: keine zusätzlichen Angaben. Pumpe: zusätzlich in Stammkarte Pumpwerk erfassen
+    Feststoffrueckhalt_Anspringkote: Base_LV95.Hoehe;  !! Anspringkote Feststoffrückhalt in m.ü.M.
+    Feststoffrueckhalt_Art: (          !! Art des Feststoffrückhaltes
+      andere,
+      Feinrechen,  !! auch Siebrechen genannt
+      Grobrechen,  !! Stababstand > 10mm
+      Sieb,  !! Lochblech
+      Tauchwand,
+      unbekannt
+    );
+    Feststoffrueckhalt_Dimensionierungswert: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Wassermenge, Dimensionierungswert
+    Foerderaggregat_Bauart: (          !! Pumpenarten
+      andere,
+      Druckluftanlage,
+      Kolbenpumpe,
+      Kreiselpumpe,
+      Schneckenpumpe,
+      unbekannt,
+      Vakuumanlage
+    );
+    Foerderaggregat_FoerderstromMax_einzeln: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Maximaler Förderstrom der Pumpe (einzeln). Tritt in der Regel bei der minimalen Förderhöhe ein.
+    Foerderaggregat_FoerderstromMin_einzeln: 0.000 .. 100000.000 [SIA405_Base_LV95.ls];  !! Minimaler Förderstrom der Pumpe (einzeln). Tritt in der Regel bei der maximalen Förderhöhe ein.
+    Messgeraet_Art: (          !! Typ des Messgeräts
+      andere,
+      Drucksonde,
+      Lufteinperlung,
+      MID_teilgefuellt,  !! Magnetisch-induktives Durchflussmesssgerät für teilgefüllte Rohre
+      MID_vollgefuellt,  !! Magnetisch-induktives Durchflussmesssgerät für vollgefüllte Rohre
+      Radar,
+      Schwimmer,
+      Ultraschall,
+      unbekannt
+    );
+    Messgeraet_Messart: (          !! Art der Messung, z.B zeit- oder mengenproportional
+      andere,
+      Durchfluss,
+      Niveau,
+      unbekannt
+    );
+    Messgeraet_Staukoerper: (          !! Staukoerper der zugehörigen Messstelle
+      andere,
+      keiner,
+      Ueberfallwehr,  !! Alle Formen wie Dreieckwehr etc.
+      unbekannt,
+      Venturieinschnuerung
+    );
+    Messgeraet_Zweck: (          !! Zweck der Messung
+      beides,  !! Kostenverteilung und technischer Zweck
+      Kostenverteilung,
+      technischer_Zweck,  !! In der Regel ist bei Bauwerkskomponenten nur ein technischer Zweck (Regelung) gegeben.
+      unbekannt
+    );
+    Notentlastung_Kote: Base_LV95.Hoehe;  !! Sohlenkote Auslauf Notentlastung. Sollte ein Wehr angeordnet sein, ist die Wehrhöhe zu erfassen
+    OBJ_ID_Absperr_Drosselorgan: TEXT*16;  !! OBJ_ID des Absperr_Drosselorgans in der VSA-DSS, nur für Modelltransfers, falls Drosselorgan_Art = Abflussregulator oder Schieber* oder Beckenentleerung_Art = Schieber oder Rueckstausicherung_Art = Stauschild
+    OBJ_ID_Messstelle: TEXT*16;  !! OBJ_ID der zum Messgeraet zugehörigen Messstelle in der VSA-DSS, nur für Modelltransfers
+    OBJ_ID_Ueberlauf: TEXT*16;  !! OBJ_ID des Ueberlaufs in der VSA-DSS, nur für Modelltransfers, falls Drosselorgan_Art  = Leapingwehr oder Pumpe, Beckenentleerung.Art = Pumpe bzw. Rueckstausicherung.Art = Pumpe. Auch ausfüllen für Ueberlauf.Funktion = Notentlastung (zugehöriger Ueberlauf);
+    Rueckstausicherung_Art: (          !! Die Rückstausicherung verhindert den Rückfluss von Wasser aus dem Gewässer in das Abwasser-netz. Das Attribut wird bei demjenigen Sonderbauwerk erfasst, in dem es eingebaut ist. Ist keine Rückstausicherung vorhanden, muss diese Bauwerks¬komponente leer gelassen werden.
+      andere,
+      Pumpe,
+      Rueckstauklappe,
+      Stauschild
+    );
+    Ueberlauf_HydrUeberfalllaenge: 0.00 .. 30000.00 [m];  !! Hydraulisch wirksame Wehrlänge (nur bei Streichwehren anzugeben). Es ist die wirksame Wehrlänge anzugeben. Bei zweiseitigem Überfall sind zwei Überläufe zu erfassen.
+    Ueberlauf_KoteMax: Base_LV95.Hoehe;  !! Kote des höchsten Punktes der Überfallkante (nur bei Streichwehren zu erfassen). Bei horizontalen Überfallkanten sind die Werte von KoteMin und Kote Max identisch
+    Ueberlauf_KoteMin: Base_LV95.Hoehe;  !! Kote des tiefsten Punktes der Überfallkante (nur bei Streichwehren zu erfassen).
+END Bauwerkskomponente;
+
+ASSOCIATION Bauwerkskomponente_StammkarteAssoc =    !! Assoziation
+  StammkarteRef  -- {1} SK; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Bauwerkskomponente_StammkarteAssocRef -- {0..*} Bauwerkskomponente; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Bauwerkskomponente_StammkarteAssoc;
+
+ASSOCIATION Bauwerkskomponente_UeberlaufnachAssoc =    !! Assoziation
+  UeberlaufnachRef  -- {0..1} Knoten; !! Rolle1 - Klasse1 / Rôle1 - Classe1
+  Bauwerkskomponente_UeberlaufnachAssocRef -- {0..*} Bauwerkskomponente; !! , Rolle2 - Klasse2 / Rôle2 - Classe2
+END Bauwerkskomponente_UeberlaufnachAssoc;
+
+
+END VSADSSMini;   !! Ende des Topics / Fin du topic
+END VSADSSMINI_2015_LV95.   !! Ende des Models / Fin du modèle
+
+

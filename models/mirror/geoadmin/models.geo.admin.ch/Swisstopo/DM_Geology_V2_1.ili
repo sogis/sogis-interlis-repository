@@ -1,0 +1,920 @@
+INTERLIS 2.3;
+/** DATA MODEL GEOLOGY - DATENMODELL GEOLOGIE - MODÈLE DE DONNÉES GÉOLOGIQUES - MODELLO DI DATI GEOLOGICI
+* minimal geodata model, topic: GEOLOGY, provider: swisstopo / SWISS GEOLOGICAL SURVEY
+*/
+
+!! Version    | Who   | Modification
+!!-------------------------------------------------------------------------------------------
+!! 2015-05-27 | KOGIS | TOPIC-Dependencies for all topics added
+!! 2019-12-10 | KOGIS | CLASS Bedrock_PLG is not abstract
+
+!!@ Contact = info@swisstopo.ch
+!!@ IDGeoIV = "46.1,46.2,46.4,46.5,46.9"
+CONTRACTED MODEL DM_Geology_V2_1 (en) AT "http://models.geo.admin.ch/Swisstopo/" VERSION "2019-12-10"  =
+  IMPORTS GeometryCHLV95_V1,GeologyModelLookUp_V2_1,Units;
+
+/**Modelling of Data Model Geology (DM_Geology_V2_1) is based on base modules of the Confederation for «minimal geodata models» CHBase.
+The possible values of the object catalogue are modelled in separate, multilingual catalogues (GeologyModelLookUp_V2_1.xml) according CHBase.
+The linkage between the catalogues and the data model is given by reference structures in the separate model GeologyModelLookUp_V2_1.
+The values in the catalogues are not final in respect of technical modelling aspects. This means more values can be added without any problems.
+Therefore updates will be possible and necessary once in a while. Data Model Geology is intended to continuously evolve into the future.*/
+/**Die Modellierung des Datenmodells Geologie (DM_Geology_V2_1) basiert auf den Basismodulen des Bundes für «minimale Geodatenmodelle» CHBase.
+Die möglichen Werte des Objektkatalogs werden nach Vorlage von CHBase in separaten, mehrsprachigen XML-Katalogen (GeologyModelLookUp_V2_1.xml) modelliert.
+Die Verbindung zwischen den Katalogen und dem Datenmodell ist durch die Referenzstrukturen im separaten Modell GeologyModelLookUp_V2_1 gegeben.
+Die Werte in den Katalogen sind nach Modellierungstechnischem Aspekt nicht abschliessend. Das heisst, das Hinzufügen weiterer Werte ist unproblematisch.
+Denn Aktualisierungen sind von Zeit zu Zeit nötig und auch möglich. Das Datenmodell Geologie soll sich weiter entwickeln können.*/
+/**La modélisation du Modèle de données géologiques (DM_Geology_V2_1) se base sur le Module de base de la Confédération pour les «modèles de géodonnées minimaux» CHBase.
+Les possibles valeurs du catalogue des objets sont modélisées selon les recommendations du Module de base de la Confédération «CHBase» en tant qu’objets du catalogue dans un catalogue (GeologyModelLookUp_V2_1.xml) multilingue séparé.
+Le lien entre le catalogue et le modèle de données est défini par la structure de référence du modèle particulier GeologyModelLookUp_V2_1.
+Les tables dans les catalogues ne sont pas fermeés du point de vue de leur technique de modélisation. Cela signifie que l’insertion de nouvelles valeurs ne pose aucun problème.
+Cependant, cela rend possible les mises à jour périodiques nécessaires. Le Modèle de données géologiques sera ainsi amené à se développer encore à l’avenir.*/
+
+  DOMAIN
+    /**minimal overlaps only (1mm)*/
+    SurfaceWithMinimalOverlaps = SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+    /**minimal overlaps only (1mm)*/
+    DLineWithMinimalOverlaps = DIRECTED POLYLINE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  /**Structure for the general attributs*/
+  STRUCTURE Metadata =
+    /**Basis: Name of the geological map; number of the map; scale; topographical basis; authors; data author*/
+    Basis : MANDATORY TEXT*254;
+    /**Basis date: Timespan of data collection, year of publication of the map*/
+    Basis_Date : MANDATORY TEXT*254;
+    /**Update: Date of the first survey of the vector data; date of update of the vector data*/
+    Up_Date : MANDATORY TEXT*254;
+    /**More information: Explanatory notes, reports etc.; year of publication; link to further informations of the specific department*/
+    More_Info : MTEXT*254;
+    /**Symbol: Symbol key for the portrayal of the object types*/
+    Symbol : 0 .. 99999;
+  END Metadata;
+
+  /**Structure for the duration of something e.g. Measurement Period*/
+  STRUCTURE Duration =
+    FromYear : MANDATORY 1900 .. 2200 [INTERLIS.Y];
+    FromMonth : 1..12 [INTERLIS.M];
+    FromDay : 1..31 [INTERLIS.d];
+    ToYear : MANDATORY 1900 .. 2200 [INTERLIS.Y];
+    ToMonth : 1..12 [INTERLIS.M];
+    ToDay : 1..31 [INTERLIS.d];
+  END Duration;
+
+  TOPIC Rock_Bodies =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues,GeologyModelLookUp_V2_1.Geology_CatalogueTrees;
+
+    CLASS Unconsolidated_Deposits_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc101;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc102;
+      /**Rock Type: Rock type (crystalline rock / sedimentary rock)*/
+      Rock_Typ : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc103;
+      /**Rock Specification: Name of the indicator rock*/
+      Rock_Spe : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc104;
+      /**Material Type: Designation of the material (lithologic unit)*/
+      Mat_Type : GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Original Description: Original description according to the legend of the corresponding geological map*/
+      Orig_Descr : MTEXT*254;
+      /**Protected geological object (yes/no)?*/
+      Protected : BOOLEAN;
+    END Unconsolidated_Deposits_PT;
+
+    CLASS Lithostratigraphic_Units (ABSTRACT) =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Lithostratigraphic unit*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+      /**Chronostratigraphic Attribution at the Top: Chronostratigraphic attribution of the upper limit of a mapping unit (Top)*/
+      Chrono_T : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vchr401;
+      /**Chronostratigraphic Attribution at the Bottom: Chronostratigraphic attribution of the lower limit of a mapping unit (Basis)*/
+      Chrono_B : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vchr401;
+      /**Original Description: Original description according to the legend of the corresponding geological map*/
+      Orig_Descr : MANDATORY MTEXT*500;
+    END Lithostratigraphic_Units;
+
+    CLASS Unconsolidated_Deposits_PLG
+    EXTENDS Lithostratigraphic_Units =
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Lithologic Description*/
+      Litho : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Material Type: Designation of the material (lithologic unit)*/
+      Mat_Type : BAG {0..3} OF GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Buried Outcrop: Were the unconsolidated deposits re-buried (yes/no)?*/
+      Buried_Out : MANDATORY BOOLEAN;
+      /**Composition: Composition of the unconsolidated deposits*/
+      Composit : BAG {0..3} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc308;
+      /**Admixture: Constituent*/
+      Admixtur : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc309;
+      /**Structure: Sediment structure*/
+      Structur : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc310;
+      /**Characteristic: Specific property*/
+      Charact : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc311;
+      /**Morphology: Morphology of the unit of unconsolidated deposits*/
+      Morpholo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc312;
+      /**Glacier Type: Type of glacier; attribute only for tills*/
+      Glac_Typ : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc313;
+      /**Reference Year: Time or time period: e.g. «1940-1943»*/
+      Ref_Year : TEXT*254;
+      /**Thin Cover: Cover of unconsolidated deposits*/
+      Thin_Cov : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Runc315;
+    END Unconsolidated_Deposits_PLG;
+
+    STRUCTURE Sedimentary_Rocks =
+      /**Lithologic Description*/
+      Litho : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Main Component: Main rock component of a clastic sedimentary rock*/
+      Main_Com : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed311;
+      /**Secondary Component: Secondary rock component of the sedimentary rock*/
+      Seco_Com : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed312;
+      /**Bonding Material: Bonding material of the sedimentary rock*/
+      Bond_Mat : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed313;
+      /**Bedding: Bedding of the sedimentary rock*/
+      Bedding : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed314;
+      /**Sedimentary Structure: Structure of the sedimentary rock*/
+      Sedi_Str : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed315;
+      /**Sedimentary Texture: Texture of the sedimentary rock*/
+      Sedi_Tex : BAG {0..2} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed316;
+    END Sedimentary_Rocks;
+
+    STRUCTURE Igneous_Rocks =
+      /**Lithologic Description*/
+      Litho : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Igneous Texture: Texture of the igneous rock*/
+      Igne_Tex : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed317;
+      /**Grain Size: Grain size of the igneous rock*/
+      Grain_Si : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed318;
+      /**Affinity: Chemical affinity of a magmatic series*/
+      Affinity : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed319;
+    END Igneous_Rocks;
+
+    STRUCTURE Metamorphic_Rocks =
+      /**Lithologic Description*/
+      Litho : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Full Name: Name of the metamorphic rock*/
+      Full_Name : MTEXT*500;
+      /**Mineral: Important mineral composition of the metamorphic rock*/
+      Mineral : BAG {0..3} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed322;
+      /**Metamorphic Structure: Structure of the metamorphic rock*/
+      Meta_Str : BAG {0..3} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed325;
+    END Metamorphic_Rocks;
+
+    CLASS Bedrock_PLG
+    EXTENDS Lithostratigraphic_Units =
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Tectonic Attribution: Tectonic affiliation*/
+      Tecto : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vtec400;
+      /**Formation Homogeneity: Lithological setup*/
+      Fm_Homog : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Rbed302;
+      /**Sedimentary Rocks: link to the structure Sedimentary_Rocks*/
+      Sedi_Rock : BAG {0..3} OF Sedimentary_Rocks;
+      /**Igneous Rocks: link to the structure Igneous_Rocks*/
+      Igne_Rock : BAG {0..3} OF Igneous_Rocks;
+      /**Metamorphic Rocks: link to the structure Metamorphic_Rocks*/
+      Meta_Rock : BAG {0..3} OF Metamorphic_Rocks;
+      /**Buried Outcrop: Was the bedrock re-buried (yes/no)?*/
+      Buried_Out : MANDATORY BOOLEAN;
+      /**Exotic Element: Is the object type an exotic element; e.g. inclusion, lense, pocket, olistolite (yes/no)?*/
+      Exotic_Ele : MANDATORY BOOLEAN;
+      /**Coulour of Rock: It has to be indicated whether it is the colour of a fraction, of a weathered rock surface etc.; e.g. grey colour of weathered rock surface*/
+      Colour : TEXT*254;
+    /**MANDATORY CONSTRAINT Stratification:
+    bei monolithologisch (Fm_Homog=Rbed302001) muss immer entweder bei Sedi_Rock oder bei Igne_Rock oder bei Meta_Rock ein Wert stehen, aber nie bei mehr als einem der drei.
+    bei polylithologisch (Fm_Homog=Rbed302002 oder Fm_Homog=Rbed302003) soll nur eines der dreien (Sedi_Rock, Igne_Rock oder Meta_Rock) zwei- bis dreimal vorkommen.*/
+    MANDATORY CONSTRAINT
+      Fm_Homog->Reference->GeolCode=="Rbed302001" AND INTERLIS.elementCount(Sedi_Rock)==1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302002" AND INTERLIS.elementCount(Sedi_Rock)>1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302003" AND INTERLIS.elementCount(Sedi_Rock)>1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302001" AND INTERLIS.elementCount(Igne_Rock)==1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302002" AND INTERLIS.elementCount(Igne_Rock)>1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302003" AND INTERLIS.elementCount(Igne_Rock)>1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302001" AND INTERLIS.elementCount(Meta_Rock)==1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302002" AND INTERLIS.elementCount(Meta_Rock)>1
+      OR Fm_Homog->Reference->GeolCode=="Rbed302003" AND INTERLIS.elementCount(Meta_Rock)>1;
+    END Bedrock_PLG;
+
+  END Rock_Bodies;
+
+  TOPIC Geomorphology =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues;
+
+    CLASS Instability_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gins101;
+    END Instability_Structures_PT;
+
+    CLASS Instability_Structures_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gins201;
+    END Instability_Structures_L;
+
+    CLASS Instabilities_within_Unconsolidated_Deposits_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ginu301;
+    END Instabilities_within_Unconsolidated_Deposits_PLG;
+
+    CLASS Instabilities_within_Bedrock_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ginb301;
+      /**Main Phase of Movement*/
+      Main_Mov : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ginb302;
+    END Instabilities_within_Bedrock_PLG;
+
+    CLASS Glacial_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla101;
+    END Glacial_Structures_PT;
+
+    CLASS Glacial_and_Periglacial_Structures_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla201;
+      /**Moraine Morphology: Morphology of a moraine*/
+      Morai_Mo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla202;
+      /**Glacier Type: Type of glacier referred to by the object type*/
+      Glac_Typ : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla203;
+      /**Ice Marginal Position: Position of glacier*/
+      Ice_M_P : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla204;
+      /**Quaternary Stratigraphic Classification: Stratigraphical classification of the moraine ridge within the Quaternary. A more detailed stratigraphical subdivision of the Quaternary will be available in a further version*/
+      Quat_Str : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla205;
+       /**Reference Year: Reference year of older glacier positions*/
+      Ref_Year : 0 .. 3000 [INTERLIS.Y];
+      /**Source: Source of historical records*/
+      Source : MTEXT*254;
+    END Glacial_and_Periglacial_Structures_L;
+
+    CLASS Glacial_Structures_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ggla301;
+    END Glacial_Structures_PLG;
+
+    CLASS Erosional_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gero101;
+    END Erosional_Structures_PT;
+
+    CLASS Erosional_Structures_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gero201;
+    END Erosional_Structures_L;
+
+    CLASS Karstic_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gkar101;
+      /**Ice Cave: Is the cave an ice cave («glacière», this term applies for an exceptional cold cave where ice accumulates because of winter snow or freezing intrusive surface water and where ice will last over the summer period) (yes/no)?*/
+      Ice_Cave : BOOLEAN;
+    END Karstic_Structures_PT;
+
+    CLASS Karstic_Structures_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gkar301;
+    END Karstic_Structures_PLG;
+
+    CLASS Alluvial_and_Lacustrine_Structures_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gall201;
+      /**Age: Age of object type*/
+      Age : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Gall202;
+    END Alluvial_and_Lacustrine_Structures_L;
+
+  END Geomorphology;
+
+  TOPIC Tectonics =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues;
+
+    CLASS Deformation_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef101;
+      /**Azimuth: Direction (azimuth) of the respective point object type measured clockwise in degrees (0° - 359°)*/
+      Azimuth : 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Plunge: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Plunge : -999 .. 90;
+      /**Fold Type: Fold type*/
+      Fold_Typ : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef104;
+      /**Fold Form: Fold form*/
+      Fold_For : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef105;
+      MANDATORY CONSTRAINT Plunge==-999 OR Plunge>=0 AND Plunge<=90;
+    END Deformation_Structures_PT;
+
+    CLASS Deformation_Structures_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef201;
+    END Deformation_Structures_L;
+
+    CLASS Deformation_Structures_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef301;
+      /**Type: Characteristics of the object types*/
+      Type : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef302;
+      /**Genetic Relation: Genetic relation*/
+      Gen_Rela : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Tdef303;
+    END Deformation_Structures_PLG;
+
+    CLASS Tectonic_Boundaries_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec201;
+      /**Fault Movement: Sense of the movement of a fault*/
+      Fault_Mo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec202;
+      /**Vertical Sense of Movement: Movement parallel to the dip of the fault surface*/
+      Verti_Mo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec203;
+      /**Horizontal Sense of Movement: Movement parallel to the strike of the fault or shear zone*/
+      Horiz_Mo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec204;
+      /**Limit of Tectonic Body: Boundary of a tectonic unit such as a nappes, slices or zones etc. (yes/no)?*/
+      Lim_Tect_B : MANDATORY BOOLEAN;
+      /**Status of object type*/
+      Status : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec206;
+      /**Activity of the object type*/
+      Activity : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec207;
+      /**Metamorphic Status: Tectonometamorphic chronology of the object types*/
+      Meta_Sta : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ttec208;
+      /**Specific name of object type*/
+      Name : TEXT*254;
+    END Tectonic_Boundaries_L;
+
+  END Tectonics;
+
+  TOPIC Measurements_Spatial_Orientation =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues;
+
+    CLASS Lithostratigraphic_Unit (ABSTRACT) =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Measured In: Lithostratigraphical unit in which the object type was measured*/
+      Meas_In : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+    END Lithostratigraphic_Unit;
+
+    CLASS Folds_PT
+    EXTENDS Lithostratigraphic_Unit =
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry :  MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mfol101;
+      /**Fold Type: Fold type*/
+      Fold_Typ : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mfol102;
+      /**Fold Form: Fold form*/
+      Fold_For : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mfol103;
+      /**Phase: Phase of deformation*/
+      Phase : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mfol104;
+      /**Phase Reference: Reference for the indication of the deformation phase*/
+      Phase_Ref : TEXT*254;
+      /**Plunge Direction: Plunge direction (azimuth) of the respective point object type (e.g. crest line, fold axis). Value measured clockwise in degree (0°-359°)*/
+      Plunge_Dir : MANDATORY 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Plunge: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Plunge : -999 .. 90;
+      MANDATORY CONSTRAINT Plunge==-999 OR Plunge>=0 AND Plunge<=90;
+    END Folds_PT;
+
+    CLASS Lineation_PT
+    EXTENDS Lithostratigraphic_Unit =
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mlin101;
+      /**Plunge Direction: Plunge direction (azimuth) of the respective point object type. Value measured clockwise in degree (0°-359°)*/
+      Plunge_Dir : MANDATORY 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Plunge: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Plunge : -999 .. 90;
+      MANDATORY CONSTRAINT Plunge==-999 OR Plunge>=0 AND Plunge<=90;
+    END Lineation_PT;
+
+    CLASS Planar_Structures_PT
+    EXTENDS Lithostratigraphic_Unit =
+    /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mpla101;
+      /**Polarity: Spatial position of the object type*/
+      Polarity : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mpla102;
+      /**Phase: Deformation phase*/
+      Phase : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Mpla103;
+      /**Phase Reference: Reference for the indication of the deformation phase*/
+      Phase_Ref : TEXT*254;
+      /**Observed Dip Slope: Dip slope observed (yes/no)?*/
+      Ob_Dip_Slo : BOOLEAN;
+      /**Dip Direction: Dip direction (azimuth) of the respective point object type (e.g. orientation of the bedding or fracture). Value measured clockwise in degree (0°-359°)*/
+      Dip_Direct : MANDATORY 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Dip: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Dip : MANDATORY 0 .. 90;
+    END Planar_Structures_PT;
+
+  END Measurements_Spatial_Orientation;
+
+  TOPIC Local_Additional_Information =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues,GeologyModelLookUp_V2_1.Geology_CatalogueTrees;
+
+    CLASS Lithostratigraphic_Unit (ABSTRACT) =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Found In: Lithostratigraphic unit in which the object type was found / Lithostratigraphic unit to which belongs the object type listed in Kind*/
+      Found_In : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+    END Lithostratigraphic_Unit;
+
+    CLASS Anomalies_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lano101;
+      /**Type: Characteristic of the object type*/
+      Type : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lano102;
+    END Anomalies_PT;
+
+    CLASS Fossils_PT
+    EXTENDS Lithostratigraphic_Unit =
+    /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lfos101;
+      /**Division: Category of fossils to which an object can be attributed*/
+      Division : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lfos102;
+      /**System: Fossil group*/
+      System : BAG {0..5} OF GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lfos103;
+      /**Dating method*/
+      Dat_Meth : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lfos104;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lfos105;
+      /**Protected: Protected fossil site (yes/no)?*/
+      Protected : BOOLEAN;
+    END Fossils_PT;
+
+    CLASS Indication_of_Resources_PT =
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lres101;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lres102;
+      /**Material: Material that is in relationship with the object type*/
+      Material : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lres103;
+      /**Chemistry: Chemical component(s) that characterise the nature of the object type*/
+      Chemistry : TEXT*254;
+    END Indication_of_Resources_PT;
+
+    CLASS Mineralised_Zone_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lres201;
+      /**Chemistry: Chemical component(s) that characterise the nature of the object type*/
+      Chemistry : TEXT*254;
+    END Mineralised_Zone_L;
+
+    CLASS Sedimentary_Structures_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lsed101;
+      /**Orientation of the symbol*/
+      Orient : 0 .. 359 CIRCULAR [Units.Angle_Degree];
+    END Sedimentary_Structures_PT;
+
+    CLASS Type_Localities_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ltyp101;
+      /**Stratigraphic Classification: Lithostratigraphic add-on to the object type*/
+      Strati : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Ltyp102;
+      /**Name: Name of the type locality / Description of the geologically important outcrop*/
+      Name : TEXT*254;
+      /**Accessibility: Is the object type accessible at the moment of the mapping (yes/no)?*/
+      Accessibil : BOOLEAN;
+      /**Protected: Protected geological object (yes/no)?*/
+      Protected : BOOLEAN;
+    END Type_Localities_PT;
+
+    CLASS Prominent_Lithological_Features_L
+    EXTENDS Lithostratigraphic_Unit =
+    /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Lithologic description*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit400;
+      /**Conglomerate Specification: Description of the conglomerates according to their clast spectrum*/
+      Cong_Spe : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lpro202;
+      /**Name of the Geological Marker Horizon: Name of the bentonite marker horizon*/
+      Name_Horiz : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lpro203;
+      /**Original description according to the legend of the corresponding geological map*/
+      Orig_Descr : MTEXT*254;
+    END Prominent_Lithological_Features_L;
+
+    CLASS Miscellaneous_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Object type and description of it*/
+      Kind : MANDATORY TEXT*254;
+    END Miscellaneous_PT;
+
+    CLASS Geological_Outlines_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lgeo201;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Lgeo202;
+    END Geological_Outlines_L;
+
+  END Local_Additional_Information;
+
+  TOPIC Parameter_and_Modelling =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues;
+
+    CLASS Lithostratigraphic_Unit (ABSTRACT) =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Formation: Lithostratigraphic unit of the modelled formation*/
+      Formatio : GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+    END Lithostratigraphic_Unit;
+
+    CLASS Slope_Bedrock_PT
+    EXTENDS Lithostratigraphic_Unit =
+    /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pslo101;
+      /**Type: Reference surface*/
+      Type : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pslo102;
+      /**Dip Direction: Dip direction (azimuth) of the respective point object type. Value measured clockwise in degree (0°-359°)*/
+      Dip_Direct : MANDATORY 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Dip: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Dip : -999 .. 90;
+      MANDATORY CONSTRAINT Dip==-999 OR Dip>=0 AND Dip<=90;
+    END Slope_Bedrock_PT;
+
+    CLASS Contour_Lines_Bedrock_L
+    EXTENDS Lithostratigraphic_Unit =
+    /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pcob201;
+      /**Type: Reference surface*/
+      Type : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pcob202;
+      /**Altitude: Elevation of contour lines (altitude in m a.s.l.)*/
+      Altitude : MANDATORY -5000.00 .. 5000.00 [INTERLIS.m];
+    END Contour_Lines_Bedrock_L;
+
+    CLASS Modelled_Water_Table_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pmod101;
+      /**Dip Direction: Dip direction (azimuth) of the respective point object type. Value measured clockwise in degree (0°-359°)*/
+      Dip_Direct : MANDATORY 0 .. 359 CIRCULAR [Units.Angle_Degree];
+      /**Dip: Inclination of the respective point object type. Value measured in degrees from the horizontal (0°) up to the vertical position (90°)*/
+      Dip : -999 .. 90;
+      /**Height: Elevation of the groundwater table (altitude in m a.s.l.)*/
+      Height : -2000.00 .. 4000.00 [INTERLIS.m];
+      /**Measurement Period: Measurement period*/
+      Mea_Period : Duration;
+      MANDATORY CONSTRAINT Dip==-999 OR Dip>=0 AND Dip<=90;
+    END Modelled_Water_Table_PT;
+
+    CLASS Contour_Lines_Hydro_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pcoh201;
+      /**Confinement: Pressure conditions in the aquifer*/
+      Confine : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pcoh202;
+      /**Altitude: Elevation of contour lines (altitude in m a.s.l.)*/
+      Altitude : MANDATORY -5000 .. 5000 [INTERLIS.m];
+      /**Water Table: Groundwater table*/
+      Wa_Table : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Pcoh204;
+    END Contour_Lines_Hydro_L;
+
+  END Parameter_and_Modelling;
+
+  TOPIC Anthropogenic_Features =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues,GeologyModelLookUp_V2_1.Geology_CatalogueTrees;
+
+    CLASS Archaeology_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc101;
+      /**Epoch: Archaeological epoch of the object type*/
+      Epoch : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc102;
+      /**Period: Archaeological period of the object type*/
+      Period : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc103;
+      /**Age: Archaeological age of the object type*/
+      Age : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc104;
+      /**Type: Type of Megalith*/
+      Type : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc105;
+    END Archaeology_PT;
+
+    CLASS Archaeology_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc201;
+      /**Epoch: Archaeological epoch of the object type*/
+      Epoch : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc202;
+      /**Period: Archaeological period of the object type*/
+      Period : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc203;
+      /**Age: Archaeological age of the object type*/
+      Age : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc204;
+    END Archaeology_L;
+
+    CLASS Archaeology_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc301;
+      /**Epoch: Archaeological epoch of the object type*/
+      Epoch : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc302;
+      /**Period: Archaeological period of the object type*/
+      Period : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc303;
+      /**Age: Archaeological age of the object type*/
+      Age : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aarc304;
+    END Archaeology_PLG;
+
+    CLASS Exploitation_Geomaterials_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp101;
+      /**Exploited Lithostratigraphic Unit: Mined lithostratigraphic unit*/
+      Exp_Unit :  BAG {0..*} OF GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+      /**Status: State of mining*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp103;
+      /**Depth Total: Total depth (m below ground level) of the object type*/
+      Depth_Tot : 0.00 .. 10000.00 [INTERLIS.m];
+      /**Target Material: Mined material*/
+      Targ_Mat : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp105;
+    END Exploitation_Geomaterials_PT;
+
+    CLASS Exploitation_Geomaterials_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp201;
+      /**Status: State of mining*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp202;
+    END Exploitation_Geomaterials_L;
+
+    CLASS Exploitation_Geomaterials_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+       /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp301;
+      /**Status: State of mining*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp302;
+      /**Exploited Lithostratigraphic Unit: Mined lithostratigraphic unit*/
+      Exp_Unit : BAG {1..*} OF GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+      /**Target Material: Mined material*/
+      Targ_Mat : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aexp304;
+    END Exploitation_Geomaterials_PLG;
+
+    CLASS Boreholes_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Abor101;
+      /**Drill Mode: Type of drilling*/
+      Drill_Mo : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Abor102;
+      /**Depth Bedrock: Depth (m below ground level) of the bedrock. (If the drilling does not reach the bedrock the value is -999; in the case of a drilling that starts in the bedrock, the value is 0)*/
+      Depth_Bedr : 0.00 .. 2000.00 [INTERLIS.m];
+      /**Drill Collar Underground: Drilling site below ground level (yes/no)?*/
+      D_C_Underg : MANDATORY BOOLEAN;
+      /**Main Terget: Intention of the drilling*/
+      Main_Tar : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Abor105;
+      /**Target Material: Material recovered from the drilling*/
+      Targ_Mat : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Abor106;
+      /**Depth Total: Final depth (m below ground level) of the object type*/
+      Depth_Tot : 0.00 .. 10000.00 [INTERLIS.m];
+      /**Formation A: Lithostratigraphic unit of the formation A reached*/
+      Fm_A : GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+      /**Depth to Formation A: Depth (m below ground level) of the formation A reached*/
+      Depth_Fm_A : 0.00 .. 9999.00 [INTERLIS.m];
+      /**Formation B: Lithostratigraphic unit of the formation B reached*/
+      Fm_B : GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vlit500;
+      /**Depth to Formation B: Depth (m below ground level) of the formation B reached*/
+      Depth_Fm_B : 0.00 .. 9999.00 [INTERLIS.m];
+      /**Depth to Water Table: Depth (m below ground level) of the groundwater table*/
+      Depth_WT : 0.00 .. 999.00 [INTERLIS.m];
+      /**Plunge Direction: Plunge direction (azimuth) of the respective point object type. Value measured clockwise in degree (0°-359°)*/
+      Plunge_Dir : 0 .. 359 CIRCULAR;
+      /**Plunge: Inclination of the respective type of point spatial object. Value are measured in degrees from horizontal (0°) to vertical position (90°), or up to the top into the vertical position (-90°)*/
+      Plunge : -999 .. 90;
+      /**Reference Number: Reference number of the object type in an additional document (explanatory notes, etc.)*/
+      Ref_Number : 0 .. 9999;
+      /**Link: Object number in the INFOGEOL data base*/
+      Link : 0 .. 9999999;
+      MANDATORY CONSTRAINT Plunge==-999 OR Plunge>=-90 AND Plunge<=90;
+     END Boreholes_PT;
+
+    CLASS Artificial_Surface_Modifications_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Aart301;
+     END Artificial_Surface_Modifications_PLG;
+
+  END Anthropogenic_Features;
+
+  TOPIC Hydrogeology =
+    DEPENDS ON GeologyModelLookUp_V2_1.Geology_Catalogues,GeologyModelLookUp_V2_1.Geology_CatalogueTrees;
+
+    CLASS Construction_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hcon101;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hcon102;
+      /**Epoch. Epoch of the construction of the object type*/
+      Epoch : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hcon103;
+      /**Depth: Depth of the object type (m below ground level)*/
+      Depth : 0.00 .. 999.00 [INTERLIS.m];
+      /**Depth to Water Table: Depth (m below ground level) of the groundwater table (mean value)*/
+      Depth_WT : 0.00 .. 999.00 [INTERLIS.m];
+      /**Measurement Period: Measuring period of the groundwater table*/
+      Mea_Period : Duration;
+    END Construction_PT;
+
+    CLASS Construction_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hcon201;
+      /**Combination: Object type of another class that can be combined with an object type of this class*/
+      Combi : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hcon202;
+    END Construction_L;
+
+    CLASS Palaeohydrology_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hpal201;
+      /**Relative Age: Relative age of object type*/
+      Rel_Age : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hpal202;
+      /**Chronostratigraphic Attribution: Chronostratigraphic classification*/
+      Chrono : GeologyModelLookUp_V2_1.Geology_CatalogueTrees.Ref_Vchr401;
+      /**Reference Year: Reference year of a former shore line*/
+      Ref_Year : 0 .. 3000;
+      /**Source: Data origin of historic documents*/
+      Source : MTEXT*254;
+     END Palaeohydrology_L;
+
+    CLASS Subsurface_Water_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsub201;
+      /**Combination: Object type of another class that can be combined with an object type of this class*/
+      Combi : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsub202;
+    END Subsurface_Water_L;
+
+    CLASS Surface_Water_PT =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY GeometryCHLV95_V1.Coord2;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur101;
+      /**Status of object type*/
+      Status : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur102;
+      /**Flow Continuity: Flow conditions of the water*/
+      Flow_Con : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur103;
+      /**Type: Characteristic of the object type*/
+      Type : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur104;
+      /**Discharge Location: Location of the water outflow*/
+      Dis_Loca : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur105;
+      /**Combination: Object type of another class that can be combined with an object type of this class*/
+      Combi : GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur106;
+      /**Temperature: Average water temperature (°C)*/
+      Temp : -4 .. 99 [Units.oC];
+      /**Chemistry: Characteristic chemical element in the mineral water (e.g. Fe)*/
+      Chemistry : TEXT*254;
+      /**Azimuth: Azimuth of the respective point object type. Value measured clockwise in degree (0°-359°)*/
+      Azimuth : 0 .. 359 CIRCULAR [Units.Angle_Degree];
+    END Surface_Water_PT;
+
+    CLASS Surface_Water_L =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY DLineWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur201;
+    END Surface_Water_L;
+
+    CLASS Surface_Water_PLG =
+      /**Link to the Structure Metadata*/
+      Metadata : MANDATORY Metadata;
+      /**Geometry: Geometry of the corresponding object type*/
+      Geometry : MANDATORY SurfaceWithMinimalOverlaps;
+      /**Objekt type*/
+      Kind : MANDATORY GeologyModelLookUp_V2_1.Geology_Catalogues.Ref_Hsur301;
+    END Surface_Water_PLG;
+
+  END Hydrogeology;
+
+END DM_Geology_V2_1.

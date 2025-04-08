@@ -1,0 +1,601 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:isos@bak.admin.ch
+!!@ furtherInformation=https://www.bak.admin.ch/isos
+!!@ IDGeoIV=25.1
+MODEL ISOS_V2 (de)
+AT "https://models.geo.admin.ch/BAK/"
+VERSION "2021-02-25"  =
+  IMPORTS Units,CHAdminCodes_V1,LocalisationCH_V1,GeometryCHLV95_V1,CatalogueObjects_V1;
+
+  DOMAIN
+
+    /** Winkel, wird verwendet für die Aufnahmerichtung der Fotos.
+     * Von Norden (0) im Uhrzeigersinn über Osten (90), Süden (180) und Westen (270).
+     */
+    Winkel = 0.00000 .. 360.00000 CIRCULAR [Units.Angle_Degree];
+
+    /** Siedlungskategorie des Ortsbildes
+     */
+    SiedKat =(
+      stadt,
+      kleinstadt_flecken,
+      verstaedtertes_dorf,
+      dorf,
+      weiler,
+      spezialfall);
+
+    /** Qualitäten von Ortsbildern sowie Ortsbildteilen, mit alter und neuer Notation.
+     * Da "/" in ili nicht erlaubt ist, wird mit kleinem "x" ersetzt.
+     * Werden benutzt um Objekte in ihren Lagequalitäten, räumlichen Qualitäten sowie architekturhistorischen Qualitäten zu klassieren.
+     */
+    Qualitaet = (
+      Q4,
+      Q3,
+      Q2,
+      Q1,
+      Q0,
+      x,
+      X,
+      Xx,
+      XX,
+      XXx,
+      XXX,
+      na);
+
+    /** Zusatzliche Qualitäten von Ortsbildern , mit alter und neuer Notation.
+     * Historische
+     * Archäologische
+     * Volkskundliche
+     */
+    ZusQual = (
+      h,
+      a,
+      v);
+
+    /** Prädikat: Beziehung Hinweis - OrtsbildOrtsbildteil
+     */
+    HinPraed = (
+      differenziert,
+      praegt,
+      beeintraechtigt);
+
+    /** Staatsebene der Schutzmassnahme
+     */
+    Staatsebene = (
+      gemeinde,
+      kanton,
+      bund,
+      international);
+
+    /** Ziel (Erhaltung, ...)
+     */
+    Ziel = (
+      A,
+      B,
+      C,
+      K);
+
+    /** Bildtyp
+     */
+    BildTyp = (
+      Inv,
+      FlugbildOB,
+      FotoOBT,
+      FotoOBTH,
+      KarteSiegfried,
+      KarteLand,
+      KarteDufour,
+      Karte1,
+      Karte2,
+      Karte3);
+
+
+  TOPIC ISOSCatalogues
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** Externe Liste Siedlungskategorie von Ortsbildern
+     */
+    CLASS SiedKatListe=
+      Code : MANDATORY SiedKat;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END SiedKatListe;
+
+    /** Qualitäten von Ortsbildern sowie Ortsbildteilen, mit alter und neuer Notation.
+     * Werden benutzt um Objekte in ihren Lagequalitäten, räumlichen Qualitäten sowie architekturhistorischen Qualitäten zu klassieren.
+     */
+    CLASS QualitListe=
+      Code : MANDATORY Qualitaet;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END QualitListe;
+
+    /** Externe Liste von Zusätzliche Qualitäten
+     */
+    CLASS ZusQualListe =
+      Code : MANDATORY ZusQual;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ZusQualListe;
+
+    /** Zusätzliche Qualitäten
+     */
+    STRUCTURE ZusQual_=
+      value: MANDATORY ZusQual;
+    END ZusQual_;
+
+    /** Typ des Hinweises
+     */
+    CLASS HinTyp 
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY TEXT*100;
+      HinTyp : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HinTyp;
+
+    STRUCTURE HinTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HinTyp;
+    END HinTypRef;
+
+    /** Das Prädikat für einen Hinweis gibt Auskunft darüber, warum ein Hinweis
+     * als solcher eingestuft wird.
+     */
+    CLASS HinPraedListe =
+      Code : MANDATORY HinPraed;
+      Definition: MANDATORY LocalisationCH_V1.MultilingualText;
+    END HinPraedListe;
+
+    /** Staatsebene :
+     * Gemeinde,
+     * Kanton,
+     * Bund,
+     * International
+     */
+    CLASS StaatsebeneListe=
+      Staatsebene : MANDATORY Staatsebene;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END StaatsebeneListe;
+
+    /** Ziel (Erhaltung...)
+     * C,
+     * B,
+     * A,
+     * K (Keines / Sensibler Bereich)
+     */
+    CLASS ZielListe =
+      Ziel : MANDATORY Ziel;
+      Definition : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ZielListe;
+
+    /** BildTyp bspweise
+     * FlugbildOB
+     * FotoOBT
+    */
+    CLASS BildtypListe
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code : MANDATORY BildTyp;
+      Bildtyp : MANDATORY LocalisationCH_V1.MultilingualText;
+    END BildtypListe;
+
+  END ISOSCatalogues;
+
+  /** Die alten ISOS-Dateien bis Anfang 2020
+   * wurden in ISOSBase migriert
+   */
+  TOPIC ISOSBase =
+    DEPENDS ON ISOS_V2.ISOSCatalogues;
+
+    /** Sprachcodes für die Erfassungssprache des jeweiligen Ortsbildes
+     */
+    STRUCTURE SprachCode =
+      Sprache : MANDATORY (
+        de,
+        fr,
+        it,
+        rm
+      );
+    END SprachCode;
+
+    /** Kanton
+     */
+    STRUCTURE Kanton =
+      code : MANDATORY CHAdminCodes_V1.CHCantonCode;
+    END Kanton;
+
+    /** Die Gemeinden, zu denen ein Ortsbild gehören kann.
+     * Wird hier als Text abgelegt, damit ein beliebiger Gemeindename, der zum
+     * Zeitpunkt der Inkraftsetzung existiert, gesetzt werden kann.
+     */
+    STRUCTURE Gemeinde =
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Gemeinde;
+
+    /** Die Regionen, zu denen ein Ortsbild gehören kann.
+     * Wird hier als Text abgelegt, damit ein beliebiger Regionsname, der zum
+     * Zeitpunkt der Inkraftsetzung existiert, gesetzt werden kann.
+     */
+    STRUCTURE Region =
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Region;
+
+    /** Der Kreis, zu denen ein Ortsbild gehören kann.
+     * Wird hier als Text abgelegt, damit ein beliebiger Kreisname, der zum
+     * Zeitpunkt der Inkraftsetzung existiert, gesetzt werden kann.
+     */
+    STRUCTURE Kreis =
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Kreis;
+
+    /** Der Bezirk, zu denen ein Ortsbild gehören kann.
+     * Wird hier als Text abgelegt, damit ein beliebiger Bezirksname, der zum
+     * Zeitpunkt der Inkraftsetzung existiert, gesetzt werden kann.
+     */
+    STRUCTURE Bezirk =
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Bezirk;
+
+    /** Kombination aus Jahr und Monat (für den Aufnahmezeitpunkt)
+     */
+    STRUCTURE JahrMonat =
+      jahr : MANDATORY INTERLIS.GregorianYear;
+      monat : 1 .. 12;
+    END JahrMonat;
+
+    /** PDF Dokument
+     */
+    STRUCTURE Publikation =
+      uuid : INTERLIS.UUIDOID;
+      name : MANDATORY TEXT*150;
+      jahr : INTERLIS.GregorianYear;
+      band : TEXT*50;
+      sprache : MANDATORY ISOS_V2.ISOSBase.SprachCode;
+      file_url : MANDATORY URI;
+    END Publikation;
+
+    /** Grundstruktur gültig für alle Ortbilder
+     */
+    CLASS Ortsbild =
+      uuid : INTERLIS.UUIDOID;
+      /** ISOS ID
+       */
+      id : MANDATORY 1 .. 1000000;
+      /** Ortsbildname
+       */
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Zentrum des OB
+       */
+      koordinaten : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Kanton(e) wo das Ortsbild liegt
+       */
+      kantone : BAG {1..*} OF ISOS_V2.ISOSBase.Kanton;
+      /** Die Gemeinden in der das Ortsbild liegt
+       */
+      gemeinde : BAG {1..*} OF ISOS_V2.ISOSBase.Gemeinde;
+      /** Der Kreis in dem das Ortsbild liegt
+       */
+      kreis : BAG {0..*} OF ISOS_V2.ISOSBase.Kreis;
+      /** Der Bezirk in dem das Ortsbild liegt
+       */
+      bezirk : BAG {0..*} OF ISOS_V2.ISOSBase.Bezirk;
+      /** Die Region in der das Ortsbild liegt
+       */
+      region : BAG {0..*} OF ISOS_V2.ISOSBase.Region;
+      /** Siedlungskategorie = Vergleichsrastereinheit
+       */
+      siedlungskategorie : MANDATORY SiedKat;
+      /** Räumliche Qualitäten
+       */
+      raeumliche_qualitaeten : MANDATORY Qualitaet;
+      /** Lagequalitäten
+       */
+      lagequalitaeten : MANDATORY Qualitaet;
+      /** Architekturhistorische Qualitäten
+       */
+      arch_hist_qualitaeten : MANDATORY Qualitaet;
+      /** Zusaetzliche Qualitaeten
+       */
+      zusatz_qualitaeten : BAG {0..*} OF ISOS_V2.ISOSCatalogues.ZusQual_;
+      /** Deutsch, Französisch, Italienisch, Rätoromanisch
+       */
+      gesprochene_sprache : BAG {1..*} OF ISOS_V2.ISOSBase.SprachCode;
+      /** pdf und seine Eigenschaften
+       */
+      publikation : BAG {0..*} OF ISOS_V2.ISOSBase.Publikation;
+      /** Erfassungsjahr (und Monat). Jahr ist oblligatorisch, Monat ist Option.
+       */
+      aufnahmezeitpunkt : MANDATORY ISOS_V2.ISOSBase.JahrMonat;
+      /** URL des Infofensters
+       */
+      url : MANDATORY URI;
+      UNIQUE id;
+    END Ortsbild;
+
+  END ISOSBase;
+
+  TOPIC ISOS
+  EXTENDS ISOS_V2.ISOSBase =
+    DEPENDS ON ISOS_V2.ISOSCatalogues;
+
+    /** Eine Geometrie von Typ Coord2 */
+    STRUCTURE Geometrie_punkt =
+      punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Geometrie_punkt;
+
+    /** Eine Geometrie von Typ POLYLINE
+     */
+    STRUCTURE Geometrie_linie =
+      linie : MANDATORY POLYLINE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    END Geometrie_linie;
+
+    /** Eine Geometrie von Typ SURFACE
+     */
+    STRUCTURE Geometrie_perimeter =
+      perimeter : MANDATORY SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.1;
+    END Geometrie_perimeter;
+
+    /** Eine Geometrie von beliebigem Typ, wird für Geometriekollektion verwendet
+     */
+    STRUCTURE Geometrie =
+      punkt : ISOS_V2.ISOS.Geometrie_punkt;
+      linie : ISOS_V2.ISOS.Geometrie_linie;
+      perimeter : ISOS_V2.ISOS.Geometrie_perimeter;
+    END Geometrie;
+
+    /** Beliebig viele Geometrien von beliebigem Geometrietyp
+     */
+    STRUCTURE Geometriekollektion =
+      geometrie : BAG {1..*} OF ISOS_V2.ISOS.Geometrie;
+    END Geometriekollektion;
+
+    /** Hinweis ID, z.B. 2.10
+     */
+    STRUCTURE HinweisId =
+      bezeichnung : MANDATORY TEXT*10;
+    END HinweisId;
+
+    STRUCTURE Empfehlung =
+      /** Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      spezifikation : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Empfehlung;
+
+    /** Ein Ortsbild repräsentiert einen Ort und ist als "Ortsbild von nationalem Interesse"
+     * inventarisiert. Die Geometrie eines Ortsbildes setzt sich zusammen aus
+     * allen Geometrien der Ortsbildteile und wäre als solche redundant abgelegt.
+     */
+    CLASS Ortsbild (EXTENDED) =
+      geometrie_perimeter : BAG {1..*} OF ISOS_V2.ISOS.Geometrie_perimeter;
+      /** Begruendung Lagequalitaeten
+       */
+      lagequalitaeten_begr : MANDATORY URI;
+      /** Begruendung Raeumliche Qualitaeten
+       */
+      raeumliche_qualitaeten_begr : MANDATORY URI;
+      /** Begruendung Architekturhistorische Qualitaeten
+       */
+      arch_hist_qualitaeten_begr : MANDATORY URI;
+      /** Porträt inklusive Würdigung
+       * Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      portrait : MANDATORY URI;
+      /** Inklusive Untertitel (<h1>, <h2>)
+       *
+       * Links zu Unterobjekten wie bspw:
+       *
+       * <a href="/ob/1223/doc/txt/Ortsbildteil-1-legende"></a>
+       * oder
+       * <a href="/ob/1223/doc/txt/Hinweis-1.2-beschreibung"></a>
+       * Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      siedlungsentw_zusammenf : MANDATORY URI;
+      siedlungsentwicklung : MANDATORY URI;
+      heutiges_ortsbild : MANDATORY URI;
+      /** Die Empfehlungen
+       */
+      empfehlungen : BAG {1..*} OF ISOS_V2.ISOS.Empfehlung;
+    END Ortsbild;
+
+    CLASS Ortsbildteil =
+      uuid : INTERLIS.UUIDOID;
+      id : MANDATORY 1 .. 1000000;
+      /** Name des Ortsbilteils
+       */
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Perimeter (Polygon) des Ortsbilteils
+       */
+      obt_perimeter : BAG {1..*} OF ISOS_V2.ISOS.Geometrie_perimeter;
+      
+      /** Statt TEXT, Verknupfung zum TEXT auf der ISOS-Webseite
+       */
+      legende : MANDATORY URI;
+      beschreibung : MANDATORY URI;
+      /** Räumliche Qualitäten eines Ortsbildteils
+       */
+      raeumliche_qualitaeten : MANDATORY Qualitaet;
+      /** Begründung der räumlichen Qualitäten
+       * Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      raeumliche_qualitaeten_begr : URI;
+      /** architekturhistorische Qualitäten eines Ortsbildteils
+       */
+      arch_hist_qualitaeten : MANDATORY Qualitaet;
+      /** Begründung der architekturhistorischen Qualitäten
+       * Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      arch_hist_qualitaeten_begr : URI;
+      /** Stellenwert eines Ortsbildteiles (und somit Bedeutung/Wichtigkeit innerhalb) in einem Ortsbild
+       * Statt TEXT, jede Sprache enthält die URL zum TEXT
+       */
+      stellenwert : MANDATORY URI;
+      /** Ziel (Erhaltung, ...)
+       */
+      ziel : MANDATORY Ziel;
+      /**
+       * Erhalten der Substanz.
+       * Wert ist nur gültig bei Ziel A
+       */
+      ziel_a_substanz : BOOLEAN;
+      /**
+       * Erhalten der Beschaffenheit als Kulturland oder Freifläche.
+       * Wert ist nur gültig bei Ziel A
+       */
+      ziel_a_beschaffenheit : BOOLEAN;
+      url : MANDATORY URI;
+      /**
+       * vertikale Reihenfolge für die Pubilikation auf map.geo.admin.ch
+       */
+      stufe : (Prio1,Prio2,Prio3);
+    END Ortsbildteil;
+
+    /** Ein Hinweis gehört zu
+     * - einem Ortsbild
+     * - einem oder mehreren Ortsbildteilen
+     * - Im zweiten Fall gibt es ein zusätzliches Attribut zur Spezifikation von ortsbildteilspezifischen Hinweis-Hinweisen.
+     */
+    CLASS Hinweis =
+      /** "id" ist in ASSOCIATION HinweisOrtsbildteil
+       * Universal Unique Identifier (permalink)
+       */
+      uuid : INTERLIS.UUIDOID;
+      name : MANDATORY LocalisationCH_V1.MultilingualText;
+      url : MANDATORY URI;
+      typ : MANDATORY ISOS_V2.ISOSCatalogues.HinTypRef;
+      beschreibung : MANDATORY URI;
+      praedikat : MANDATORY HinPraed;
+      siehe_auch_hin : BAG {0..*} OF ISOS_V2.ISOS.HinweisId;
+    END Hinweis;
+
+    /** Zusätzlich zur Auflistung im ISOS kann ein Ortsbild natürlich auch noch
+     * durch weitere Schutzmassnahmen geschützt sein (was meistens der Fall ist)
+     * Solche anderen Schutzmassnahmen können auf verschiedenen Staatsebenen
+     * angesiedelt sein.
+     * Staatsebene :
+     * Gemeinde,
+     * Kanton,
+     * Bund,
+     * International
+     */
+    CLASS Schutzmassnahme =
+      staatsebene : MANDATORY Staatsebene;
+      text : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Schutzmassnahme;
+
+    /** Ein Bild gehört
+     * - immer zu einem Ortsbild
+     * - kann zu einem oder mehreren Ortsbildteilen gehören
+     * - kann zu einem oder mehreren Hinweisen gehören
+     */
+    CLASS Bild =
+      uuid : INTERLIS.UUIDOID;
+      id : MANDATORY 1 .. 1000000;
+      /** Universal Unique Identifier (permalink)
+       */
+      url : MANDATORY URI;
+      /** Koordinaten der Aufnahme des Fotos
+       */
+      koordinaten :  GeometryCHLV95_V1.Coord2;
+      /** Koordinaten der Piktogramme auf der Karte
+       */
+      /** 20201110: koordinaten_pikto gelöscht
+      koordinaten_pikto :  GeometryCHLV95_V1.Coord2; */
+      /** Von Norden (0) im Uhrzeigersinn über Osten (90), Süden (180) und Westen (270)
+       */
+      azimut : Winkel;
+      /** Typ des Bildes
+       */
+      bild_typ : BildTyp;
+      /** Name des Files
+       */
+      bild_name_original : TEXT;
+      /** Name wie in der Publikation
+       */
+      bild_name_publikation : TEXT;
+      /** quelle der Aufnahme (nur für Fotos)
+       */
+      quelle : TEXT;
+      /** fotograf der Aufnahme (nur für Fotos)
+       */
+      fotograf : TEXT;
+      /** beschreibung des Bildes
+       */
+      beschreibung : TEXT;
+      /** Über die originalFotonummer kann das Ursprungsbild in der Auswahl
+       * identifiziert werden.
+       *
+       * Im Falle eines Flugbildes wird die Nummer beibehalten von Original zu
+       * Auswahlfoto. Im Falle eines Ortsbildfotos wird die Nummer in den
+       * Auswahlfotos vergeben.
+       */
+      original_fotonummer : 0 .. 1000000;
+      /** Über die publikation fotonummer kann das bild in der aktuellen Publikation
+       * gefunden werden.
+       *
+       * Diese Nummer beginnt in jeder Publikation bei 0
+       */
+      publikation_fotonummer : 0 .. 1000000;
+      /** Datum der Aufnahme (nur für Fotos)
+       */
+      bild_datum : FORMAT INTERLIS.XMLDate "1800-01-01" .. "2200-01-01";
+      /** Copyright des Bildes
+       */
+      copyright : TEXT;
+    END Bild;
+
+    /** Beziehung zwischen übergeordneten und inkorporierten Ortsbildteilen
+     */
+    ASSOCIATION InkorporierteOrtsbildteile =
+      uebergeordneteobt -- {0..1} Ortsbildteil;
+      inkorporierteobt -- {0..*} Ortsbildteil;
+    END InkorporierteOrtsbildteile;
+
+    /** Ein Hinweis gilt für ein oder mehrere (oder alle)
+     * Ortsbildteile von einem bestimmten Ortsbild.
+     * Ein Hinweis ohne Ortsbildteil existiert nicht.
+     */
+    ASSOCIATION HinweisOrtsbildteil =
+      hinweis -- {0..*} Hinweis;
+      ortsbildteil -<> {1..*} Ortsbildteil;
+      /** id z.B. 12.4 ist abhängig von ortsbildteil
+       */
+      id : MANDATORY ISOS_V2.ISOS.HinweisId;
+      geometrie : MANDATORY ISOS_V2.ISOS.Geometriekollektion;
+    END HinweisOrtsbildteil;
+
+    /** Ein Ortsbildteil gehört immer zu genau einem Ortsbild und kann
+     * nicht ohne einen solchen existieren.
+     */
+    ASSOCIATION OrtsbildOrtsbildteil =
+      ortsbild -<#> {1} Ortsbild;
+      ortsbildteil -- {0..*} Ortsbildteil;
+    END OrtsbildOrtsbildteil;
+
+    /** Ein Ortsbild beinhaltet eines oder mehrere Bilder
+     */
+    ASSOCIATION BildOrtsbild =
+      bild -- {0..*} Bild;
+      ortsbild -<> {0..1} Ortsbild;
+    END BildOrtsbild;
+
+    /** Ein Bild gehört zu einem oder mehreren Ortsbildteilen (innerhalb eines Ortsbildes)
+     */
+    ASSOCIATION BildOrtsbildteil =
+      bild -- {0..*} Bild;
+      ortsbildteil -<> {0..*} Ortsbildteil;
+    END BildOrtsbildteil;
+
+    /** Ein Bild gehört zu einem oder mehreren Hinweisen (innerhalb eines Ortsbildes)
+     */
+    ASSOCIATION BildHinweis =
+      bild -- {0..*} Bild;
+      hinweis -<> {0..*} Hinweis;
+    END BildHinweis;
+
+    /** Weitere Schutzmassnahmen (abgesehen von der Aufnahme ins ISOS), die
+     * für dieses Ortsbild bestehen.
+     */
+    ASSOCIATION SchutzmassnahmeOrtsbild =
+      ortsbild -- {1..*} Ortsbild ;
+      schutzmassnahme -- {0..*} Schutzmassnahme;
+    END SchutzmassnahmeOrtsbild;
+
+  END ISOS;
+
+END ISOS_V2.

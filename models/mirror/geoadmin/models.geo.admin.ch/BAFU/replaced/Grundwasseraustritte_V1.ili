@@ -1,0 +1,395 @@
+INTERLIS 2.3;
+
+!!=============================================================================
+!! Eidgenoessisches Departement für Umwelt,
+!! Verkehr, Energie und Kommunikation UVEK
+!! Bundesamt für Umwelt BAFU
+!! Abteilung Wasser
+!! 3003 Bern
+!! www.bafu.admin.ch
+!!
+!! Geobasisdatensatz Nr. 141.1 Grundwasseraustritte, -fassungen und -anreicherungsanlagen
+!! Geobasisdatensatz Nr. 139.2 Inventar über Grundwasservorkommen und Wasserversorgungsanlagen
+!!                             Teil Grundwasseraustritte, -fassungen und -anreicherungsanlagen (seit 1.1.2018 gelöscht, daher in Zeile 22 und 211 unter !!@ IDGeoIV nicht mehr erwähnt)
+!!=============================================================================
+!! Revision History
+!! 2016.11.22    verabschiedete Version
+!! 2018.05.08    BAFU/KOGIS    Korrektur Einheit Liter/min in Zeilen 34,223
+!!=============================================================================
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=141.1
+!!@ author=ig-tg
+
+
+MODEL Grundwasseraustritte_LV03_V1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-05-08"  =
+
+  IMPORTS CHAdminCodes_V1,Units,GeometryCHLV03_V1;
+
+  UNIT
+
+    LiterPerMinute [lmin] = (Units.L / Units.min);
+
+    CubicmeterPerDay [m3day] = (Units.m3 / Units.d);
+
+  DOMAIN
+
+
+    LiterMinute = 0.00 .. 1000000.00 [lmin];
+
+    KubikmeterTag = 0.00 .. 1440000.00 [m3day];
+
+    JaNein = (
+      ja,
+      nein
+    );
+
+    JaNeinUnbestimmt = (
+        ja,
+        nein,
+        unbestimmt
+    );
+
+    IdentifikatorTyp = TEXT*255; !! value = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+
+    CHLine    = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+    CHSurface = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC Grundwasseraustritte =
+
+    !! Domains
+    !!--------
+
+    DOMAIN
+
+      !! Quelle, Fassungsbrunnen, Rueckgabebrunnen
+
+      Nutzungszustand = (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+
+
+    !! Classes
+    !!--------
+
+    CLASS Quelle =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Grundwasserleiter_Typ : (Lockergestein,Kluft,Karst,gemischt,unbestimmt);
+      Quelltyp:  TEXT*500;
+      Fassungsart : MANDATORY (ungefasst,
+                               gefasst(
+                                 direkt,
+                                 Fassungsstrang,
+                                 Fassungsstollen,
+                                 unbestimmt)
+                              );
+      Nutzungszustand : Nutzungszustand;
+      Trinkwasser : JaNein;
+      Zweck : TEXT*500;
+      Notwasserversorgung : JaNeinUnbestimmt;
+      Oeffentliches_Interesse : JaNeinUnbestimmt;
+      Schuettung_minimal: LiterMinute;
+      Schuettung_mittel: LiterMinute;
+      Schuettung_maximal: LiterMinute;
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+
+      !! Bei ungefassten Quellen (Fassungsart=ungefasst) muessen folgende Attribute undefiniert sein:
+      !! Nutzungszustand, Trinkwasser, Zweck, Notwasserversorgung, Oeffentliches_Interesse
+
+      !! Bei gefassten Quellen (Fassungsart=gefasst) muessen folgende Attribute definiert sein:
+      !! Nutzungszustand, Notwasserversorgung und Oeffentliches_Interesse
+
+
+      ((Fassungsart == #ungefasst) AND NOT (DEFINED(Nutzungszustand))
+                                   AND NOT (DEFINED(Trinkwasser))
+                                   AND NOT (DEFINED(Zweck))
+                                   AND NOT (DEFINED(Notwasserversorgung))
+                                   AND NOT (DEFINED(Oeffentliches_Interesse)))
+      OR
+      ((Fassungsart != #ungefasst) AND (DEFINED(Nutzungszustand))
+                                   AND (DEFINED(Notwasserversorgung))
+                                   AND (DEFINED(Oeffentliches_Interesse)));
+    MANDATORY CONSTRAINT
+
+      !! Bei gefassten und genutzten Quellen (Fassungsart=gefasst, Nutzungszustand=genutzt) muessen folgende Attribute definiert sein
+      !! Trinkwasser
+
+      ((Fassungsart != #ungefasst) AND (Nutzungszustand == #genutzt) AND (DEFINED(Trinkwasser)))
+      OR
+      (Fassungsart == #ungefasst)
+      OR
+      (Nutzungszustand != #genutzt);
+
+    END Quelle;
+
+    CLASS Fassungsbrunnen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Brunnenart : MANDATORY (Vertikalfilterbrunnen, Horizontalfilterbrunnen, Sod_Schachtbrunnen,andere);
+      Foerdermethode : MANDATORY (Pumpe, Heber, artesisch, unbestimmt);
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Trinkwasser : MANDATORY JaNein;
+      Zweck : TEXT*500;
+      Notwasserversorgung : MANDATORY JaNeinUnbestimmt;
+      Oeffentliches_Interesse : MANDATORY JaNeinUnbestimmt;
+      Pkonz : LiterMinute;
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    END Fassungsbrunnen;
+
+    CLASS Rueckgabebrunnen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Zweck : TEXT*500;
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    END Rueckgabebrunnen;
+
+    CLASS Anreicherungsanlage =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Typ : MANDATORY (oberirdisch, unterirdisch, kombiniert, unbestimmt);
+      Typ_Bemerkung : TEXT*255;
+      Max_Versickerung : KubikmeterTag;
+      Bezugsgewaesser : TEXT*255;
+      Zweck : TEXT*500;
+      GeometriePunkt : GeometryCHLV03_V1.Coord2;
+      GeometrieLinie : CHLine;
+      GeometrieFlaeche : CHSurface;
+
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+
+      !! Genau eine Geometrie ist definiert
+
+      (    (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND     (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND     (DEFINED(GeometrieFlaeche)));
+
+    END Anreicherungsanlage;
+
+    CLASS Fassungsstrang_Stollen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Typ : MANDATORY (Fassungsstrang, Fassungsstollen, unbestimmt);
+      Geometrie : MANDATORY CHLine;
+
+    UNIQUE
+      Identifikator;
+
+    END Fassungsstrang_Stollen;
+
+  END Grundwasseraustritte;
+
+END Grundwasseraustritte_LV03_V1.
+
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=141.1
+!!@ author=ig-tg
+
+
+MODEL Grundwasseraustritte_LV95_V1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2018-05-08"  =
+
+  IMPORTS CHAdminCodes_V1,Units,GeometryCHLV95_V1;
+
+  UNIT
+
+    LiterPerMinute [lmin] = (Units.L / Units.min);
+
+    CubicmeterPerDay [m3day] = (Units.m3 / Units.d);
+
+  DOMAIN
+
+
+    LiterMinute = 0.00 .. 1000000.00 [lmin];
+
+    KubikmeterTag = 0.00 .. 1440000.00 [m3day];
+
+    JaNein = (
+      ja,
+      nein
+    );
+
+    JaNeinUnbestimmt = (
+        ja,
+        nein,
+        unbestimmt
+    );
+
+    IdentifikatorTyp = TEXT*255; !! value = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+
+    CHLine    = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+    CHSurface = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS > 0.001;
+
+  TOPIC Grundwasseraustritte =
+
+    !! Domains
+    !!--------
+
+    DOMAIN
+
+      !! Quelle, Fassungsbrunnen, Rueckgabebrunnen
+
+      Nutzungszustand = (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+
+
+    !! Classes
+    !!--------
+
+    CLASS Quelle =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Grundwasserleiter_Typ : (Lockergestein,Kluft,Karst,gemischt,unbestimmt);
+      Quelltyp:  TEXT*500;
+      Fassungsart : MANDATORY (ungefasst,
+                               gefasst(
+                                 direkt,
+                                 Fassungsstrang,
+                                 Fassungsstollen,
+                                 unbestimmt)
+                              );
+      Nutzungszustand : Nutzungszustand;
+      Trinkwasser : JaNein;
+      Zweck : TEXT*500;
+      Notwasserversorgung : JaNeinUnbestimmt;
+      Oeffentliches_Interesse : JaNeinUnbestimmt;
+      Schuettung_minimal: LiterMinute;
+      Schuettung_mittel: LiterMinute;
+      Schuettung_maximal: LiterMinute;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+
+      !! Bei ungefassten Quellen (Fassungsart=ungefasst) muessen folgende Attribute undefiniert sein:
+      !! Nutzungszustand, Trinkwasser, Zweck, Notwasserversorgung, Oeffentliches_Interesse
+
+      !! Bei gefassten Quellen (Fassungsart=gefasst) muessen folgende Attribute definiert sein:
+      !! Nutzungszustand, Notwasserversorgung und Oeffentliches_Interesse
+
+
+      ((Fassungsart == #ungefasst) AND NOT (DEFINED(Nutzungszustand))
+                                   AND NOT (DEFINED(Trinkwasser))
+                                   AND NOT (DEFINED(Zweck))
+                                   AND NOT (DEFINED(Notwasserversorgung))
+                                   AND NOT (DEFINED(Oeffentliches_Interesse)))
+      OR
+      ((Fassungsart != #ungefasst) AND (DEFINED(Nutzungszustand))
+                                   AND (DEFINED(Notwasserversorgung))
+                                   AND (DEFINED(Oeffentliches_Interesse)));
+    MANDATORY CONSTRAINT
+
+      !! Bei gefassten und genutzten Quellen (Fassungsart=gefasst, Nutzungszustand=genutzt) muessen folgende Attribute definiert sein
+      !! Trinkwasser
+
+      ((Fassungsart != #ungefasst) AND (Nutzungszustand == #genutzt) AND (DEFINED(Trinkwasser)))
+      OR
+      (Fassungsart == #ungefasst)
+      OR
+      (Nutzungszustand != #genutzt);
+
+    END Quelle;
+
+    CLASS Fassungsbrunnen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Brunnenart : MANDATORY (Vertikalfilterbrunnen, Horizontalfilterbrunnen, Sod_Schachtbrunnen, andere);
+      Foerdermethode : MANDATORY (Pumpe, Heber, artesisch, unbestimmt);
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Trinkwasser : MANDATORY JaNein;
+      Zweck : TEXT*500;
+      Notwasserversorgung : MANDATORY JaNeinUnbestimmt;
+      Oeffentliches_Interesse : MANDATORY JaNeinUnbestimmt;
+      Pkonz : LiterMinute;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    END Fassungsbrunnen;
+
+    CLASS Rueckgabebrunnen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Nutzungszustand : MANDATORY Nutzungszustand;
+      Zweck : TEXT*500;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+
+    UNIQUE
+      Identifikator;
+
+    END Rueckgabebrunnen;
+
+    CLASS Anreicherungsanlage =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Name : TEXT*500;
+      Typ : MANDATORY (oberirdisch, unterirdisch, kombiniert, unbestimmt);
+      Typ_Bemerkung : TEXT*255;
+      Max_Versickerung : KubikmeterTag;
+      Bezugsgewaesser : TEXT*255;
+      Zweck : TEXT*500;
+      GeometriePunkt : GeometryCHLV95_V1.Coord2;
+      GeometrieLinie : CHLine;
+      GeometrieFlaeche : CHSurface;
+
+    UNIQUE
+      Identifikator;
+
+    MANDATORY CONSTRAINT
+
+      !! Genau eine Geometrie ist definiert
+
+      (    (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND     (DEFINED(GeometrieLinie)) AND NOT (DEFINED(GeometrieFlaeche)))
+      OR
+      (NOT (DEFINED(GeometriePunkt)) AND NOT (DEFINED(GeometrieLinie)) AND     (DEFINED(GeometrieFlaeche)));
+
+    END Anreicherungsanlage;
+
+    CLASS Fassungsstrang_Stollen =
+      Identifikator : MANDATORY IdentifikatorTyp;
+      Typ : MANDATORY (Fassungsstrang, Fassungsstollen, unbestimmt);
+      Geometrie : MANDATORY CHLine;
+
+    UNIQUE
+      Identifikator;
+
+    END Fassungsstrang_Stollen;
+
+  END Grundwasseraustritte;
+
+END Grundwasseraustritte_LV95_V1.

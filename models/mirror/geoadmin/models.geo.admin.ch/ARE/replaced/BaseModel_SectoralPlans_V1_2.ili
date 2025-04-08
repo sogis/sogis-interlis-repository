@@ -1,0 +1,335 @@
+INTERLIS 2.3;
+
+/** Basismodell Sachpläne (de)
+ * Modèle de base Plans sectoriels (fr)
+ * Modello di base Piani settoriali (it)
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 156)
+
+!!@ furtherInformation=http://www.are.admin.ch
+!!@ technicalContact=mailto:info@are.admin.ch
+MODEL BaseModel_SectoralPlans_V1_2 (en)
+AT "http://models.geo.admin.ch/ARE/"
+VERSION "2015-05-22"  =
+  IMPORTS LocalisationCH_V1,WithLatestModification_V1,InternationalCodes_V1,CatalogueObjects_V1,GeometryCHLV03_V1;
+
+  TOPIC Catalogue_CoordinationLevel =
+
+    /** Diese Klasse beschreibt den Inhalt des Katalogs der Koordinationsstände.
+     */
+    CLASS CoordinationLevel
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Identifikator des Koordinationsstands.
+       */
+      CoordID : MANDATORY 1 .. 9999;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE CoordID;
+    END CoordinationLevel;
+
+    /** Diese Struktur enthält die Referenz zum Katalog der Koordinationsstände.
+     */
+    STRUCTURE CoordinationLevel_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** Referenz zum Katalog.
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) CoordinationLevel;
+    END CoordinationLevel_CatalogueReference;
+
+  END Catalogue_CoordinationLevel;
+
+  TOPIC Catalogue_FacilityKind =
+
+    /** Diese Klasse beschreibt den Inhalt des Katalogs der Anlagearten.
+     */
+    CLASS FacilityKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Identifikator der Anlageart.
+       */
+      KindID : MANDATORY TEXT*12;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Kategorie (dient der thematischen Gliederung der Anlagearten).
+       */
+      Category : LocalisationCH_V1.MultilingualText;
+      UNIQUE KindID;
+    END FacilityKind;
+
+    /** Diese Struktur enthält die Referenz zum Katalog der Anlagearten.
+     */
+    STRUCTURE FacilityKind_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** Referenz zum Katalog.
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) FacilityKind;
+    END FacilityKind_CatalogueReference;
+
+  END Catalogue_FacilityKind;
+
+  TOPIC Catalogue_FacilityStatus =
+
+    /** Diese Klasse beschreibt den Inhalt des Katalogs der Anlagestati.
+     */
+    CLASS FacilityStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Identifikator des Anlagestatus.
+       */
+      StatusID : MANDATORY 1 .. 9999;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE StatusID;
+    END FacilityStatus;
+
+    /** Diese Struktur enthält die Referenz zum Katalog der Anlagestati.
+     */
+    STRUCTURE FacilityStatus_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** Referenz zum Katalog.
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) FacilityStatus;
+    END FacilityStatus_CatalogueReference;
+
+  END Catalogue_FacilityStatus;
+
+  TOPIC Catalogue_MeasureType =
+
+    /** Diese Klasse beschreibt den Inhalt des Katalogs der Massnahmetypen.
+     */
+    CLASS MeasureType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Identifikator des Massnahmetyps.
+       */
+      TypeID : MANDATORY TEXT*12;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Kategorie (dient der thematischen Gliederung der Massnahmetypen).
+       */
+      Category : LocalisationCH_V1.MultilingualText;
+      UNIQUE TypeID;
+    END MeasureType;
+
+    /** Diese Struktur enthält die Referenz zum Katalog der Massnahmetypen.
+     */
+    STRUCTURE MeasureType_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** Referenz zum Katalog.
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) MeasureType;
+    END MeasureType_CatalogueReference;
+
+  END Catalogue_MeasureType;
+
+  TOPIC Catalogue_PlanningStatus =
+
+    /** Diese Klasse beschreibt den Inhalt des Katalogs der Planungsstände.
+     */
+    CLASS PlanningStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Identifikator des Planungsstands.
+       */
+      StatusID : MANDATORY 1 .. 9999;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE StatusID;
+    END PlanningStatus;
+
+    /** Diese Struktur enthält die Referenz zum Katalog der Planungsstände.
+     */
+    STRUCTURE PlanningStatus_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** Referenz zum Katalog.
+       */
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) PlanningStatus;
+    END PlanningStatus_CatalogueReference;
+
+  END Catalogue_PlanningStatus;
+
+  TOPIC SectoralPlans_WithLatestModification =
+    DEPENDS ON BaseModel_SectoralPlans_V1_2.Catalogue_CoordinationLevel,BaseModel_SectoralPlans_V1_2.Catalogue_MeasureType,BaseModel_SectoralPlans_V1_2.Catalogue_FacilityStatus,BaseModel_SectoralPlans_V1_2.Catalogue_FacilityKind,BaseModel_SectoralPlans_V1_2.Catalogue_PlanningStatus,CatalogueObjects_V1.Catalogues;
+
+    /** Diese Struktur enthält Angaben zur Gültigkeit und zur letzten Mutation der Daten. Die Struktur ModInfo ist im Basismodul "WithLatestModification" definiert und wird von dort vererbt.
+     */
+    STRUCTURE ModInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModInfo;
+
+    /** Diese Klasse enthält die Sachpläne.
+     */
+    CLASS SectoralPlan =
+      /** Entspricht dem Datensatz-Identifikator gemäss Anhang 1 der GeoIV.
+       */
+      GeoIV_ID : MANDATORY 1 .. 9999;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Abkürzung (mehrsprachig)der Sachplan-Bezeichnung, z.B. "SÜL".
+       */
+      Abbreviation : LocalisationCH_V1.MultilingualText;
+      /** Bezeichnung (mehrsprachig) der zuständigen Bundesstelle, inkl. Kürzel. Z.B. "Bundesamt für Energie BFE".
+       */
+      OfficeName : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Erläuternder Text oder Beschreibung (mehrsprachig).
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** Strukturattribut für die Mutationsangaben.
+       */
+      ModInfo : ModInfo;
+      UNIQUE GeoIV_ID;
+    END SectoralPlan;
+
+    /** Diese Klasse enthält die Objekte.
+     */
+    CLASS Object =
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Name des Projekts bzw. Vorhabens (mehrsprachig).
+       */
+      ProjectName : LocalisationCH_V1.MultilingualText;
+      /** Erläuternder Text oder Beschreibung (mehrsprachig).
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** Strukturattribut für die Mutationsangaben.
+       */
+      ModInfo : ModInfo;
+    END Object;
+
+    /** Diese Klasse enthält die Dokumente. Dabei handelt es sich um Objektblätter ("ObjectSheet"), die einem Sachplan-Objekt ("Object") zugeordnet sind.
+     */
+    CLASS Document =
+      /** Titel des Dokuments (Sprache gemäss Attribut "Language").
+       */
+      Title : MANDATORY TEXT;
+      /** Version des Dokuments, entweder ein Datum im maschinenlesbaren Format (z.B. "2011-06-02") oder eine Versionsnummer (z.B. "2.0").
+       */
+      Version : MANDATORY TEXT*12;
+      /** Weblink zum Dokument als PDF.
+       */
+      Web : MANDATORY URI;
+      /** Sprachcode nach ISO 639-1. Mögliche Auswahl: "de", "fr", "it", "rm" oder "en".
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** Erläuternder Text oder Beschreibung (mehrsprachig).
+       */
+      Description : MTEXT;
+      /** Strukturattribut für die Mutationsangaben.
+       */
+      ModInfo : MANDATORY ModInfo;
+    END Document;
+
+    /** Diese Klasse enthält die Anlagen eines Sachplans. Jede Anlage hat eine Geometrie, die entweder ein Punkt, ein Linienzug oder eine Fläche ist.
+     */
+    CLASS Facility =
+      /** Geometrie als 2D-Punktkoordinaten.
+       */
+      Point : GeometryCHLV03_V1.Coord2;
+      /** Geometrie als 2D-Multi-Linienzug.
+       */
+      Line : GeometryCHLV03_V1.MultiLine;
+      /** Geometrie als 2D-Multi-Fläche.
+       */
+      Surface : GeometryCHLV03_V1.MultiSurface;
+      /** Bezeichnung (mehrsprachig).
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Art der Anlage aus dem Katalog "FacilityKind".
+       */
+      FacilityKind : MANDATORY BaseModel_SectoralPlans_V1_2.Catalogue_FacilityKind.FacilityKind_CatalogueReference;
+      /** Anlagestatus aus dem Katalog "FacilityStatus".
+       */
+      FacilityStatus : MANDATORY BaseModel_SectoralPlans_V1_2.Catalogue_FacilityStatus.FacilityStatus_CatalogueReference;
+      /** Orientierung (Drehwinkel) für Punktsymbole.
+       */
+      SymbolOri : GeometryCHLV03_V1.Orientation;
+      /** Erläuternder Text oder Beschreibung (mehrsprachig).
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** Strukturattribut für die Mutationsangaben.
+       */
+      ModInfo : MANDATORY ModInfo;
+      MANDATORY CONSTRAINT DEFINED(Point) OR DEFINED(Line) OR DEFINED(Surface);
+    END Facility;
+
+    ASSOCIATION Object_SP =
+      /** Liste der Objekte, die diesem Sachplan zugeordnet sind (Fremdschlüssel).
+       */
+      Object -- {1..*} Object;
+      /** Identifikator des Sachplans, dem dieses Objekt zugeordnet ist (Fremdschlüssel).
+       */
+      SectoralPlan -<#> {1} SectoralPlan;
+    END Object_SP;
+
+    /** Diese Klasse enthält die planerischen Massnahmen, die zu einem Sachplan gehören und einer Anlage ("Facility") zugeordnet sind. Jede planerische Massnahme hat eine Geometrie, die ein Punkt,  ein Linienzug oder eine Fläche ist.
+     */
+    CLASS PlanningMeasure =
+      /** Geometrie als 2D-Punktkoordinaten.
+       */
+      Point : GeometryCHLV03_V1.Coord2;
+      /** Geometrie als 2D-Multi-Linienzug.
+       */
+      Line : GeometryCHLV03_V1.MultiLine;
+      /** Geometrie als 2D-Multi-Fläche.
+       */
+      Surface : GeometryCHLV03_V1.MultiSurface;
+      /** Bezeichnung (mehrsprachig) oder Präzisierung.
+       */
+      Name : LocalisationCH_V1.MultilingualText;
+      /** Typ der Massnahmen aus dem Katalog "MeasureType".
+       */
+      MeasureType : MANDATORY BaseModel_SectoralPlans_V1_2.Catalogue_MeasureType.MeasureType_CatalogueReference;
+      /** Koordinationsstand (Festsetzung, Zwischenergebnis oder Vororientierung) aus dem Katalog "CoordinationLevel".
+       */
+      CoordinationLevel : MANDATORY BaseModel_SectoralPlans_V1_2.Catalogue_CoordinationLevel.CoordinationLevel_CatalogueReference;
+      /** Planungsstand ("in Anhörung" oder "in Kraft") aus dem Katalog "PlanningStatus".
+       */
+      PlanningStatus : MANDATORY BaseModel_SectoralPlans_V1_2.Catalogue_PlanningStatus.PlanningStatus_CatalogueReference;
+      /** Orientierung (Drehwinkel) für Punktsymbole.
+       */
+      SymbolOri : GeometryCHLV03_V1.Orientation;
+      /** Erläuternder Text oder Beschreibung (mehrsprachig).
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** Strukturattribut für die Mutationsangaben.
+       */
+      ModInfo : MANDATORY ModInfo;
+      MANDATORY CONSTRAINT DEFINED(Point) OR DEFINED(Line) OR DEFINED(Surface);
+    END PlanningMeasure;
+
+    ASSOCIATION Document_Object =
+      /** Liste der Objektblätter (Dokumente), die zu diesem Objekt gehören (Fremdschlüssel).
+       */
+      ObjectSheet -- {1..*} Document;
+      /** Identifikator des Objekts, dem dieses Dokument zugeordnet ist (Fremdschlüssel).
+       */
+      Object -<#> {1} Object;
+    END Document_Object;
+
+    ASSOCIATION Facility_Object =
+      /** Liste der Anlagen, die zu diesem Objekt gehören (Fremdschlüssel).
+       */
+      Facility -- {1..*} Facility;
+      /** Identifikator des Objekts, dem diese Anlage zugeordnet ist (Fremdschlüssel).
+       */
+      Object -<#> {1} Object;
+    END Facility_Object;
+
+    ASSOCIATION Measure_Facility =
+      /** Liste der planerischen Massnahmen, die dieser Anlage zugeordnet sind (Fremdschlüssel).
+       */
+      Measure -- {1..*} PlanningMeasure;
+      /** Identifikator der Anlage, der diese planerische Massnahme zugeordnet ist (Fremdschlüssel).
+       */
+      Facility -<#> {1} Facility;
+    END Measure_Facility;
+
+  END SectoralPlans_WithLatestModification;
+
+END BaseModel_SectoralPlans_V1_2.

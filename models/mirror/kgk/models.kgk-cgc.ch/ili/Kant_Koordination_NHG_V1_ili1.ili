@@ -1,0 +1,52 @@
+TRANSFER Kant_Koordination_NHG_de;
+!! Neue Modelldatei, UTF-8-codiert
+
+!!* NHG1
+!!* Geometrische Basis: Überlappungsfreies Polygon mit 2D-Koordinaten (CHLV03) der Schweiz.
+!!* @Issuer http://www.kbnl.ch
+!!* @Version 2022-11-17
+MODEL Kant_Koordination_NHG
+
+  DOMAIN  
+
+	!!* Aus: GeometryCHLV03_V1 (en) 
+    Coord2 = COORD2
+      480000.000 60000.000
+      850000.000 320000.000;
+	
+	AreaWithOverlaps2mm = AREA WITH (STRAIGHTS, ARCS) VERTEX Coord2
+	                      WITHOUT OVERLAPS > 0.002;
+
+	!!* Aus: CHAdminCodes_V1 (en)
+    CHCantonCode = (ZH,BE,LU,UR,SZ,OW,NW,GL,ZG,FR,SO,BS,BL,SH,AR,AI,SG,
+                    GR,AG,TG,TI,VD,VS,NE,GE,JU);
+
+
+  TOPIC Kant_Koordination_NHG_V03 =
+
+    !!* Beinhaltet alle Flächen, in denen für die korrekte Beitragsauszahlung nach Artikel 18,
+    !!* NHG, eine Verrechnung/Koordination mit den Flächenbeiträgen nach DZV/ÖQV notwendig ist.
+    TABLE Kant_Koordination_NHG =
+      !!* Überlappungsfrei (WITHOUT OVERLAPS > 0.002).
+      Geometrie : AreaWithOverlaps2mm;
+      !!* Kantonaler Datensatzidentifikator, max. 255 Zeichen.
+      !!* Für kantonale Schlüsselfelder in anderen Formaten kann der Texteintrag nach dem Transfer wieder
+      !!* in den Ursprungsdatentyp zurückübersetzt werden. Es steht frei, mehrere Schlüssel als kombinierter
+      !!* Wert in diesem Feld mitzugeben.
+      KtId : TEXT*255;
+      !!* Kantonskürzel (2 Zeichen)
+      Kt : CHCantonCode;
+    NO IDENT
+    END Kant_Koordination_NHG;
+	
+  END Kant_Koordination_NHG_V03.
+  
+END Kant_Koordination_NHG.
+
+FORMAT
+  FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

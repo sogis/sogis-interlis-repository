@@ -1,0 +1,205 @@
+INTERLIS 2.3;
+/** DATA MODEL NON-VECTOR GEODATABASIS: GEOLOGICAL CARTOGRAPHY - DATENMODELL nicht-vektorielle Geobasisdaten Landesgeologie: geologisches Kartenwerk (Pixelkarten) - MODÈLE DE DONNÉES ... CARTES PIXEL
+* minimal non-vector geodata model; topic: GEOLOGY, NonVector; provider: SWISS GEOLOGICAL SURVEY
+*/
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-27 | KOGIS | TOPIC-Dependencies added (line 16, 83, 150)
+
+!!@ Contact = info@swisstopo.ch
+!!@ IDGeoIV = "46.1,46.2,46.3,46.4,46.5,46.6,46.7,46.8"
+
+MODEL NonVectorData_Geology_V1 (en) AT "http://models.geo.admin.ch/Swisstopo/" VERSION "2015-05-27" =
+  IMPORTS Units,GeometryCHLV03_V1,LookUpNonVectorData_Geology_V1;
+
+  TOPIC NonVectorData_Geology =
+    DEPENDS ON LookUpNonVectorData_Geology_V1.NonVector_Geology_Catalogues;
+
+    CLASS Geobasisdata_Geology =
+      Descript : MANDATORY LookUpNonVectorData_Geology_V1.NonVector_Geology_Catalogues.Ref_Ggeo001;
+      Owner : MANDATORY URI;
+      TechCont : URI;
+      PortServ: URI;
+      DownloServ : URI;
+      ImageType : MANDATORY LookUpNonVectorData_Geology_V1.NonVector_Geology_Catalogues.Ref_Ggeo006;
+      PerimeGBDS : MANDATORY GeometryCHLV03_V1.Area;
+    END Geobasisdata_Geology;
+
+    CLASS Clipping_Geology =
+      Descript : TEXT*1024;
+      ClipPerime : MANDATORY GeometryCHLV03_V1.Surface;
+    END Clipping_Geology;
+
+    CLASS ImageGraphicRasterObject_Geology =
+      Descript : MANDATORY TEXT*1024;
+      MapNoLK : 0 .. 10000;
+      MapNoLG : 0 .. 10000;
+      SpecIdenti : MANDATORY URI;
+      YearPublic : MANDATORY 1900 .. 2050;
+      Author : MANDATORY TEXT*1024;
+      SpatialRef : MANDATORY GeometryCHLV03_V1.Surface;
+      ImTileSiH : MANDATORY 1 .. 1000000000;
+      ImTileSiW : MANDATORY 1 .. 1000000000;
+      GroundReso : MANDATORY 0.00 .. 10000.00 [INTERLIS.m];
+      Scale : 50 .. 1000000;
+      ColourSpac : MANDATORY LookUpNonVectorData_Geology_V1.NonVector_Geology_Catalogues.Ref_Igeo012;
+      ColourValu : 0 .. 255;
+      Compressio : MANDATORY LookUpNonVectorData_Geology_V1.NonVector_Geology_Catalogues.Ref_Igeo014;
+      Antialias : MANDATORY BOOLEAN;
+      Status : TEXT*254;
+      UpdateInfo : TEXT*254;
+      Annotation : BOOLEAN;
+    END ImageGraphicRasterObject_Geology;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject_Geology;
+      perimeter -<> {1} Geobasisdata_Geology;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject_Geology;
+      belongsTo -- {0..*} Clipping_Geology;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} Geobasisdata_Geology;
+      covers -- {0..*} Clipping_Geology;
+    END inCovers;
+
+  END NonVectorData_Geology;
+
+END NonVectorData_Geology_V1.
+
+/** DATENMODELL nicht-vektorielle Geobasisdaten Landesgeologie: geophysikalisches Kartenwerk (Pixelkarten) - MODÈLE DE DONNÉES ... CARTES PIXEL
+* minimal non-vector geodata model; topic: GEOPHYSICS, NonVector; provider: SWISS GEOLOGICAL SURVEY
+*/
+!!@ Contact = info@swisstopo.ch
+!!@ IDGeoIV = "47.1,47.2,47.3,47.4,47.5,47.6,47.7,47.8,47.9,47.10,47.11,47.12,47.14,47.15,47.16,47.17,47.18"
+
+MODEL NonVectorData_Geophysics_V1 (en) AT "http://models.geo.admin.ch/Swisstopo/" VERSION "2015-05-27" =
+  IMPORTS Units,GeometryCHLV03_V1,LookUpNonVectorData_Geophysics_V1;
+
+  TOPIC NonVectorData_Geophysics =
+    DEPENDS ON LookUpNonVectorData_Geophysics_V1.NonVector_Geophysics_Catalogues;
+
+    CLASS Geobasisdata_Geophysics =
+      Descript : MANDATORY LookUpNonVectorData_Geophysics_V1.NonVector_Geophysics_Catalogues.Ref_Gphy001;
+      Owner : MANDATORY URI;
+      TechCont : URI;
+      PortServ: URI;
+      DownloServ : URI;
+      ImageType : MANDATORY LookUpNonVectorData_Geophysics_V1.NonVector_Geophysics_Catalogues.Ref_Gphy006;
+      PerimeGBDS : MANDATORY GeometryCHLV03_V1.Area;
+    END Geobasisdata_Geophysics;
+
+    CLASS Clipping_Geophysics =
+      Descript : TEXT*1024;
+      ClipPerime : MANDATORY GeometryCHLV03_V1.Surface;
+    END Clipping_Geophysics;
+
+    CLASS ImageGraphicRasterObject_Geophysics =
+      Descript : MANDATORY TEXT*1024;
+      MapNoLK : 0 .. 10000;
+      MapNoLG : 0 .. 10000;
+      SpecIdenti : MANDATORY URI;
+      YearPublic : MANDATORY 1900 .. 2050;
+      Author : MANDATORY TEXT*1024;
+      SpatialRef : MANDATORY GeometryCHLV03_V1.Coord2;
+      ImTileSiH : MANDATORY 1 .. 1000000000;
+      ImTileSiW : MANDATORY 1 .. 1000000000;
+      GroundReso : MANDATORY 0.00 .. 10000.00 [INTERLIS.m];
+      Scale : 50 .. 1000000;
+      ColourSpac : MANDATORY LookUpNonVectorData_Geophysics_V1.NonVector_Geophysics_Catalogues.Ref_Iphy012;
+      ColourValu : 0 .. 255;
+      Compressio : MANDATORY LookUpNonVectorData_Geophysics_V1.NonVector_Geophysics_Catalogues.Ref_Iphy014;
+      Antialias : MANDATORY BOOLEAN;
+      Status : TEXT*254;
+      UpdateInfo : TEXT*254;
+      Annotation : BOOLEAN;
+    END ImageGraphicRasterObject_Geophysics;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject_Geophysics;
+      perimeter -<> {1} Geobasisdata_Geophysics;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject_Geophysics;
+      belongsTo -- {0..*} Clipping_Geophysics;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} Geobasisdata_Geophysics;
+      covers -- {0..*} Clipping_Geophysics;
+    END inCovers;
+
+  END NonVectorData_Geophysics;
+
+END NonVectorData_Geophysics_V1.
+
+/** DATENMODELL nicht-vektorielle Geobasisdaten Landesgeologie: geotechnisches Kartenwerk (Pixelkarten) - MODÈLE DE DONNÉES ... CARTES PIXEL
+* minimal non-vector geodata model; topic: GEOTECHNICS, NonVector; provider: SWISS GEOLOGICAL SURVEY
+*/
+!!@ Contact = info@swisstopo.ch
+!!@ IDGeoIV = "48.1,48.2,48.4"
+
+MODEL NonVectorData_Geotechnics_V1 (en) AT "http://models.geo.admin.ch/Swisstopo/" VERSION "2015-05-27" =
+  IMPORTS Units,GeometryCHLV03_V1,LookUpNonVectorData_Geotechnics_V1;
+
+  TOPIC NonVectorData_Geotechnics =
+    DEPENDS ON LookUpNonVectorData_Geotechnics_V1.NonVector_Geotechnics_Catalogues;
+
+    CLASS Geobasisdata_Geotechnics =
+      Descript : MANDATORY LookUpNonVectorData_Geotechnics_V1.NonVector_Geotechnics_Catalogues.Ref_Gtec001;
+      Owner : MANDATORY URI;
+      TechCont : URI;
+      PortServ: URI;
+      DownloServ : URI;
+      ImageType : MANDATORY LookUpNonVectorData_Geotechnics_V1.NonVector_Geotechnics_Catalogues.Ref_Gtec006;
+      PerimeGBDS : MANDATORY GeometryCHLV03_V1.Area;
+    END Geobasisdata_Geotechnics;
+
+    CLASS Clipping_Geotechnics =
+      Descript : TEXT*1024;
+      ClipPerime : MANDATORY GeometryCHLV03_V1.Surface;
+    END Clipping_Geotechnics;
+
+    CLASS ImageGraphicRasterObject_Geotechnics =
+      Descript : MANDATORY TEXT*1024;
+      MapNoLK : 0 .. 10000;
+      MapNoLG : 0 .. 10000;
+      SpecIdenti : MANDATORY URI;
+      YearPublic : MANDATORY 1900 .. 2050;
+      Author : MANDATORY TEXT*1024;
+      SpatialRef : MANDATORY GeometryCHLV03_V1.Coord2;
+      ImTileSiH : MANDATORY 1 .. 1000000000;
+      ImTileSiW : MANDATORY 1 .. 1000000000;
+      GroundReso : MANDATORY 0.00 .. 10000.00 [INTERLIS.m];
+      Scale : 50 .. 1000000;
+      ColourSpac : MANDATORY LookUpNonVectorData_Geotechnics_V1.NonVector_Geotechnics_Catalogues.Ref_Itec012;
+      ColourValu : 0 .. 255;
+      Compressio : MANDATORY LookUpNonVectorData_Geotechnics_V1.NonVector_Geotechnics_Catalogues.Ref_Itec014;
+      Antialias : MANDATORY BOOLEAN;
+      Status : TEXT*254;
+      UpdateInfo : TEXT*254;
+      Annotation : BOOLEAN;
+    END ImageGraphicRasterObject_Geotechnics;
+
+    ASSOCIATION tilingPerimeter =
+      tiling -- {1..*} ImageGraphicRasterObject_Geotechnics;
+      perimeter -<> {1} Geobasisdata_Geotechnics;
+    END tilingPerimeter;
+
+    ASSOCIATION containsBelongsTo =
+      contains -- {1..*} ImageGraphicRasterObject_Geotechnics;
+      belongsTo -- {0..*} Clipping_Geotechnics;
+    END containsBelongsTo;
+
+    ASSOCIATION inCovers =
+      in -- {1..*} Geobasisdata_Geotechnics;
+      covers -- {0..*} Clipping_Geotechnics;
+    END inCovers;
+
+  END NonVectorData_Geotechnics;
+
+END NonVectorData_Geotechnics_V1.

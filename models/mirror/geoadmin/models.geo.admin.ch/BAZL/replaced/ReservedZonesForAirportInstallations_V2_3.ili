@@ -1,0 +1,476 @@
+INTERLIS 2.3;
+
+/** ###################################################################
+ * # DE: Kataloge "Projektierungszonen Flughafenanlagen"              #
+ * # FR: Catalogues "Zones réservées des installations aéroportuaires"#
+ * ####################################################################
+ */
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV=103.1
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+MODEL ReservedZonesForAirportInstallations_Catalogues_V2_3 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-04-04"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  /** DE: Thema mit Definition des Katalogs für Rechtsstatus
+   * FR: Thème avec définition du catalogue des statuts juridiques
+   */
+  TOPIC Catalogue_LegalStatus
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Rechtsstatus
+     * FR: Catalogue des statuts juridiques
+     */
+    CLASS LegalStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator des Rechtsstatus (Format: IDGeoIV + "-S-" + zweistellige Laufnummer)
+       * FR: Identificateur du statut juridique (Format: IDOGéo + "-S-" + numéro d'ordre à deux chiffres)
+       */
+      StatusId : MANDATORY TEXT*8;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it, rm, en)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "StatusId"
+       * FR: Condition d'unicité pour "StatusId"
+       */
+      UNIQUE StatusId;
+    END LegalStatus;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Rechtsstatus
+     * FR: Structure de référencement du catalogue des statuts juridiques
+     */
+    STRUCTURE LegalStatus_CataloqueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** DE: Referenz zum Katalog der Rechtsstatus
+       * FR: Référence au catalogue des statuts juridiques
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) LegalStatus;
+    END LegalStatus_CataloqueReference;
+
+  END Catalogue_LegalStatus;
+
+  /** DE: Thema mit Definition des Katalogs für Zonenarten
+   * FR: Thème avec définition du catalogue des genres de zones
+   */
+  TOPIC Catalogue_ZoneKind
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    /** DE: Katalog der Zonenarten
+     * FR: Catalogue des genres de zones
+     */
+    CLASS ZoneKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** DE: Identifikator der Zonenart (Format: IDGeoIV + "-K-" + zweistellige Laufnummer)
+       * FR: Identificateur du genre de zone (Format: IDOGéo + "-K-" + numéro d'ordre à deux chiffres)
+       */
+      KindId : MANDATORY TEXT*8;
+      /** DE: Legendensymbol
+       * FR: Symbole de légende
+       */
+      Symbol : MANDATORY BLACKBOX BINARY;
+      /** DE: Mehrsprachiger Katalogeintrag (de, fr, it, rm, en)
+       * FR: Entrée du catalogue dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Value : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Eindeutigkeitsbedingung für "KindId"
+       * FR: Condition d'unicité pour "KindId"
+       */
+      UNIQUE KindId;
+    END ZoneKind;
+
+    /** DE: Struktur für die Referenzierung des Katalogs der Zonenarten
+     * FR: Structure de référencement du catalogue des genres de zones
+     */
+    STRUCTURE ZoneKind_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      /** DE: Referenz zum Katalog der Zonenarten
+       * FR: Référence au catalogue des genres de zones
+       */
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ZoneKind;
+    END ZoneKind_CatalogueReference;
+
+  END Catalogue_ZoneKind;
+
+END ReservedZonesForAirportInstallations_Catalogues_V2_3.
+
+/** ############################################################################################
+ * # DE: Minimales Geodatenmodell "Projektierungszonen Flughafenanlagen" (LV03)                #
+ * # FR: Modèle de géodonnées minimal "Zones réservées des installations aéroportuaires" (MN03)#
+ * #############################################################################################
+ */
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV=103.1
+MODEL ReservedZonesForAirportInstallations_LV03_V2_3 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-04-04"  =
+  IMPORTS InternationalCodes_V1,WithLatestModification_V1,GeometryCHLV03_V1,LocalisationCH_V1,ReservedZonesForAirportInstallations_Catalogues_V2_3,CHAdminCodes_V1;
+
+  DOMAIN
+
+    /** DE: Einzelflächen aus Geraden und Kreisbögen mit zulässiger Selbstschnitt-Pfeilhöhe von 0.05m
+     * FR: Surfaces indépendantes formées de segments de droite ou d'arcs de cercle et dont le recoupement admissible est de 0,05m
+     */
+    SurfaceWithOverlaps5cm = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS>0.050;
+
+  /** DE: Thema mit Definition für zugehörige Dokumente und Vorschriften
+   * FR: Thème avec définition des documents et règlementations qui s'y rapportent
+   */
+  TOPIC RelatedDocuments_WithLatestModification =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Dokument
+     * FR: Document
+     */
+    CLASS Document =
+      /** DE: Dokumententitel
+       * FR: Titre du document
+       */
+      Title : MANDATORY TEXT;
+      /** DE: Link zum Dokument im Internet
+       * FR: Lien Internet vers le document
+       */
+      Weblink : MANDATORY URI;
+      /** DE: ISO-Sprachcode (z.B. "de")
+       * FR: Code ISO pour la langue (p. ex. "fr")
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+    END Document;
+
+    /** DE: Rechtsvorschrift
+     * FR: Disposition juridique
+     */
+    CLASS RegulationDocument
+    EXTENDS Document =
+    END RegulationDocument;
+
+    /** DE: Verweise auf weitere Dokumente
+     * FR: Renvois à d'autres documents
+     */
+    ASSOCIATION OriginReference =
+      /** DE: Ursprung
+       * FR: Origine
+       */
+      Origin -- {0..*} Document;
+      /** DE: Verweis
+       * FR: Renvoi
+       */
+      Reference -- {0..*} Document;
+    END OriginReference;
+
+  END RelatedDocuments_WithLatestModification;
+
+  /** DE: Thema mit Definition von Projektierungszonen
+   * FR: Thème avec définition des zones réservées
+   */
+  TOPIC ReservedZones_WithLatestModification =
+    DEPENDS ON ReservedZonesForAirportInstallations_LV03_V2_3.RelatedDocuments_WithLatestModification,ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_ZoneKind,ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_LegalStatus;
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Teilzonen der übergeordneten Projektierungszone
+     * FR: Zones partielles de la zone reservée supérieure
+     */
+    CLASS Geometry =
+      /** DE: Fläche
+       * FR: Surface
+       */
+      Area : MANDATORY ReservedZonesForAirportInstallations_LV03_V2_3.SurfaceWithOverlaps5cm;
+      /** DE: Zonenart
+       * FR: Genre de zone
+       */
+      Kind : MANDATORY ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_ZoneKind.ZoneKind_CatalogueReference;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+    END Geometry;
+
+    /** DE: Projektierungszonen zur vorsorglichen Freihaltung des Raumes für künftige Anlagen
+     * FR: Zones réservées en vue d'assurer la libre disposition des terrains nécessaires à l'aménagement futur d'installations
+     */
+    CLASS ReservedZone =
+      /** DE: Identifikator
+       * FR: Identificateur
+       */
+      Identifier : MANDATORY TEXT*30;
+      /** DE: Mehrsprachige Bezeichnung (de, fr, it, rm, en)
+       * FR: Désignation dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Rechtsstatus
+       * FR: Statut juridique
+       */
+      Status : MANDATORY ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_LegalStatus.LegalStatus_CataloqueReference;
+      /** DE: Name des Gesuchstellers (z.B. Anlagebetreiber, Behörde)
+       * FR: Nom du requérant (p. ex. exploitant de l'installation, autorité)
+       */
+      Applicant : MANDATORY TEXT;
+      /** DE: Kantonskürzel (z.B. BE)
+       * FR: Sigle du canton (p. ex. GE)
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** DE: Betroffene Gemeinde(n)
+       * FR: Commune(s) concernée(s)
+       */
+      Municipality : TEXT;
+      /** DE: Festgelegte Wirkungsdauer
+       * FR: La durée des effets fixée
+       */
+      DurationOfEffect : MANDATORY 1 .. 8;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Validity : MANDATORY ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für "Identifier"
+       * FR: Condition d'unicité pour "Identifier"
+       */
+      UNIQUE Identifier;
+    END ReservedZone;
+
+    /** DE: Angehängte Dokumente
+     * FR: Documents annexes
+     */
+    ASSOCIATION ReservedZonePrescription =
+      /** DE: Vorschrift
+       * FR: Prescription
+       */
+      Prescription (EXTERNAL) -- {1..*} ReservedZonesForAirportInstallations_LV03_V2_3.RelatedDocuments_WithLatestModification.Document;
+      /** DE: Beschränkung
+       * FR: Restriction
+       */
+      Restriction -- {0..*} ReservedZone;
+    END ReservedZonePrescription;
+
+    /** DE: Projektierungszone bestehend aus einer oder mehreren Teilflächen
+     * FR: Zone reservée composée de une ou plusieurs surfaces individuelles
+     */
+    ASSOCIATION ReservedZoneSubzone =
+      /** DE: Teilzonengeometrie
+       * FR: Géométrie de la zone partielle
+       */
+      Subzone -- {1..*} Geometry;
+      /** DE: Bezug zur Klasse "ReservedZone"
+       * FR: Référence à la classe "ReservedZone"
+       */
+      Zone -<#> {1} ReservedZone;
+    END ReservedZoneSubzone;
+
+  END ReservedZones_WithLatestModification;
+
+END ReservedZonesForAirportInstallations_LV03_V2_3.
+
+/** ############################################################################################
+ * # DE: Minimales Geodatenmodell "Projektierungszonen Flughafenanlagen" (LV95)                #
+ * # FR: Modèle de géodonnées minimal "Zones réservées des installations aéroportuaires" (MN95)#
+ * #############################################################################################
+ */
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV=103.1
+MODEL ReservedZonesForAirportInstallations_LV95_V2_3 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2017-04-04"  =
+  IMPORTS InternationalCodes_V1,WithLatestModification_V1,GeometryCHLV95_V1,LocalisationCH_V1,ReservedZonesForAirportInstallations_Catalogues_V2_3,CHAdminCodes_V1;
+
+  DOMAIN
+
+    /** DE: Einzelflächen aus Geraden und Kreisbögen mit zulässiger Selbstschnitt-Pfeilhöhe von 0.05m
+     * FR: Surfaces indépendantes formées de segments de droite ou d'arcs de cercle et dont le recoupement admissible est de 0,05m
+     */
+    SurfaceWithOverlaps5cm = SURFACE WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0.050;
+
+  /** DE: Thema mit Definition für zugehörige Dokumente und Vorschriften
+   * FR: Thème avec définition des documents et règlementations qui s'y rapportent
+   */
+  TOPIC RelatedDocuments_WithLatestModification =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Dokument
+     * FR: Document
+     */
+    CLASS Document =
+      /** DE: Dokumententitel
+       * FR: Titre du document
+       */
+      Title : MANDATORY TEXT;
+      /** DE: Link zum Dokument im Internet
+       * FR: Lien Internet vers le document
+       */
+      Weblink : MANDATORY URI;
+      /** DE: ISO-Sprachcode (z.B. "de")
+       * FR: Code ISO pour la langue (p. ex. "fr")
+       */
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+    END Document;
+
+    /** DE: Rechtsvorschrift
+     * FR: Disposition juridique
+     */
+    CLASS RegulationDocument
+    EXTENDS Document =
+    END RegulationDocument;
+
+    /** DE: Verweise auf weitere Dokumente
+     * FR: Renvois à d'autres documents
+     */
+    ASSOCIATION OriginReference =
+      /** DE: Ursprung
+       * FR: Origine
+       */
+      Origin -- {0..*} Document;
+      /** DE: Verweis
+       * FR: Renvoi
+       */
+      Reference -- {0..*} Document;
+    END OriginReference;
+
+  END RelatedDocuments_WithLatestModification;
+
+  /** DE: Thema mit Definition von Projektierungszonen
+   * FR: Thème avec définition des zones réservées
+   */
+  TOPIC ReservedZones_WithLatestModification =
+    DEPENDS ON ReservedZonesForAirportInstallations_LV95_V2_3.RelatedDocuments_WithLatestModification,ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_LegalStatus,ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_ZoneKind;
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Teilzonen der übergeordneten Projektierungszone
+     * FR: Zones partielles de la zone reservée supérieure
+     */
+    CLASS Geometry =
+      /** DE: Fläche
+       * FR: Surface
+       */
+      Area : MANDATORY ReservedZonesForAirportInstallations_LV95_V2_3.SurfaceWithOverlaps5cm;
+      /** DE: Zonenart
+       * FR: Genre de zone
+       */
+      Kind : MANDATORY ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_ZoneKind.ZoneKind_CatalogueReference;
+      /** DE: Datum der letzten Änderung
+       * FR: Date de la dernière modification
+       */
+      Modification : ModificationInfo;
+    END Geometry;
+
+    /** DE: Projektierungszonen zur vorsorglichen Freihaltung des Raumes für künftige Anlagen
+     * FR: Zones réservées en vue d'assurer la libre disposition des terrains nécessaires à l'aménagement futur d'installations
+     */
+    CLASS ReservedZone =
+      /** DE: Identifikator
+       * FR: Identificateur
+       */
+      Identifier : MANDATORY TEXT*30;
+      /** DE: Mehrsprachige Bezeichnung (de, fr, it, rm, en)
+       * FR: Désignation dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** DE: Rechtsstatus
+       * FR: Statut juridique
+       */
+      Status : MANDATORY ReservedZonesForAirportInstallations_Catalogues_V2_3.Catalogue_LegalStatus.LegalStatus_CataloqueReference;
+      /** DE: Name des Gesuchstellers (z.B. Anlagebetreiber, Behörde)
+       * FR: Nom du requérant (p. ex. exploitant de l'installation, autorité)
+       */
+      Applicant : MANDATORY TEXT;
+      /** DE: Kantonskürzel (z.B. BE)
+       * FR: Sigle du canton (p. ex. GE)
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** DE: Betroffene Gemeinde(n)
+       * FR: Commune(s) concernée(s)
+       */
+      Municipality : TEXT;
+      /** DE: Festgelegte Wirkungsdauer
+       * FR: La durée des effets fixée
+       */
+      DurationOfEffect : MANDATORY 1 .. 8;
+      /** DE: Gültigkeitsdauer und Datum der letzten Änderung
+       * FR: Date et durée de validité de la dernière modification
+       */
+      Validity : MANDATORY ModificationInfo;
+      /** DE: Mehrsprachige Beschreibung (de, fr, it, rm, en)
+       * FR: Description dans plusieurs langues (de, fr, it, rm, en)
+       */
+      Description : LocalisationCH_V1.MultilingualMText;
+      /** DE: Eindeutigkeitsbedingung für "Identifier"
+       * FR: Condition d'unicité pour "Identifier"
+       */
+      UNIQUE Identifier;
+    END ReservedZone;
+
+    /** DE: Angehängte Dokumente
+     * FR: Documents annexes
+     */
+    ASSOCIATION ReservedZonePrescription =
+      /** DE: Vorschrift
+       * FR: Prescription
+       */
+      Prescription (EXTERNAL) -- {1..*} ReservedZonesForAirportInstallations_LV95_V2_3.RelatedDocuments_WithLatestModification.Document;
+      /** DE: Beschränkung
+       * FR: Restriction
+       */
+      Restriction -- {0..*} ReservedZone;
+    END ReservedZonePrescription;
+
+    /** DE: Projektierungszone bestehend aus einer oder mehreren Teilflächen
+     * FR: Zone reservée composée de une ou plusieurs surfaces individuelles
+     */
+    ASSOCIATION ReservedZoneSubzone =
+      /** DE: Teilzonengeometrie
+       * FR: Géométrie de la zone partielle
+       */
+      Subzone -- {1..*} Geometry;
+      /** DE: Bezug zur Klasse "ReservedZone"
+       * FR: Référence à la classe "ReservedZone"
+       */
+      Zone -<#> {1} ReservedZone;
+    END ReservedZoneSubzone;
+
+  END ReservedZones_WithLatestModification;
+
+END ReservedZonesForAirportInstallations_LV95_V2_3.

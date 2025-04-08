@@ -1,0 +1,131 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+!!@ technicalContact=mailto:geoinformation@bfe.admin.ch
+!!@ furtherInformation=https://www.bfe.admin.ch/geoinformation
+MODEL SupplyTerritoriesOfThermalNetworks (en)
+AT "https://models.geo.admin.ch/BFE/"
+VERSION "2023-05-17"  =
+  IMPORTS GeometryCHLV95_V1,CatalogueObjects_V1,LocalisationCH_V1;
+
+  DOMAIN
+
+    Date = FORMAT INTERLIS.XMLDate "1900-1-1" .. "2999-12-31";
+
+    Numeric = 0.00 .. 1000000.00;
+
+    Numeric100 = 0.00 .. 100.00;
+
+    Text = TEXT*500;
+
+    Year = 0 .. 9999;
+
+  TOPIC EnergySource_Catalogue =
+
+    CLASS EnergySource
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      EnergySource : MANDATORY LocalisationCH_V1.MultilingualText;
+    END EnergySource;
+
+    STRUCTURE EnergySourceRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) EnergySource;
+    END EnergySourceRef;
+
+  END EnergySource_Catalogue;
+
+  TOPIC ObligationToConnect_Catalogue =
+
+    CLASS ObligationToConnect
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ObligationToConnect : MANDATORY LocalisationCH_V1.MultilingualText;
+    END ObligationToConnect;
+
+    STRUCTURE ObligationToConnectRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) ObligationToConnect;
+    END ObligationToConnectRef;
+
+  END ObligationToConnect_Catalogue;
+
+  TOPIC SourceOfHeat_Catalogue =
+
+    CLASS SourceOfHeat
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      SourceOfHeat : MANDATORY LocalisationCH_V1.MultilingualText;
+    END SourceOfHeat;
+
+    STRUCTURE SourceOfHeatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) SourceOfHeat;
+    END SourceOfHeatRef;
+
+  END SourceOfHeat_Catalogue;
+
+  TOPIC Status_Catalogue =
+
+    CLASS Status
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Status : MANDATORY LocalisationCH_V1.MultilingualText;
+    END Status;
+
+    STRUCTURE StatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Status;
+    END StatusRef;
+
+  END Status_Catalogue;
+
+  TOPIC SupplyTerritoriesOfThermalNetworks =
+    DEPENDS ON SupplyTerritoriesOfThermalNetworks.EnergySource_Catalogue,SupplyTerritoriesOfThermalNetworks.Status_Catalogue,SupplyTerritoriesOfThermalNetworks.ObligationToConnect_Catalogue,SupplyTerritoriesOfThermalNetworks.SourceOfHeat_Catalogue;
+
+    CLASS EnergySource =
+      ShareOfEnergySource : MANDATORY SupplyTerritoriesOfThermalNetworks.Numeric100;
+      EnergySource : MANDATORY SupplyTerritoriesOfThermalNetworks.EnergySource_Catalogue.EnergySourceRef;
+      SourceOfHeat : MANDATORY SupplyTerritoriesOfThermalNetworks.SourceOfHeat_Catalogue.SourceOfHeatRef;
+    END EnergySource;
+
+    CLASS SupplyPeriod =
+      BeginningOfPeriod : MANDATORY SupplyTerritoriesOfThermalNetworks.Date;
+      EndOfPeriod : MANDATORY SupplyTerritoriesOfThermalNetworks.Date;
+      ShareOfRenewableEnergy : MANDATORY SupplyTerritoriesOfThermalNetworks.Numeric100;
+      TarifConnection : SupplyTerritoriesOfThermalNetworks.Numeric;
+      TarifSupply : SupplyTerritoriesOfThermalNetworks.Numeric;
+    END SupplyPeriod;
+
+    CLASS SupplyTerritory =
+      Name : MANDATORY SupplyTerritoriesOfThermalNetworks.Text;
+      Operator : MANDATORY SupplyTerritoriesOfThermalNetworks.Text;
+      OperatorURL : MANDATORY INTERLIS.URI;
+      SupplyCapacityAvailable : MANDATORY INTERLIS.BOOLEAN;
+    END SupplyTerritory;
+
+    CLASS SupplyZone =
+      Geometry : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+      Name : SupplyTerritoriesOfThermalNetworks.Text;
+      YearOfInitialOperation : SupplyTerritoriesOfThermalNetworks.Year;
+      ObligationToConnect : MANDATORY SupplyTerritoriesOfThermalNetworks.ObligationToConnect_Catalogue.ObligationToConnectRef;
+      Status : MANDATORY SupplyTerritoriesOfThermalNetworks.Status_Catalogue.StatusRef;
+    END SupplyZone;
+
+    ASSOCIATION AssociationSupplyPeriodEnergySource =
+      SupplyPeriodR -- {1} SupplyPeriod;
+      EnergySourceR -- {1..*} EnergySource;
+    END AssociationSupplyPeriodEnergySource;
+
+    ASSOCIATION AssociationSupplyTerritorySupplyPeriod =
+      SupplyTerritoryR -- {1} SupplyTerritory;
+      SupplyPeriodR -- {1..*} SupplyPeriod;
+    END AssociationSupplyTerritorySupplyPeriod;
+
+    ASSOCIATION AssociationSupplyTerritorySupplyZone =
+      SupplyTerritoryR -- {1} SupplyTerritory;
+      SupplyZoneR -- {1..*} SupplyZone;
+    END AssociationSupplyTerritorySupplyZone;
+
+  END SupplyTerritoriesOfThermalNetworks;
+
+END SupplyTerritoriesOfThermalNetworks.

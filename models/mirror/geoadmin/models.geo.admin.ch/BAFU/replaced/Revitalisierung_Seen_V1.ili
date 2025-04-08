@@ -1,0 +1,273 @@
+INTERLIS 2.3;
+
+!!@ IDGeoIV=191.2
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Revitalisierung_Seen_LV95_V1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2020-04-07"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1;
+
+  TOPIC Revitalisierung_Seen =
+
+   DOMAIN
+
+  /* Linie ohne Kreisbogen */
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+  /* Gerichtete Linie ohne Kreisbogen */
+    DirectedLine = DIRECTED POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+
+    Methode = (
+      BAFU,
+      IGKB,
+      andere
+      );
+
+    Beurteilung = (
+      naturnah_natuerlich,
+      wenig_beeintraechtigt,
+      beeintraechtigt,
+      naturfremd,
+      kuenstlich,
+      nicht_bestimmt
+      );
+
+    STRUCTURE Uferlinie_Linear =
+      AdrVon : MANDATORY 0 .. 999999;
+      AdrBis : 0 .. 999999;
+      Uferlinie : MANDATORY DirectedLine;
+    END Uferlinie_Linear;
+
+    STRUCTURE Uferlinie_Planar =
+      Teilstueck : MANDATORY Linie;
+    END Uferlinie_Planar;
+
+    CLASS SeeKanton =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      SeeKennung : TEXT*256;
+      Name_See : TEXT*256;
+      Uferlinie_Laenge_m : MANDATORY 0 .. 999999;
+      UNIQUE Kanton,ID_Uferlinie;
+    END SeeKanton;
+
+    CLASS Uferlinie_Geometrie =
+      UferLinear : Uferlinie_Linear;
+      UferPlanar : Uferlinie_Planar;
+      DatumUferlinie : 1900 .. 2100;
+      MANDATORY CONSTRAINT DEFINED (UferLinear) OR DEFINED (UferPlanar);
+    END Uferlinie_Geometrie;
+
+    CLASS OekomorphologieSeeufer =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      Methode : MANDATORY Methode;
+      Bezeichnung_andere_Methode : TEXT*256;
+      Aufnahmezeitpunkt : MANDATORY INTERLIS.XMLDate;
+      Gesamtbeurteilung_Oekomorphologie : MANDATORY Beurteilung;
+      UNIQUE Kanton,ID_Uferlinie;
+    END OekomorphologieSeeufer;
+
+    CLASS Methode_BAFU EXTENDS OekomorphologieSeeufer =
+      Oekomorphologie_gesamt : MANDATORY 0.00 .. 1.00;
+      Oekomorphologie_Uferstreifen : 0.00 .. 1.00;
+      Oekomorphologie_Flachwasserzone : 0.00 .. 1.00;
+      Oekomorphologie_Uferlinie : 0.00 .. 1.00;
+      Oekomorphologie_Hinterland : 0.00 .. 1.00;
+    END Methode_BAFU;
+
+    CLASS Methode_IGKB EXTENDS OekomorphologieSeeufer =
+      gewichtete_Gesamtbeurteilung : MANDATORY 0.00 .. 9.99;
+      Uferlinie : 1 .. 5;
+      Deltabildung : -1 .. 5;
+      Ufersubstrat : 1 .. 5;
+      Litoralsubstrat : -1 .. 5;
+      Totholz : -1 .. 5;
+      Hindernisse : 1 .. 5;
+      Uferverbauung : 1 .. 5;
+      biologische_Durchgaengigkeit : -1 .. 5;
+      Ufervegetation_landseitig : 1 .. 5;
+      Roehricht : -1 .. 5;
+      Makrophyten : -1 .. 5;
+      Veralgung : 1 .. 5;
+      Stoerfrequenz : 1 .. 5;
+      Kinderstube : 1 .. 5;
+      Anbindung_Hinterland : 1 .. 5;
+      Ufertyp : 1 .. 4;
+      Breite_Flachwasserzone : TEXT*20;
+    END Methode_IGKB;
+
+    CLASS Resultat_Plan_B_E_F (ABSTRACT) =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      UNIQUE Kanton,ID_Uferlinie;
+    END Resultat_Plan_B_E_F;
+
+    CLASS Oek_L_Bedeutung EXTENDS Resultat_Plan_B_E_F =
+      Oek_LS_Bedeutung : MANDATORY 0.0 .. 2.0;
+    END Oek_L_Bedeutung;
+
+    CLASS Nutzen_Aufwand EXTENDS Resultat_Plan_B_E_F =
+      Nutzen_NL_Aufwand : MANDATORY 1 .. 3;
+    END Nutzen_Aufwand;
+
+    CLASS Umsetzung EXTENDS Resultat_Plan_B_E_F =
+      Zeitfenster_geplante_Umsetzung : MANDATORY 1 .. 99;
+    END Umsetzung;
+
+    ASSOCIATION Uferlinie_GeometrieSeeKanton =
+      Uferlinie_Geometrie -- {1..*} Uferlinie_Geometrie;
+      SeeKanton -- {0..1} SeeKanton;
+    END Uferlinie_GeometrieSeeKanton;
+
+    ASSOCIATION Uferlinie_GeometrieOekomorphologieSeeufer =
+      Uferlinie_Geometrie -- {1} Uferlinie_Geometrie;
+      OekomorphologieSeeufer -- {0..1} OekomorphologieSeeufer;
+    END Uferlinie_GeometrieOekomorphologieSeeufer;
+
+    ASSOCIATION Uferlinie_GeometrieResultat_PlanBF =
+      Uferlinie_Geometrie -- {1} Uferlinie_Geometrie;
+      Resultat_Plan_B_E_F -- {0..1} Resultat_Plan_B_E_F;
+    END Uferlinie_GeometrieResultat_PlanBF;
+
+  END Revitalisierung_Seen;
+
+END Revitalisierung_Seen_LV95_V1.
+
+
+!!@ IDGeoIV=191.2
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Revitalisierung_Seen_LV03_V1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2020-04-07"  =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1;
+
+  TOPIC Revitalisierung_Seen =
+
+   DOMAIN
+
+  /* Linie ohne Kreisbogen */
+    Linie = POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+  /* Gerichtete Linie ohne Kreisbogen */
+    DirectedLine = DIRECTED POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+
+    Methode = (
+      BAFU,
+      IGKB,
+      andere
+      );
+
+    Beurteilung = (
+      naturnah_natuerlich,
+      wenig_beeintraechtigt,
+      beeintraechtigt,
+      naturfremd,
+      kuenstlich,
+      nicht_bestimmt
+      );
+
+    STRUCTURE Uferlinie_Linear =
+      AdrVon : MANDATORY 0 .. 999999;
+      AdrBis : 0 .. 999999;
+      Uferlinie : MANDATORY DirectedLine;
+    END Uferlinie_Linear;
+
+    STRUCTURE Uferlinie_Planar =
+      Teilstueck : MANDATORY Linie;
+    END Uferlinie_Planar;
+
+    CLASS SeeKanton =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      SeeKennung : TEXT*256;
+      Name_See : TEXT*256;
+      Uferlinie_Laenge_m : MANDATORY 0 .. 999999;
+      UNIQUE Kanton,ID_Uferlinie;
+    END SeeKanton;
+
+    CLASS Uferlinie_Geometrie =
+      UferLinear : Uferlinie_Linear;
+      UferPlanar : Uferlinie_Planar;
+      DatumUferlinie : 1900 .. 2100;
+      MANDATORY CONSTRAINT DEFINED (UferLinear) OR DEFINED (UferPlanar);
+    END Uferlinie_Geometrie;
+
+    CLASS OekomorphologieSeeufer =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      Methode : MANDATORY Methode;
+      Bezeichnung_andere_Methode : TEXT*256;
+      Aufnahmezeitpunkt : MANDATORY INTERLIS.XMLDate;
+      Gesamtbeurteilung_Oekomorphologie : MANDATORY Beurteilung;
+      UNIQUE Kanton,ID_Uferlinie;
+    END OekomorphologieSeeufer;
+
+    CLASS Methode_BAFU EXTENDS OekomorphologieSeeufer =
+      Oekomorphologie_gesamt : MANDATORY 0.00 .. 1.00;
+      Oekomorphologie_Uferstreifen : 0.00 .. 1.00;
+      Oekomorphologie_Flachwasserzone : 0.00 .. 1.00;
+      Oekomorphologie_Uferlinie : 0.00 .. 1.00;
+      Oekomorphologie_Hinterland : 0.00 .. 1.00;
+    END Methode_BAFU;
+
+    CLASS Methode_IGKB EXTENDS OekomorphologieSeeufer =
+      gewichtete_Gesamtbeurteilung : MANDATORY 0.00 .. 9.99;
+      Uferlinie : 1 .. 5;
+      Deltabildung : -1 .. 5;
+      Ufersubstrat : 1 .. 5;
+      Litoralsubstrat : -1 .. 5;
+      Totholz : -1 .. 5;
+      Hindernisse : 1 .. 5;
+      Uferverbauung : 1 .. 5;
+      biologische_Durchgaengigkeit : -1 .. 5;
+      Ufervegetation_landseitig : 1 .. 5;
+      Roehricht : -1 .. 5;
+      Makrophyten : -1 .. 5;
+      Veralgung : 1 .. 5;
+      Stoerfrequenz : 1 .. 5;
+      Kinderstube : 1 .. 5;
+      Anbindung_Hinterland : 1 .. 5;
+      Ufertyp : 1 .. 4;
+      Breite_Flachwasserzone : TEXT*20;
+    END Methode_IGKB;
+
+    CLASS Resultat_Plan_B_E_F (ABSTRACT) =
+      Kanton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      ID_Uferlinie : MANDATORY TEXT*256;
+      UNIQUE Kanton,ID_Uferlinie;
+    END Resultat_Plan_B_E_F;
+
+    CLASS Oek_L_Bedeutung EXTENDS Resultat_Plan_B_E_F =
+      Oek_LS_Bedeutung : MANDATORY 0.0 .. 2.0;
+    END Oek_L_Bedeutung;
+
+    CLASS Nutzen_Aufwand EXTENDS Resultat_Plan_B_E_F =
+      Nutzen_NL_Aufwand : MANDATORY 1 .. 3;
+    END Nutzen_Aufwand;
+
+    CLASS Umsetzung EXTENDS Resultat_Plan_B_E_F =
+      Zeitfenster_geplante_Umsetzung : MANDATORY 1 .. 99;
+    END Umsetzung;
+
+    ASSOCIATION Uferlinie_GeometrieSeeKanton =
+      Uferlinie_Geometrie -- {1..*} Uferlinie_Geometrie;
+      SeeKanton -- {0..1} SeeKanton;
+    END Uferlinie_GeometrieSeeKanton;
+
+    ASSOCIATION Uferlinie_GeometrieOekomorphologieSeeufer =
+      Uferlinie_Geometrie -- {1} Uferlinie_Geometrie;
+      OekomorphologieSeeufer -- {0..1} OekomorphologieSeeufer;
+    END Uferlinie_GeometrieOekomorphologieSeeufer;
+
+    ASSOCIATION Uferlinie_GeometrieResultat_PlanBF =
+      Uferlinie_Geometrie -- {1} Uferlinie_Geometrie;
+      Resultat_Plan_B_E_F -- {0..1} Resultat_Plan_B_E_F;
+    END Uferlinie_GeometrieResultat_PlanBF;
+
+  END Revitalisierung_Seen;
+
+END Revitalisierung_Seen_LV03_V1.
+

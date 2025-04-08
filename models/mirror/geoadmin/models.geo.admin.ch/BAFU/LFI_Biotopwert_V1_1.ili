@@ -1,0 +1,59 @@
+INTERLIS 2.3;
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=164.17
+MODEL LFI_Biotopwert_V1_1 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2020-11-19"  =
+
+  /** Importieren aus der CH-BASE rsp. dem ili-Repository
+  */
+  IMPORTS UNQUALIFIED NonVector_Base_LV95_V3_1;
+
+  TOPIC Biotopwert EXTENDS NonVector =
+
+    STRUCTURE Farbklasse =
+      /** z.B. "000255000" fuer Lime oder "000000000" fuer Black oder "222222222" für NoData
+      */
+      FarbklasseRGBDecNotation: MANDATORY TEXT*9;
+      /** Bedeutung der entsprechenden Farbe deutsch
+      */
+      FarbklasseBedeutung_de: MANDATORY TEXT*1024;
+      /** Bedeutung der entsprechenden Farbe franzoesisch
+      */
+      FarbklasseBedeutung_fr: MANDATORY TEXT*1024;
+      /** Bedeutung der entsprechenden Farbe italienisch
+      */
+      FarbklasseBedeutung_it: MANDATORY TEXT*1024;
+      /** Datenwert (als Basis der Farbwahl), welcher für die
+          Berechnung des Punktwertes in den 2-D Raum benutzt wurde
+      */
+      FarbklasseQuellenWert: MANDATORY -1 .. 999;
+    END Farbklasse;
+
+    CLASS BiotopwertInfo EXTENDS NonVector_Dataset =
+      BemerkungBerechnung: MANDATORY TEXT*2048;
+    END BiotopwertInfo;
+
+    CLASS BiotopwertData EXTENDS ImageGraphicRasterObject =
+      /** z.B. "400dpi"
+      */
+      Aufloesung: MANDATORY TEXT*30;
+      /** z.B. "24 Bit True Color"
+      */
+      BitTiefe: MANDATORY TEXT*30;
+      Farbraum: MANDATORY (CMYK,RGB,Graustufen,indiziert,binaer);
+      Komprimierung: MANDATORY (LZW,Packbits,unkomprimiert);
+      Antialiasing: MANDATORY BOOLEAN;
+      /** im Rasterbild vorkommende Farbklassen
+      */
+      PixelFarbklasse: LIST {1..*} OF Farbklasse;
+    END BiotopwertData;
+
+    CLASS Ausschnitt EXTENDS Clipping =
+    END Ausschnitt;
+
+  END Biotopwert;
+
+END LFI_Biotopwert_V1_1.

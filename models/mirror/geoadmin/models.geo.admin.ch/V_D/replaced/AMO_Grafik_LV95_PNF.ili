@@ -1,0 +1,77 @@
+TRANSFER TransferName;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! AMO-Grafik-PNF data model description in INTERLIS version 1 (SN 612030).
+!!
+!! Federal Office of Topography swisstopo
+!! Federal Directorate for Cadastral Surveying
+!! CH-3084 Wabern
+!!
+!! Version: 1.0
+!! File name: AMO_Grafik_LV95_PNF.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+MODEL AMO_Grafik_LV95_PNF
+
+  DOMAIN
+  
+    CoordP = COORD2
+      2480000.000 170000.000
+      2850000.000 1310000.000;
+      
+    Cantons = (
+      ZH, BE, LU, UR, SZ, OW, NW, GL, ZG, FR, SO, BS, BL, SH,
+        AR, AI, SG, GR, AG, TG, TI, VD, VS, NE, GE, JU, FL, CH);
+        
+    Identifier = [0 .. 99999];
+    
+     Category = (
+      PNF,  !!Periodische Nachführung, Mise à jour periodique, tenuta a giorno periodica
+      weitere); !!Nicht verwenden, ne pas utiliser, non utilizzare
+
+      
+    Systems = (
+      LV03,
+      LV95);
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!                                               !!
+!!                TOPIC                          !!
+!!                                               !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  TOPIC PNF = !!Periodische Nachfuerung
+    
+    TABLE PNF =
+      Canton : Cantons;
+      Id : Identifier; !!kantonaler Identifikator (5 Zahlen)- identifiant cantonal de 5 chiffres
+      Description: TEXT*30;
+      Practice : Category;
+      Reference_frame: Systems;
+      Year: [2000 .. 2100];
+    IDENT Canton, Id;
+    END PNF;
+    
+    TABLE PNF_Geometry =
+      From: ->PNF; !! Relation 1-m
+      Perimeter : SURFACE WITH (STRAIGHTS, ARCS) VERTEX CoordP
+        WITHOUT OVERLAPS > 0.20;
+    NO IDENT
+    END PNF_Geometry;
+    
+  END PNF.
+  
+   
+END AMO_Grafik_LV95_PNF.
+
+FORMAT
+  FREE;
+
+CODE
+  BLANK = DEFAULT, UNDEFINED = DEFAULT, CONTINUE = DEFAULT;
+  TID = ANY;
+END.

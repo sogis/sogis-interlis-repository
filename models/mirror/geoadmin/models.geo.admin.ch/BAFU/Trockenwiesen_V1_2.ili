@@ -1,0 +1,80 @@
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2022-06-02 | BAFU  | Korrektur Multipolygone (anstelle Polygone), VIEW durch CONSTRAINTS OF ersetzt, LV03 gelöscht
+!! 2022-11-15 | BAFU  | Ergänzung Attribut "Singularitaet"
+
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=186.1
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+MODEL Trockenwiesen_V1_2 (de)
+AT "https://models.geo.admin.ch/BAFU/"
+VERSION "2023-11-15"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Trockenwiesen =
+
+    DOMAIN
+
+      DesignationType = (
+        SAC,
+        SPA,
+        SCI,
+        RAMSAR,
+        NDA
+      );
+
+      IUCNCategory = (
+        Strict_Nature_Reserve_Ia,
+        Wilderness_Area_Ib,
+        National_Park_II,
+        Natural_Monument_III,
+        Habitat_or_Species_Management_Area_IV,
+        Protected_Landscape_or_Seascape_V,
+        Managed_Resource_Protected_Area_VI
+      );
+
+      /** Flächen ohne Kreisbogen */
+      Polygon = SURFACE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord3 WITHOUT OVERLAPS > 0.001;
+
+    /** Definition von Multipolygonen, analog CHBase Geometry */
+    STRUCTURE PolygonStructure =
+      Polygon: Polygon;
+    END PolygonStructure;
+
+    STRUCTURE MultiPolygon =
+      Polygons: BAG {1..*} OF PolygonStructure;
+    END MultiPolygon;
+
+    CLASS Trockenwiese_Teilobjekt =
+      TeilObjNummer : MANDATORY TEXT*30;
+      Bewertungseinheit : MANDATORY 0 .. 999999;
+      Singularitaet : MANDATORY BOOLEAN;
+      Geo_Obj : MANDATORY MultiPolygon;
+    END Trockenwiese_Teilobjekt;
+
+    CLASS Trockenwiese =
+      ObjNummer : MANDATORY TEXT*30;
+      Name : MANDATORY TEXT*80;
+      RefObjBlatt : INTERLIS.URI;
+      DesignatType : DesignationType;
+      IUCNCategory : MANDATORY IUCNCategory;
+      Inkraftsetzungsdatum : MANDATORY INTERLIS.XMLDate;
+      Mutationsdatum : INTERLIS.XMLDate;
+      Mutationsgrund : TEXT*255;
+    END Trockenwiese;
+
+    ASSOCIATION Teilobjekt =
+      Trockenwiese_Teilobjekt -- {1..*} Trockenwiese_Teilobjekt;
+      Trockenwiese -<#> {1} Trockenwiese;
+    END Teilobjekt;
+
+    /** Klassenübergreifender Constraint für Eindeutigkeit */
+    CONSTRAINTS OF Trockenwiese_Teilobjekt =
+      UNIQUE TeilObjNummer, Trockenwiese->ObjNummer;
+    END;
+
+  END Trockenwiesen;
+
+END Trockenwiesen_V1_2.

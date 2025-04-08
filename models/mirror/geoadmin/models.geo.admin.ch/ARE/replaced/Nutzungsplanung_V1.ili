@@ -1,0 +1,157 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell Nutzungsplanung (kantonal / kommunal)
+ *  Geobasisdatensatz Nr. 73
+ */
+ 
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2016-04-15 | KOGIS | Geometry definition adapted (line 21, 23)
+
+!!@ technicalContact = mailto:info@are.admin.ch
+!!@ IDGeoIV = "73"
+!!@ furtherInformation = http://www.are.admin.ch/mgm
+MODEL Nutzungsplanung_V1 (de) AT "http://models.geo.admin.ch/ARE" VERSION "2016-04-15"  =
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS UNQUALIFIED INTERLIS;
+
+  DOMAIN
+
+    Einzelflaeche = SURFACE WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.05;
+
+    Gebietseinteilung = AREA WITH (STRAIGHTS, ARCS) VERTEX GeometryCHLV03_V1.Coord2 WITHOUT OVERLAPS > 0.05;
+
+    Rechtsstatus = MANDATORY (
+      inKraft,
+      laufendeAenderung
+    );
+
+    Verbindlichkeit = MANDATORY (
+      Nutzungsplanfestlegung,
+      orientierend,
+      hinweisend,
+      wegleitend
+    );
+
+  TOPIC Rechtsvorschriften =
+
+    CLASS Dokument =
+      Titel : MANDATORY TEXT*80;
+      OffiziellerTitel : TEXT;
+      Abkuerzung : TEXT*10;
+      OffizielleNr : MANDATORY TEXT*20;
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      publiziertAb : MANDATORY XMLDate;
+      Rechtsstatus : MANDATORY Nutzungsplanung_V1.Rechtsstatus;
+      TextImWeb : URI;
+      Bemerkungen : MTEXT;
+    END Dokument;
+
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis -- {0..*} Dokument;
+    END HinweisWeitereDokumente;
+
+  END Rechtsvorschriften;
+
+  TOPIC Geobasisdaten =
+    DEPENDS ON Nutzungsplanung_V1.Rechtsvorschriften;
+
+    CLASS Geometrie (ABSTRACT) =
+      publiziertAb : MANDATORY XMLDate;
+      Rechtsstatus : MANDATORY Nutzungsplanung_V1.Rechtsstatus;
+      Bemerkungen : MTEXT;
+    END Geometrie;
+
+    CLASS Hauptnutzung_CH (FINAL) =
+      Code : MANDATORY 11 .. 99;
+      Bezeichnung : MANDATORY TEXT*80;
+    END Hauptnutzung_CH;
+
+    CLASS Typ =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*12;
+      Verbindlichkeit : MANDATORY Nutzungsplanung_V1.Verbindlichkeit;
+      Nutzungsziffer : 0.00 .. 9.00;
+      Nutzungsziffer_Art : TEXT*40;
+      Bemerkungen : MTEXT;
+    END Typ;
+
+    CLASS Typ_Kt =
+      Code : MANDATORY TEXT*12;
+      Bezeichnung : MANDATORY TEXT*80;
+      Abkuerzung : TEXT*12;
+      Bemerkungen : MTEXT;
+    END Typ_Kt;
+
+    CLASS Grundnutzung_Zonenflaeche
+    EXTENDS Geometrie =
+      Geometrie : MANDATORY Nutzungsplanung_V1.Gebietseinteilung;
+    END Grundnutzung_Zonenflaeche;
+
+    CLASS Linienbezogene_Festlegung
+    EXTENDS Geometrie =
+      Geometrie : MANDATORY Line;
+    END Linienbezogene_Festlegung;
+
+    CLASS Objektbezogene_Festlegung
+    EXTENDS Geometrie =
+      Geometrie : MANDATORY Coord2;
+    END Objektbezogene_Festlegung;
+
+    CLASS Ueberlagernde_Festlegung
+    EXTENDS Geometrie =
+      Geometrie : MANDATORY Nutzungsplanung_V1.Einzelflaeche;
+    END Ueberlagernde_Festlegung;
+
+    ASSOCIATION Typ_Dokument =
+      Typ -- {0..*} Typ;
+      Vorschrift (EXTERNAL) -- {0..*} Nutzungsplanung_V1.Rechtsvorschriften.Dokument;
+    END Typ_Dokument;
+
+    ASSOCIATION Typ_Geometrie =
+      Geometrie -- {0..*} Geometrie;
+      Typ -<> {1} Typ;
+    END Typ_Geometrie;
+
+    ASSOCIATION Typ_Typ_Kt =
+      Typ -- {0..*} Typ;
+      Typ_Kt -<> {1} Typ_Kt;
+    END Typ_Typ_Kt;
+
+    ASSOCIATION TypKt_HauptnCH =
+      Typ_Kt -- {0..*} Typ_Kt;
+      Hauptnutzung_CH -- {1} Hauptnutzung_CH;
+    END TypKt_HauptnCH;
+
+  END Geobasisdaten;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON Nutzungsplanung_V1.Geobasisdaten;
+
+    CLASS Amt =
+      Name : MANDATORY TEXT*80;
+      AmtImWeb : URI;
+    END Amt;
+
+    CLASS Datenbestand =
+      Stand : MANDATORY XMLDate;
+      Lieferdatum : XMLDate;
+      Bemerkungen : MTEXT;
+    END Datenbestand;
+
+    ASSOCIATION zustStelle_Daten =
+      zustaendigeStelle -<> {1} Amt;
+      Datenbestand -- {0..*} Datenbestand;
+    END zustStelle_Daten;
+
+  END TransferMetadaten;
+
+END Nutzungsplanung_V1.

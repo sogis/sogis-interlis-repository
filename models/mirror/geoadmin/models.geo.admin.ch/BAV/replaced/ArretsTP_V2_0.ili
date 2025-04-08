@@ -1,0 +1,146 @@
+INTERLIS 2.3;
+
+!!==============================================================================
+!! Arrêts TP
+!!------------------------------------------------------------------------------
+!!
+!! OGéo, Annexe 1
+!! ==============
+!! Identificateur OGéo                       : 98
+!! Désignation OGéo                          : Arrêts des transports publics
+!! Numero du recueil                         : 98.2
+!! Service compétent                         : Confédération (OFT)
+!! Niveau d’autorisation d'accès             : A
+!!
+!!------------------------------------------------------------------------------
+!!
+!! Version | Date       | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 1.3     | 2017-06-08 | ems   | Extension au modelle dans le cadre de référence MN95 et adaption des noms des modelles;
+!!                                Activation d' existence constraints qui étaient auparavant sous forme de commentaires dans le modèle de données ET;
+!!                                Modélisation des valeurs de moyens de transport en tant que liste de code externe
+!! 1.3     | 2017-07-21 | ems   | adaptions minimales après remarques de COSIG
+!! 1.3     | 2017-10-30 | ems   | Correction du domaine de valeur AbreviationET et RespDonneesAbreviation
+!! 1.3     | 2018-02-13 | KOGIS | Correction du domaine de valeur de l'attribut Longueur
+!! 1.3     | 2018-07-25 | ems   | adaption furtherInformation
+!! 1.3     | 2020-04-27 | KOGIS | Correction du constraint dans la classe PointExploitation (#Arret et #Arret_et_PointChargement)
+!! 2.0     | 2020-10-19 | ems   | • Modélisation des valeurs de types de point d'exploitation en tant que liste de code externe
+!!                                • Comme les types de points d'exploitation sont déplacés vers un catalogue externe, la contrainte selon laquelle les points d'exploitation du type "arrêt"
+!!                                  ou "arrêt et point de chargement" doivent disposer d'un moyen de transport est supprimée (cette condition est déjà assurée dans le système source)
+!!                                • Adaption du domaine de valeur "MoyenTransport.Code", "Commune.Nom", "PointExploitation.Geometrie", "BordureArret.Numero", "BordureArret.Longueur", "BordureArret.HauteurBordure"
+!!                                • Suppresion des attributs "PointExploitation.RespDonneesAbreviation", "PointExploitation.Altitude", "Validite.DateTraitement"
+!!                                • Adaption du nom d'attribut de "BordureArret.Nom" à "BordureArret.Designation" et adaptions du domaine de valeur
+!!                                • Ajout des attributs "BordureArret.DesignationOperationnelle" und "BordureArret.Validite"
+!!                                • Suppresion de modèle dans le cadre de référence MN03 et integration modèle de catalogue dans le modèle MN95
+!! 2.0     | 2024-03-20 | daf   | • Modification de l'attribut "BordureArret.DesignationOperationnelle": n'est plus obligatoire désormais
+
+!!@ IDGeoIV = "98.2"
+!!@ technicalContact = mailto:gis@bav.admin.ch
+!!@ furtherInformation = https://www.bav.admin.ch/bav/fr/home/themes-a-z/geoinformation/geodonnees-de-base/arrets-des-transports-publics.html
+
+MODEL ArretsTP_V2_0 (fr)
+  AT "https://models.geo.admin.ch/BAV/" VERSION "2024-03-20" TRANSLATION OF HaltestellenOeV_V2_0 ["2024-03-20"]=
+
+  IMPORTS CatalogueObjects_V1;
+  IMPORTS Units;
+  IMPORTS GeometryCHLV95_V1;
+  IMPORTS EntreprisesTP_V1;
+
+  TOPIC Catalogues =
+
+    CLASS MoyenTransport
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code :        MANDATORY TEXT*10;
+      Designation : MANDATORY TEXT*100;
+      UNIQUE Code;
+    END MoyenTransport;
+
+    STRUCTURE MoyenTransport_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MoyenTransport;
+    END MoyenTransport_CatRef;
+
+    CLASS TypePointExploitation
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Code :        MANDATORY TEXT*10;
+      Designation : MANDATORY TEXT*100;
+      UNIQUE Code;
+    END TypePointExploitation;
+
+    STRUCTURE TypePointExploitation_CatRef
+    EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) TypePointExploitation;
+    END TypePointExploitation_CatRef;
+
+  END Catalogues;
+
+  TOPIC ArretsTP =
+    DEPENDS ON EntreprisesTP_V1.ET,
+               ArretsTP_V2_0.Catalogues;
+
+    STRUCTURE EntrepriseTransport =
+      Numero :      MANDATORY TEXT*6;
+      Abreviation :           TEXT*15;
+
+      !!ET doit exister dans la liste ET de l'OFT.
+      EXISTENCE CONSTRAINT Numero REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Numero;
+      EXISTENCE CONSTRAINT Abreviation REQUIRED IN EntreprisesTP_V1.ET.EntrepriseTransport:Abreviation;
+
+    END EntrepriseTransport;
+
+    STRUCTURE Validite =
+      DebutValidite : MANDATORY INTERLIS.XMLDate;
+      FinValidite :             INTERLIS.XMLDate;
+      Etat :          MANDATORY INTERLIS.XMLDate;
+    END Validite;
+
+    STRUCTURE Commune =
+      Numero : MANDATORY 0 .. 9999;
+      Nom :              TEXT*40;
+    END Commune;
+
+    CLASS PointExploitation =
+      Numero :                MANDATORY 0 .. 9999999;
+      Nom :                   MANDATORY TEXT*50;
+      Abreviation :                     TEXT*6;
+      EntrepriseTransport :   MANDATORY EntrepriseTransport;
+      TypePointExploitation : MANDATORY ArretsTP_V2_0.Catalogues.TypePointExploitation_CatRef;
+      MoyenTransport :                  ArretsTP_V2_0.Catalogues.MoyenTransport_CatRef;
+      Geometrie :             MANDATORY GeometryCHLV95_V1.Coord3;
+      Commune :               MANDATORY Commune;
+      Validite :              MANDATORY Validite;
+
+      UNIQUE Numero;
+      UNIQUE Nom;
+      UNIQUE Abreviation;
+
+    END PointExploitation;
+
+    CLASS BordureArret =
+      Numero :                    MANDATORY TEXT*254;
+      Designation :                         TEXT*40;
+      DesignationOperationnelle :           TEXT*20;
+      Longueur :                            0.00 .. 9999.99 [INTERLIS.m];
+      HauteurBordure :                      0.00 .. 999.99 [Units.cm];
+      Geometrie :                 MANDATORY GeometryCHLV95_V1.Coord3;
+      Validite :                  MANDATORY Validite;
+    END BordureArret;
+
+    ASSOCIATION PointExploitation_PointExploitationAssoc =
+      rArretSuperieur -- {0..1} PointExploitation;
+      rArretInferieur -- {0..*} PointExploitation;
+    END PointExploitation_PointExploitationAssoc;
+
+    ASSOCIATION PointExploitation_BordureArretAssoc =
+      rArret -- {1} PointExploitation;
+      rBordureArret -- {0..*} BordureArret;
+    END PointExploitation_BordureArretAssoc;
+
+    CONSTRAINTS OF BordureArret =
+      !!Numéro est unique dans un arrêt
+      UNIQUE rArret, Numero;
+    END;
+
+  END ArretsTP;
+
+END ArretsTP_V2_0 .

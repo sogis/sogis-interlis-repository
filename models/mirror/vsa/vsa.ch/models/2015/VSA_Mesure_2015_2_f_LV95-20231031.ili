@@ -1,0 +1,96 @@
+!! VSA_Mesure_2015_2_f_LV95-20231031.ili
+!! Extension VSA-SDEE des "Mesures" (VSA-Mesures)
+
+INTERLIS 2.3;
+
+MODEL VSA_MESURE_2015_LV95 (fr) AT "http://www.vsa.ch/models"
+  VERSION "31.10.2023" TRANSLATION OF VSA_MASSNAHME_2015_LV95 [ "31.10.2023" ] = 
+
+  IMPORTS UNQUALIFIED INTERLIS;     !! imports INTERLIS 2 Baseunits
+  IMPORTS Units;
+  IMPORTS Base_f_LV95;
+  IMPORTS SIA405_Base_f_LV95;
+
+
+!!@ comment = "Copyright 2002 - 2023"
+!!@ comment = "Association suisse des professionnels de la protection des eaux (VSA), Zürich www.vsa.ch"
+
+!!@ comment = "Libéré pour utilisation publique et application commerciale avec la licence."
+!!@ comment = "Sachbearbeiter: Stefan Burckhardt / VSA CC Siedlungsentwässerung"
+!!@ comment = " Fichier modèle INTERLIS examiné avec Compiler INTERLIS Version 5.3.3 (03.08.2023)"
+
+
+!! 3.5.2016 MODEL nouveau VSA_MESURE_2015 au lieu de VSA_MESURE
+!! 14.5.2021 Version _LV95 ajouté
+
+!! 31.10.2023 Dispositions de licence adaptées
+!! 31.10.2023 Version MN03 annulée et supprimée, uniquement MN95
+
+
+UNIT
+!! Définition des types de données après INTERLIS 2.3
+
+TOPIC plan_des_measures =
+
+
+DOMAIN
+
+
+CLASS MESURE EXTENDS SIA405_Base_f_LV95.SIA405_BaseClass =  
+!! Mesures élaborées dans le cadre du PGEE et leur état de mise en œuvre
+  ATTRIBUTE
+    REMARQUE: TEXT*80;  !! Remarques du gestionnaire du projet ou de l'autorité de surveillance
+    DESCRIPTION: TEXT*100;
+    DESIGNATION: MANDATORY TEXT*20;
+    DATE_ENTREE: INTERLIS_1_DATE;  !! Date d'entrée de la mesure dans le plan d'actions
+    COUTS_TOTAUX: 0.00 .. 99999999.99 [Units.CHF];  !! Somme des contributions propres et des coûts de parties tiers. Ils peuvent également être justifiés séparément
+    BESOIN_D_INTERVENTION: MTEXT*255;  !! Description courte du besoin d'intervention
+    ANNEE_MISE_EN_OEUVRE_ACTUEL: SIA405_Base_f_LV95.Annee;  !! Année à laquelle la mesure a effectivement été mise en œuvre
+    ANNEE_MISE_EN_OEUVRE_PREVUE: SIA405_Base_f_LV95.Annee;  !! Année à laquelle la mesure devrait être mise en œuvre
+    CATEGORIE: (          !! Catégorie de la mesure (obligatoire)
+      mesure_administrative,
+      autre,
+      suppression,
+      renaturalisation_cours_d_eau,
+      assainissement_cours_d_eau,
+      gestion_des_donnees,
+      adapter_reglage_hydraulique,
+      reduction_ecp,
+      elaboration_PGEE,
+      travaux_preparatoires_PGEE,
+      controle_et_surveillence,
+      remplacement_conduite_autres_raisons,
+      remplacement_conduite_hydraulique,
+      remplacement_conduite_etat,
+      extension_reseau,
+      assainissement_canalisation_ouvrage_special,
+      inconnu
+    );
+    PERIMETRE: Base_f_LV95.Surface;  !! Pour la visualisation et l’illustration dans l’espace (OPTIONAL);
+    PRIORITE: (          !! Priorité de la mesure.
+      M0,  !! La mesure doit être exécutée en urgence et à très court terme. Délais <= 2 ans
+      M1,  !! La mesure doit être exécutée en rapidement. Délais 3 à 4 ans
+      M2,  !! La mesure est nécessaire à moyen terme. Délais 5 à 7 ans
+      M3,  !! La mesure peut être planifiée à long terme. Délais 7 à 10 ans
+      M4,  !! La mesure peut attendre la prochaine mise à jour du PGEE. Délais >= 10 ans
+      inconnu
+    );
+    ETAT: (          !! Etat de la mesure
+      regle,
+      en_preparation,
+      en_suspens,
+      supprime,
+      inconnu
+    );
+    SYMBOLEPOS: Base_f_LV95.CoordNat;  !! Pour la visualisation (sans relation géométrique);
+    ENTITE_RESPONSABLE: SIA405_Base_f_LV95.Organisation_Designation;  !! Entité responsable de la mesure (nom, numéro de commune, STEP, etc);
+    RESPONSABLE_DECLENCHEMENT: SIA405_Base_f_LV95.Organisation_Designation;  !! Office responsable du déclenchement de la mesure.
+    RENVOI: MTEXT*255;  !! Référence à d’autres mesures ou travaux, documents explicatifs concernant la mesure, par exemple les projets partiels PGEE ou rapports d’état
+UNIQUE 
+    DESIGNATION, METAATTRIBUTS->MAITRE_DES_DONNEES;  !! En plus de UNIQUE OBJ_ID aussi combination UNIQUE DESIGNATION, MAITRE_DES_DONNEES pour la compatibilité avec VSA-SDEE-Mini (Guide données PGEE 2013)
+END MESURE;
+
+
+END plan_des_measures;   !! Ende des Topics / Fin du topic
+END VSA_MESURE_2015_LV95.   !! Ende des Modells / Fin du modèle
+

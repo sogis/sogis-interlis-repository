@@ -1,0 +1,532 @@
+/* MODÈLE DE DONNÉES POUR LA CARTOGRAPHIE DES DANGERS
+
+   Le présent modèle de données contient une partie minimale au sens de la loi
+   sur la géoinformation, ainsi qu'une partie étendue.
+   L'attribution à l'une ou à l'autre est indiquée en commentaire de chaque
+   topic.
+
+ Ce modèle fait appel à divers sous-modèles:
+   -- tiré de http://models.interlis.ch/
+   -- CONTRACTED TYPE MODEL Units (en)
+   -- tiré de http://models.geo.admin.ch/CH/
+   -- MODEL GeometryCHLV03_V1;  !! Part   I of CHBase
+   -- MODEL CHAdminCodes_V1;    !! Part   IV of CHBase
+   -- MODEL WithOneState_V1;    !! Part   V of CHBase
+
+   Le modèle de données en soi est le suivant:
+   -- MODEL cartographie_dangers_V1 (fr_CH) */
+
+INTERLIS 2.3;
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-26 | KOGIS | WITHOUT OVERLAPS added
+!! 2015-08-12 | KOGIS | EnumElement commented
+!! 2016-04-15 | KOGIS | Geometry definition adapted
+!! 2021-01-13 | BAFU  | Corrections: TOPIC etat_releve defini comme ABSTRACT, correction de la troisième condition dans CLASS intensite_source_processus
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = "166.1"
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+CONTRACTED MODEL cartographie_dangers_V1 (fr_CH)
+    AT "http://models.geo.admin.ch/BAFU" VERSION "2021-01-13" =
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Units;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;  !! Part   I of CHBase
+  IMPORTS CHAdminCodes_V1;                !! Part   IV of CHBase
+  IMPORTS WithOneState_V1;                !! Part   V of CHBase
+
+  DOMAIN
+    CD_OID = OID TEXT*120; !! <OID selon canton>.<l'abréviation du canton>.ch
+
+    SurfaceWithoutArcs = SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.001;
+    SurfaceWithoutArcsWithOverlaps2mm =
+      SURFACE WITH (STRAIGHTS) VERTEX Coord2 WITHOUT OVERLAPS > 0.002;
+    /* SurfaceWithoutArcsWithOverlaps2mm est le type de données pour tous les
+       attributs de surface du modèle de données. Les arcs de cercle ne sont
+       pas admis. Le recoupement maximal est de 2 mm. */
+
+  FUNCTION areFuzzyAreas (Objects: OBJECTS OF ANYCLASS;
+                          SurfaceBag: ATTRIBUTE OF @ Objects
+                            RESTRICTION (BAG OF ANYSTRUCTURE);
+                          SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                            RESTRICTION (SURFACE);
+                          Tolerance: NUMERIC): BOOLEAN;
+  /* Cette fonction retourne " true " lorsque les surfaces indiquées forment un
+     réseau de surfaces, en faisant abstraction des incohérences ne dépassant
+     pas le seuil de tolérance défini. */
+
+  FUNCTION isEnumExactVal(Val: ENUMTREEVAL; NodeVal: ENUMTREEVAL): BOOLEAN;
+  /* Cette fonction retourne " true " si Val correspond exactement à NodeVal.
+     (Les valeurs d'énumération inférieures retournent donc " false "). */
+
+
+  TOPIC cartographie_danger_base_WithOneState (ABSTRACT) =
+    OID AS CD_OID;
+
+    /* _WithOneState fait référence au principe de mise à jour selon le modèle
+       de base de la Confédération. Pour la cartographie des dangers, aucune
+       information de mise à jour n'est utilisée, seul est décrit l'état à un
+       moment donné (OneState). La structure ModInfo est donc vide. */
+
+
+    STRUCTURE ModInfo EXTENDS WithOneState_V1.ModInfo =
+    END ModInfo;
+
+    DOMAIN            !! Classification des processus
+      processus_principal = (
+        eaux,
+        glissement,
+        chute,
+        avalanche
+      );
+
+      proc_indicatif EXTENDS processus_principal = (
+        eaux(
+          inondation,     !! Inclut l'épandage d'alluvions
+          debordements_laves_torrentielles),
+        glissement(
+          glissement_permanent,
+          glisssement_subit)
+!!      chute,
+!!      avalanche
+      );
+
+      desig_processus_indicatif = ALL OF proc_indicatif;
+
+      processus_detaille EXTENDS proc_indicatif = (
+        eaux(
+!!        inondation,
+!!        debordements_laves_torrentielles,
+          erosion_berges),
+        glissement(
+!!        glissement_permanent,
+          glisssement_subit(
+            glissement_spontane,
+            coulee_boueuse)),
+        chute(
+          chute_pierres_blocs,
+          eboulement_ecroulement,
+          chute_glace),       !! Inclut l'éboulement de glace
+        effondrement_affaissement(
+          effondrement,
+          affaissement),
+        avalanche(
+          avalanche_coulante,
+          avalanche_poudreuse,
+          coulee_neige)       !! Inclut le glissement du manteau neigeux
+        );
+
+      desig_processus_detaille = ALL OF processus_detaille;
+
+      processus_indicatif_special = (
+            ruissellement,
+            remontee_nappe);
+
+    FUNCTION areFuzzyAreas_processus_principal
+                           (Objects: OBJECTS OF ANYCLASS;
+                            processus_principal: ATTRIBUTE OF @ Objects
+                              RESTRICTION (processus_principal);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* Comme areFuzzyAreas mais avec un réseau de surfaces exigé pour chaque
+      processus principal. */
+
+    FUNCTION areFuzzyAreas_processus_indicatif
+                           (Objects: OBJECTS OF ANYCLASS;
+                            proc_indicatif: ATTRIBUTE OF @ Objects
+                              RESTRICTION (desig_processus_indicatif);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* Comme areFuzzyAreas mais avec un réseau de surfaces exigé pour chaque
+      processus indicatif. */
+
+    FUNCTION areFuzzyAreas_processus_special
+                           (Objects: OBJECTS OF ANYCLASS;
+                            processus_indicatif_special: ATTRIBUTE OF @ Objects
+                              RESTRICTION (processus_indicatif_special);
+                            SurfaceBag: ATTRIBUTE OF @ Objects
+                              RESTRICTION (BAG OF ANYSTRUCTURE);
+                            SurfaceAttr: ATTRIBUTE OF @ SurfaceBag
+                              RESTRICTION (SURFACE);
+                            Tolerance: NUMERIC): BOOLEAN;
+   /* Comme areFuzzyAreas mais avec un réseau de surfaces exigé pour chaque
+      processus indicatif spécial. */
+
+    DOMAIN            !! Critères d'évaluation
+      evaluation_type = MANDATORY (
+        non_evalue,
+        evaluation_inutile,
+        evalue);
+
+      exhaustivite_type = (
+        complete,
+        non_complete,
+        indetermine,
+        en_cours_examen);
+
+    STRUCTURE evaluation_processus =
+      statut_evaluation: evaluation_type;
+      sources_dans_processus_partiel_completes: exhaustivite_type;
+      MANDATORY CONSTRAINT
+      /* Ce n'est que lorsque l'exhaustivité (attribut, voir 
+         "exhaustivité_type") est déterminée que la valeur d'attribut "evalue"
+         peut être attribuée comme statut d'évaluation. */
+        (statut_evaluation == #evalue) ==
+                      DEFINED (sources_dans_processus_partiel_completes);
+    END evaluation_processus;
+
+    STRUCTURE processus_partiels =
+      !! Eaux
+      inondation: evaluation_processus;      !! Inclut l'épandage d'alluvions
+      debordements_laves_torrentielles: evaluation_processus;
+      erosion_berges: evaluation_processus;
+      !! Glissement
+      glissement_permanent: evaluation_processus;
+      glissement_spontane: evaluation_processus;
+      coulee_boueuse: evaluation_processus;
+      !! Chute
+      chute_pierres_blocs: evaluation_processus;
+      eboulement_ecroulement: evaluation_processus;
+      chute_glace: evaluation_type;     !! Pas d'indication de l'exhaustivité,
+                                        !!   inclut l'éboulement de glace
+      !! Effondrement/affaissement
+      effondrement: evaluation_type;    !! Pas d'indication de l'exhaustivité
+      affaissement: evaluation_type;    !! Pas d'indication de l'exhaustivité
+      !! Avalanche
+      avalanche_coulante: evaluation_processus;
+      avalanche_poudreuse: evaluation_processus;
+      coulee_neige: evaluation_processus;  !! Inclut le glissement du manteau
+                                           !!   neigeux
+    END processus_partiels;
+
+    FUNCTION processus_partiel_evalue(P: processus_detaille;
+                                    PP: processus_partiels): BOOLEAN;
+    /* Examine si le processus partiel selon P est marqué comme évalué dans les
+       processus partiels.
+       Pour "chute_glace" (non disponible dans la structure 
+       "processus_partiels"), la fonction retourne toujours "true". */
+
+    DOMAIN            !! Récurrences
+      recurrence_type = 1..99999;
+      /* Remarques:
+         A l'aide de CONSTRAINTS, la plage de valeurs est limitée à:
+         1..10000, 99999
+         (99999 désigne le scénario extrême)
+         
+         La récurrence est obligatoire pour la plupart des processus partiels.
+         Exceptions:
+         - glissement permanent: toujours indéfini, n'aurait aucun sens
+         - coulée de neige, chute de glace: facultatif
+         - Effondrement, affaissement: si évalué uniquement au niveau indicatif.
+         
+         En règle générale, exception faite de l'événement extrême, on assigne
+         une récurrence comprise entre 1 et 300.
+         L'événement extrême déterminant est dans tous les cas signalé par une
+         récurrence de 99999, qu'il se fonde sur une récurrence précise ou non.
+         Si cet événement extrême déterminant repose sur une récurrence précise,
+         on assigne en outre une valeur comprise entre 301 et 10000. Dans ce
+         cas, l'objet est enregistré à double: une fois comme scénario extrême
+         avec une récurrence connue et une fois avec la valeur 99999.
+         Des événements supplémentaires de faible probabilité (récurrence
+         comprise entre 301 et 10000) qui ne constituent pas l'événement extrême
+         déterminant sont également possibles. */
+
+    DOMAIN            !! Probabilités
+      probabilite_type = 0.00..1.00;
+
+    DOMAIN            !! Degrés de danger
+      degre_danger_type = (
+        non_expose,
+        danger_residuel,
+        faible,
+        moyen,
+        eleve);
+
+    CLASS objet_de_base (ABSTRACT) =
+      modification: MANDATORY ModInfo;
+      proprietaire_donnees: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      zone_impact: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      commentaire: MTEXT;
+    END objet_de_base;
+
+  END cartographie_danger_base_WithOneState;
+
+
+  TOPIC parametres EXTENDS cartographie_danger_base_WithOneState =
+    !! Partie du modèle de données étendu
+
+    DOMAIN            !! Pour paramètre
+      methode_determination_type = (
+        non_reconstituable,
+        evaluation_modele,
+        expertise);
+
+    CLASS parametre (ABSTRACT) EXTENDS objet_de_base =
+      recurrence: MANDATORY recurrence_type;
+      probabilite_scenario_partiel: MANDATORY probabilite_type;
+      /* Si la probabilité du scénario partiel = 1.00, il s'agit d'un scénario
+         de base, dans les autres cas d'un scénario partiel. */
+      description_scenario: MTEXT;
+      source_processus: MANDATORY TEXT;
+      methode_determination: methode_determination_type;
+      designation_processus_canton: TEXT;
+      MANDATORY CONSTRAINT
+        !! Pour les scénarios partiels, "description_scenario" est obligatoire.
+        (probabilite_scenario_partiel == 1.00) OR
+        DEFINED (description_scenario);
+    END parametre;
+
+    /* Concernant la systématique des paramètres:
+       - récurrence: voir ci-dessus
+       - Les valeurs sont décrites à chaque fois par une limite inférieure (_li)
+         et une limite supérieure (_ls).
+       - Si, dans la zone examinée, aucun impact n'est identifié sur une surface
+         partielle donnée pour le processus et la source de processus concernés,
+         les valeurs _li==0 et _ls ==0 sont attribuées.
+       - Il n'existe des paramètres que pour les processus partiels
+         "inondation" et "debordements_laves_torrentielles". */
+
+    DOMAIN
+      in_profondeur_type = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS prm_inondation_profondeur EXTENDS parametre =
+      in_profondeur_li: MANDATORY in_profondeur_type;
+      in_profondeur_ls: MANDATORY in_profondeur_type;
+      MANDATORY CONSTRAINT
+        in_profondeur_li <= in_profondeur_ls;
+    END prm_inondation_profondeur;
+
+    DOMAIN
+      in_vitesse_ecoulement_type = MANDATORY 0.00 .. 30.00 [Units.ms]; !! m/s
+
+    CLASS prm_inondation_vitesse EXTENDS parametre =
+      in_vitesse_li: MANDATORY in_vitesse_ecoulement_type;
+      in_vitesse_ls: MANDATORY in_vitesse_ecoulement_type;
+      MANDATORY CONSTRAINT
+        in_vitesse_li <= in_vitesse_ls;
+    END prm_inondation_vitesse;
+
+    UNIT
+      v_fois_h [m2s];
+
+    DOMAIN
+      in_v_fois_h_type = MANDATORY 0.00 .. 50.00 [m2s]; !! m^2/s
+
+    CLASS prm_inondation_v_fois_h EXTENDS parametre =
+      in_v_fois_h_li: MANDATORY in_v_fois_h_type;
+      in_v_fois_h_ls: MANDATORY in_v_fois_h_type;
+      MANDATORY CONSTRAINT
+        in_v_fois_h_li <= in_v_fois_h_ls;
+    END prm_inondation_v_fois_h;
+
+    DOMAIN
+      lt_epaisseur_type = MANDATORY 0.00 .. 10.00 [INTERLIS.m]; !! m
+
+    CLASS prm_debordement_lave_epaisseur EXTENDS parametre =
+      lt_epaisseur_li: MANDATORY lt_epaisseur_type;
+      lt_epaisseur_ls: MANDATORY lt_epaisseur_type;
+      MANDATORY CONSTRAINT
+        lt_epaisseur_li <= lt_epaisseur_ls;
+    END prm_debordement_lave_epaisseur;
+
+    DOMAIN
+      lt_vitesse_type = MANDATORY 0.00 .. 10.00 [Units.ms]; !! m/s
+
+    CLASS prm_debordement_lave_vitesse EXTENDS parametre =
+      lt_vitesse_li: MANDATORY lt_vitesse_type;
+      lt_vitesse_ls: MANDATORY lt_vitesse_type;
+      MANDATORY CONSTRAINT
+        lt_vitesse_li <= lt_vitesse_ls;
+    END prm_debordement_lave_vitesse;
+
+  END parametres;
+
+
+  TOPIC etat_releve (ABSTRACT) EXTENDS cartographie_danger_base_WithOneState =
+    !! Partie du modèle de données minimal
+
+    CLASS zone_releve =
+      modification: MANDATORY ModInfo;
+      proprietaire_donnees: MANDATORY CHAdminCodes_V1.CHCantonCode;
+      surface: MANDATORY SurfaceWithoutArcsWithOverlaps2mm;
+      ampleur_processus: MANDATORY processus_partiels;
+      commentaire: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas(ALL, UNDEFINED, >> surface, 0.002);
+    END zone_releve;
+
+  END etat_releve;
+
+
+  TOPIC intensites (ABSTRACT) EXTENDS cartographie_danger_base_WithOneState =
+
+    DOMAIN            !! Intensités
+      description_intensite = (
+        aucune_atteinte,
+        atteinte_existe(
+          faible,
+          moyenne,
+          forte)) ORDERED;
+
+      intensite_type = ALL OF description_intensite;
+      !! "atteinte_existe" (sans indication de l'ampleur) est admis
+
+    CLASS intensite (ABSTRACT) EXTENDS objet_de_base =
+      recurrence: recurrence_type;
+      classe_intensites: MANDATORY intensite_type;
+      designation_processus_canton: MANDATORY TEXT;
+      MANDATORY CONSTRAINT
+      /* Si une récurrence comprise entre 1 et 300 est indiquée, les intensités
+         doivent être fournies de manière détaillée.
+         (--> "aucune atteinte", "faible", "moyenne", "forte" -> 
+         correspond au type d'attribut "description_intensite" -> la valeur
+         "atteinte_existe" ne peut pas être attribuée dans ce cas.) */
+        (recurrence > 300) OR
+          NOT (isEnumExactVal(classe_intensites,#atteinte_existe));
+    END intensite;
+
+  END intensites;
+
+
+  TOPIC intensites_source_processus EXTENDS intensites =
+    !! Partie du modèle de données étendu
+
+    CLASS intensite_source_processus EXTENDS intensite =
+      source_processus: MANDATORY TEXT;
+      processus_partiel: MANDATORY processus_detaille;
+      /* Si la probabilité du scénario partiel = 1.00, il s'agit d'un scénario
+         de base, dans les autres cas d'un scénario partiel. */
+      probabilite_scenario_partiel: MANDATORY probabilite_type;
+      description_scenario: MTEXT;
+      MANDATORY CONSTRAINT
+        !! Pour les scénarios partiels, "description_scenario" est obligatoire.
+        (probabilite_scenario_partiel == 1.00) OR
+        DEFINED(description_scenario);
+      MANDATORY CONSTRAINT
+        /* Aucune récurrence ne peut être indiquée pour le processus partiel
+           "glissement_permanent". */
+        (processus_partiel != #glissement.glissement_permanent) OR
+        NOT (DEFINED (recurrence));
+      MANDATORY CONSTRAINT
+        /* Une récurrence doit être indiquée pour tous les processus partiels à
+           l'exception de "chute_glace", "coulee_neige",
+           "effondrement", "affaissement" et "glissement_permanent".
+           (Pour le processus partiel "effondrement_affaissement", cette option
+           est disponible dans les cas où l'évaluation ne se fait qu'au niveau
+           indicatif.) */
+        (processus_partiel == #chute.chute_glace) OR
+        (processus_partiel == #effondrement_affaissement.effondrement) OR
+        (processus_partiel == #effondrement_affaissement.affaissement) OR
+        (processus_partiel == #avalanche.coulee_neige) OR
+        (processus_partiel == #glissement.glissement_permanent) OR
+        DEFINED (recurrence);
+    END intensite_source_processus;
+
+  END intensites_source_processus;
+
+
+  TOPIC intensites_synoptiques EXTENDS intensites =
+    !! Partie du modèle de données minimal
+
+    CLASS intensite_synoptique EXTENDS intensite =
+      processus_partiel: MANDATORY desig_processus_detaille;
+      sources_dans_processus_partiel_completes: MANDATORY exhaustivite_type;
+      MANDATORY CONSTRAINT
+        /* Aucune récurrence ne peut être indiquée pour le processus partiel
+           "glissement_permanent". */
+        (processus_partiel != #glissement.glissement_permanent) OR
+        NOT (DEFINED (recurrence));
+      MANDATORY CONSTRAINT
+        /* Une récurrence doit être indiquée pour tous les processus partiels à
+           l'exception de "chute_glace", "coulee_neige", 
+           "effondrement_affaissement" et "glissement_permanent".
+           (Pour le processus partiel "effondrement_affaissement", cette option
+           est disponible dans les cas où l'évaluation ne se fait qu'au niveau
+           indicatif.) */
+        (processus_partiel == #chute.chute_glace) OR
+        (processus_partiel == #effondrement_affaissement) OR
+        (processus_partiel == #avalanche.coulee_neige) OR
+        (processus_partiel == #glissement.glissement_permanent) OR
+        DEFINED (recurrence);
+    END intensite_synoptique;
+
+  END intensites_synoptiques;
+
+
+  TOPIC secteurs_danger EXTENDS cartographie_danger_base_WithOneState =
+    !! Partie du modèle de données minimal
+
+    CLASS secteur_danger EXTENDS objet_de_base =
+      processus_secteurs_danger: MANDATORY processus_principal;
+      degre_danger: MANDATORY degre_danger_type;
+      processus_partiels_complets: MANDATORY exhaustivite_type;
+      sources_processus_completes: MANDATORY exhaustivite_type;
+      SET CONSTRAINT
+        areFuzzyAreas_processus_principal
+                     (ALL, processus_secteurs_danger,
+                      UNDEFINED, >> zone_impact, 0.100);
+    END secteur_danger;
+
+  END secteurs_danger;
+
+
+  TOPIC dangers_synoptiques EXTENDS cartographie_danger_base_WithOneState =
+    !! Partie du modèle de données étendu
+
+    !! Pour les cartes de danger synoptiques
+
+    CLASS secteur_danger_synoptique EXTENDS objet_de_base =
+      evaluation_complete: MANDATORY exhaustivite_type;
+      !! Se rapporte aux processus partiels ET aux sources de processus
+      eaux: degre_danger_type;
+      glissement: degre_danger_type;
+      chute: degre_danger_type;
+      avalanche: degre_danger_type;
+      /* Le degré de danger pour les divers processus principaux doit être
+         indiqué soit pour tous les processus principaux, soit pour aucun
+         d'entre eux. */
+      danger_max: MANDATORY degre_danger_type;
+      SET CONSTRAINT
+        areFuzzyAreas (ALL, UNDEFINED, >> zone_impact, 0.100);
+    END secteur_danger_synoptique;
+
+  END dangers_synoptiques;
+
+
+  TOPIC secteurs_danger_indicatifs EXTENDS 
+                                   cartographie_danger_base_WithOneState =
+    !! Partie du modèle de données étendu
+
+    CLASS secteur_danger_indicatif EXTENDS objet_de_base =
+      processus_indicatif: MANDATORY desig_processus_indicatif;
+      danger_indicatif: MANDATORY BOOLEAN;
+      methode: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas_processus_indicatif
+                     (ALL, processus_indicatif,
+                      UNDEFINED, >> zone_impact, 0.100);
+    END secteur_danger_indicatif;
+
+    CLASS secteur_danger_indicatif_special EXTENDS objet_de_base =
+      processus_special: MANDATORY processus_indicatif_special;
+      danger_indicatif: MANDATORY BOOLEAN;
+      methode: MTEXT;
+      SET CONSTRAINT
+        areFuzzyAreas_processus_special
+             (ALL, processus_special,
+              UNDEFINED, >> zone_impact, 0.100);
+    END secteur_danger_indicatif_special;
+
+  END secteurs_danger_indicatifs;
+
+
+
+END cartographie_dangers_V1.

@@ -1,0 +1,61 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+ 
+!!@ technicalContact=mailto:info@elcom.admin.ch
+!!@ furtherInformation=http://www.elcom.admin.ch
+!!@ IDGeoIV=183.1
+
+MODEL SupplySecurity_RuledAreas_V1 (en) AT "http://models.geo.admin.ch/ElCom/" VERSION "2016-04-25"  =
+
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,WithOneState_V1;
+
+  DOMAIN
+
+    Text = TEXT*250;
+
+  TOPIC SupplySecurity_RuledAreas_WithOneState =
+
+    CLASS Organisation =
+      Name : MANDATORY SupplySecurity_RuledAreas_V1.Text;
+      Website : INTERLIS.URI;
+    END Organisation;
+
+    CLASS RuledArea (ABSTRACT) =
+      Geometry : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      Name : SupplySecurity_RuledAreas_V1.Text;
+      Canton : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      LegalForce : MANDATORY BOOLEAN;
+      BeginningOfLegalForce : INTERLIS.XMLDate;
+      Directive : SupplySecurity_RuledAreas_V1.Text;
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+    END RuledArea;
+
+    CLASS RuledArea_Level3
+    EXTENDS RuledArea =
+    END RuledArea_Level3;
+
+    CLASS RuledArea_Level5
+    EXTENDS RuledArea =
+    END RuledArea_Level5;
+
+    CLASS RuledArea_Level7
+    EXTENDS RuledArea =
+    END RuledArea_Level7;
+
+    ASSOCIATION RuledAreaOrganisationOperatorAssoc =
+      Operator -<> {1} Organisation;
+      RuledArea1 -- {1..*} RuledArea;
+    END RuledAreaOrganisationOperatorAssoc;
+
+    ASSOCIATION RuledAreaOrganisationOwnerAssoc =
+      Owner -<> {1} Organisation;
+      RuledArea2 -- {1..*} RuledArea;
+    END RuledAreaOrganisationOwnerAssoc;
+
+  END SupplySecurity_RuledAreas_WithOneState;
+
+END SupplySecurity_RuledAreas_V1.

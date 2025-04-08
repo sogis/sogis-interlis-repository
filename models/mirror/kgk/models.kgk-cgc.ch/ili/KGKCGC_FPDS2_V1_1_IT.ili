@@ -1,0 +1,187 @@
+INTERLIS 2.4;
+
+/** DE: Fixpunkt-Datenservice 2.0
+ *  FR: Service de donnees sur les points fixes 2.0
+ *  IT: Servizio di dati sui punti fissi 2.0
+ *  EN: Control Point Data Service 2.0
+ *
+ *  [2022-07-01] 1.0 Initialer Modellrelease
+ *  [2022-07-14] 1.1 Umwandlung Strukturen in Klassen
+*/
+
+!!@ technicalContact=mailto:info@kgk-cgc.ch
+!!@ furtherInformation=https://models.kgk-cgc.ch/pdf/KGKCGC_FPDS2_V1_1_DE.pdf
+
+MODEL KGKCGC_FPDS2_V1_1_IT (it)
+AT "https://www.kgk-cgc.ch"
+VERSION "2022-07-14"
+TRANSLATION OF KGKCGC_FPDS2_V1_1 ["2022-07-14"] =
+  IMPORTS CHAdminCodes_V2;
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+
+    Precisione = 0.001 .. 7.000 [INTERLIS.M];
+
+    IdentAN = TEXT*12;
+
+    Attendibilita = (
+      si,
+      no
+    );
+
+  TOPIC FPDS2 =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS VistaInsiemeGeoservizio =
+      Designazione : MANDATORY TEXT*30;
+      URL : MANDATORY INTERLIS.URI;
+    END VistaInsiemeGeoservizio;
+
+    CLASS VistaInsiemeScala =
+      Scala : MANDATORY 0.0 .. 2500000.0;
+    END VistaInsiemeScala;
+
+    CLASS Responsabilita =
+      Cantone : MANDATORY CHAdminCodes_V2.CHCantonCode;
+      Nome : MANDATORY MTEXT*100;
+      Indirizzo : MTEXT*50;
+    END Responsabilita;
+
+    CLASS PuntoFisso =
+      Genere : MANDATORY (
+        PFP2,
+        PFA2
+      );
+      Accessibilita : MANDATORY (
+          accessibile,
+          inaccessibile
+      );
+      Osservazione : MTEXT*400;
+      FonteImmagine1 : INTERLIS.URI;
+      FonteImmagine2 : INTERLIS.URI;
+      VisibilitaGNSS : MANDATORY (
+        buona,
+        media,
+        scarsa,
+        senza_indicazione
+      );
+      Iscrizione : TEXT*8;
+      IdentAN : MANDATORY KGKCGC_FPDS2_V1_1_IT.IdentAN;
+      Numero : MANDATORY TEXT*12;
+      LinguaProtocollo : MANDATORY (
+        tedesco,
+        francese,
+        italiano
+      );
+      SymbolOri : 0.0 .. 399.9 CIRCULAR CLOCKWISE;
+      PAT : MANDATORY BOOLEAN;
+      StrategiaRevisione : MANDATORY (
+          attiva,
+          passiva
+      );
+      UNIQUE IdentAN, Numero;
+    END PuntoFisso;
+
+    CONSTRAINTS OF PuntoFisso =
+      MANDATORY CONSTRAINT Genere != #PFP2 OR DEFINED(SymbolOri);
+    END;
+
+    CLASS PuntoFisso_Versione =
+      Geometria : GeometryCHLV95_V2.Coord2;
+      ValevoleFino : INTERLIS.XMLDate;
+      PrecAlt : KGKCGC_FPDS2_V1_1_IT.Precisione;
+      GeomAlt : -200.000 .. 5000.000 [INTERLIS.M];
+      AttendAlt : KGKCGC_FPDS2_V1_1_IT.Attendibilita;
+      DeterminazioneCoordinate : MANDATORY (
+        trasformate,
+        misurate_MN95
+      );
+      PrecPlan : MANDATORY KGKCGC_FPDS2_V1_1_IT.Precisione;
+      AttendPlan : MANDATORY KGKCGC_FPDS2_V1_1_IT.Attendibilita;
+      Segno : MANDATORY (
+        bullone_orizzontale,
+        bullone,
+        bullone_con_foro,
+        piastra_in_bronzo,
+        bullone_con_calotta,
+        livellazione_federale,
+        palo_antenna,
+        chiodo,
+        bullone_di_livellazione,
+        piramide,
+        termine,
+        torre,
+        materializzazione_sotterranea,
+        altro
+      );
+      SegnoDescrizione : MTEXT*250;
+      GenereProtezione : (
+        senza_protezione,
+        chiusino,
+        coperto
+      );
+      PosaTermine : TEXT*50;
+      MaterializzazioneSecondaria : MTEXT*100;
+    END PuntoFisso_Versione;
+
+    CLASS PuntoFisso_Azione =
+      Descrizione : MANDATORY MTEXT*60;
+      Data : MANDATORY INTERLIS.XMLDate;
+    END PuntoFisso_Azione;
+
+    CLASS PuntiFissi_Tenuta_a_giorno =
+      Osservazione : MTEXT*300;
+      Descrizione : MANDATORY TEXT*30;
+      DataChiusura : INTERLIS.XMLDate;
+      DataApertura : MANDATORY INTERLIS.XMLDate;
+      Identificatore : MANDATORY TEXT*12;
+      IdentAN : MANDATORY KGKCGC_FPDS2_V1_1_IT.IdentAN;
+      Stato : MANDATORY (
+        in_elaborazione,
+        definitivo
+      );
+      UNIQUE IdentAN, Identificatore;
+    END PuntiFissi_Tenuta_a_giorno;
+	
+    ASSOCIATION PF_VistaInsiemeGeoservizio =
+      VG -- {1} VistaInsiemeGeoservizio;
+      PF -- {0..*} PuntoFisso;
+    END PF_VistaInsiemeGeoservizio;
+	
+    ASSOCIATION PF_VistaInsiemeScala =
+      VS -- {1} VistaInsiemeScala;
+      PF -- {0..*} PuntoFisso;
+    END PF_VistaInsiemeScala;
+	
+    ASSOCIATION PF_Responsabilita =
+      RS -- {1} Responsabilita;
+      PF -- {0..*} PuntoFisso;
+    END PF_Responsabilita;
+	
+    ASSOCIATION PFVersione_PFTenuta_a_giorno =
+      PFT -- {1} PuntiFissi_Tenuta_a_giorno;
+      PFV -- {0..*} PuntoFisso_Versione;
+    END PFVersione_PFTenuta_a_giorno;
+
+    ASSOCIATION PF_PFAzione =
+      PF -- {1} PuntoFisso;
+      PFA -- {0..*} PuntoFisso_Azione;
+    END PF_PFAzione;
+
+    ASSOCIATION PF_PFVersione =
+      PFV -- {0..*} PuntoFisso_Versione;
+      PF -- {1} PuntoFisso;
+    END PF_PFVersione;
+
+    CONSTRAINTS OF PuntoFisso_Versione =
+      MANDATORY CONSTRAINT PF->Genere != #PFA2 OR DEFINED(GeomAlt);
+      MANDATORY CONSTRAINT PF->Genere != #PFA2 OR DEFINED(PrecAlt);
+      MANDATORY CONSTRAINT PF->Genere != #PFA2 OR DEFINED(AttendAlt);
+      MANDATORY CONSTRAINT PF->Genere != #PFP2 OR (DEFINED(GeomAlt) AND DEFINED(PrecAlt)) OR (NOT(DEFINED(GeomAlt)) AND NOT(DEFINED(PrecAlt)));
+      MANDATORY CONSTRAINT PF->Genere != #PFP2 OR (DEFINED(GeomAlt) AND DEFINED(AttendAlt)) OR (NOT(DEFINED(GeomAlt)) AND NOT(DEFINED(AttendAlt)));
+    END;
+
+  END FPDS2;
+
+END KGKCGC_FPDS2_V1_1_IT.

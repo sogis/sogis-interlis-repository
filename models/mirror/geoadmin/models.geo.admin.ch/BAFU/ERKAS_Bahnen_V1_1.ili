@@ -1,0 +1,220 @@
+INTERLIS 2.3;
+!!==============================================================================
+!! ERKAS_Bahnen_V1_1.ili
+!!------------------------------------------------------------------------------
+!! 
+!! GeoIV, Anhang 1
+!! ===============
+!! Identifikator GeoIV                       : 112
+!! Bezeichnung GeoIV                         : Eidg. Risikokataster (ERKAS)
+!! Zuständige Stelle (Fachstelle des Bundes) : BAV[BAFU]
+!! Zugangsberechtigungsstufe                 : B
+!! 
+!! Zusatzinformationen
+!! ===================
+!! Identifikator                             : 112.4
+!! Bezeichnung Geobasisdatensatz             : Risikokataster gemäss Störfallverordnung (StFV), Teil Eisenbahnanlagen
+!!------------------------------------------------------------------------------
+!!
+!! Version    | Wer | Änderung
+!!------------------------------------------------------------------------------
+!! 2014-10-21 | CG  | Schlussfassung
+!! 2015-11-23 | AND | Anpassung an StFV 2015 & Anleitung ERKAS Str. sowie LV03/LV95
+!! 2017-02-28 | AND | Korrektur KonsBereich gemäss OK (0 .. 9999, war Boolean)
+!!==============================================================================
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = 112.4
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Bahnen_LV03_V1_1 (de) AT "http://models.geo.admin.ch/BAFU" VERSION "2017-02-28" =
+
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS GeometryCHLV03_V1;
+
+  DOMAIN
+!!==============================================================================
+    StreckenTyp = (O, T, B, RB);                          !! offene Strecke, Tunnel, Bahnhof, Rangierbahnhof
+ 
+  TOPIC ERKAS_Bahnen =
+!!==============================================================================
+    CLASS Subelement =
+      ID             :           1 .. 999999999999;             !! Identifikator des Subelements, dieser wird von der TgG 2.0 Datenbank vorgegeben
+      Ort            : MANDATORY GeometryCHLV03_V1.Coord2;      !! Lokalität des Subelements (Stichprobenpunkt)
+      StreckenTyp    : MANDATORY StreckenTyp;                   !! offene Strecke, Tunnel, Bahnhofbereich, Rangierbahnhof
+      KMLinie        : MANDATORY TEXT*40;                       !! Name der Bahnlinie (gemäss ID 98.1)
+      Netzsegment    : MANDATORY TEXT*16;                       !! Name des Netzsegments (gemäss ID 98.1)
+      KB_SegmentName : MANDATORY TEXT*50;                       !! Bezeichnung des Segments (gemäss Kurzbericht der Bahnen), auf dem das Subelement liegt
+      ElementName    :           TEXT*50;                       !! Bezeichnung des Elements (gemäss Kurzbericht der Bahnen), auf dem das Subelement liegt
+      ClusterPers    :           TEXT*50;                       !! Bezeichnung eines allfällligen Clusters für den Indikator Personenrisiken
+      ClusterOFG     :           TEXT*50;                       !! Bezeichnung eines allfällligen Clusters für den Indikator Oberflächengewässer
+      ClusterGW      :           TEXT*50;                       !! Bezeichnung eines allfällligen Clusters für den Indikator Grundwasser
+      Kanton         :           CHAdminCodes_V1.CHCantonCode;  !! Kantonsabkürzung
+      
+      UNIQUE ID;
+    END Subelement;
+
+    CLASS Verkehrsleistung  =
+      LSBenzin       : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Benzin zugehörigen Gefahrgüter inkl. Gewichtung
+      LSPropan       : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Propan zugehörigen Gefahrgüter inkl. Gewichtung
+      LSChlor        : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Chlor zugehörigen Gefahrgüter inkl. Gewichtung
+      LSMineraloel   : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Mineralölprodukte zugehörigen Gefahrgüter inkl. Gewichtung
+      LSEpi          : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Epichlorhydrin zugehörigen Gefahrgüter inkl. Gewichtung
+      LSPer          : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Perchlorethylen zugehörigen Gefahrgüter inkl. Gewichtung
+      GefahrgutTotal : MANDATORY 0 .. 999999999999;  !! gesamte jährliche Transportmenge in t/J aller Gefahrgüter
+      AnzReisezuege  : MANDATORY 0     .. 100000;    !! Anzahl Reisezüge, die im Mittel pro Tag verkehren
+    END Verkehrsleistung;
+
+    CLASS Vollzug =
+      Datum          : MANDATORY INTERLIS.XMLDate;        !! Datum der aktuellen Vollzugsdaten (Kurzbericht, Screening oder andere)
+      DatumStFVUnt   :           INTERLIS.XMLDate;        !! Datum der Verfügung, falls Anlage gemäss Art. 1 Abs. 3 der StFV dieser unterstellt wurde
+      BeurteiltPers  : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich Personenrisiken letztmalig beurteilt
+      BeurteiltOFG   : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich verschmutzte oberirdische Gewässer letztmalig beurteilt
+      BeurteiltGW    : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich verschmutzte unterirdische  Gewässer letztmalig beurteilt
+      REPflichtPers  : MANDATORY BOOLEAN;                 !! Schadenindikator "Todesopfer" (Personenrisiken) RE verfügt?
+      REPflichtOFG   : MANDATORY BOOLEAN;                 !! Schadenindikator "verschmutzte oberirdische Gewässer" RE verfügt?
+      REPflichtGW    : MANDATORY BOOLEAN;                 !! Schadenindikator "verschmutzte unterirdische Gewässer" RE verfügt?
+      DatumREPers    :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "Todesopfer"
+      REBeurteiltPers:           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung zu Schadenindikator "Todesopfer" beurteilt
+      DatumREOFG     :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      REBeurteiltOFG :           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung beurteilt zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      DatumREGW      :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte unterirdische Gewässer"?
+      REBeurteiltGW  :           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung beurteilt zu Schadenindikator "verschmutzte unterirdische Gewässer"
+      KonsBereich    : MANDATORY 1 .. 9999 [INTERLIS.m];  !! Gilt ein Konsultationsbereich für die raumplanerische Abwägung der Störfallvosorge?
+
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREPers)) OR REPflichtPers == #true;  !! bedingt obligatorische Felder
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltPers)) OR DEFINED (DatumREPers);
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREOFG)) OR REPflichtOFG == #true;
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltOFG)) OR DEFINED (DatumREOFG);
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREGW)) OR REPflichtGW == #true;
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltGW)) OR DEFINED (DatumREGW);
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : 0.0000 .. 9999.0000;
+      AmpelCodePers : 0 .. 4;             
+      AmpelWertOFG  : 0.0000 .. 9999.0000;
+      AmpelCodeOFG  : 0 .. 4;             
+      AmpelWertGW   : 0.0000 .. 9999.0000;
+      AmpelCodeGW   : 0 .. 4;             
+
+      MANDATORY CONSTRAINT DEFINED (AmpelWertPers) OR DEFINED (AmpelCodePers);  !! Wert oder Code muss definiert sein
+      MANDATORY CONSTRAINT DEFINED (AmpelWertOFG) OR DEFINED (AmpelCodeOFG);
+      MANDATORY CONSTRAINT DEFINED (AmpelWertGW) OR DEFINED (AmpelCodeGW);
+    END Ergebnis;
+
+    ASSOCIATION Subelement_Verkehrsleistung  =
+      rSubelement        -- {1..*} Subelement;
+      rVerkehrsleistung  -- {1} Verkehrsleistung;
+    END Subelement_Verkehrsleistung;
+    
+    ASSOCIATION Subelement_Ergebnis =
+      rSubelement        -- {1..*} Subelement;
+      rErgebnis          -- {1} Ergebnis;
+    END Subelement_Ergebnis;
+    
+    ASSOCIATION Subelement_Vollzug =
+      rSubelement        -- {1..*} Subelement;
+      rVollzug           -- {1} Vollzug;
+    END Subelement_Vollzug;
+    
+  END ERKAS_Bahnen;
+END ERKAS_Bahnen_LV03_V1_1.
+
+!!@ technicalContact = mailto:gis@bafu.admin.ch
+!!@ IDGeoIV = 112.4
+!!@ furtherInformation = http://www.bafu.admin.ch/geodatenmodelle
+
+MODEL ERKAS_Bahnen_LV95_V1_1 (de) AT "http://models.geo.admin.ch/BAFU" VERSION "2017-02-28" =
+
+  IMPORTS CHAdminCodes_V1;
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+!!==============================================================================
+    StreckenTyp = (O, T, B, RB);                          !! offene Strecke, Tunnel, Bahnhof, Rangierbahnhof
+ 
+  TOPIC ERKAS_Bahnen =
+!!==============================================================================
+    CLASS Subelement =
+      ID             :           1 .. 999999999999;            !! Identifikator des Subelements, dieser wird von der TgG 2.0 Datenbank vorgegeben
+      Ort            : MANDATORY GeometryCHLV95_V1.Coord2;     !! Lokalität des Subelements (Stichprobenpunkt)
+      StreckenTyp    : MANDATORY StreckenTyp;                  !! offene Strecke, Tunnel, Bahnhofbereich, Rangierbahnhof
+      KMLinie        : MANDATORY TEXT*40;                      !! Name der Bahnlinie (gemäss ID 98.1)
+      Netzsegment    : MANDATORY TEXT*16;                      !! Name des Netzsegments (gemäss ID 98.1)
+      KB_SegmentName : MANDATORY TEXT*50;                      !! Bezeichnung des Segments (gemäss Kurzbericht der Bahnen), auf dem das Subelement liegt
+      ElementName    :           TEXT*50;                      !! Bezeichnung des Elements (gemäss Kurzbericht der Bahnen), auf dem das Subelement liegt
+      ClusterPers    :           TEXT*50;                      !! Bezeichnung eines allfällligen Clusters für den Indikator Personenrisiken
+      ClusterOFG     :           TEXT*50;                      !! Bezeichnung eines allfällligen Clusters für den Indikator Oberflächengewässer
+      ClusterGW      :           TEXT*50;                      !! Bezeichnung eines allfällligen Clusters für den Indikator Grundwasser
+      Kanton         :           CHAdminCodes_V1.CHCantonCode; !! Kantonsabkürzung
+      
+      UNIQUE ID;
+    END Subelement;
+
+    CLASS Verkehrsleistung  =
+      LSBenzin       : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Benzin zugehörigen Gefahrgüter inkl. Gewichtung
+      LSPropan       : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Propan zugehörigen Gefahrgüter inkl. Gewichtung
+      LSChlor        : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Chlor zugehörigen Gefahrgüter inkl. Gewichtung
+      LSMineraloel   : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Mineralölprodukte zugehörigen Gefahrgüter inkl. Gewichtung
+      LSEpi          : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Epichlorhydrin zugehörigen Gefahrgüter inkl. Gewichtung
+      LSPer          : MANDATORY 0 .. 999999999999;  !! jährliche Transportmenge in t/J der zum Leitstoff Perchlorethylen zugehörigen Gefahrgüter inkl. Gewichtung
+      GefahrgutTotal : MANDATORY 0 .. 999999999999;  !! gesamte jährliche Transportmenge in t/J aller Gefahrgüter
+      AnzReisezuege  : MANDATORY 0     .. 100000;    !! Anzahl Reisezüge, die im Mittel pro Tag verkehren
+    END Verkehrsleistung;
+
+    CLASS Vollzug =
+      Datum          : MANDATORY INTERLIS.XMLDate;        !! Datum der aktuellen Vollzugsdaten (Kurzbericht, Screening oder andere)
+      DatumStFVUnt   :           INTERLIS.XMLDate;        !! Datum der Verfügung, falls Anlage gemäss Art. 1 Abs. 3 der StFV dieser unterstellt wurde
+      BeurteiltPers  : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich Personenrisiken letztmalig beurteilt
+      BeurteiltOFG   : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich verschmutzte oberirdische Gewässer letztmalig beurteilt
+      BeurteiltGW    : MANDATORY INTERLIS.XMLDate;        !! Datum wann Subelement bezüglich verschmutzte unterirdische  Gewässer letztmalig beurteilt
+      REPflichtPers  : MANDATORY BOOLEAN;                 !! Schadenindikator "Todesopfer" (Personenrisiken) RE verfügt?
+      REPflichtOFG   : MANDATORY BOOLEAN;                 !! Schadenindikator "verschmutzte oberirdische Gewässer" RE verfügt?
+      REPflichtGW    : MANDATORY BOOLEAN;                 !! Schadenindikator "verschmutzte unterirdische Gewässer" RE verfügt?
+      DatumREPers    :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "Todesopfer"
+      REBeurteiltPers:           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung zu Schadenindikator "Todesopfer" beurteilt
+      DatumREOFG     :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      REBeurteiltOFG :           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung beurteilt zu Schadenindikator "verschmutzte oberirdische Gewässer"
+      DatumREGW      :           INTERLIS.XMLDate;        !! Datum der aktuellen Risikoermittlung zu Schadenindikator "verschmutzte unterirdische Gewässer"?
+      REBeurteiltGW  :           INTERLIS.XMLDate;        !! Datum wann Risikoermittlung beurteilt zu Schadenindikator "verschmutzte unterirdische Gewässer"
+      KonsBereich    : MANDATORY 1 .. 9999 [INTERLIS.m];  !! Gilt ein Konsultationsbereich für die raumplanerische Abwägung der Störfallvosorge?
+
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREPers)) OR REPflichtPers == #true;  !! bedingt obligatorische Felder
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltPers)) OR DEFINED (DatumREPers);
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREOFG)) OR REPflichtOFG == #true;
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltOFG)) OR DEFINED (DatumREOFG);
+      MANDATORY CONSTRAINT NOT (DEFINED (DatumREGW)) OR REPflichtGW == #true;
+      MANDATORY CONSTRAINT NOT (DEFINED (REBeurteiltGW)) OR DEFINED (DatumREGW);
+    END Vollzug;
+
+    CLASS Ergebnis =
+      AmpelWertPers : 0.0000 .. 9999.0000;
+      AmpelCodePers : 0 .. 4;             
+      AmpelWertOFG  : 0.0000 .. 9999.0000;
+      AmpelCodeOFG  : 0 .. 4;             
+      AmpelWertGW   : 0.0000 .. 9999.0000;
+      AmpelCodeGW   : 0 .. 4;             
+
+      MANDATORY CONSTRAINT DEFINED(AmpelWertPers) OR DEFINED(AmpelCodePers);  !! Wert oder Code muss definiert sein
+      MANDATORY CONSTRAINT DEFINED(AmpelWertOFG) OR DEFINED(AmpelCodeOFG);
+      MANDATORY CONSTRAINT DEFINED(AmpelWertGW) OR DEFINED(AmpelCodeGW);
+    END Ergebnis;
+
+    ASSOCIATION Subelement_Verkehrsleistung  =
+      rSubelement        -- {1..*} Subelement;
+      rVerkehrsleistung  -- {1} Verkehrsleistung;
+    END Subelement_Verkehrsleistung;
+    
+    ASSOCIATION Subelement_Ergebnis =
+      rSubelement        -- {1..*} Subelement;
+      rErgebnis          -- {1} Ergebnis;
+    END Subelement_Ergebnis;
+    
+    ASSOCIATION Subelement_Vollzug =
+      rSubelement        -- {1..*} Subelement;
+      rVollzug           -- {1} Vollzug;
+    END Subelement_Vollzug;
+    
+  END ERKAS_Bahnen;
+END ERKAS_Bahnen_LV95_V1_1.

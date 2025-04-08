@@ -1,0 +1,242 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2025-02-10 | pb  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AFU_Bootsanbindeplaetze_20250210 (de)
+AT "http://geo.so.ch/models/AWJF"
+VERSION "2025-02-10"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Bootsanbindeplaetze =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Bootsanbindeplatz =
+      OID AS INTERLIS.UUIDOID;
+      /** Nummer des Bootsanbindeplatzes
+       */
+      Platznummer : TEXT*10;
+      /** Grösse des Bootsanbindeplatzes (Abstand Pfosten zu Pfosten)
+       */
+      Groesse : 1.00 .. 99.99;
+      /** Angabe ob der Bootsanbindeplatz vermietet ist.
+       */
+      Vermietung : BOOLEAN;
+      /** Bootskennzeichen (SO...)
+       */
+      Bootskennzeichen : MANDATORY TEXT*20;
+      /** Kategorie des Bootes
+       */
+      Bootskategorie : (
+        Ruderboot,
+        !!@ ili2db.dispName="bis 6 kW"
+        bis_6_kW,
+        !!@ ili2db.dispName="über 6 kW"
+        ueber_6_kW
+      );
+      /** Breite des Bootes in Meter
+       */
+      Bootsbreite : 1.00 .. 49.99;
+      /** Länge des Bootes in Meter
+       */
+      Bootslaenge : 1.00 .. 99.99;
+      /** Dati, der Bewilligung
+       */
+      Datum_Bewilligung : INTERLIS.XMLDate;
+      /** Ablaufdatum der Bewilligung
+       */
+      Datum_Bewilligungsablauf : INTERLIS.XMLDate;
+      /** GENAUE BEDEUTUNG ABKLÄREN
+       */
+      Zufahrtsbewilligung : BOOLEAN;
+      /** Nutzungsgebühren für den Bootsanbindeplatz in CHF (150.- bis 6 kW / 250.- über 6 kW). Diese Gebühr wird immer dem Bootsanbindeplatz-Mieter in Rechnung gestellt.
+       */
+      Nutzungsgebuehr : 0.00 .. 10000.00;
+      /** Gebühr für den Steg. Diese werden entweder direkt dem Bootsanbindeplatz-Mieter oder dem Standort-Besitzer in Rechnung gestellt.
+       */
+      Steggebuehr : 0.00 .. 10000.00;
+      /** Mietkosten für den Bootsanbindeplatz. Wird nur bei Bootsanbindeplätzen, welche sich in kantonalem Besitz befinden, dem Bootsanbindeplazt-Mieter in Rechnung gestellt.
+       */
+      Mietkosten : 0.00 .. 10000.00;
+      /** Gebühr für die Nutzung des Anbindepfostens bzw. Anbindepfösten. Kosten hängen davon ab, wie viele Pfosten genutzt werden.
+       * Diese Gebühr wird immer dem Bootsanbindeplatz-Mieter in Rechnung gestellt.
+       */
+      Pfostengebuehr : 0.00 .. 10000.00;
+      /** Punktgeometrie des Bootsanbindeplatzes
+       */
+      Geometrie : GeometryCHLV95_V1.Coord2;
+      /** Bemerkungen zum Bootsanbindeplatz
+       */
+      Bemerkung : MTEXT;
+      !!@ ilivalid.msg="Wenn vermietet = wahr, dann müssen Datum_Bewilligung, Datum_Bewilligungsablauf und Nutzungsgebuehr ausgefüllt sein"
+      !!@ name=Check_vermietet
+      SET CONSTRAINT WHERE Vermietung == #true: 
+      DEFINED (Datum_Bewilligung) AND DEFINED (Datum_Bewilligungsablauf) AND DEFINED (Nutzungsgebuehr);
+    END Bootsanbindeplatz;
+
+    /** Dokumente zum Hauptstandort und/oder zu den MieterInnen
+     */
+    CLASS Dokument =
+      OID AS INTERLIS.UUIDOID;
+      /** Name des Dokuments inklusive Dokumentendung (ohne Pfad)
+       */
+      Name : MANDATORY TEXT*150;
+      /** Pfad zum Dokument
+       */
+      Pfad : MANDATORY TEXT;
+      /** Bemerkungen zum Dokument
+       */
+      Bemerkung : MTEXT;
+    END Dokument;
+
+    /** Personendaten
+     */
+    CLASS Personendaten =
+      OID AS INTERLIS.UUIDOID;
+      /** Nachname der Person
+       */
+      Name : TEXT*100;
+      /** Vorname der Person
+       */
+      Vorname : TEXT*100;
+      /** Wohnstrasse und Hausnummer der Person
+       */
+      Strasse_Nr : TEXT*100;
+      /** Postleitzahl des Personenwohnortes
+       */
+      PLZ : 1000 .. 9999;
+      /** Wohnort der Person
+       */
+      Ort : TEXT*100;
+      /** Telefonnummer der Person
+       */
+      Telefon : TEXT*50;
+      /** E-Mail-Adresse der Person
+       */
+      EMail : TEXT*100;
+      /** Agiert die Person als MieterIn oder VermieterIn?
+       */
+      Typ : (
+        MieterIn,
+        VermieterIn
+      );
+      /** Bemerkungen zur Person
+       */
+      Bemerkung : MTEXT;
+    END Personendaten;
+
+    /** Enthält die notwendigen Standortattribute
+     */
+    CLASS Standortdaten (ABSTRACT) =
+      OID AS INTERLIS.UUIDOID;
+      /** Bezeichnung des Hauptstandortes
+       */
+      Bezeichnung : MANDATORY TEXT*100;
+      /** Nummer des Hauptstandortes.
+       */
+      Nummer : MANDATORY TEXT*10;
+      /** Bemerkungen zum Hauptstandort
+       */
+      Bemerkung : MTEXT;
+    END Standortdaten;
+
+    /** Ein Hauptstandort fasst mehrere Standorte (Bootsstege / Treppen) zusammen
+     */
+    CLASS Hauptstandort
+    EXTENDS Standortdaten =
+      OID AS INTERLIS.UUIDOID;
+      /** Gemeinde des Hauptstandortes
+       */
+      Gemeinde : MANDATORY TEXT*100;
+    END Hauptstandort;
+
+    /** Ein Standort (Steg / Treppe) fasst mehrere Bootsanbindeplätze zusammen und ist einem Hauptstandort zugeordnet.
+     */
+    CLASS Standort
+    EXTENDS Standortdaten =
+      OID AS INTERLIS.UUIDOID;
+      /** Nutzungsgebühren Standort in CHF
+       */
+      Nutzungsgebuehr : 1.00 .. 100000.00;
+      /** Angabe, ob sich der Standort privat vermietet wird.
+       */
+      Privatvermietung : BOOLEAN;
+    END Standort;
+
+    /** Ein Bootsanbindeplatz kann maximal von einer Person genutzt/gemietet werden.
+     * Eine Person darf maximal einen Botsanbindeplatz nutzen/mieten.
+     */
+    ASSOCIATION Nutzer_Bootsanbindeplatz =
+      /** Ein Bootsanbindeplatz kann maximal an eine Person vermietet werden.
+       */
+      Nutzer -- {0..1} Personendaten;
+      /** Eine Person kann maximal einen Bootsanbindeplatz mieten/nutzen
+       */
+      Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
+    END Nutzer_Bootsanbindeplatz;
+
+    ASSOCIATION Person_Dokument =
+      /** Einer Person können mehrere Dokumente zugeordnet sein.
+       */
+      Dokument -- {0..*} Dokument;
+      /** Ein Dokument muss entweder einem Hauptstandort oder einer Person zugeordnet sein.
+       */
+      Person -- {0..1} Personendaten;
+    END Person_Dokument;
+
+    /** Die Steggebühren werden immer dem Vermieter in Rechnung gestellt.
+     */
+    ASSOCIATION Rechnungssteller_Steggebuehr =
+      /** Die Steggebühren für einen Bootsanbindeplatz müssen, sofern es sich um einen privaten Standort handelt, dem Vermieter in Rechnung gestellt werden.
+       */
+      Rechnungssteller -- {0..1} Personendaten;
+      /** Ein Rechnungssteller kann mehrere Bootsanbindeplätze besitzen/vermieten.
+       */
+      Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
+    END Rechnungssteller_Steggebuehr;
+
+    /** Ein Dokument kann maximal einem Hauptstandort oder einer Person zugeteilt sein
+     */
+    ASSOCIATION Hauptstandort_Dokument =
+      /** Einem Hauptstandort können keine oder mehrere Dokumente zugeordnet sein.
+       */
+      Dokument -- {0..*} Dokument;
+      /** Ein Dokument kann einem Hauptstandort oder einer Person zugeordnet werden.
+       */
+      Hauptstandort -- {0..1} Hauptstandort;
+    END Hauptstandort_Dokument;
+
+    /** Ein Hauptstandort kann einen oder mehrere (Unter-)Standorte besitzen. Umgekehrt muss ein Standort immer genau einem Haupstandort zugeteilt sein.
+     */
+    ASSOCIATION Hauptstandort_Standort =
+      /** Ein Standort wird genau einem Hauptstandort zugeordnet
+       */
+      Hauptstandort -- {1} Hauptstandort;
+      /** Ein Hauptstandort kann einen oder mehrere Standorte haben
+       */
+      Standort -- {1..*} Standort;
+    END Hauptstandort_Standort;
+
+    /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
+     */
+    ASSOCIATION Standort_Bootsanbindeplatz =
+      /** Ein Bootsanbindeplatz ist genau einem Standort zugeordnet
+       */
+      Standort -- {1} Standort;
+      /** Ein Standort kann mehrere Bootsanbindeplätze haben.
+       */
+      Bootsanbindeplatz -- {1..*} Bootsanbindeplatz;
+    END Standort_Bootsanbindeplatz;
+
+    ASSOCIATION Standort_Personendaten =
+      Standort -- {0..*} Standort;
+      Person -- {0..*} Personendaten;
+    END Standort_Personendaten;
+
+  END Bootsanbindeplaetze;
+
+END SO_AFU_Bootsanbindeplaetze_20250210.

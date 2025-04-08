@@ -1,0 +1,86 @@
+INTERLIS 2.3;
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!
+!! Minimal Geodata Model for Official Index of Addresses (Art. 26b GeoNV)
+!! INTERLIS Version 2.3 (SN 612031).
+!!
+!! Federal Office of Topography (swisstopo)
+!! Seftigenstrasse 264
+!! CH-3084 Wabern
+!!
+!! Filename: OfficialIndexOfAddresses_V2.ili
+!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! Version    | Who       | Modification
+!!------------------------------------------------------------------------------
+!! 2021-03-15 | swisstopo | Added BDG_CATEGORY, COM_NAME; renamed ADR_ZIP>ZIP_ZIP6, ADR_RELIABLE>ADR_VALID, LocalisationName>STN; modified: ADR_MODIFIED as INTERLIS.XMLDate
+
+!!@ IDGeoIV = 197.1
+!!@ technicalContact = mailto:info@swisstopo.ch
+!!@ furtherInformation = https://www.swisstopo.admin.ch/de/wissen-fakten/amtliche-verzeichnisse/gebaeudeadressenverzeichnis.html
+
+CONTRACTED MODEL OfficialIndexOfAddresses_V2 (en) AT "https://models.geo.admin.ch/Swisstopo/" VERSION "2021-03-15" =
+
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC OfficialIndexOfAddresses =
+    OID AS INTERLIS.ANYOID;
+
+    STRUCTURE ZIP =
+      ZIP_ZIP4: MANDATORY 1000 .. 9999;  !! postal code, e.g. 8580
+      ZIP_ZIPA: MANDATORY 0 .. 99;  !! additional number, e.g. 5
+      ZIP_NAME: MANDATORY TEXT*40;  !! locality, e.g. Hagenwil b. Amriswil
+    END ZIP;
+
+    STRUCTURE STN =
+      STN_TEXT: MANDATORY TEXT*60;  !! e.g. Conrad-Ferdinand-Meyer-Strasse
+      STN_SHORT: TEXT*24;  !! e.g. CF Meyer Str
+      STN_INDEX: TEXT*3;  !! e.g. Mey
+      STN_LANG: MANDATORY (
+        de,
+        fr,
+        it,
+        rm: FINAL);
+    END STN;
+
+    CLASS Address =
+      ADR_EGAID: MANDATORY 100000000 .. 900000000;
+      STR_ESID: MANDATORY 0 .. 90000000;
+      BDG_EGID: MANDATORY 1 .. 900000000;
+      ADR_EDID: MANDATORY 0 .. 99;
+      STN_NAME: BAG {1..*} OF STN;
+      ADR_NUMBER: TEXT*12;  !! house number, e.g. 12a
+      BDG_NAME: TEXT*50;  !! building name, e.g. Haus Steindach
+      BDG_CATEGORY: MANDATORY (
+        uncategorized,
+        temporary,
+        residential,
+        other_residential,
+        partly_residential,
+        non_residential,
+        special: FINAL);
+      ZIP_ZIP6: ZIP;
+      COM_FOSNR: MANDATORY 1 .. 9999;
+      COM_NAME: MANDATORY TEXT*40;
+      ADR_STATUS: MANDATORY (
+        planned,
+        real,
+        outdated: FINAL);
+      ADR_OFFICIAL: MANDATORY BOOLEAN;
+      ADR_VALID: MANDATORY BOOLEAN;
+      ADR_MODIFIED: MANDATORY INTERLIS.XMLDate;
+      PNT_SHAPE: MANDATORY GeometryCHLV95_V1.Coord2;
+    UNIQUE ADR_EGAID;
+    UNIQUE STR_ESID, BDG_EGID, ADR_EDID;
+
+    !! Every address must have either house number or building name
+    MANDATORY CONSTRAINT
+      DEFINED (ADR_NUMBER) OR DEFINED (BDG_NAME);
+
+    END Address;
+
+  END OfficialIndexOfAddresses;
+
+END OfficialIndexOfAddresses_V2.

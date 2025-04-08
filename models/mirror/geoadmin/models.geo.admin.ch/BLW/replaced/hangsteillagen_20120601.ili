@@ -1,0 +1,174 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "152.1,152.2"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+MODEL HangSteilLagen_V1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2012-06-01"  =
+  IMPORTS LocalisationCH_V1,CatalogueObjects_V1,GeometryCHLV03_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Liste aller Hang- und Steillagen-Typen
+     * z.B.: allgemein: 0-<18%, >=18-<=35%, >35%-<=50%, >50%
+     */
+    CLASS HS_Katalog_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      /** Bezeichnung des Typs
+       */
+      MTextTyp : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Bereich;
+    END HS_Katalog_Typ;
+
+    /** Liste aller Hang- und Steillagen-Typen für Reben
+     * z.B.: 0-<30%, >=308-<=50%, >50%
+     */
+    CLASS HS_Katalog_Typ_Reben
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      MTextTyp : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HS_Katalog_Typ_Reben;
+
+    STRUCTURE HSTypRebenRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HS_Katalog_Typ_Reben;
+    END HSTypRebenRef;
+
+    STRUCTURE HSTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HS_Katalog_Typ;
+    END HSTypRef;
+
+  END Kataloge;
+
+  TOPIC Lagen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON HangSteilLagen_V1.Kataloge;
+
+    /** Hang- und Steillagen allgemein
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die allgemeinen Hangbeiträge.
+     */
+    CLASS HS_Flaeche_allgemein =
+      Flaeche : MANDATORY GeometryCHLV03_V1.Area;
+      /** Datum der Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Typ : MANDATORY HangSteilLagen_V1.Kataloge.HSTypRef;
+    END HS_Flaeche_allgemein;
+
+    /** Hang- und Steillagen Reben
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die Hangbeiträge in Rebbergen.
+     */
+    CLASS HS_Flaeche_Reben =
+      Flaeche : MANDATORY GeometryCHLV03_V1.Area;
+      /** Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Typ : MANDATORY HangSteilLagen_V1.Kataloge.HSTypRebenRef;
+    END HS_Flaeche_Reben;
+
+  END Lagen;
+
+END HangSteilLagen_V1.
+
+
+
+MODEL HangSteilLagen_LV95_V1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2012-06-01"  =
+  IMPORTS LocalisationCH_V1,CatalogueObjects_V1,GeometryCHLV95_V1;
+
+  TOPIC Gueltigkeitsdauer =
+
+    /** Für dieses Jahr haben die Daten in diesem Modell Gültigkeit
+     */
+    CLASS Bezugsjahr =
+      Bezugsjahr : MANDATORY INTERLIS.GregorianYear;
+    END Bezugsjahr;
+
+  END Gueltigkeitsdauer;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Liste aller Hang- und Steillagen-Typen
+     * z.B.: allgemein: 0-<18%, >=18-<=35%, >35%-<=50%, >50%
+     */
+    CLASS HS_Katalog_Typ
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      /** Bezeichnung des Typs
+       */
+      MTextTyp : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE Bereich;
+    END HS_Katalog_Typ;
+
+    /** Liste aller Hang- und Steillagen-Typen für Reben
+     * z.B.: 0-<30%, >=308-<=50%, >50%
+     */
+    CLASS HS_Katalog_Typ_Reben
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      Bereich : MANDATORY TEXT*20;
+      MTextTyp : MANDATORY LocalisationCH_V1.MultilingualText;
+    END HS_Katalog_Typ_Reben;
+
+    STRUCTURE HSTypRebenRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HS_Katalog_Typ_Reben;
+    END HSTypRebenRef;
+
+    STRUCTURE HSTypRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) HS_Katalog_Typ;
+    END HSTypRef;
+
+  END Kataloge;
+
+  TOPIC Lagen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON HangSteilLagen_LV95_V1.Kataloge;
+
+    /** Hang- und Steillagen allgemein
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die allgemeinen Hangbeiträge.
+     */
+    CLASS HS_Flaeche_allgemein =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      /** Datum der Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Typ : MANDATORY HangSteilLagen_LV95_V1.Kataloge.HSTypRef;
+    END HS_Flaeche_allgemein;
+
+    /** Hang- und Steillagen Reben
+     * Flächen mit klassierten Hangneigungen. Die Klasseneinteilung richtet sich nach den
+     * Abstufungen für die Hangbeiträge in Rebbergen.
+     */
+    CLASS HS_Flaeche_Reben =
+      Flaeche : MANDATORY GeometryCHLV95_V1.Area;
+      /** Lieferung durch BLW
+       */
+      Erstellungsdatum : MANDATORY FORMAT INTERLIS.XMLDate "2010-1-1" .. "2110-1-1";
+      Typ : MANDATORY HangSteilLagen_LV95_V1.Kataloge.HSTypRebenRef;
+    END HS_Flaeche_Reben;
+
+  END Lagen;
+
+END HangSteilLagen_LV95_V1.

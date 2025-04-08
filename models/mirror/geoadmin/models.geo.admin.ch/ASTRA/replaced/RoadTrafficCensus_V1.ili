@@ -1,0 +1,342 @@
+INTERLIS 2.3;
+
+/** ========================================================================================================
+ * RoadTrafficCensus_V1.ili
+ * --------------------------------------------------------------------------------------------------------
+ * Identifikator GeoIV             : 13
+ * Bezeichnung GeoIV               : Strassenverkehrszählung übergeordnetes Netz
+ * Zuständige Stelle               : ASTRA
+ * Identifikator GeoIV             : 14
+ * Bezeichnung GeoIV               : Strassenverkehrszählung regionales und lokales Netz
+ * Zuständige Stelle               : Kantone [ASTRA]
+ * ========================================================================================================
+ * identificateur OGéo             : 13
+ * désignation OGéo                : Comptage de la circulation routière réseau de base
+ * Service compétent               : OFROU
+ * identificateur OGéo             : 14
+ * désignation OGéo                : Comptage de la circulation routière réseau régional et local
+ * Service compétent               : Cantons [OFROU]
+ * --------------------------------------------------------------------------------------------------------
+ * Version    | Who | Modification
+ * --------------------------------------------------------------------------------------------------------
+ * 2013-08-14 | ML  | Draft 
+ * 2013-08-29 | ML  | Version for FIG Nr. 3
+ * 2013-11-27 | ML  | Version for FIG Nr. 4
+ * 2014-03-31 | ML  | Version for Consultation
+ * 2016-01-22 | ML  | Version including feedback from consultation
+ * 2016-04-08 | ML  | Version including feedback from KKGEO and KOGIS
+ * 2016-09-01 | ML  | Adaption for compatibility with newest compiler
+ * ========================================================================================================
+ */
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ IDGeoIV="13.1,14.1"
+!!@ furtherInformation=http://www.astra.admin.ch/verkehrsdaten
+MODEL RoadTrafficCensusCatalogues_V1 (en)
+AT "http://models.geo.admin.ch/ASTRA"
+VERSION "2016-09-01"  =
+  IMPORTS CatalogueObjects_V1,LocalisationCH_V1;
+
+  TOPIC RoadTrafficCensusCatalogues =
+
+    CLASS rtcCatalogItem
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      ItemId : MANDATORY 0 .. 99;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+    END rtcCatalogItem;
+
+    CLASS Classification
+    EXTENDS rtcCatalogItem =
+    END Classification;
+
+    STRUCTURE ClassificationRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Classification;
+    END ClassificationRef;
+
+    CLASS Direction
+    EXTENDS rtcCatalogItem =
+    END Direction;
+
+    STRUCTURE DirectionRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Direction;
+    END DirectionRef;
+
+    CLASS MLocStatus
+    EXTENDS rtcCatalogItem =
+    END MLocStatus;
+
+    STRUCTURE MLocStatusRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MLocStatus;
+    END MLocStatusRef;
+
+    CLASS MLocType
+    EXTENDS rtcCatalogItem =
+    END MLocType;
+
+    STRUCTURE MLocTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) MLocType;
+    END MLocTypeRef;
+
+    CLASS NetworkType
+    EXTENDS rtcCatalogItem =
+    END NetworkType;
+
+    STRUCTURE NetworkTypeRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) NetworkType;
+    END NetworkTypeRef;
+
+  END RoadTrafficCensusCatalogues;
+
+END RoadTrafficCensusCatalogues_V1.
+
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ furtherInformation=http://www.astra.admin.ch/verkehrsdaten
+!!@ IDGeoIV="13.1,14.1"
+MODEL RoadTrafficCensusLV03_V1 (en)
+AT "http://models.geo.admin.ch/ASTRA"
+VERSION "2016-09-01"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV03_V1,RoadTrafficCensusCatalogues_V1;
+
+  TOPIC RoadTrafficCensusLV03 =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues;
+
+    STRUCTURE sCHCantonCode =
+      CHCantonCode : CHAdminCodes_V1.CHCantonCode;
+    END sCHCantonCode;
+
+    STRUCTURE sCHMunicipalityCode =
+      CHMunicipalityCode : CHAdminCodes_V1.CHMunicipalityCode;
+    END sCHMunicipalityCode;
+
+    STRUCTURE sCHOwnerCode =
+      CHOwnerCode : (
+        CH
+      );
+    END sCHOwnerCode;
+
+    STRUCTURE sAbroadCode =
+      AbroadCode : (
+        Abroad
+      );
+    END sAbroadCode;
+
+    STRUCTURE Sector =
+      Sequence : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];
+      SectorName : MANDATORY TEXT*64;
+      SectorLength : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];
+    END Sector;
+
+    DOMAIN
+
+      Owner = CLASS RESTRICTION ( sCHMunicipalityCode; sCHOwnerCode; sCHCantonCode );
+
+      CHCantonCode_Extended = CLASS RESTRICTION ( sAbroadCode; sCHCantonCode );
+
+      Distance = 0.000 .. 1000000.000 [INTERLIS.m];
+
+      Distance_v = -100.000 .. 100.000 [INTERLIS.m];
+
+    STRUCTURE LocationRBBS =
+      Sector : MANDATORY Sector;
+      Distance_u : MANDATORY Distance;
+      Distance_v : MANDATORY Distance_v;
+    END LocationRBBS;
+
+    CLASS MeasurementLocation =
+      MLocId : MANDATORY TEXT*50;
+      Owner : MANDATORY Owner;
+      MLocNr : MANDATORY TEXT*20;
+      MLocName : TEXT*100;
+      Canton : MANDATORY CHCantonCode_Extended;
+      Municipality : CHAdminCodes_V1.CHMunicipalityCode;
+      TargetLocation1 : MANDATORY TEXT*100;
+      TargetLocation2 : TEXT*100;
+      NumberOfLanes1 : 1 .. 10;
+      NumberOfLanes2 : 1 .. 10;
+      StreetDesignation : TEXT*100;
+      MLocStatus : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.MLocStatusRef;
+      StartupDate : INTERLIS.XMLDate;
+      LocationLV03 : MANDATORY GeometryCHLV03_V1.Coord2;
+      LocationRBBS : LocationRBBS;
+      SSVZNr : TEXT*10;
+      NetworkType : RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.NetworkTypeRef;
+      UNIQUE Owner, MLocNr;
+      UNIQUE Owner, MLocId;
+    END MeasurementLocation;
+
+    CLASS TypePeriod =
+      ValidFrom : MANDATORY INTERLIS.XMLDate;
+      ValidTo : INTERLIS.XMLDate;
+      MLocType : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.MLocTypeRef;
+      Classification : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.ClassificationRef;
+    END TypePeriod;
+
+    CLASS Indicator =
+      Direction : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.DirectionRef;
+      Year : MANDATORY INTERLIS.GregorianYear;
+      DTV : 0 .. 999999;
+      DWV : 0 .. 999999;
+      MSP : 0 .. 999999;
+      ASP : 0 .. 999999;
+      MSPW : 0 .. 999999;
+      ASPW : 0 .. 999999;
+      Nt : 0 .. 999999;
+      Nn : 0 .. 999999;
+      PrctHeavyTraffic : 0.0000 .. 0.9999;
+      PrctHeavyTrafficDay : 0.0000 .. 0.9999;
+      PrctHeavyTrafficNight : 0.0000 .. 0.9999;
+      DTFV : 0 .. 999999;
+      DTRV : 0 .. 999999;
+      DWFV : 0 .. 999999;
+      DWRV : 0 .. 999999;
+      DWORV : 0 .. 999999;
+      Vt : 0 .. 200;
+      Vt1 : 0 .. 200;
+      Vt2 : 0 .. 200;
+      Vn : 0 .. 200;
+      Vn1 : 0 .. 200;
+      Vn2 : 0 .. 200;
+    END Indicator;
+
+    ASSOCIATION MeasurementLocation_TypePeriod =
+      rMeasurementLocation -<#> MeasurementLocation;
+      rTypePeriod -- {0..*} TypePeriod;
+    END MeasurementLocation_TypePeriod;
+
+    ASSOCIATION MeasurementLocation_Indicator =
+      rMeasurementLocation -<#> MeasurementLocation;
+      rIndicator -- {0..*} Indicator;
+    END MeasurementLocation_Indicator;
+
+  END RoadTrafficCensusLV03;
+
+END RoadTrafficCensusLV03_V1.
+
+!!@ technicalContact=mailto:gis@astra.admin.ch
+!!@ furtherInformation=http://www.astra.admin.ch/verkehrsdaten
+!!@ IDGeoIV="13.1,14.1"
+MODEL RoadTrafficCensusLV95_V1 (en)
+AT "http://models.geo.admin.ch/ASTRA"
+VERSION "2016-09-01"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,RoadTrafficCensusCatalogues_V1;
+
+  TOPIC RoadTrafficCensusLV95 =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues;
+
+    STRUCTURE sCHCantonCode =
+      CHCantonCode : CHAdminCodes_V1.CHCantonCode;
+    END sCHCantonCode;
+
+    STRUCTURE sCHMunicipalityCode =
+      CHMunicipalityCode : CHAdminCodes_V1.CHMunicipalityCode;
+    END sCHMunicipalityCode;
+
+    STRUCTURE sCHOwnerCode =
+      CHOwnerCode : (
+        CH
+      );
+    END sCHOwnerCode;
+
+    STRUCTURE sAbroadCode =
+      AbroadCode : (
+        Abroad
+      );
+    END sAbroadCode;
+
+    STRUCTURE Sector =
+      Sequence : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];
+      SectorName : MANDATORY TEXT*64;
+      SectorLength : MANDATORY 0.000 .. 1000000.000 [INTERLIS.m];
+    END Sector;
+
+    DOMAIN
+
+      Owner = CLASS RESTRICTION ( sCHOwnerCode; sCHCantonCode; sCHMunicipalityCode );
+
+      CHCantonCode_Extended = CLASS RESTRICTION ( sAbroadCode; sCHCantonCode );
+
+      Distance = 0.000 .. 1000000.000 [INTERLIS.m];
+
+      Distance_v = -100.000 .. 100.000 [INTERLIS.m];
+
+    STRUCTURE LocationRBBS =
+      Sector : MANDATORY Sector;
+      Distance_u : MANDATORY Distance;
+      Distance_v : MANDATORY Distance_v;
+    END LocationRBBS;
+
+    CLASS MeasurementLocation =
+      MLocId : MANDATORY TEXT*50;
+      Owner : MANDATORY Owner;
+      MLocNr : MANDATORY TEXT*20;
+      MLocName : TEXT*100;
+      Canton : MANDATORY CHCantonCode_Extended;
+      Municipality : CHAdminCodes_V1.CHMunicipalityCode;
+      TargetLocation1 : MANDATORY TEXT*100;
+      TargetLocation2 : TEXT*100;
+      NumberOfLanes1 : 1 .. 10;
+      NumberOfLanes2 : 1 .. 10;
+      StreetDesignation : TEXT*100;
+      MLocStatus : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.MLocStatusRef;
+      StartupDate : INTERLIS.XMLDate;
+      LocationLV95 : MANDATORY GeometryCHLV95_V1.Coord2;
+      LocationRBBS : LocationRBBS;
+      SSVZNr : TEXT*10;
+      NetworkType : RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.NetworkTypeRef;
+      UNIQUE Owner, MLocNr;
+      UNIQUE Owner, MLocId;
+    END MeasurementLocation;
+
+    CLASS TypePeriod =
+      ValidFrom : MANDATORY INTERLIS.XMLDate;
+      ValidTo : INTERLIS.XMLDate;
+      MLocType : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.MLocTypeRef;
+      Classification : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.ClassificationRef;
+    END TypePeriod;
+
+    CLASS Indicator =
+      Direction : MANDATORY RoadTrafficCensusCatalogues_V1.RoadTrafficCensusCatalogues.DirectionRef;
+      Year : MANDATORY INTERLIS.GregorianYear;
+      DTV : 0 .. 999999;
+      DWV : 0 .. 999999;
+      MSP : 0 .. 999999;
+      ASP : 0 .. 999999;
+      MSPW : 0 .. 999999;
+      ASPW : 0 .. 999999;
+      Nt : 0 .. 999999;
+      Nn : 0 .. 999999;
+      PrctHeavyTraffic : 0.0000 .. 0.9999;
+      PrctHeavyTrafficDay : 0.0000 .. 0.9999;
+      PrctHeavyTrafficNight : 0.0000 .. 0.9999;
+      DTFV : 0 .. 999999;
+      DTRV : 0 .. 999999;
+      DWFV : 0 .. 999999;
+      DWRV : 0 .. 999999;
+      DWORV : 0 .. 999999;
+      Vt : 0 .. 200;
+      Vt1 : 0 .. 200;
+      Vt2 : 0 .. 200;
+      Vn : 0 .. 200;
+      Vn1 : 0 .. 200;
+      Vn2 : 0 .. 200;
+    END Indicator;
+
+    ASSOCIATION MeasurementLocation_TypePeriod =
+      rMeasurementLocation -<#> MeasurementLocation;
+      rTypePeriod -- {0..*} TypePeriod;
+    END MeasurementLocation_TypePeriod;
+
+    ASSOCIATION MeasurementLocation_Indicator =
+      rMeasurementLocation -<#> MeasurementLocation;
+      rIndicator -- {0..*} Indicator;
+    END MeasurementLocation_Indicator;
+
+  END RoadTrafficCensusLV95;
+
+END RoadTrafficCensusLV95_V1.

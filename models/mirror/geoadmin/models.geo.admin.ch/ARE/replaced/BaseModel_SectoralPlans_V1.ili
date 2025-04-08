@@ -1,0 +1,183 @@
+INTERLIS 2.3;
+
+/** Minimales Geodatenmodell
+*   Basismodell Sachpläne
+*/
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2015-05-22 | KOGIS | TOPIC-Dependency added (line 103)
+!! 2019-02-01 | KOGIS | Meta-attribute technicalContact adapted (line 12)
+
+!!@ technicalContact = mailto:info@are.admin.ch
+!!@ furtherInformation = http://www.are.admin.ch/mgm
+
+MODEL BaseModel_SectoralPlans_V1 (en) AT "http://models.geo.admin.ch/ARE/" VERSION "2019-02-01"  =
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS UNQUALIFIED GeometryCHLV03_V1;
+  IMPORTS LocalisationCH_V1,InternationalCodes_V1,WithLatestModification_V1,CatalogueObjects_V1;
+
+  TOPIC Catalogue_CoordinationLevel =
+
+    CLASS CoordinationLevel
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      CoordID : MANDATORY 1 .. 9999;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE CoordID;
+    END CoordinationLevel;
+
+    STRUCTURE CoordinationLevel_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) CoordinationLevel;
+    END CoordinationLevel_CatalogueReference;
+
+  END Catalogue_CoordinationLevel;
+
+  TOPIC Catalogue_FacilityKind =
+
+    CLASS FacilityKind
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      KindID : MANDATORY TEXT*12;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Category : LocalisationCH_V1.MultilingualText;
+      UNIQUE KindID;
+    END FacilityKind;
+
+    STRUCTURE FacilityKind_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) FacilityKind;
+    END FacilityKind_CatalogueReference;
+
+  END Catalogue_FacilityKind;
+
+  TOPIC Catalogue_FacilityStatus =
+
+    CLASS FacilityStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      StatusID : MANDATORY 1 .. 9999;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE StatusID;
+    END FacilityStatus;
+
+    STRUCTURE FacilityStatus_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) FacilityStatus;
+    END FacilityStatus_CatalogueReference;
+
+  END Catalogue_FacilityStatus;
+
+  TOPIC Catalogue_MeasureType =
+
+    CLASS MeasureType
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      TypeID : MANDATORY TEXT*12;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Category : LocalisationCH_V1.MultilingualText;
+      UNIQUE TypeID;
+    END MeasureType;
+
+    STRUCTURE MeasureType_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) MeasureType;
+    END MeasureType_CatalogueReference;
+
+  END Catalogue_MeasureType;
+
+  TOPIC Catalogue_PlanningStatus =
+
+    CLASS PlanningStatus
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      StatusID : MANDATORY 1 .. 9999;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE StatusID;
+    END PlanningStatus;
+
+    STRUCTURE PlanningStatus_CatalogueReference
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Ref : MANDATORY REFERENCE TO (EXTERNAL) PlanningStatus;
+    END PlanningStatus_CatalogueReference;
+
+  END Catalogue_PlanningStatus;
+
+  TOPIC SectoralPlans_WithLatestModification =
+    DEPENDS ON BaseModel_SectoralPlans_V1.Catalogue_CoordinationLevel,BaseModel_SectoralPlans_V1.Catalogue_FacilityKind,BaseModel_SectoralPlans_V1.Catalogue_MeasureType,BaseModel_SectoralPlans_V1.Catalogue_PlanningStatus,BaseModel_SectoralPlans_V1.Catalogue_FacilityStatus,CatalogueObjects_V1.Catalogues;
+
+    STRUCTURE ModInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModInfo;
+
+    CLASS SectoralPlan =
+      GeoIV_ID : MANDATORY 1 .. 9999;
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Abbreviation : LocalisationCH_V1.MultilingualText;
+      Description : LocalisationCH_V1.MultilingualMText;
+      ModInfo : ModInfo;
+      OfficeName : MANDATORY LocalisationCH_V1.MultilingualText;
+      UNIQUE GeoIV_ID;
+    END SectoralPlan;
+
+    CLASS Object =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      ProjectName : LocalisationCH_V1.MultilingualText;
+      Description : LocalisationCH_V1.MultilingualMText;
+      ModInfo : ModInfo;
+    END Object;
+
+    CLASS Document =
+      Title : MANDATORY TEXT;
+      Version : MANDATORY TEXT*12;
+      Web : MANDATORY URI;
+      Language : MANDATORY InternationalCodes_V1.LanguageCode_ISO639_1;
+      Description : MTEXT;
+      ModInfo : MANDATORY ModInfo;
+    END Document;
+
+    CLASS Facility =
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      Point : Coord2;
+      Line : Line;
+      Surface : Surface;
+      SymbolOri : Orientation;
+      FacilityKind : MANDATORY BaseModel_SectoralPlans_V1.Catalogue_FacilityKind.FacilityKind_CatalogueReference;
+      Description : LocalisationCH_V1.MultilingualMText;
+      FacilityStatus : MANDATORY BaseModel_SectoralPlans_V1.Catalogue_FacilityStatus.FacilityStatus_CatalogueReference;
+      ModInfo : MANDATORY ModInfo;
+      MANDATORY CONSTRAINT DEFINED(Point) OR DEFINED(Line) OR DEFINED(Surface);
+    END Facility;
+
+    ASSOCIATION Object_SP =
+      Object -- {1..*} Object;
+      SectoralPlan -<#> {1} SectoralPlan;
+    END Object_SP;
+
+    CLASS PlanningMeasure =
+      Name : LocalisationCH_V1.MultilingualText;
+      Point : Coord2;
+      Line : Line;
+      Surface : Surface;
+      MeasureType : MANDATORY BaseModel_SectoralPlans_V1.Catalogue_MeasureType.MeasureType_CatalogueReference;
+      CoordinationLevel : MANDATORY BaseModel_SectoralPlans_V1.Catalogue_CoordinationLevel.CoordinationLevel_CatalogueReference;
+      ModInfo : MANDATORY ModInfo;
+      Description : LocalisationCH_V1.MultilingualMText;
+      PlanningStatus : MANDATORY BaseModel_SectoralPlans_V1.Catalogue_PlanningStatus.PlanningStatus_CatalogueReference;
+      MANDATORY CONSTRAINT DEFINED(Point) OR DEFINED(Line) OR DEFINED(Surface);
+    END PlanningMeasure;
+
+    ASSOCIATION Document_Object =
+      ObjectSheet -- {1..*} Document;
+      Object -<#> {1} Object;
+    END Document_Object;
+
+    ASSOCIATION Facility_Object =
+      Facility -- {1..*} Facility;
+      Object -<#> {1} Object;
+    END Facility_Object;
+
+    ASSOCIATION Measure_Facility =
+      Measure -- {1..*} PlanningMeasure;
+      Facility -<#> {1} Facility;
+    END Measure_Facility;
+
+  END SectoralPlans_WithLatestModification;
+
+END BaseModel_SectoralPlans_V1.

@@ -1,0 +1,534 @@
+INTERLIS 2.3;
+
+/** Minimal geodata model
+ * Minimales Geodatenmodell
+ * Modèle de géodonnées minimal
+ */
+
+!! Copyright 2010 - 2014 SIA
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=92.1
+!!@ modelDocumentation=https://www.uvek-gis.admin.ch/BFE/redirect/92.html
+
+MODEL SIA405_LKMap (de) AT "https://models.geo.admin.ch/BFE/"
+  VERSION "2014-06-28" =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Base;
+  IMPORTS SIA405_Base;
+
+  UNIT
+
+  DOMAIN
+
+  TOPIC SIA405_LKMap =
+
+  DOMAIN
+
+  STRUCTURE Eigenschaften =
+    Bezeichnung: MANDATORY TEXT * 80;
+    Wert: MANDATORY TEXT * 80;
+  END Eigenschaften;
+
+  CLASS LKObjekt (ABSTRACT) EXTENDS SIA405_Base.SIA405_BaseClass =
+    Eigenschaft: BAG OF Eigenschaften;
+    Eigentuemer: MANDATORY SIA405_Base.OrganisationBezeichnung;
+    Lagebestimmung: MANDATORY SIA405_Base.Genauigkeit;
+    Status: SIA405_Base.Status;
+  END LKObjekt;
+
+  CLASS LKFlaeche EXTENDS LKObjekt =
+  ATTRIBUTE
+    Flaeche: MANDATORY Base.Surface;
+    Objektart: MANDATORY (
+      Abwasser (
+        Einleitstelle,
+        Spezialbauwerk (
+          Oelabscheider_Schwimmstoffabscheider,
+          Pumpwerk,
+          Regenbecken,
+          weitere
+        ),
+        unbekannt,
+        Versickerungsanlage
+      ),
+      Elektrizitaet (
+        Spezialbauwerk (
+          Kabine,
+          Schacht,
+          Station,
+          OeffentlicherVerbraucher
+        ),
+        Tragwerk,
+        Trasse,
+        unbekannt
+      ),
+      Fernwaerme (
+        Bauwerk (
+          Kammer,
+          Spezialbauwerk,
+          Station
+        ),
+        Trasse,
+        unbekannt
+      ),
+      Gas (
+        Sicherheitskorridor,
+        Spezialbauwerk,
+        unbekannt
+      ),
+      Kommunikation (
+        Bauwerk,
+        Schacht,
+        Tragwerk,
+        Trasse,
+        unbekannt
+      ),
+      Wasser (
+        Spezialbauwerk,
+        unbekannt
+      ),
+      weitereMedien (
+        Sicherheitskorridor,
+        Spezialbauwerk,
+        unbekannt
+      )
+    );
+  END LKFlaeche;
+
+  CLASS LKLinie EXTENDS LKObjekt =
+  ATTRIBUTE
+    Breite: SIA405_Base.Breite;
+    Linie: MANDATORY Base.Polyline;
+    Objektart: MANDATORY (
+      Abwasser (
+        Fernwirkkabel,
+        Haltung_Kanal,
+        Schutzrohr
+      ),
+      Elektrizitaet (
+        AnkerStrebe,
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        )
+      ),
+      Fernwaerme (
+        Fernwirkkabel,
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        ),
+        Schutzrohr
+      ),
+      Gas (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      ),
+      Kommunikation (
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        )
+      ),
+      Wasser (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      ),
+      weitereMedien (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      )
+    );
+    Profiltyp: (
+      Eiprofil,
+      Kreisprofil,
+      Rechteckprofil,
+      unbekannt,
+      weitere
+    );
+  END LKLinie;
+
+  CLASS LKPunkt EXTENDS LKObjekt =
+  ATTRIBUTE
+    Dimension1: SIA405_Base.Abmessung;
+    Dimension2: SIA405_Base.Abmessung;
+    Objektart: MANDATORY (
+      Abwasser (
+        Deckel,
+        Einleitstelle,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Kaliberwechsel,
+        Kanalanfang,
+        Normschacht (
+          Einlaufschacht,
+          Geleiseschacht,
+          Kontrollschacht,
+          Oelabscheider_Schwimmstoffabscheider,
+          Schlammsammler,
+          weitere
+        ),
+        unbekannt,
+        Versickerungsanlage
+      ),
+      Elektrizitaet (
+        Kabine,
+        OeffentlicherVerbraucher,
+        Schacht (
+          rechteckig,
+          rund
+        ),
+        Station,
+        Tragwerk,
+        unbekannt
+      ),
+      Fernwaerme (
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Trassepunkt (
+          Abstuetzung,
+          Ent_Belueftung,
+          Entwaesserung,
+          Fixpunkt,
+          Geometriepunkt,
+          Montageoeffnung_Schachteinstieg
+          ),
+        unbekannt
+      ),
+      Gas (
+        Absperrorgan,
+        Gaslaterne,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Rohrleitungsteil (
+          Bogen_horizontal,
+          Bogen_vertikal
+        ),
+        Schacht,
+        Siphon,
+        unbekannt
+      ),
+      Kommunikation (
+        Bauwerk,
+        Schacht (
+          rechteckig,
+          rund
+        ),
+        Tragwerk,
+        unbekannt
+      ),
+      Wasser (
+        Absperrorgan,
+        Gartenhydrant,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Oberflurhydrant,
+        Rohrleitungsteil (
+          Bogen_horizontal,
+          Bogen_vertikal
+        ),
+        Schacht,
+        unbekannt,
+        Unterflurhydrant
+      ),
+      weitereMedien (
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Leitungspunkt
+      )
+    );
+    SymbolPos: MANDATORY Base.LKoord;
+    SymbolOri: Base.Orientierung;
+  END LKPunkt;
+
+  CLASS LKObjekt_Text EXTENDS SIA405_Base.SIA405_TextPos =
+  END LKObjekt_Text;
+
+  ASSOCIATION LKObjekt_LKObjektTextAssoc =
+    LKObjektRef -<#> {1} LKObjekt;
+    LKObjekt_LKObjekt_TextAssocRef -- {0 .. *} LKObjekt_Text;
+  END LKObjekt_LKObjektTextAssoc;
+
+  END SIA405_LKMap;
+
+END SIA405_LKMap.
+
+!! ******************************************************
+
+!!@ technicalContact=mailto:info@bfe.admin.ch
+!!@ furtherInformation=http://www.bfe.admin.ch/geoinformation
+!!@ IDGeoIV=92.1
+!!@ modelDocumentation=https://www.uvek-gis.admin.ch/BFE/redirect/92.html
+
+MODEL SIA405_LKMap_LV95 (de) AT "https://models.geo.admin.ch/BFE/"
+  VERSION "2014-06-28" =
+
+  IMPORTS UNQUALIFIED INTERLIS;
+  IMPORTS Base_LV95;
+  IMPORTS SIA405_Base_LV95;
+
+  UNIT
+
+  DOMAIN
+
+  TOPIC SIA405_LKMap =
+
+  DOMAIN
+
+  STRUCTURE Eigenschaften =
+    Bezeichnung: MANDATORY TEXT * 80;
+    Wert: MANDATORY TEXT * 80;
+  END Eigenschaften;
+
+  CLASS LKObjekt (ABSTRACT) EXTENDS SIA405_Base_LV95.SIA405_BaseClass =
+    Eigenschaft: BAG OF Eigenschaften;
+    Eigentuemer: MANDATORY SIA405_Base_LV95.OrganisationBezeichnung;
+    Lagebestimmung: MANDATORY SIA405_Base_LV95.Genauigkeit;
+    Status: SIA405_Base_LV95.Status;
+  END LKObjekt;
+
+  CLASS LKFlaeche EXTENDS LKObjekt =
+  ATTRIBUTE
+    Flaeche: MANDATORY Base_LV95.Surface;
+    Objektart: MANDATORY (
+      Abwasser (
+        Einleitstelle,
+        Spezialbauwerk (
+          Oelabscheider_Schwimmstoffabscheider,
+          Pumpwerk,
+          Regenbecken,
+          weitere
+        ),
+        unbekannt,
+        Versickerungsanlage
+      ),
+      Elektrizitaet (
+        Spezialbauwerk (
+          Kabine,
+          Schacht,
+          Station,
+          OeffentlicherVerbraucher
+        ),
+        Tragwerk,
+        Trasse,
+        unbekannt
+      ),
+      Fernwaerme (
+        Bauwerk (
+          Kammer,
+          Spezialbauwerk,
+          Station
+        ),
+        Trasse,
+        unbekannt
+      ),
+      Gas (
+        Sicherheitskorridor,
+        Spezialbauwerk,
+        unbekannt
+      ),
+      Kommunikation (
+        Bauwerk,
+        Schacht,
+        Tragwerk,
+        Trasse,
+        unbekannt
+      ),
+      Wasser (
+        Spezialbauwerk,
+        unbekannt
+      ),
+      weitereMedien (
+        Sicherheitskorridor,
+        Spezialbauwerk,
+        unbekannt
+      )
+    );
+  END LKFlaeche;
+
+  CLASS LKLinie EXTENDS LKObjekt =
+  ATTRIBUTE
+    Breite: SIA405_Base_LV95.Breite;
+    Linie: MANDATORY Base_LV95.Polyline;
+    Objektart: MANDATORY (
+      Abwasser (
+        Fernwirkkabel,
+        Haltung_Kanal,
+        Schutzrohr
+      ),
+      Elektrizitaet (
+        AnkerStrebe,
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        )
+      ),
+      Fernwaerme (
+        Fernwirkkabel,
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        ),
+        Schutzrohr
+      ),
+      Gas (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      ),
+      Kommunikation (
+        Trasse (
+          oberirdisch,
+          unterirdisch
+        )
+      ),
+      Wasser (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      ),
+      weitereMedien (
+        Fernwirkkabel,
+        Leitung,
+        Schutzrohr
+      )
+    );
+    Profiltyp: (
+      Eiprofil,
+      Kreisprofil,
+      Rechteckprofil,
+      unbekannt,
+      weitere
+    );
+  END LKLinie;
+
+  CLASS LKPunkt EXTENDS LKObjekt =
+  ATTRIBUTE
+    Dimension1: SIA405_Base_LV95.Abmessung;
+    Dimension2: SIA405_Base_LV95.Abmessung;
+    Objektart: MANDATORY (
+      Abwasser (
+        Deckel,
+        Einleitstelle,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Kaliberwechsel,
+        Kanalanfang,
+        Normschacht (
+          Einlaufschacht,
+          Geleiseschacht,
+          Kontrollschacht,
+          Oelabscheider_Schwimmstoffabscheider,
+          Schlammsammler,
+          weitere
+        ),
+        unbekannt,
+        Versickerungsanlage
+      ),
+      Elektrizitaet (
+        Kabine,
+        OeffentlicherVerbraucher,
+        Schacht (
+          rechteckig,
+          rund
+        ),
+        Station,
+        Tragwerk,
+        unbekannt
+      ),
+      Fernwaerme (
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Trassepunkt (
+          Abstuetzung,
+          Ent_Belueftung,
+          Entwaesserung,
+          Fixpunkt,
+          Geometriepunkt,
+          Montageoeffnung_Schachteinstieg
+          ),
+        unbekannt
+      ),
+      Gas (
+        Absperrorgan,
+        Gaslaterne,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Rohrleitungsteil (
+          Bogen_horizontal,
+          Bogen_vertikal
+        ),
+        Schacht,
+        Siphon,
+        unbekannt
+      ),
+      Kommunikation (
+        Bauwerk,
+        Schacht (
+          rechteckig,
+          rund
+        ),
+        Tragwerk,
+        unbekannt
+      ),
+      Wasser (
+        Absperrorgan,
+        Gartenhydrant,
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Oberflurhydrant,
+        Rohrleitungsteil (
+          Bogen_horizontal,
+          Bogen_vertikal
+        ),
+        Schacht,
+        unbekannt,
+        Unterflurhydrant
+      ),
+      weitereMedien (
+        Kabelpunkt (
+          Kabelschacht,
+          Kabine
+        ),
+        Leitungspunkt
+      )
+    );
+    SymbolPos: MANDATORY Base_LV95.LKoord;
+    SymbolOri: Base_LV95.Orientierung;
+  END LKPunkt;
+
+  CLASS LKObjekt_Text EXTENDS SIA405_Base_LV95.SIA405_TextPos =
+  END LKObjekt_Text;
+
+  ASSOCIATION LKObjekt_LKObjektTextAssoc =
+    LKObjektRef -<#> {1} LKObjekt;
+    LKObjekt_LKObjekt_TextAssocRef -- {0 .. *} LKObjekt_Text;
+  END LKObjekt_LKObjektTextAssoc;
+
+  END SIA405_LKMap;
+
+END SIA405_LKMap_LV95.

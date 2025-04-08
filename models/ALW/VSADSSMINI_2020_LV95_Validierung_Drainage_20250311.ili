@@ -1,0 +1,294 @@
+INTERLIS 2.3;
+
+CONTRACTED MODEL VSADSSMINI_2020_LV95_Validierung_Drainage_20250311 (de)
+AT "https://geo.so.ch"
+VERSION "2025-03-20"  =
+  
+IMPORTS SIA405_Base_Abwasser_LV95;
+IMPORTS VSADSSMINI_2020_LV95;
+IMPORTS UNQUALIFIED INTERLIS;
+  
+  VIEW TOPIC VSADSSMini_Validierung = 
+  DEPENDS ON VSADSSMINI_2020_LV95.VSADSSMini, SIA405_Base_Abwasser_LV95.Administration;
+
+    /*
+     Da Drainageknoten nur über die zugehörigen (verknüpften) Leitungen identifiziert werden können, ist keine VIEW für Knoten erforderlich
+     */
+
+    VIEW v_Leitung
+      PROJECTION OF VSADSSMINI_2020_LV95.VSADSSMini.Leitung;
+      =
+      ALL OF Leitung;
+
+      !!@ name = 105_1
+      !!@ ilivalid.msg = "Leitung: Kiesschlitzdrainagen ausserhalb Draingenetz (Regel 105)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Kiesschlitzdrainage") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Sickerleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #Spezialprofil);
+
+      !!@ name = 106_1
+      !!@ ilivalid.msg = "Leitung: Entwässerungsgraben ausserhalb Draingenetz (Regel 106)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Entwässerungsgraben") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Sickerleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #offenes_Profil);
+
+      !!@ name = 107_1
+      !!@ ilivalid.msg = "Leitung: Holzkasten-Drain ausserhalb Draingenetz (Regel 107)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Holzkasten-Drain") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Drainagetransportleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #offenes_Profil);
+
+    END v_Leitung;
+
+
+
+    /**
+     Die Zugehörigkeit zum Drainagenetz wird für Leitungen wie folgt definiert (Regel 101):
+     MANDATORY CONSTRAINT FunktionHierarchisch == #SAA.andere AND
+                        (FunktionHydraulisch == #Sickerleitung OR FunktionHydraulisch == #Drainagetransportleitung OR FunktionHydraulisch == #Pumpendruckleitung) AND
+                        Nutzungsart_Ist == #Reinabwasser;
+     */
+    VIEW v_Drainageleitung
+      PROJECTION OF L ~ VSADSSMINI_2020_LV95.VSADSSMini.Leitung;
+      WHERE DEFINED(L->FunktionHierarchisch) AND DEFINED(L->FunktionHydraulisch) AND DEFINED(L->Nutzungsart_Ist);
+      WHERE L->FunktionHierarchisch == #SAA.andere;
+      WHERE L->FunktionHydraulisch == #Sickerleitung
+        OR L->FunktionHydraulisch == #Drainagetransportleitung
+        OR L->FunktionHydraulisch == #Pumpendruckleitung;
+      WHERE L->Nutzungsart_Ist == #Reinabwasser;
+      =
+      ALL OF L;
+
+      !!@ name = 102_1
+      !!@ ilivalid.msg = "Leitung: Attribut 'Baujahr' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Baujahr);
+
+      !!@ name = 102_2
+      !!@ ilivalid.msg = "Leitung: Attribut 'BaulicherZustand' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(BaulicherZustand);
+
+      !!@ name = 102_3
+      !!@ ilivalid.msg = "Leitung: Attribut 'Kote_nach' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Kote_nach);
+
+      !!@ name = 102_4
+      !!@ ilivalid.msg = "Leitung: Attribut 'Kote_von' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Kote_von);
+
+      !!@ name = 102_5
+      !!@ ilivalid.msg = "Leitung: Attribut 'LaengeEffektiv' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(LaengeEffektiv);
+
+      !!@ name = 102_6
+      !!@ ilivalid.msg = "Leitung: Attribut 'Lagebestimmung' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Lagebestimmung);
+
+      !!@ name = 102_7
+      !!@ ilivalid.msg = "Leitung: Attribut 'Letzte_Aenderung' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Letzte_Aenderung);
+
+      !!@ name = 102_8
+      !!@ ilivalid.msg = "Leitung: Attribut 'Lichte_Breite' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Lichte_Breite);
+
+      !!@ name = 102_9
+      !!@ ilivalid.msg = "Leitung: Attribut 'Lichte_Hoehe' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Lichte_Hoehe);
+
+      !!@ name = 102_10
+      !!@ ilivalid.msg = "Leitung: Attribut 'Material' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Material);
+
+      !!@ name = 102_11
+      !!@ ilivalid.msg = "Leitung: Attribut 'Profiltyp' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Profiltyp);
+
+      !!@ name = 102_12
+      !!@ ilivalid.msg = "Leitung: Attribut 'Sanierungsbedarf' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Sanierungsbedarf);
+
+      !!@ name = 102_13
+      !!@ ilivalid.msg = "Leitung: Attribut 'Status' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Status);
+
+      !!@ name = 102_14
+      !!@ ilivalid.msg = "Leitung: Attribut 'Verlauf' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Verlauf);
+
+      !!@ name = 102_15
+      !!@ ilivalid.msg = "Leitung: Attribut 'Zustandserhebung_Jahr' ist obligatorisch für Drainageleitungen (Regel 102)."
+      MANDATORY CONSTRAINT DEFINED(Zustandserhebung_Jahr);
+
+      !!@ name = 103_1
+      !!@ ilivalid.msg = "Leitung: Verknüpfung mit 'Knoten_von' ist obligatorisch für Drainageleitungen (Regel 103)."
+      MANDATORY CONSTRAINT objectCount(Knoten_vonRef) == 1;
+
+      !!@ name = 103_2
+      !!@ ilivalid.msg = "Leitung: Verknüpfung mit 'Knoten_nach' ist obligatorisch für Drainageleitungen (Regel 103)."
+      MANDATORY CONSTRAINT objectCount(Knoten_nachRef) == 1 OR isEnumSubVal(Leitung_nachRef->FunktionHierarchisch, #PAA);
+
+      !!@ name = 104_1
+      !!@ ilivalid.msg = "Leitung: Angabe eines 'Eigentümers' ist obligatorisch für Drainageleitungen (Regel 104)."
+      MANDATORY CONSTRAINT objectCount(EigentuemerRef) == 1;
+
+      !!@ name = 104_2
+      !!@ ilivalid.msg = "Leitung: Angabe eines 'Betreibers' ist obligatorisch für Drainageleitungen (Regel 104)."
+      MANDATORY CONSTRAINT objectCount(BetreiberRef) == 1;
+      !!@ name = 104_3
+      !!@ ilivalid.msg = "Leitung: Angabe eines 'Datenherrn' ist obligatorisch für Drainageleitungen (Regel 104)."
+      MANDATORY CONSTRAINT objectCount(DatenherrRef) == 1;
+
+      !!@ name = 104_4
+      !!@ ilivalid.msg = "Leitung: Angabe eines 'Datenlieferanten' ist obligatorisch für Drainageleitungen (Regel 104)."
+      MANDATORY CONSTRAINT objectCount(DatenlieferantRef) == 1;
+
+      !!@ name = 105_2
+      !!@ ilivalid.msg = "Leitung: Kiesschlitzdrainage falsch attribuiert (Regel 105)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Kiesschlitzdrainage") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Sickerleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #Spezialprofil);
+
+      !!@ name = 106_2
+      !!@ ilivalid.msg = "Leitung: Entwässerungsgraben falsch attribuiert (Regel 106)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Entwässerungsgraben") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Sickerleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #offenes_Profil);
+
+      !!@ name = 107_2
+      !!@ ilivalid.msg = "Leitung: Holzkasten-Drain falsch attribuiert (Regel 107)."
+      MANDATORY CONSTRAINT  NOT(RohrprofilRef->Bezeichnung == "Holzkasten-Drain") OR
+                            (FunktionHierarchisch == #SAA.andere AND
+                            FunktionHydraulisch == #Drainagetransportleitung AND
+                            Nutzungsart_Ist == #Reinabwasser AND
+                            Profiltyp == #offenes_Profil);
+
+      !! Drainageknoten
+      !!@ name = 201_1
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Baujahr' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Baujahr);
+
+      !!@ name = 201_2
+      !!@ ilivalid.msg = "Startknoten: Attribut 'BaulicherZustand' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->BaulicherZustand);
+
+      !!@ name = 201_3
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Bezeichnung' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            DEFINED(Knoten_vonRef->Bezeichnung);
+
+      !!@ name = 201_4
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Deckelkote' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Deckelkote);
+
+      !!@ name = 201_5
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Dimension1' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Dimension1);
+
+      !!@ name = 201_6
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Dimension2' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Dimension2);
+
+      !!@ name = 201_7
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Funktion' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            DEFINED(Knoten_vonRef->Funktion);
+
+      !!@ name = 201_8
+      !!@ ilivalid.msg = "Startknoten: Attribut 'FunktionHierarchisch' ist obligatorisch und muss den Wert 'SAA' haben (Regel 201)."
+      MANDATORY CONSTRAINT (objectCount(Knoten_vonRef) == 1 AND
+                            DEFINED(Knoten_vonRef->FunktionHierarchisch) AND
+                            Knoten_vonRef->FunktionHierarchisch == #SAA) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten;
+
+      !!@ name = 201_9
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Lagegenauigkeit' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Lagegenauigkeit);
+
+      !!@ name = 201_10
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Lage' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            DEFINED(Knoten_vonRef->Lage);
+
+      !!@ name = 201_11
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Letzte_Aenderung' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT DEFINED(Knoten_vonRef->Letzte_Aenderung);
+
+      !!@ name = 201_12
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Nutzungsart_Ist' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Nutzungsart_Ist);
+
+      !!@ name = 201_13
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Sanierungsbedarf' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Sanierungsbedarf);
+
+      !!@ name = 201_14
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Sohlenkote' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            DEFINED(Knoten_vonRef->Sohlenkote);
+
+      !!@ name = 201_15
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Status' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Status);
+
+      !!@ name = 201_16
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Zugaenglichkeit' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Zugaenglichkeit);
+
+      !!@ name = 201_17
+      !!@ ilivalid.msg = "Startknoten: Attribut 'Zustandserhebung_Jahr' ist obligatorisch (Regel 201)."
+      MANDATORY CONSTRAINT NOT(objectCount(Knoten_vonRef) == 1) OR
+                            Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            DEFINED(Knoten_vonRef->Zustandserhebung_Jahr);
+
+      !!@ name = 202_1
+      !!@ ilivalid.msg = "Startknoten: Angabe eines 'Eigentümers' ist obligatorisch (Regel 202)."
+      MANDATORY CONSTRAINT Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            objectCount(Knoten_vonRef->EigentuemerRef) == 1;
+
+      !!@ name = 202_2
+      !!@ ilivalid.msg = "Startknoten: Angabe eines 'Betreibers' ist obligatorisch (Regel 202)."
+      MANDATORY CONSTRAINT Knoten_vonRef->Funktion == #Leitungsknoten OR
+                            objectCount(Knoten_vonRef->BetreiberRef) == 1;
+      !!@ name = 202_3
+      !!@ ilivalid.msg = "Startknoten: Angabe eines 'Datenherrn' ist obligatorisch (Regel 202)."
+      MANDATORY CONSTRAINT objectCount(Knoten_vonRef->DatenherrRef) == 1;
+
+      !!@ name = 202_4
+      !!@ ilivalid.msg = "Startknoten: Angabe eines 'Datenlieferanten' ist obligatorisch (Regel 202)."
+      MANDATORY CONSTRAINT objectCount(Knoten_vonRef->DatenlieferantRef) == 1;
+
+    END v_Drainageleitung;
+
+  END VSADSSMini_Validierung;
+
+END VSADSSMINI_2020_LV95_Validierung_Drainage_20250311.

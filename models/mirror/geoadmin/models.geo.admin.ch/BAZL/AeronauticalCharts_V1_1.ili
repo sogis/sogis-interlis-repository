@@ -1,0 +1,334 @@
+INTERLIS 2.3;
+
+/** #########################################################################
+ * # DE: Minimales Geodatenmodell "Luftfahrtkarten" (LV03)                  #
+ * # FR: Modèle de géodonnées minimal "Cartes et plans aéronautiques" (MN03)#
+ * ##########################################################################
+ */
+
+!! Version    | Who   | Modification
+!!------------------------------------------------------------------------------
+!! 2020-10-21 | KOGIS | Extension of the abstract class Clipping from the base model NonVector_Base (class AeronauticalChartClipping added)
+
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV = "4.1,4.2"
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+MODEL AeronauticalCharts_LV03_V1_1 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2020-10-21"  =
+  IMPORTS NonVector_Base_LV03_V3_1,WithLatestModification_V1;
+
+  /** DE: Luftfahrtkarte ICAO 1:500'000 / Segelflugkarte 1:300'000
+   * FR: Carte aéronautique OACI 1:500'000 / Carte vol à voile 1:300'000
+   */
+  TOPIC AeronauticalCharts_WithLatestModification
+  EXTENDS NonVector_Base_LV03_V3_1.NonVector =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Allgemeine Spezifikation des Datensatzes
+     * FR: Spécification générale du jeu de données
+     */
+    CLASS AeronauticalChartDataset
+    EXTENDS NonVector_Base_LV03_V3_1.NonVector.NonVector_Dataset =
+      /** DE: Kurzbezeichnung
+       * FR: Abréviation
+       */
+      ShortName : MANDATORY (
+        /** DE: Luftfahrtkarte ICAO Schweiz 1:500'000
+         * FR: Carte aéronautique OACI Suisse 1:500'000
+         */
+        ICAO500,
+        /** DE: Segelflugkarte Schweiz 1:300'000
+         * FR: Carte vol à voile Suisse 1:300'000
+         */
+        GLDK300
+      );
+      /** DE: Massstab der Karte
+       * FR: Échelle de la carte
+       */
+      MapScale : MANDATORY (
+        /** DE: Massstab 1:500'000
+         * FR: Échelle 1:500'000
+         */
+        M500,
+        /** DE: Massstab 1:300'000
+         * FR: Échelle 1:300'000
+         */
+        M300
+      );
+      /** DE: Ausgabedatum der Karte
+       * FR: Date de publication de la carte
+       */
+      ChartModification : MANDATORY ModificationInfo;
+    END AeronauticalChartDataset;
+
+    /** DE: Spezifikation der zugehörigen Grafikrasterobjekte
+     * FR: Spécification des objets raster graphique associés
+     */
+    CLASS AeronauticalChartRasterObject
+    EXTENDS NonVector_Base_LV03_V3_1.NonVector.ImageGraphicRasterObject =
+      /** DE: Spezifikation des Bildinhalts
+       * FR: Spécification du contenu de l'image
+       */
+      LayerDefinition : MANDATORY (
+        /** DE: Einzelebenen
+         * FR: Couches individuelles
+         */
+        IndividualLayer(
+          /** DE: Topographische Grundkarte
+           * FR: Carte topographique de référence
+           */
+          BaseMap,
+          /** DE: Lufträume und Flugsicherungsangaben
+           * FR: Espaces aériens et informations aéronautiques
+           */
+          Theme,
+          /** DE: Flughindernisse und Starkstromleitungen
+           * FR: Obstacles à la navigation aérienne et lignes à hautes tension
+           */
+          Obstacles
+        ),
+        /** DE: Farbkombination aus Einzelebenen
+         * FR: Combinaison de couleurs résultant des couches individuelles
+         */
+        Totale
+      );
+      /** DE: Stand der Datennachführung bei Einzelebenen
+       * FR: Etat de la mise à jour des données pour les couches individuelles
+       */
+      LayerModification : ModificationInfo;
+      /** DE: Bildformat
+       * FR: Format de l'image
+       */
+      ImageFormat : MANDATORY (
+        /** DE: Tagged Image File Format
+         * FR: Tagged Image File Format
+         */
+        Tiff
+      );
+      /** DE: Bildauflösung in dpi (dot per inch)
+       * FR: Résolution d'image en dpi (dot per inch)
+       */
+      ImageResolution : MANDATORY (
+        /** DE: 254 Bildpunkte pro Zoll
+         * FR: 254 pixels par pouce
+         */
+        Dpi254
+      );
+      /** DE: Farbraum
+       * FR: Espace chromatique
+       */
+      ColourSpace : MANDATORY (
+        /** DE: RGB-Modus
+         * FR: Mode RGB
+         */
+        RGB
+      );
+      /** DE: Farbtiefe (Anzahl Farbwerte pro Pixel)
+       * FR: Intensité de couleur (nombre de valeurs chromatiques par pixel)
+       */
+      ColourDepth : MANDATORY (
+        /** DE: 24 Bit (RGB)
+         * FR: 24 bits (RGB)
+         */
+        Bit24
+      );
+      /** DE: Kompressionsverfahren
+       * FR: Méthode de compression
+       */
+      CompressionMode : MANDATORY (
+        /** DE: Unkomprimiert
+         * FR: Sans compression
+         */
+        None,
+        /** DE: Verlustfreie Kompression (Lempel-Ziv-Welch-Algorithmus)
+         * FR: Compression sans perte (algorithme de Lempel-Ziv-Welch)
+         */
+        LZW
+      );
+      /** DE: Kantenglättungsmodus
+       * FR: Mode lissage
+       */
+      Antialiasing : BOOLEAN;
+    END AeronauticalChartRasterObject;
+
+    /** DE: Spezifikation des Ausschnitts
+     * FR: Spécification de l'extrait
+     */
+    CLASS AeronauticalChartClipping
+    EXTENDS NonVector_Base_LV03_V3_1.NonVector.Clipping =
+    END AeronauticalChartClipping;
+
+  END AeronauticalCharts_WithLatestModification;
+
+END AeronauticalCharts_LV03_V1_1.
+
+/** #########################################################################
+ * # DE: Minimales Geodatenmodell "Luftfahrtkarten" (LV95)                  #
+ * # FR: Modèle de géodonnées minimal "Cartes et plans aéronautiques" (MN95)#
+ * ##########################################################################
+ */
+!!@ technicalContact=mailto:gis@bazl.admin.ch
+!!@ IDGeoIV = "4.1,4.2"
+!!@ furtherInformation=https://www.bazl.admin.ch/geoinformation
+MODEL AeronauticalCharts_LV95_V1_1 (en)
+AT "https://models.geo.admin.ch/BAZL/"
+VERSION "2020-10-21"  =
+  IMPORTS WithLatestModification_V1,NonVector_Base_LV95_V3_1;
+
+  /** DE: Luftfahrtkarte ICAO 1:500'000 / Segelflugkarte 1:300'000
+   * FR: Carte aéronautique OACI 1:500'000 / Carte vol à voile 1:300'000
+   */
+  TOPIC AeronauticalCharts_WithLatestModification
+  EXTENDS NonVector_Base_LV95_V3_1.NonVector =
+
+    /** DE: Gültigkeitsdauer und Zeitpunkt der letzten Änderung
+     * FR: Durée de validité et date de la dernière modification
+     */
+    STRUCTURE ModificationInfo
+    EXTENDS WithLatestModification_V1.ModInfo =
+    END ModificationInfo;
+
+    /** DE: Allgemeine Spezifikation des Datensatzes
+     * FR: Spécification générale du jeu de données
+     */
+    CLASS AeronauticalChartDataset
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.NonVector_Dataset =
+      /** DE: Kurzbezeichnung
+       * FR: Abréviation
+       */
+      ShortName : MANDATORY (
+        /** DE: Luftfahrtkarte ICAO Schweiz 1:500'000
+         * FR: Carte aéronautique OACI Suisse 1:500'000
+         */
+        ICAO500,
+        /** DE: Segelflugkarte Schweiz 1:300'000
+         * FR: Carte vol à voile Suisse 1:300'000
+         */
+        GLDK300
+      );
+      /** DE: Massstab der Karte
+       * FR: Échelle de la carte
+       */
+      MapScale : MANDATORY (
+        /** DE: Massstab 1:500'000
+         * FR: Échelle 1:500'000
+         */
+        M500,
+        /** DE: Massstab 1:300'000
+         * FR: Échelle 1:300'000
+         */
+        M300
+      );
+      /** DE: Ausgabedatum der Karte
+       * FR: Date de publication de la carte
+       */
+      ChartModification : MANDATORY ModificationInfo;
+    END AeronauticalChartDataset;
+
+    /** DE: Spezifikation der zugehörigen Grafikrasterobjekte
+     * FR: Spécification des objets raster graphique associés
+     */
+    CLASS AeronauticalChartRasterObject
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.ImageGraphicRasterObject =
+      /** DE: Spezifikation des Bildinhalts
+       * FR: Spécification du contenu de l'image
+       */
+      LayerDefinition : MANDATORY (
+        /** DE: Einzelebenen
+         * FR: Couches individuelles
+         */
+        IndividualLayer(
+          /** DE: Topographische Grundkarte
+           * FR: Carte topographique de référence
+           */
+          BaseMap,
+          /** DE: Lufträume und Flugsicherungsangaben
+           * FR: Espaces aériens et informations aéronautiques
+           */
+          Theme,
+          /** DE: Flughindernisse und Starkstromleitungen
+           * FR: Obstacles à la navigation aérienne et lignes à hautes tension
+           */
+          Obstacles
+        ),
+        /** DE: Farbkombination aus Einzelebenen
+         * FR: Combinaison de couleurs résultant des couches individuelles
+         */
+        Totale
+      );
+      /** DE: Bildformat
+       * FR: Format de l'image
+       */
+      ImageFormat : MANDATORY (
+        /** DE: Tagged Image File Format
+         * FR: Tagged Image File Format
+         */
+        Tiff
+      );
+      /** DE: Bildauflösung in dpi (dot per inch)
+       * FR: Résolution d'image en dpi (dot per inch)
+       */
+      ImageResolution : MANDATORY (
+        /** DE: 254 Bildpunkte pro Zoll
+         * FR: 254 pixels par pouce
+         */
+        Dpi254
+      );
+      /** DE: Farbraum
+       * FR: Espace chromatique
+       */
+      ColourSpace : MANDATORY (
+        /** DE: RGB-Modus
+         * FR: Mode RGB
+         */
+        RGB
+      );
+      /** DE: Farbtiefe (Anzahl Farbwerte pro Pixel)
+       * FR: Intensité de couleur (nombre de valeurs chromatiques par pixel)
+       */
+      ColourDepth : MANDATORY (
+        /** DE: 24 Bit (RGB)
+         * FR: 24 bits (RGB)
+         */
+        Bit24
+      );
+      /** DE: Kompressionsverfahren
+       * FR: Méthode de compression
+       */
+      CompressionMode : MANDATORY (
+        /** DE: Unkomprimiert
+         * FR: Sans compression
+         */
+        None,
+        /** DE: Verlustfreie Kompression (Lempel-Ziv-Welch-Algorithmus)
+         * FR: Compression sans perte (algorithme de Lempel-Ziv-Welch)
+         */
+        LZW
+      );
+      /** DE: Kantenglättungsmodus
+       * FR: Mode lissage
+       */
+      Antialiasing : BOOLEAN;
+      /** DE: Stand der Datennachführung bei Einzelebenen
+       * FR: Etat de la mise à jour des données pour les couches individuelles
+       */
+      LayerModification : ModificationInfo;
+    END AeronauticalChartRasterObject;
+
+    /** DE: Spezifikation des Ausschnitts
+     * FR: Spécification de l'extrait
+     */
+    CLASS AeronauticalChartClipping
+    EXTENDS NonVector_Base_LV95_V3_1.NonVector.Clipping =
+    END AeronauticalChartClipping;
+
+  END AeronauticalCharts_WithLatestModification;
+
+END AeronauticalCharts_LV95_V1_1.

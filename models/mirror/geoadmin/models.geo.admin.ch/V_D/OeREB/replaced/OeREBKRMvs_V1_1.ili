@@ -1,0 +1,121 @@
+INTERLIS 2.3;
+
+/** Basisdefinition für Erlasse (Rechtsvorschriften, Hinweise auf Gesetzliche Grundlagen)
+ */
+!!@ furtherInformation=http://www.cadastre.ch/oereb-public
+!!@ technicalContact=mailto:infovd@swisstopo.ch
+MODEL OeREBKRMvs_V1_1 (de)
+AT "http://models.geo.admin.ch/V_D/OeREB/"
+VERSION "2016-08-15"  =
+  IMPORTS OeREBKRM_V1_1,CHAdminCodes_V1,LocalisationCH_V1;
+
+  /** Dieses Teilmodell definiert die Struktur für die Erlasse im Allgemeinen.
+   * OID als URIs damit der Verweis auf Grundlagenerlasse (z.B. Kantonale Gesetze auf Bundesgesetze) in einem anderen Behälter (da durch eine andere Stelle erfasst/nachgeführt) verweisen können.
+   */
+  TOPIC Vorschriften =
+    OID AS OeREBKRM_V1_1.OEREBOID;
+
+    /** Eine organisatorische Einheit innerhalb der öffentlichen Verwaltung, z.B. eine für Geobasisdaten zuständige Stelle.
+     */
+    CLASS Amt =
+      /** Name des Amtes z.B. "Amt für Gemeinden und Raumordnung des Kantons Bern".
+       */
+      Name : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Verweis auf die Website des Amtes z.B. "http://www.jgk.be.ch/jgk/de/index/direktion/organisation/agr.html".
+       */
+      AmtImWeb : OeREBKRM_V1_1.WebReferenz;
+      /** UID der organisatorischen Einheit
+       */
+      UID : OeREBKRM_V1_1.UID;
+    END Amt;
+
+    /** Vorschriften (Gesetze, Verordnungen, Rechtsvorschriften) oder einzelne Artikel davon.
+     */
+    CLASS DokumentBasis (ABSTRACT) =
+      /** Verweis auf das Element im Web; z.B. "http://www.admin.ch/ch/d/sr/700/a18.html"
+       */
+      TextImWeb : OeREBKRM_V1_1.MultilingualUri;
+      /** Status, ob dieses Element in Kraft ist
+       */
+      Rechtsstatus : MANDATORY OeREBKRM_V1_1.RechtsStatus;
+      /** Datum, ab dem dieses Element in Auszügen erscheint
+       */
+      publiziertAb : MANDATORY OeREBKRM_V1_1.Datum;
+    END DokumentBasis;
+
+    /** Einzelner Artikel einer Rechtsvorschrift oder einer gesetzlichen Grundlage.
+     */
+    CLASS Artikel
+    EXTENDS DokumentBasis =
+      /** Nummer des Artikels innerhalb der gesetzlichen Grundlage oder der Rechtsvorschrift. z.B. "23"
+       */
+      Nr : MANDATORY OeREBKRM_V1_1.ArtikelNummer;
+      /** z.B. "Ausnahmen innerhalb der Bauzonen regelt das kantonale Recht."
+       */
+      Text : OeREBKRM_V1_1.ArtikelInhaltMehrsprachig;
+    END Artikel;
+
+    /** Dokumente im allgemeinen (Gesetze, Verordnungen, Rechtsvorschriften)
+     */
+    CLASS Dokument
+    EXTENDS DokumentBasis =
+      /** Titel (oder falls vorhanden Kurztitel) des Dokuments; z.B. "Raumplanungsgesetz"
+       */
+      Titel : MANDATORY LocalisationCH_V1.MultilingualText;
+      /** Offizieller Titel des Dokuments; z.B.  "Bundesgesetz über die Raumplanung"
+       */
+      OffiziellerTitel : LocalisationCH_V1.MultilingualText;
+      /** Abkürzung des Gesetzes; z.B. "RPG"
+       */
+      Abkuerzung : LocalisationCH_V1.MultilingualText;
+      /** Offizielle Nummer des Gesetzes; z.B. "SR 700"
+       */
+      OffizielleNr : TEXT*20;
+      /** Kantonskürzel falls Vorschrift des Kantons oder der Gemeinde. Falls die Angabe fehlt, ist es eine Vorschrift des Bundes. z.B. "BE"
+       */
+      Kanton : CHAdminCodes_V1.CHCantonCode;
+      /** Falls die Angabe fehlt, ist es ein Erlass des Kantons oder des Bundes. z.B. "942"
+       */
+      Gemeinde : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Das Dokument als PDF-Datei
+       */
+      Dokument : BLACKBOX BINARY;
+    END Dokument;
+
+    /** Reglemente, Vorschriften etc. die generell konkret sind (generell für die Person, die nicht bekannt ist, konkret für dass der Raumbezug mit Karte definiert ist), die zusammen mit der exakten geometrischen Definition als Einheit die Eigentumsbeschränkung unmittelbar beschreiben und innerhalb desselben Verfahrens verabschiedet worden sind.
+     */
+    CLASS Rechtsvorschrift
+    EXTENDS Dokument =
+    END Rechtsvorschrift;
+
+    ASSOCIATION DokumentArtikel =
+      Dokument -<#> {1} Dokument;
+      /** OPTIONAL: Artikel zu diesem Dokument
+       */
+      Artikel -- {0..*} Artikel;
+    END DokumentArtikel;
+
+    ASSOCIATION HinweisWeitereDokumente =
+      Ursprung -- {0..*} Dokument;
+      Hinweis (EXTERNAL) -- {0..*} Dokument;
+      /** Hinweis auf spezifische Artikel.
+       */
+      ArtikelNr : BAG {0..*} OF OeREBKRM_V1_1.ArtikelNummer_;
+    END HinweisWeitereDokumente;
+
+    ASSOCIATION ZustaendigeStelleDokument =
+      ZustaendigeStelle -- {1} Amt;
+      Dokument -<> {0..*} Dokument;
+    END ZustaendigeStelleDokument;
+
+  END Vorschriften;
+
+  /** Dieses Teilmodell definiert die Struktur für die Hinweise auf die gesetzlichen Grundlagen, die als solche nicht Teil des ÖREB-Katasters sind, von diesem aber referenziert werden können.
+   * OID als URIs damit der Verweis auf Grundlagengesetze (z.B. Kantonale Gesetze auf Bundesgesetze) in einem anderen Behälter (da durch eine andere Stelle erfasst/nachgeführt) verweisen können.
+   */
+  TOPIC HinweiseGesetzlicheGrundlagen
+  EXTENDS OeREBKRMvs_V1_1.Vorschriften =
+
+  END HinweiseGesetzlicheGrundlagen;
+
+END OeREBKRMvs_V1_1.

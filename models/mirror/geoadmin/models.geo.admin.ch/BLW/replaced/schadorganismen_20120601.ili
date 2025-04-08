@@ -1,0 +1,69 @@
+INTERLIS 2.3;
+
+!!@ technicalContact = mailto:info@blw.admin.ch
+!!@ IDGeoIV = "154.1"
+!!@ furtherInformation = http://www.blw.admin.ch/dienstleistungen/00568/01328/
+/** Minimales Geodatenmodell für die Gebietsüberwachung Schadorganismen
+ */
+MODEL Gebietsueberwachung_Schadorganismen_V1 (de)
+AT "http://www.blw.admin.ch"
+VERSION "2012-06-01"  =
+  IMPORTS CatalogueObjects_V1,GeometryCHLV03_V1,LocalisationCH_V1,CoordSys;
+
+  TOPIC Kataloge
+  EXTENDS CatalogueObjects_V1.Catalogues =
+
+    CLASS Nutzung
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Code für die landwirtschaftliche Nutzung
+       */
+      Code_LN : MANDATORY TEXT*20;
+      Bezeichnung : LocalisationCH_V1.MultilingualText;
+    END Nutzung;
+
+    STRUCTURE NutzungRef
+    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
+      Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Nutzung;
+    END NutzungRef;
+
+  END Kataloge;
+
+  TOPIC Schadorganismen =
+    DEPENDS ON Gebietsueberwachung_Schadorganismen_V1.Kataloge;
+
+    CLASS Befund =
+      /** Datum, an welchem die Kontrolle durchgeführt wurde
+       */
+      Datum_Kontrolle : MANDATORY FORMAT INTERLIS.XMLDate "2000-1-1" .. "2099-12-31";
+      /** TRUE = Die untersuchte Fläche ist befallen
+       */
+      Ist_Befallen : BOOLEAN;
+      /** Untersuchungsergebnisse
+       */
+      Kommentar : MTEXT*200000;
+      /** Obligatorisch, falls befallen
+       */
+      Gesperrt_Bis : FORMAT INTERLIS.XMLDate "2000-1-1" .. "2099-12-31";
+      /** Name des Schadorganismus
+       */
+      Organismus : MANDATORY TEXT*50;
+      /** Name der Organisation, welche die Kontrolle durchgeführt hat
+       */
+      Erfassungsstelle : TEXT*200;
+    END Befund;
+
+    CLASS Kontrollflaeche =
+      /** Untersuchte Fläche
+       */
+      Geometrie : MANDATORY GeometryCHLV03_V1.Surface;
+      Nutzung : MANDATORY Gebietsueberwachung_Schadorganismen_V1.Kataloge.NutzungRef;
+    END Kontrollflaeche;
+
+    ASSOCIATION KontrollflaecheBefund =
+      Kontrollflaeche -- {1} Kontrollflaeche;
+      Befund -- {1..*} Befund;
+    END KontrollflaecheBefund;
+
+  END Schadorganismen;
+
+END Gebietsueberwachung_Schadorganismen_V1.

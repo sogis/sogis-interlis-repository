@@ -1,0 +1,460 @@
+INTERLIS 2.3;
+
+/** ============================================================================= 
+ *  Eidgenoessisches Departement für Umwelt,
+ *  Verkehr, Energie und Kommunikation UVEK
+ *  Bundesamt für Umwelt BAFU
+ *  Abteilung Wasser
+ *  3003 Bern
+ *  www.bafu.admin.ch
+ * 
+ *  Geobasisdatensatz Nr. 66   Inventar Trinkwasserversorgung in Notlagen
+ *  ============================================================================= 
+ *  Revision History
+ *  2015.09.22    created
+ *  2015.10.20    modifications after feedback BAFU/IKGEO
+ *  2015.11.26    redesign from structures to abstract classes
+ *  2016.11.08    modifications after Stellungnahmen
+ *  =============================================================================
+ */
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=66.1
+MODEL TWVinNotlagen_LV95_V1 (de)
+AT "https://models.geo.admin.ch/BAFU"
+VERSION "2016-11-08"  =
+  IMPORTS Units,GeometryCHLV95_V1;
+
+  UNIT
+
+    /** Definition Einheit Kilowatt
+     */
+    Kilowatt [kW] = 1000 [Units.W];
+
+    /** Definition Einheit Liter pro Minute
+     */
+    LiterProMinute [lmin] = (Units.L / INTERLIS.min);
+
+    /** Definition Einheit Höhe in Meter über Meer
+     */
+    hoehe [muM] = [INTERLIS.m];
+
+  DOMAIN
+
+    AlternativeStromversorgung = (
+      keine,
+      Generator,
+      Notstromanschluss,
+      andere
+    );
+
+    JaNein = (
+      ja,
+      nein
+    );
+
+    JaNeinUnbestimmt = (
+      ja,
+      nein,
+      unbestimmt
+    );
+
+  TOPIC TWVinNotlagen =
+
+    /** Die abstrakte Klasse Basisattributklasse definiert die Attribute, welche über alle Klassen verwendet werden.
+     */
+    CLASS Basisattribute (ABSTRACT) =
+      Bemerkung : TEXT*1000;
+      /** Identifikator = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+       */
+      Identifikator : MANDATORY TEXT*50;
+      Name : TEXT*50;
+      /** Definition optional oder obligatorisch wird erst in der abgeleiteten Klasse definiert.
+       */
+      Netzteilident : TEXT*50;
+      UNIQUE Identifikator;
+    END Basisattribute;
+
+    /** Neu-Modellierung Klasse Quelle analog MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+     */
+    CLASS Quelle =
+      Bemerkung : TEXT*1000;
+      Fassungsart : MANDATORY (
+        ungefasst,
+        gefasst(
+          direkt,
+          Fassungsstrang,
+          Fassungsstollen,
+          unbestimmt
+        )
+      );
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Grundwasserleiter_Typ : (
+        Lockergestein,
+        Kluft,
+        Karst,
+        gemischt,
+        unbestimmt
+      );
+      Identifikator : MANDATORY TEXT*255;
+      Name : TEXT*255;
+      /** Ergänzung zu MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+       */
+      Netzteilident : TEXT*50;
+      Notwasserversorgung : TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+      Oeffentliches_Interesse : TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Quelltyp : TEXT*255;
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Schuettung_minimal : MANDATORY -1 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Schuettung_mittel : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Schuettung_maximal : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Trinkwasser : TWVinNotlagen_LV95_V1.JaNein;
+      Zweck : TEXT*255;
+      UNIQUE Identifikator;
+      MANDATORY CONSTRAINT
+        Fassungsart == #ungefasst AND NOT (DEFINED (Nutzungszustand)) AND NOT (DEFINED (Trinkwasser)) AND NOT (DEFINED (Zweck)) AND NOT (DEFINED (Notwasserversorgung)) AND NOT (DEFINED (Oeffentliches_Interesse)) OR Fassungsart <> #ungefasst AND DEFINED (Nutzungszustand) AND DEFINED (Trinkwasser) AND DEFINED (Notwasserversorgung) AND DEFINED (Oeffentliches_Interesse);
+    END Quelle;
+
+    /** Definiert die Attribute welche für alle Fassungs-Klassen verwendet werden.
+     */
+    CLASS Fassung (ABSTRACT)
+    EXTENDS Basisattribute =
+      Aufbereitung : MANDATORY TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Notwasserversorgung : MANDATORY TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Trinkwasser : MANDATORY TWVinNotlagen_LV95_V1.JaNein;
+    END Fassung;
+
+    CLASS Foerderanlage
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinNotlagen_LV95_V1.AlternativeStromversorgung;
+      Art : MANDATORY (
+        Pumpwerk,
+        Stufenpumpwerk,
+        Stufenpumpwerk_mit_Behaelter,
+        Druckerhoehungspumpwerk,
+        hydraulischer_Widder,
+        Heberanlage,
+        unbestimmt
+      );
+      Aufbereitung : TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Dauerleistung : 0 .. 99999 [TWVinNotlagen_LV95_V1.kW];
+      Foerdermenge : MANDATORY -1 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Leistung_max : 0 .. 99999 [TWVinNotlagen_LV95_V1.kW];
+      Pumpen_Anz : 0 .. 999;
+      Pumpen_Text : MTEXT*255;
+    END Foerderanlage;
+
+    CLASS Leitung
+    EXTENDS Basisattribute =
+      Geometrie : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2;
+      Nennweite : MANDATORY -1.00 .. 9999.00 [Units.mm];
+      Netzteilident (EXTENDED) : MANDATORY TEXT*50;
+    END Leitung;
+
+    CLASS Reservoir
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinNotlagen_LV95_V1.AlternativeStromversorgung;
+      Aufbereitung : TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Brauchreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Loeschreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Name (EXTENDED) : MANDATORY TEXT*50;
+      Netzteilident (EXTENDED) : MANDATORY TEXT*50;
+      Wasserspiegel_max : MANDATORY -1.00 .. 5000.00 [TWVinNotlagen_LV95_V1.muM];
+    END Reservoir;
+
+    CLASS WeitereAnlage
+    EXTENDS Basisattribute =
+      Art : MANDATORY (
+        Trinkwasserbrunnen_an_Leitungsnetz,
+        Trinkwasserbrunnen_unabhaengig,
+        Brunnen_unabh_o_TWQualitaet,
+        Brunnen_unabh_TWQualitaet_unbest,
+        Schieberschacht,
+        Druckbrecherschacht,
+        Druckregulierungsventil,
+        andere
+      );
+      Aufbereitung : TWVinNotlagen_LV95_V1.JaNeinUnbestimmt;
+      Geometrie : GeometryCHLV95_V1.Coord2;
+    END WeitereAnlage;
+
+    CLASS Brunnenstube
+    EXTENDS Fassung =
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Ertrag_minimal : MANDATORY -1 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Ertrag_mittel : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Ertrag_maximal : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+      Fassungsart : MANDATORY (
+        Brunnenstube,
+        Quellschacht,
+        Sammelschacht,
+        unbestimmt
+      );
+    END Brunnenstube;
+
+    CLASS Grundwasserfassung
+    EXTENDS Fassung =
+      Durchmesser : 0.00 .. 9999.00 [Units.mm];
+      Fassungsart : MANDATORY (
+        Vertikalfilterbrunnen,
+        Horizontalfilterbrunnen,
+        Sod_Schachtbrunnen,
+        andere
+      );
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+      Pkonz : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+    END Grundwasserfassung;
+
+    CLASS Oberflaechengewaesserfassung
+    EXTENDS Fassung =
+      Fassungsart : MANDATORY (
+        Fliessgewaesserfassung,
+        Seewasserfassung
+      );
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt
+      );
+      Pkonz : 0 .. 99999 [TWVinNotlagen_LV95_V1.lmin];
+    END Oberflaechengewaesserfassung;
+
+  END TWVinNotlagen;
+
+END TWVinNotlagen_LV95_V1.
+
+!!@ technicalContact=mailto:gis@bafu.admin.ch
+!!@ furtherInformation=https://www.bafu.admin.ch/geodatenmodelle
+!!@ IDGeoIV=66.1
+MODEL TWVinNotlagen_LV03_V1 (de)
+AT "https://models.geo.admin.ch/BAFU"
+VERSION "2016-11-08"  =
+  IMPORTS Units,GeometryCHLV03_V1;
+
+  UNIT
+
+    /** Definition Einheit Kilowatt
+     */
+    Kilowatt [kW] = 1000 [Units.W];
+
+    /** Definition Einheit Liter pro Minute
+     */
+    LiterProMinute [lmin] = (Units.L / INTERLIS.min);
+
+    /** Definition Einheit Höhe in Meter über Meer
+     */
+    hoehe [muM] = [INTERLIS.m];
+
+  DOMAIN
+
+    AlternativeStromversorgung = (
+      keine,
+      Generator,
+      Notstromanschluss,
+      andere
+    );
+
+    JaNein = (
+      ja,
+      nein
+    );
+
+    JaNeinUnbestimmt = (
+      ja,
+      nein,
+      unbestimmt
+    );
+
+  TOPIC TWVinNotlagen =
+
+    /** Die abstrakte Klasse Basisattributklasse definiert die Attribute, welche über alle Klassen verwendet werden.
+     */
+    CLASS Basisattribute (ABSTRACT) =
+      Bemerkung : TEXT*1000;
+      /** Identifikator = <Kantonscode:CHAdminCodes_V1.CHCantonCode>-<Kantonsidentifikator>
+       */
+      Identifikator : MANDATORY TEXT*50;
+      Name : TEXT*50;
+      /** Definition optional oder obligatorisch wird erst in der abgeleiteten Klasse definiert.
+       */
+      Netzteilident : TEXT*50;
+      UNIQUE Identifikator;
+    END Basisattribute;
+
+    /** Neu-Modellierung Klasse Quelle analog MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+     */
+    CLASS Quelle =
+      Bemerkung : TEXT*1000;
+      Fassungsart : MANDATORY (
+        ungefasst,
+        gefasst(
+          direkt,
+          Fassungsstrang,
+          Fassungsstollen,
+          unbestimmt
+        )
+      );
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+      Grundwasserleiter_Typ : (
+        Lockergestein,
+        Kluft,
+        Karst,
+        gemischt,
+        unbestimmt
+      );
+      Identifikator : MANDATORY TEXT*255;
+      Name : TEXT*255;
+      /** Ergänzung zu MGDM "Grundwasseraustritte, -fassungen, -anreicherungsanlagen"
+       */
+      Netzteilident : TEXT*50;
+      Notwasserversorgung : TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+      Oeffentliches_Interesse : TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Quelltyp : TEXT*255;
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Schuettung_minimal : MANDATORY -1 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Schuettung_mittel : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Schuettung_maximal : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Trinkwasser : TWVinNotlagen_LV03_V1.JaNein;
+      Zweck : TEXT*255;
+      UNIQUE Identifikator;
+      MANDATORY CONSTRAINT
+        Fassungsart == #ungefasst AND NOT (DEFINED (Nutzungszustand)) AND NOT (DEFINED (Trinkwasser)) AND NOT (DEFINED (Zweck)) AND NOT (DEFINED (Notwasserversorgung)) AND NOT (DEFINED (Oeffentliches_Interesse)) OR Fassungsart <> #ungefasst AND DEFINED (Nutzungszustand) AND DEFINED (Trinkwasser) AND DEFINED (Notwasserversorgung) AND DEFINED (Oeffentliches_Interesse);
+    END Quelle;
+
+    /** Definiert die Attribute welche für alle Fassungs-Klassen verwendet werden.
+     */
+    CLASS Fassung (ABSTRACT)
+    EXTENDS Basisattribute =
+      Aufbereitung : MANDATORY TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+      Notwasserversorgung : MANDATORY TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Trinkwasser : MANDATORY TWVinNotlagen_LV03_V1.JaNein;
+    END Fassung;
+
+    CLASS Foerderanlage
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinNotlagen_LV03_V1.AlternativeStromversorgung;
+      Art : MANDATORY (
+        Pumpwerk,
+        Stufenpumpwerk,
+        Stufenpumpwerk_mit_Behaelter,
+        Druckerhoehungspumpwerk,
+        hydraulischer_Widder,
+        Heberanlage,
+        unbestimmt
+      );
+      Aufbereitung : TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Dauerleistung : 0 .. 99999 [TWVinNotlagen_LV03_V1.kW];
+      Foerdermenge : MANDATORY -1 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+      Leistung_max : 0 .. 99999 [TWVinNotlagen_LV03_V1.kW];
+      Pumpen_Anz : 0 .. 999;
+      Pumpen_Text : MTEXT*255;
+    END Foerderanlage;
+
+    CLASS Leitung
+    EXTENDS Basisattribute =
+      Geometrie : MANDATORY POLYLINE WITH (STRAIGHTS) VERTEX GeometryCHLV03_V1.Coord2;
+      Nennweite : MANDATORY -1.00 .. 9999.00 [Units.mm];
+      Netzteilident (EXTENDED) : MANDATORY TEXT*50;
+    END Leitung;
+
+    CLASS Reservoir
+    EXTENDS Basisattribute =
+      Alternative_Stromversorgung : TWVinNotlagen_LV03_V1.AlternativeStromversorgung;
+      Aufbereitung : TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Brauchreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Geometrie : MANDATORY GeometryCHLV03_V1.Coord2;
+      Loeschreserve : MANDATORY -1 .. 99999 [Units.m3];
+      Name (EXTENDED) : MANDATORY TEXT*50;
+      Netzteilident (EXTENDED) : MANDATORY TEXT*50;
+      Wasserspiegel_max : MANDATORY -1.00 .. 5000.00 [TWVinNotlagen_LV03_V1.muM];
+    END Reservoir;
+
+    CLASS WeitereAnlage
+    EXTENDS Basisattribute =
+      Art : MANDATORY (
+        Trinkwasserbrunnen_an_Leitungsnetz,
+        Trinkwasserbrunnen_unabhaengig,
+        Brunnen_unabh_o_TWQualitaet,
+        Brunnen_unabh_TWQualitaet_unbest,
+        Schieberschacht,
+        Druckbrecherschacht,
+        Druckregulierungsventil,
+        andere
+      );
+      Aufbereitung : TWVinNotlagen_LV03_V1.JaNeinUnbestimmt;
+      Geometrie : GeometryCHLV03_V1.Coord2;
+    END WeitereAnlage;
+
+    CLASS Brunnenstube
+    EXTENDS Fassung =
+      /** Attribut obligatorisch, mit der Möglichkeit -1 abzufüllen sofern der Wert nicht verfügbar ist.
+       */
+      Ertrag_minimal : MANDATORY -1 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Ertrag_mittel : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Ertrag_maximal : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+      Fassungsart : MANDATORY (
+        Brunnenstube,
+        Quellschacht,
+        Sammelschacht,
+        unbestimmt
+      );
+    END Brunnenstube;
+
+    CLASS Grundwasserfassung
+    EXTENDS Fassung =
+      Durchmesser : 0.00 .. 9999.00 [Units.mm];
+      Fassungsart : MANDATORY (
+        Vertikalfilterbrunnen,
+        Horizontalfilterbrunnen,
+        Sod_Schachtbrunnen,
+        andere
+      );
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt,
+        aufgehoben,
+        unbestimmt
+      );
+      Pkonz : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+    END Grundwasserfassung;
+
+    CLASS Oberflaechengewaesserfassung
+    EXTENDS Fassung =
+      Fassungsart : MANDATORY (
+        Fliessgewaesserfassung,
+        Seewasserfassung
+      );
+      Nutzungszustand : (
+        genutzt,
+        ungenutzt
+      );
+      Pkonz : 0 .. 99999 [TWVinNotlagen_LV03_V1.lmin];
+    END Oberflaechengewaesserfassung;
+
+  END TWVinNotlagen;
+
+END TWVinNotlagen_LV03_V1.
