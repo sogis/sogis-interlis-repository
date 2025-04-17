@@ -2,7 +2,7 @@ INTERLIS 2.3;
 
 CONTRACTED MODEL VSADSSMINI_2020_1_LV95_Validierung_IPW_S2_20250123 (de)
 AT "https://geo.so.ch"
-VERSION "2025-01-31" =
+VERSION "2025-04-08" =
   
 IMPORTS SIA405_Base_Abwasser_LV95;
 IMPORTS VSADSSMINI_2020_1_LV95;
@@ -83,9 +83,13 @@ IMPORTS UNQUALIFIED INTERLIS;
       !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Betreiber (BetreiberRef)' fehlt."
       MANDATORY CONSTRAINT DEFINED(BetreiberRef) OR FunktionHierarchisch == #SAA OR Funktion == #Leitungsknoten;
 
-      !!@ name = 11006
+      !!@ name = 11006a
       !!@ ilivalid.msg = "Knoten: Attribut 'Bezeichnung' ist obligatorisch."
       MANDATORY CONSTRAINT DEFINED(Bezeichnung);
+
+      !!@ name = 11006b
+      !!@ ilivalid.msg = "Knoten: Attribut 'Bezeichnung' ist nicht eindeutig."
+      UNIQUE Bezeichnung;
 
       !!@ name = 11007
       !!@ ilivalid.msg = "Knoten (PAA): Attribut 'Deckelkote' fehlt."
@@ -208,9 +212,13 @@ IMPORTS UNQUALIFIED INTERLIS;
       !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Betreiber (BetreiberRef)' fehlt."
       MANDATORY CONSTRAINT DEFINED(BetreiberRef) OR isEnumSubVal(FunktionHierarchisch, #SAA);
 
-      !!@ name = 12005
+      !!@ name = 12005a
       !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Bezeichnung' ist obligatorisch."
       MANDATORY CONSTRAINT DEFINED(Bezeichnung) OR isEnumSubVal(FunktionHierarchisch, #SAA);
+
+      !!@ name = 12005b
+      !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Bezeichnung' ist nicht eindeutig."
+      UNIQUE WHERE isEnumSubVal(FunktionHierarchisch, #PAA): Bezeichnung, DatenherrRef;
 
       !!@ name = 12007
       !!@ ilivalid.msg = "Leitung: Attribut 'Finanzierung' ist obligatorisch."
@@ -261,8 +269,8 @@ IMPORTS UNQUALIFIED INTERLIS;
       MANDATORY CONSTRAINT DEFINED(Nutzungsart_geplant) AND Nutzungsart_geplant != #unbekannt;
 
       !!@ name = 12025
-      !!@ ilivalid.msg = "Leitung: Attribut 'Nutzungsart_Ist' ist obligatorisch und darf nicht /unbekannt/ sein."
-      MANDATORY CONSTRAINT DEFINED(Nutzungsart_Ist) AND Nutzungsart_Ist != #unbekannt;
+      !!@ ilivalid.msg = "Leitung: Attribut 'Nutzungsart_Ist' ist obligatorisch."
+      MANDATORY CONSTRAINT DEFINED(Nutzungsart_Ist);
 
       !!@ name = 12030
       !!@ ilivalid.msg = "Leitung (PAA): Attribut 'Profiltyp' ist obligatorisch."
