@@ -1,0 +1,176 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-03-12 | pb  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AWJF_Waldplan_Publikation_20250312 (de)
+AT "https://geo.so.ch/models/AWJF"
+VERSION "2025-03-12"  =
+  IMPORTS GeometryCHLV95_V1,Text;
+
+  CLASS Forstrevier (ABSTRACT) =
+    /** Name des Forstkreises
+     */
+    Forstkreis : MANDATORY TEXT*50;
+    /** Geometrie des Forstreviers
+     */
+    Geometrie : GeometryCHLV95_V1.MultiSurface;
+  END Forstrevier;
+
+  /** Strukturklasse für die Waldfunktoinsflächen
+   */
+  STRUCTURE Waldfunktion_m2 =
+    Wirtschaftswald_m2 : 0 .. 100000000;
+    Schutzwald_m2 : 0 .. 100000000;
+    Erholungswald_m2 : 0 .. 100000000;
+    Biodiversitaet_m2 : 0 .. 100000000;
+    Schutzwald_Biodiversitaet_m2 : 0 .. 100000000;
+  END Waldfunktion_m2;
+
+  /** Strukturklasse für die Flächen der Waldplantypen
+   */
+  STRUCTURE Waldplantyp_m2 =
+    Niederhaltezone_m2 : 0 .. 100000000;
+    Waldstrasse_m2 : 0 .. 100000000;
+    Maschinenweg_m2 : 0 .. 100000000;
+    Bauten_Anlagen_m2 : 0 .. 100000000;
+    Rodung_temporaer_m2 : 0 .. 100000000;
+    Gewaesser_m2 : 0 .. 100000000;
+    Abbaustelle_m2 : 0 .. 100000000;
+    Mit_Wald_bestockt_m2 : 0 .. 100000000;
+  END Waldplantyp_m2;
+
+  TOPIC Waldplan =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Aggregiert aus den den Grundstücksparzellen aus der Klasse Waldeigentum im Erfassungsmodell.
+     */
+    CLASS Forstkreis
+    EXTENDS SO_AWJF_Waldplan_Publikation_20250312.Forstrevier =
+    END Forstkreis;
+
+    /** Aggregiert aus den den Grundstücksparzellen aus der Klasse Waldeigentum im Erfassungsmodell.
+     */
+    CLASS Forstrevier
+    EXTENDS SO_AWJF_Waldplan_Publikation_20250312.Forstrevier =
+      /** Name des Forstreviers
+       */
+      Forstrevier : TEXT*50;
+    END Forstrevier;
+
+    CLASS Schutzwald =
+      /** Schutzwald-Nummer
+       */
+      Schutzwald_Nr : TEXT*10;
+      /** Name des Forstkreises
+       */
+      Forstkreis : TEXT*50;
+      /** Name des Forstreviers
+       */
+      Forstrevier : TEXT*50;
+      /** Geometrie des Schutzwaldes
+       */
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
+    END Schutzwald;
+
+    CLASS Waldplan =
+      /** Art der Waldfunktion
+       */
+      !!@ ili2db.mapping=JSON
+      Funktion : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Waldfunktion_m2;
+      /** ID der Biodiversitätsfläche (nur Erfassen, wenn Art = Biodiversität oder Schutzwald / Biodiversität)
+       */
+      Biodiversitaet_ID : TEXT*100;
+      /** Typ/Art des Biodiversitätsobjekts
+       */
+      Biodiversitaet_Objekt : (
+        Waldreservat,
+        Altholzinsel,
+        Waldrand,
+        !!@ ili2db.dispName="Lichter Wald"
+        Lichter_Wald,
+        Wytweide,
+        !!@ ili2db.dispName="Prioritärer Lebensraum und Arten"
+        Lebensraum_prioritaer
+      );
+      /** Kann die Waldfläche als Weidefläche genutzt werden?
+       */
+      Wytweide : MANDATORY BOOLEAN;
+      /** Schutzwald-Nummer. Nur Erfassen wenn Art = Schutzwald oder Schutzwald / Biodiversität
+       */
+      Schutzwald_Nr : TEXT*10;
+      /** Offizielle Gemeindenummer. Wird für die genaue Zuteilung der Fläche zur Gemeinde benötigt.
+       */
+      BFS_Nr : MANDATORY 2000 .. 3000;
+      /** Eidgenössische Grundstücksidentifikation
+       */
+      EGRID : MANDATORY TEXT*14;
+      Gemeindename : TEXT*255;
+      /** Waldplantyp
+       * Die Differenz  zwischen allen erfassten Waldplantypflächen und der Summe der Waldfunktionsfläche ergbit den Typ "Mit Wald bestockt".
+       * 
+       * Die Summe der Typen "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" ergibt die produktive Waldfläche.
+       */
+      !!@ ili2db.mapping=JSON
+      Typ : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Waldplantyp_m2;
+      /** Zuständiger Forstbetrieb
+       */
+      Forstbetrieb : MANDATORY TEXT*200;
+      /** Zuständiger Forstkreis
+       */
+      Forstkreis : MANDATORY (
+        !!@ ili2db.dispName=Thal-Gäu
+        Thal_Gaeu,
+        !!@ ili2db.dispName=Dorneck-Thierstein
+        Dorneck_Thierstein,
+        !!@ ili2db.dispName=Olten-Gösgen
+        Olten_Goesgen,
+        !!@ ili2db.dispName="Region Solothurn"
+        Region_Solothurn
+      );
+      /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
+       */
+      Wirtschaftszone : (
+        Jura,
+        Mitellland
+      );
+      /** Gilt die Waldfläche als produktiv?
+       * 
+       * Flächen mit dem Waldplantyp "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" sind produktiv. Alle anderen Flächen sind unproduktiv
+       */
+      !!@ ili2db.dispName=Produktivität
+      Produktivitaet : MANDATORY BOOLEAN;
+      /** Ist die Waldfläche hiebsatzrelevant?
+       * Als hiebsatzrelevant gelten produktive Waldflächen mit der Waldfunktionen Wirtschaftswald, Schutzwald, Erholungswald, Biodiversität und Schutzwald/Biodiversität.
+       */
+      Hiebsatzrelevant : MANDATORY BOOLEAN;
+      /** Grundbuchnummer
+       */
+      Grundbuchnummer : 1 .. 1000000;
+      /** Fläche des Grundstückes in m2
+       */
+      Flaechenmass : 1 .. 100000000;
+      /** Eigentümer der Grundstücksparzelle.
+       * Setzt sich aus dem Attribut "Typ" und "Zusatzinformation" aus der Waldeigentumsklasse im Erfassungsmodell zusammen.
+       */
+      Eigentuemer : MANDATORY TEXT*500;
+      /** Geometrie der Waldfunktionsfläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+    END Waldplan;
+
+    /** Waldübersichtskarte
+     */
+    CLASS Walduebersicht =
+      /** Geometrie der Waldübersicht
+       */
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
+    END Walduebersicht;
+
+  END Waldplan;
+
+END SO_AWJF_Waldplan_Publikation_20250312.
