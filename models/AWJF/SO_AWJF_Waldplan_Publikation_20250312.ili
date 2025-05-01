@@ -77,39 +77,18 @@ VERSION "2025-03-12"  =
       Geometrie : GeometryCHLV95_V1.MultiSurface;
     END Schutzwald;
 
-    CLASS Waldplan =
+    CLASS Waldeigentum =
       /** Art der Waldfunktion
        */
       !!@ ili2db.mapping=JSON
       Funktion : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Waldfunktion_m2;
-      /** ID der Biodiversitätsfläche (nur Erfassen, wenn Art = Biodiversität oder Schutzwald / Biodiversität)
-       */
-      Biodiversitaet_ID : TEXT*100;
-      /** Typ/Art des Biodiversitätsobjekts
-       */
-      Biodiversitaet_Objekt : (
-        Waldreservat,
-        Altholzinsel,
-        Waldrand,
-        !!@ ili2db.dispName="Lichter Wald"
-        Lichter_Wald,
-        Wytweide,
-        !!@ ili2db.dispName="Prioritärer Lebensraum und Arten"
-        Lebensraum_prioritaer
-      );
-      /** Kann die Waldfläche als Weidefläche genutzt werden?
-       */
-      Wytweide : MANDATORY BOOLEAN;
-      /** Schutzwald-Nummer. Nur Erfassen wenn Art = Schutzwald oder Schutzwald / Biodiversität
-       */
-      Schutzwald_Nr : TEXT*10;
       /** Offizielle Gemeindenummer. Wird für die genaue Zuteilung der Fläche zur Gemeinde benötigt.
        */
       BFS_Nr : MANDATORY 2000 .. 3000;
       /** Eidgenössische Grundstücksidentifikation
        */
       EGRID : MANDATORY TEXT*14;
-      Gemeindename : TEXT*255;
+      Gemeindename : MANDATORY TEXT*255;
       /** Waldplantyp
        * Die Differenz  zwischen allen erfassten Waldplantypflächen und der Summe der Waldfunktionsfläche ergbit den Typ "Mit Wald bestockt".
        * 
@@ -132,22 +111,13 @@ VERSION "2025-03-12"  =
         !!@ ili2db.dispName="Region Solothurn"
         Region_Solothurn
       );
+      Forstrevier : MANDATORY TEXT*50;
       /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
        */
       Wirtschaftszone : (
         Jura,
         Mitellland
       );
-      /** Gilt die Waldfläche als produktiv?
-       * 
-       * Flächen mit dem Waldplantyp "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" sind produktiv. Alle anderen Flächen sind unproduktiv
-       */
-      !!@ ili2db.dispName=Produktivität
-      Produktivitaet : MANDATORY BOOLEAN;
-      /** Ist die Waldfläche hiebsatzrelevant?
-       * Als hiebsatzrelevant gelten produktive Waldflächen mit der Waldfunktionen Wirtschaftswald, Schutzwald, Erholungswald, Biodiversität und Schutzwald/Biodiversität.
-       */
-      Hiebsatzrelevant : MANDATORY BOOLEAN;
       /** Grundbuchnummer
        */
       Grundbuchnummer : 1 .. 1000000;
@@ -161,7 +131,96 @@ VERSION "2025-03-12"  =
       /** Geometrie der Waldfunktionsfläche
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Area;
-    END Waldplan;
+      Bemerkung : MTEXT*500;
+    END Waldeigentum;
+
+    /** Beschreibt welche Funktionen die jeweiligen Waldflächen erfüllen. Die Summe aller Funktionsflächen ergbit die Waldübersicht. Das heisst Sie muss flächendeckend und vollumfänglich (also entsprechend der tatsächlichen Waldfläche) erfasst werden.
+     */
+    CLASS Waldfunktion =
+      /** Art der Waldfunktion
+       */
+      Funktion : MANDATORY (
+        Wirtschaftswald,
+        Schutzwald,
+        Erholungswald,
+        /** Dient der Erhaltung und Förderung der Waldbiodiversität
+         */
+        !!@ ili2db.dispName=Biodiversität
+        Biodiversitaet,
+        !!@ ili2db.dispName="Schutzwald / Biodiversität"
+        Schutzwald_Biodiversitaet
+      );
+      /** Offizielle Gemeindenummer. Wird für die genaue Zuteilung der Fläche zur Gemeinde benötigt.
+       */
+      BFS_Nr : MANDATORY 2000 .. 3000;
+      /** ID der Biodiversitätsfläche (nur Erfassen, wenn Art = Biodiversität oder Schutzwald / Biodiversität)
+       */
+      Biodiversitaet_ID : TEXT*100;
+      /** Typ/Art des Biodiversitätsobjekts
+       */
+      Biodiversitaet_Objekt : (
+        Waldreservat,
+        Altholzinsel,
+        Waldrand,
+        !!@ ili2db.dispName="Lichter Wald"
+        Lichter_Wald,
+        Wytweide,
+        !!@ ili2db.dispName="Prioritärer Lebensraum und Arten"
+        Lebensraum_prioritaer
+      );
+      /** Schutzwald-Nummer. Nur Erfassen wenn Art = Schutzwald oder Schutzwald / Biodiversität
+       */
+      Schutzwald_Nr : TEXT*10;
+      /** Kann die Waldfläche als Weidefläche genutzt werden?
+       */
+      Wytweide : MANDATORY BOOLEAN;
+      /** Geometrie der Waldfunktionsfläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+      /** Bemerkung zur Waldfunktoinsfläche
+       */
+      Bemerkung : MTEXT*500;
+    END Waldfunktion;
+
+    /** Beschreibt welchen Typ die jeweiligen Waldflächen haben. Nicht erfasst werden Flächen mit dem Typ "Mit Wald bestockt". Diese werden für das Pub-Modell aus der Differenz zur Waldfunktionsfläche generiert.
+     */
+    CLASS Waldplantyp =
+      /** Waldplantyp
+       * Die Differenz  zwischen allen erfassten Waldplantypflächen und der Summe der Waldfunktionsfläche ergbit den Typ "Mit Wald bestockt".
+       * 
+       * Die Summe der Typen "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" ergibt die produktive Waldfläche.
+       */
+      Typ : MANDATORY (
+        !!@ ili2db.dispName="Niederhaltezone / Nachteilige Nutzung"
+        Niederhaltezone,
+        Waldstrasse,
+        Maschinenweg,
+        !!@ ili2db.dispName="Bauten und Anlagen"
+        Bauten_Anlagen,
+        !!@ ili2db.dispName="Rodungsfläche (temporär)"
+        Rodung_temporaer,
+        !!@ ili2db.dispName=Gewässer
+        Gewaesser,
+        Abbaustelle,
+        !!@ ili2db.dispName="Mit Wald bestockt"
+        Mit_Wald_bestockt
+      );
+      /** Offizielle Gemeindenummer. Wird für die genaue Zuteilung der Fläche zur Gemeinde benötigt.
+       */
+      BFS_Nr : MANDATORY 2000 .. 3000;
+      /** Gilt die Waldfläche als produktiv?
+       * 
+       * Flächen mit dem Waldplantyp "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" sind produktiv. Alle anderen Flächen sind unproduktiv
+       */
+      !!@ ili2db.dispName=Produktivität
+      Produktivitaet : MANDATORY BOOLEAN;
+      /** Geometrie der Waldplantypfläche
+       */
+      Geometrie : GeometryCHLV95_V1.Surface;
+      /** Bemerkung zur Waldplantypfläche
+       */
+      Bemerkung : MTEXT*500;
+    END Waldplantyp;
 
     /** Waldübersichtskarte
      */
@@ -169,6 +228,10 @@ VERSION "2025-03-12"  =
       /** Geometrie der Waldübersicht
        */
       Geometrie : GeometryCHLV95_V1.MultiSurface;
+      /** Ist die Waldfläche hiebsatzrelevant?
+       * Als hiebsatzrelevant gelten produktive Waldflächen mit der Waldfunktionen Wirtschaftswald, Schutzwald, Erholungswald, Biodiversität und Schutzwald/Biodiversität.
+       */
+      Hiebsatzrelevant : MANDATORY BOOLEAN;
     END Walduebersicht;
 
   END Waldplan;
