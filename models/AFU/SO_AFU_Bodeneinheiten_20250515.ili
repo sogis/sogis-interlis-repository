@@ -5,41 +5,20 @@ INTERLIS 2.3;
  * !!------------------------------------------------------------------------------
  * !! 2025-04-28 | MS  | Ersterfassung
  * !! 2025-04-30 | MS  | Neufassung
+ * !! 2025-05-15 | MS  | Neufassung
  * !!===============================
  */
 !!@ technicalContact=mailto:agi@so.ch
-MODEL SO_AFU_Bodeneinheiten_20250428 (de)
+MODEL SO_AFU_Bodeneinheiten_20250515 (de)
 AT "http://geo.so.ch/models/AFU"
-VERSION "2025-04-30"  =
+VERSION "2025-05-15"  =
   IMPORTS GeometryCHLV95_V1,Math,CatalogueObjects_V1;
 
   DOMAIN
 
     /** Bodenuntertyp
      */
-    UntertypCode = (
-      !!@ ili2db.dispName=erodiert
-      PE,
-      !!@ ili2db.dispName=kolluvial
-      PK,
-      !!@ ili2db.dispName=anthropogen
-      PM,
-      !!@ ili2db.dispName=alluvial
-      PA,
-      !!@ ili2db.dispName=überschüttet
-      PU,
-      !!@ ili2db.dispName="auf Seekreide"
-      PS,
-      !!@ ili2db.dispName=polygenetisch
-      PP,
-      !!@ ili2db.dispName=aeolisch
-      PL,
-      !!@ ili2db.dispName="auf Torfzwischenschicht(-en)"
-      PT,
-      !!@ ili2db.dispName="stark durchlässiger Untergrund"
-      PD,
-      !!@ ili2db.dispName=terrassiert
-      PB,
+    Untertyp_Diverse_Enum = (
       !!@ ili2db.dispName="lithosolisch (< 10 cm u.T.)"
       VL,
       !!@ ili2db.dispName="auf Fels (10 - 60 cm u.T.)"
@@ -56,30 +35,6 @@ VERSION "2025-04-30"  =
       VS,
       !!@ ili2db.dispName="pellitisch (extrem feinkörnig)"
       VT,
-      !!@ ili2db.dispName="alkalisch > 6,7"
-      E0,
-      !!@ ili2db.dispName="neutral 6,2 - 6,7"
-      E1,
-      !!@ ili2db.dispName="schwach sauer 5,1 - 6,1"
-      E2,
-      !!@ ili2db.dispName="sauer 4,3 - 5,0"
-      E3,
-      !!@ ili2db.dispName="stark sauer 3,3 - 4,2"
-      E4,
-      !!@ ili2db.dispName="sehr stark sauer < 3,3"
-      E5,
-      !!@ ili2db.dispName="teilweise entkarbonatet"
-      KE,
-      !!@ ili2db.dispName=karbonathaltig
-      KH,
-      !!@ ili2db.dispName=karbonatreich
-      KR,
-      !!@ ili2db.dispName=kalkflaumig
-      KF,
-      !!@ ili2db.dispName=kalktuffig
-      KT,
-      !!@ ili2db.dispName=natriumhaltig
-      KA,
       !!@ ili2db.dispName=verbraunt
       FB,
       !!@ ili2db.dispName=podsolig
@@ -120,36 +75,6 @@ VERSION "2025-04-30"  =
       L4,
       !!@ ili2db.dispName="mechanische Verdichtung"
       LM,
-      !!@ ili2db.dispName="schwach pseudogleyig"
-      I1,
-      !!@ ili2db.dispName=pseudogleyig
-      I2,
-      !!@ ili2db.dispName="stark pseudogleyig"
-      I3,
-      !!@ ili2db.dispName="sehr stark pseudogleyig"
-      I4,
-      !!@ ili2db.dispName=grundfeucht
-      G1,
-      !!@ ili2db.dispName="schwach gleyig"
-      G2,
-      !!@ ili2db.dispName=gleyig
-      G3,
-      !!@ ili2db.dispName="stark gleyig"
-      G4,
-      !!@ ili2db.dispName="sehr stark gleyig"
-      G5,
-      !!@ ili2db.dispName="extrrem gleyig"
-      G6,
-      !!@ ili2db.dispName="schwach grundnass"
-      R1,
-      !!@ ili2db.dispName=grundnass
-      R2,
-      !!@ ili2db.dispName="stark grundnass"
-      R3,
-      !!@ ili2db.dispName="sehr stark grundnass"
-      R4,
-      !!@ ili2db.dispName=sumpfig
-      R5,
       !!@ ili2db.dispName=drainiert
       DD,
       !!@ ili2db.dispName=rohhumos
@@ -190,58 +115,164 @@ VERSION "2025-04-30"  =
       HT
     );
 
+    /** Bodenuntertyp Säuregrad
+     */
+    Untertyp_E_Enum = (
+      !!@ ili2db.dispName="alkalisch > 6,7"
+      E0,
+      !!@ ili2db.dispName="neutral 6,2 - 6,7"
+      E1,
+      !!@ ili2db.dispName="schwach sauer 5,1 - 6,1"
+      E2,
+      !!@ ili2db.dispName="sauer 4,3 - 5,0"
+      E3,
+      !!@ ili2db.dispName="stark sauer 3,3 - 4,2"
+      E4,
+      !!@ ili2db.dispName="sehr stark sauer < 3,3"
+      E5
+    );
+
+    /** Bodenuntertyp Karbonatgehalt
+     */
+    Untertyp_K_Enum = (
+      !!@ ili2db.dispName="teilweise entkarbonatet"
+      KE,
+      !!@ ili2db.dispName=karbonathaltig
+      KH,
+      !!@ ili2db.dispName=karbonatreich
+      KR,
+      !!@ ili2db.dispName=kalkflaumig
+      KF,
+      !!@ ili2db.dispName=kalktuffig
+      KT,
+      !!@ ili2db.dispName=natriumhaltig
+      KA
+    );
+
+    /** Bodenuntertyp Staunässe
+     */
+    Untertyp_I_Enum = (
+      !!@ ili2db.dispName="schwach pseudogleyig"
+      I1,
+      !!@ ili2db.dispName=pseudogleyig
+      I2,
+      !!@ ili2db.dispName="stark pseudogleyig"
+      I3,
+      !!@ ili2db.dispName="sehr stark pseudogleyig"
+      I4
+    );
+
+    /** Bodenuntertyp Fremdnässe wechselnd
+     */
+    Untertyp_G_Enum = (
+      !!@ ili2db.dispName=grundfeucht
+      G1,
+      !!@ ili2db.dispName="schwach gleyig"
+      G2,
+      !!@ ili2db.dispName=gleyig
+      G3,
+      !!@ ili2db.dispName="stark gleyig"
+      G4,
+      !!@ ili2db.dispName="sehr stark gleyig"
+      G5,
+      !!@ ili2db.dispName="extrrem gleyig"
+      G6
+    );
+
+    /** Bodenuntertyp Fremdnässe dauernd
+     */
+    Untertyp_R_Enum = (
+      !!@ ili2db.dispName="schwach grundnass"
+      R1,
+      !!@ ili2db.dispName=grundnass
+      R2,
+      !!@ ili2db.dispName="stark grundnass"
+      R3,
+      !!@ ili2db.dispName="sehr stark grundnass"
+      R4,
+      !!@ ili2db.dispName=sumpfig
+      R5
+    );
+
+    /** Bodenuntertyp Profilschichtung/Umlagerung
+     */
+    Untertyp_P_Enum = (
+      !!@ ili2db.dispName=erodiert
+      PE,
+      !!@ ili2db.dispName=kolluvial
+      PK,
+      !!@ ili2db.dispName=anthropogen
+      PM,
+      !!@ ili2db.dispName=alluvial
+      PA,
+      !!@ ili2db.dispName=überschüttet
+      PU,
+      !!@ ili2db.dispName="auf Seekreide"
+      PS,
+      !!@ ili2db.dispName=polygenetisch
+      PP,
+      !!@ ili2db.dispName=aeolisch
+      PL,
+      !!@ ili2db.dispName="auf Torfzwischenschicht(-en)"
+      PT,
+      !!@ ili2db.dispName="stark durchlässiger Untergrund"
+      PD,
+      !!@ ili2db.dispName=terrassiert
+      PB
+    );
+
     /** Code des Wasserhaushalts
      */
     WasserhaushaltCode = (
-      !!@ ili2db.dispName="a - sehr tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, normal durchlässig, sehr tiefgründig"
       a,
-      !!@ ili2db.dispName="b - tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, normal durchlässig, tiefgründig"
       b,
-      !!@ ili2db.dispName="c - mässig tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, normal durchlässig, mässig tiefgründig"
       c,
-      !!@ ili2db.dispName="d - ziemlich flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, normal durchlässig, ziemlich flachgründig"
       d,
-      !!@ ili2db.dispName="e - flachgründig und sehr flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, normal durchlässig, flachgründig und sehr flachgründig"
       e,
-      !!@ ili2db.dispName="f - tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, stauwasserbeeinflusst, tiefgründig"
       f,
-      !!@ ili2db.dispName="g - mässig tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, stauwasserbeeinflusst, mässig tiefgründig"
       g,
-      !!@ ili2db.dispName="h - ziemlich flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, stauwasserbeeinflusst, ziemlich flachgründig"
       h,
-      !!@ ili2db.dispName="i - flachgründig und sehr flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, stauwasserbeeinflusst, flachgründig und sehr flachgründig"
       i,
-      !!@ ili2db.dispName="k - tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, grund- oder hangwasserbeeinflusst, tiefgründig"
       k,
-      !!@ ili2db.dispName="l - mässig tiefgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, grund- oder hangwasserbeeinflusst, mässig tiefgründig"
       l,
-      !!@ ili2db.dispName="m - ziemlich flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, grund- oder hangwasserbeeinflusst, ziemlich flachgründig"
       m,
-      !!@ ili2db.dispName="n - flachgründig und sehr flachgründig"
+      !!@ ili2db.dispName="Senkrecht durchwaschen, grund- oder hangwasserbeeinflusst, flachgründig und sehr flachgründig"
       n,
-      !!@ ili2db.dispName="o - mässig tiefgründig und tiefgründig"
+      !!@ ili2db.dispName="Stauwassergeprägt, selten bis zur Oberfläche porengesättigt, mässig tiefgründig und tiefgründig"
       o,
-      !!@ ili2db.dispName="p - ziemlich flachgründig und flachgründig"
+      !!@ ili2db.dispName="Stauwassergeprägt, selten bis zur Oberfläche porengesättigt, ziemlich flachgründig und flachgründig"
       p,
-      !!@ ili2db.dispName="q - ziemlich flachgründig"
+      !!@ ili2db.dispName="Stauwassergeprägt, häufig bis zur Oberfläche porengesättigt, ziemlich flachgründig"
       q,
-      !!@ ili2db.dispName="r - flachgründig und sehr flachgründig"
+      !!@ ili2db.dispName="Stauwassergeprägt, häufig bis zur Oberfläche porengesättigt, flachgründig und sehr flachgründig"
       r,
-      !!@ ili2db.dispName="s - tiefgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, selten bis zur Oberfläche porengesättigt, tiefgründig"
       s,
-      !!@ ili2db.dispName="t - mässig tiefgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, selten bis zur Oberfläche porengesättigt, mässig tiefgründig"
       t,
-      !!@ ili2db.dispName="u - ziemlich flachgründig und flachgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, selten bis zur Oberfläche porengesättigt, ziemlich flachgründig und flachgründig"
       u,
-      !!@ ili2db.dispName="v - mässig tiefgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, häufig bis zur Oberfläche porengesättigt, mässig tiefgründig"
       v,
-      !!@ ili2db.dispName="w - ziemlich flachgründig und flachgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, häufig bis zur Oberfläche porengesättigt, ziemlich flachgründig und flachgründig"
       w,
-      !!@ ili2db.dispName="y - flachgründig und sehr flachgründig"
-      y,
-      !!@ ili2db.dispName="x - ziemlich flachgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, meist bis zur Oberfläche porengesättigt, ziemlich flachgründig"
       x,
-      !!@ ili2db.dispName="z - sehr flachgründig"
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, meist bis zur Oberfläche porengesättigt, flachgründig und sehr flachgründig"
+      y,
+      !!@ ili2db.dispName="Grund- oder hangwassergeprägt, dauernd bis zur Oberfläche"
       z
     );
 
@@ -317,46 +348,55 @@ VERSION "2025-04-30"  =
 
   TOPIC Bodeneinheiten =
     OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_AFU_Bodeneinheiten_20250428.Kartierer;
+    DEPENDS ON SO_AFU_Bodeneinheiten_20250515.Kartierer;
 
-    STRUCTURE Untertyp =
+    STRUCTURE Untertyp_K_structure =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20250428.UntertypCode;
-    END Untertyp;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20250515.Untertyp_K_Enum;
+    END Untertyp_K_structure;
+
+    STRUCTURE Untertyp_P_structure =
+      /** Untertyp Code
+       */
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20250515.Untertyp_P_Enum;
+    END Untertyp_P_structure;
+
+    STRUCTURE Untertyp_Diverse_structure =
+      /** Untertyp Code
+       */
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20250515.Untertyp_Diverse_Enum;
+    END Untertyp_Diverse_structure;
 
     /** Ausprägung des Bodens
      */
-    STRUCTURE Auspraegung (ABSTRACT) =
+    CLASS Auspraegung (ABSTRACT) =
       /** Gewichtung der Ausprägung
        */
       Gewichtung : MANDATORY 100 .. 100;
       /** Wasserhaushalt. Erfasst wird nur der Code. Weitere Informationen befinden sich in der Klasse Wasserhaushalt.
        */
-      Wasserhaushalt : MANDATORY SO_AFU_Bodeneinheiten_20250428.WasserhaushaltCode;
+      Wasserhaushalt : MANDATORY SO_AFU_Bodeneinheiten_20250515.WasserhaushaltCode;
       /** Pflanzennutzbare Gründigkeit.
        */
       Pflanzennutzbaregruendigkeit : MANDATORY 0 .. 250;
       /** Code des Bodentyp
        */
-      Bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20250428.BodentypCode;
+      Bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20250515.BodentypCode;
       /** Geländeform
        */
       Gelaendeform : MANDATORY TEXT*50;
-      /** Untertypen. Eine Ausprägung kann 0 bis n Untertypen haben
-       */
-      Untertyp : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
       /** Untertyp E
        */
-      Untertyp_E : SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_K : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_I : SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_G : SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_R : SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_P : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
-      Untertyp_Diverse : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp;
+      Untertyp_E : SO_AFU_Bodeneinheiten_20250515.Untertyp_E_Enum;
+      Untertyp_K : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250515.Bodeneinheiten.Untertyp_K_structure;
+      Untertyp_I : SO_AFU_Bodeneinheiten_20250515.Untertyp_I_Enum;
+      Untertyp_G : SO_AFU_Bodeneinheiten_20250515.Untertyp_G_Enum;
+      Untertyp_R : SO_AFU_Bodeneinheiten_20250515.Untertyp_R_Enum;
+      Untertyp_P : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250515.Bodeneinheiten.Untertyp_P_structure;
+      Untertyp_Diverse : BAG {0..*} OF SO_AFU_Bodeneinheiten_20250515.Bodeneinheiten.Untertyp_Diverse_structure;
       MANDATORY CONSTRAINT ((Wasserhaushalt == #a AND Pflanzennutzbaregruendigkeit >= 100) OR ((Wasserhaushalt == #f OR Wasserhaushalt == #s) AND Pflanzennutzbaregruendigkeit >= 70) OR ((Wasserhaushalt == #b OR Wasserhaushalt == #k) AND (Pflanzennutzbaregruendigkeit >= 70 AND Pflanzennutzbaregruendigkeit <= 99)) OR ((Wasserhaushalt == #o) AND (Pflanzennutzbaregruendigkeit >= 50 AND Pflanzennutzbaregruendigkeit <= 100)) OR ((Wasserhaushalt == #c OR Wasserhaushalt == #g OR Wasserhaushalt == #l OR Wasserhaushalt == #t OR Wasserhaushalt == #v) AND (Pflanzennutzbaregruendigkeit >= 50 AND Pflanzennutzbaregruendigkeit <= 69)) OR ((Wasserhaushalt == #d OR Wasserhaushalt == #h OR Wasserhaushalt == #m OR Wasserhaushalt == #g OR Wasserhaushalt == #x) AND (Pflanzennutzbaregruendigkeit >= 30 AND Pflanzennutzbaregruendigkeit <= 49)) OR ((Wasserhaushalt == #p OR Wasserhaushalt == #u OR Wasserhaushalt == #w) AND (Pflanzennutzbaregruendigkeit >= 10 AND Pflanzennutzbaregruendigkeit <= 50)) OR ((Wasserhaushalt == #e OR Wasserhaushalt == #i OR Wasserhaushalt == #n OR Wasserhaushalt == #r OR Wasserhaushalt == #y) AND Pflanzennutzbaregruendigkeit < 30) OR (Wasserhaushalt == #z AND Pflanzennutzbaregruendigkeit < 10));
-      MANDATORY CONSTRAINT ((Bodentyp == #Y AND (Untertyp->Code == #I3 OR Untertyp->Code == #I4)) OR (Bodentyp == #I AND Untertyp->Code == #I4) OR (Bodentyp == #V AND (Untertyp->Code == #G4 OR Untertyp->Code == #G5)) OR (Bodentyp == #W AND (Untertyp->Code == #G5 OR Untertyp->Code == #G6)) OR (Bodentyp == #G AND (Untertyp->Code == #G5 OR Untertyp->Code == #G6)));
+      MANDATORY CONSTRAINT ((Bodentyp == #Y AND (Untertyp_I == #I3 OR Untertyp_I == #I4)) OR (Bodentyp == #I AND Untertyp_I == #I4) OR (Bodentyp == #V AND (Untertyp_G == #G4 OR Untertyp_G == #G5)) OR (Bodentyp == #W AND (Untertyp_G == #G5 OR Untertyp_G == #G6)) OR (Bodentyp == #G AND (Untertyp_G == #G5 OR Untertyp_G == #G6)));
     END Auspraegung;
 
     /** Gebiet mit gleichen Bodeneigenschaften.
@@ -389,7 +429,7 @@ VERSION "2025-04-30"  =
        */
       Kartierer_Kuerzel : MANDATORY TEXT*20;
       MANDATORY CONSTRAINT Math.sum("Auspraegung->Gewichtung") == 100;
-      EXISTENCE CONSTRAINT Kartierer_Kuerzel REQUIRED IN SO_AFU_Bodeneinheiten_20250428.Kartierer.KartiererPerson:Kuerzel;
+      EXISTENCE CONSTRAINT Kartierer_Kuerzel REQUIRED IN SO_AFU_Bodeneinheiten_20250515.Kartierer.KartiererPerson:Kuerzel;
     END BodeneinheitHauptauspraegung;
 
     /** Bodeneinheit, welche sich nicht im Wald befindet.
@@ -432,33 +472,4 @@ VERSION "2025-04-30"  =
 
   END Bodeneinheiten;
 
-  TOPIC CodelistenAuspraegung =
-
-    STRUCTURE Untertyp_Katalog
-    EXTENDS SO_AFU_Bodeneinheiten_20250428.Bodeneinheiten.Untertyp =
-      /** Beschreibung des Untertyps
-       */
-      Beschreibung : MANDATORY TEXT*200;
-    END Untertyp_Katalog;
-
-    /** Wasserhaushalt des Bodens
-     */
-    STRUCTURE Wasserhaushalt_Katalog (FINAL)
-    EXTENDS CatalogueObjects_V1.Catalogues.CatalogueReference =
-      /** Wasserhaushalt Code
-       */
-      code : MANDATORY TEXT*1;
-      /** Spezifische Ausprägung des Wasserhaushalts
-       */
-      spezifisch : MANDATORY TEXT*50;
-      /** Übergreifende Beschreibung des Wasserhaushalts
-       */
-      uebergreifend : MANDATORY TEXT*20;
-      /** Charakteristik des Wasserhaushalts
-       */
-      Charakter : MANDATORY TEXT*50;
-    END Wasserhaushalt_Katalog;
-
-  END CodelistenAuspraegung;
-
-END SO_AFU_Bodeneinheiten_20250428.
+END SO_AFU_Bodeneinheiten_20250515.
