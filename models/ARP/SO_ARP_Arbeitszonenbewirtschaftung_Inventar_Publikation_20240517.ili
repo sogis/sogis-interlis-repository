@@ -11,51 +11,18 @@ INTERLIS 2.3;
 MODEL SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517 (de)
 AT "https://agi.so.ch"
 VERSION "2024-05-17"  =
-  IMPORTS GeometryCHLV95_V1;
+  IMPORTS GeometryCHLV95_V1,Units;
 
   /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück, welches in der Arbeitszone liegt. Folgende Daten werden hier für verwendet amtlichen Vermessung, Nutzungsplanung, Bauzonenstatistik und die erfassten Bemerkungen der Arbeitszonenbewirtschaftung.
    */
   TOPIC Arbeitszonenbewirtschaftung_Inventar =
-
-    DOMAIN
-
-      Typ_Kt_Grundnutzung = (
-        !!@ ili2db.dispName="Zone für publikumsintensive Anlagen"
-        N134_Zone_fuer_publikumsintensive_Anlagen,
-        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 4 G und grösser"
-        N133_Gewerbezone_mit_Wohnen_Mischzone_4_G_und_groesser,
-        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 3 G"
-        N132_Gewerbezone_mit_Wohnen_Mischzone_3_G,
-        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone 2 G"
-        N131_Gewerbezone_mit_Wohnen_Mischzone_2_G,
-        !!@ ili2db.dispName="Gewerbezone mit Wohnen / Mischzone"
-        N130_Gewerbezone_mit_Wohnen_Mischzone,
-        !!@ ili2db.dispName=Arbeitszone
-        N122_Arbeitszone,
-        !!@ ili2db.dispName=Industriezone
-        N121_Industriezon,
-        !!@ ili2db.dispName="Gewerbezone ohne Wohnen"
-        N120_Gewerbezone_ohne_Wohnen
-      );
-
-    STRUCTURE Grundnutzung =
-      /** Bezeichnung Kanton mit Code
-       */
-      Bezeichnung_Kanton : Typ_Kt_Grundnutzung;
-      /** Fläche der Grundnutzung auf dem Grundstück
-       */
-      Flaeche : 0 .. 9999999999;
-      /** Bezeichnung Gemeinde
-       */
-      Bezeichnung_Gemeinde : TEXT*20;
-    END Grundnutzung;
 
     /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück
      */
     CLASS Arbeitszonenbewirtschaftung_Inventar =
       /** Geometrie des Grundstücks (inkl. Baurecht)
        */
-      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
       /** Manuelle Erhebung. Ist das Grundstück bebaut oder unbebaut?
        */
       unbebaut : MANDATORY BOOLEAN;
@@ -100,7 +67,7 @@ VERSION "2024-05-17"  =
       /** Dossier zum Objekt
        */
       Dossier : INTERLIS.URI;
-      /** Nummer des Grundstücks
+      /** Nummer des Grundstücks (Liegenschaft)
        */
       Grundstuecknummer : MANDATORY TEXT*15;
       /** Name des Grundbuchs (= Grundbuchkreis)
@@ -144,16 +111,15 @@ VERSION "2024-05-17"  =
       Gestaltungsplanpflicht : BOOLEAN;
       /** bebaut, teilweise bebaut oder unbebaut
        */
-      Bauzonenstatistik : (
+      Bebauungsstand : (
         unbebaut,
         !!@ ili2db.dispName="teilweise bebaut"
         teilweise_bebaut,
         bebaut
       );
-      /** Grundnutzung aus der Nutzungsplanung. Pro Grundstück können mehrere Typen vokommen
+      /** Grundnutzung aus der Nutzungsplanung gefiltert nach den Arbeitszonen. Falls für ein Grundstück mehrere Typen vorhanden sind, gibt es pro Typ eine Geometrie.
        */
-      !!@ ili2db.mapping=JSON
-      Grundnutzung : BAG {0..*} OF SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Publikation_20240517.Arbeitszonenbewirtschaftung_Inventar.Grundnutzung;
+      Grundnutzung : TEXT*255;
       /** Link zum Baureglement. Herkunft Nutzungsplanung
        */
       Baureglement : INTERLIS.URI;
@@ -166,6 +132,8 @@ VERSION "2024-05-17"  =
       /** Notiz (Journal) Wirtschaftsförderung.
        */
       Notiz : MTEXT;
+      Flaeche_beschnitten : 0 .. 999999999 [Units.m2];
+      Flaeche_unbebaut : 0 .. 999999999 [Units.m2];
     END Arbeitszonenbewirtschaftung_Inventar;
 
   END Arbeitszonenbewirtschaftung_Inventar;
