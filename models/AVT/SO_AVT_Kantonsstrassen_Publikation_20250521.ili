@@ -1,0 +1,82 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2020-02-18 | oj  | Initial erstellt
+ * !! 2025-05-21 | oj  | Neue Klasse Signalisierte_Geschwindigkeit
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AVT/SO_AVT_Achsen_Publikation_20200707.uml
+MODEL SO_AVT_Kantonsstrassen_Publikation_20250521 (de)
+AT "https://avt.so.ch"
+VERSION "2025-05-21"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Achse =
+
+    /** "Schnipsel" der Achsen der Kantonsstrassen.
+     * Die Achse ist setzt sich aus 1-n Schnipseln zusammen.
+     */
+    CLASS Achse =
+      /** Achsnummer der Kantonsstrassenachse. Enthält vereinzelt Buchstaben.
+       */
+      AchseNumme : MANDATORY TEXT*100;
+      /** Strassenname.
+       */
+      AchseName : MANDATORY TEXT*100;
+      /** Strassenklassierung (abgekürzt).
+       */
+      AchsTyp : MANDATORY TEXT*10;
+      /** Strassenklassierung (ausgeschrieben).
+       */
+      AchsTypNam : MANDATORY TEXT*100;
+      /** Liniengeometrie der Achse
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Achse;
+
+    /** Liniensegmente mit gleicher signalisierter Geschwindigkeit.
+     */
+    CLASS Signalisierte_Geschwindigkeit =
+      /** Signalisierte Geschwindigkeit auf der Kantonsstrasse [km/h]
+       */
+      Max_Geschw : MANDATORY 20 .. 120;
+      /** Länge des Kantonsstrassenabschnitts [m]
+       */
+      Laenge : MANDATORY 1 .. 10000;
+      /** Achsnummer der Kantonsstrassenachse. Enthält vereinzelt Buchstaben.
+       */
+      AchseNumme : MANDATORY TEXT*100;
+      /** Strassenname.
+       */
+      AchseName : MANDATORY TEXT*100;
+      /** Liniengeometrie des Geschwindigkeits-Segments
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Line;
+    END Signalisierte_Geschwindigkeit;
+
+    /** Bezugspunkt auf einer Achse
+     */
+    CLASS Bezugspunkt =
+      /** Nummer eines Bezugspunktes. Enhält vereinzelt auch Buchstaben
+       */
+      Bezeichnun : MANDATORY TEXT*80;
+      /** Nummer der zugeordneten Achse (= Achse.AchseNumme)
+       */
+      AchseNumme : MANDATORY TEXT*100;
+      /** Text-Repräsentation der erhobenen Koordinaten.
+       * Stimmen nicht zwingend exakt mit Punktkoordinaten überein, da Bezugspunkte in Logo
+       * zwingend auf Achse (=Strassenmitte) liegen müssen.
+       * In Wirklichkeit befinden sich nicht alle Markierungen in der Strassenmitte.
+       */
+      Koordinate : TEXT*100;
+      /** Koordinaten des Bezugspunktes (auf der Achse).
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Bezugspunkt;
+
+  END Achse;
+
+END SO_AVT_Kantonsstrassen_Publikation_20250521.
