@@ -14,6 +14,17 @@ VERSION "2025-03-12"  =
 
   DOMAIN
 
+    Forstkreise = (
+      !!@ ili2db.dispName=Thal-Gäu
+      Thal_Gaeu,
+      !!@ ili2db.dispName=Dorneck-Thierstein
+      Dorneck_Thierstein,
+      !!@ ili2db.dispName=Olten-Gösgen
+      Olten_Goesgen,
+      !!@ ili2db.dispName="Region Solothurn"
+      Region_Solothurn
+    );
+
     Typ_Biodiversitaet = (
       Waldreservat,
       Altholzinsel,
@@ -26,16 +37,32 @@ VERSION "2025-03-12"  =
     );
 
     Typ_Waldeigentum = (
-      Bundeswald,
-      Staatswald,
-      !!@ ili2db.dispName=Bürgergemeinde
-      Buergergemeinde,
+      !!@ ili2db.dispName="Bundeswald (Militär)"
+      Bundeswald_Militaer,
+      !!@ ili2db.dispName="Bundeswald (SBB)"
+      Bundeswald_SBB,
+      !!@ ili2db.dispName="Bundeswald (ASTRA)"
+      Bundeswald_ASTRA,
+      !!@ ili2db.dispName="Bundeswald (Andere)"
+      Bundeswald_Andere,
+      !!@ ili2db.dispName="Staatswald (Allgemein)"
+      Staatswald_Allgemein,
+      !!@ ili2db.dispName="Staatswald (Bewirtschaftung durch Forstbetrieb)"
+      Staatswald_Forstbetrieb,
       Einwohnergemeinde,
       Einheitsgemeinde,
-      !!@ ili2db.dispName="Gemischt öffentlich und privat"
-      Gemischt_oeffentlich_privat,
-      !!@ ili2db.dispName="Öffentlich gemischt"
-      Oeffentlich_gemischt,
+      !!@ ili2db.dispName=Bürgergemeinde
+      Buergergemeinde,
+      Korporation,
+      !!@ ili2db.dispName=Bäuert
+      Baeuert,
+      Alpengenossenschaft,
+      !!@ ili2db.dispName="Schul- und Armengemeinde"
+      Schul_Armengemeinde,
+      Kirchgemeinde,
+      !!@ ili2db.dispName="Bistum / Kloster"
+      Bistum_Kloster,
+      Stiftung,
       Privatwald
     );
 
@@ -62,70 +89,54 @@ VERSION "2025-03-12"  =
       Abbaustelle
     );
 
+  /** hiebsatzrelevante und nicht hiebsatzrelevante Flächen in m2
+   */
+  STRUCTURE Flaechen_Hiebsatzrelevant =
+    relevant : 0.000 .. 9999999999.000;
+    irrelevant : 0.000 .. 9999999999.000;
+  END Flaechen_Hiebsatzrelevant;
+
+  /** produktive und unproduktive Flächen in m2
+   */
+  STRUCTURE Flaechen_Produktiv =
+    produktiv : 0.000 .. 9999999999.000;
+    unproduktiv : 0.000 .. 9999999999.000;
+  END Flaechen_Produktiv;
+
   /** Strukturklasse für Flächen nach Biosiversitäts-ID
    */
   STRUCTURE Flaechen_Biodiversitaet_ID =
     ID : TEXT*100;
-    Biodiversitaet_Objekt : TEXT*20;
+    Biodiversitaet_Objekt : Typ_Biodiversitaet;
     Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Biodiversitaet_ID;
 
-  /** Strukturklassen für die Biodiversitätsobjektflächen
+  /** Biodiversitätsobjektflächen in m2
    */
   STRUCTURE Flaechen_Biodiversitaet_Objekt =
-    Waldreservat_m2 : 0.000 .. 9999999999.000;
-    Altholzinsel_m2 : 0.000 .. 9999999999.000;
-    Waldrand_m2 : 0.000 .. 9999999999.000;
-    Lichter_Wald_m2 : 0.000 .. 9999999999.000;
-    Wytweide_m2 : 0.000 .. 9999999999.000;
-    Lebensraum_prioritaer_m2 : 0.000 .. 9999999999.000;
+    Biodiversitaet_Objekt : Typ_Biodiversitaet;
+    /** Fläche in m2
+     */
+    Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Biodiversitaet_Objekt;
 
-  /** Strukturklasse für die hiebsatzrelevanten Flächen
-   */
-  STRUCTURE Flaechen_Hiebsatz =
-    Hiebsatzrelevant_m2 : 0.000 .. 9999999999.000;
-    Nicht_Hiebsatzrelevant_m2 : 0.000 .. 9999999999.000;
-  END Flaechen_Hiebsatz;
-
-  /** Strukturklasse für die produktive Flächen
-   */
-  STRUCTURE Flaechen_Produktiv =
-    produktiv_m2 : 0.000 .. 9999999999.000;
-    unproduktiv_m2 : 0.000 .. 9999999999.000;
-  END Flaechen_Produktiv;
-
-  /** Strukturklasse für die Waldfunktoinsflächen
+  /** Waldfunktionsflächen in m2
    */
   STRUCTURE Flaechen_Waldfunktion =
-    Wirtschaftswald_m2 : 0.000 .. 9999999999.000;
-    Schutzwald_m2 : 0.000 .. 9999999999.000;
-    Erholungswald_m2 : 0.000 .. 9999999999.000;
-    Biodiversitaet_m2 : 0.000 .. 9999999999.000;
-    Schutzwald_Biodiversitaet_m2 : 0.000 .. 9999999999.000;
+    Funktion : Typ_Waldfunktion;
+    /** Fläche in m2
+     */
+    Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Waldfunktion;
 
-  /** Strukturklasse für die Flächen der Waldplantypen
+  /** Flächen der Waldplantypen in m2
    */
   STRUCTURE Flaechen_Waldplantyp =
-    Niederhaltezone_m2 : 0.000 .. 9999999999.000;
-    Waldstrasse_m2 : 0.000 .. 9999999999.000;
-    Maschinenweg_m2 : 0.000 .. 9999999999.000;
-    Bauten_Anlagen_m2 : 0.000 .. 9999999999.000;
-    Rodung_temporaer_m2 : 0.000 .. 9999999999.000;
-    Gewaesser_m2 : 0.000 .. 9999999999.000;
-    Abbaustelle_m2 : 0.000 .. 9999999999.000;
-    Mit_Wald_bestockt_m2 : 0.000 .. 9999999999.000;
+    Typ : Typ_Waldplan;
+    /** Fläche in m2
+     */
+    Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Waldplantyp;
-
-  CLASS Forstrevier (ABSTRACT) =
-    /** Name des Forstkreises
-     */
-    Forstkreis : MANDATORY TEXT*50;
-    /** Geometrie des Forstreviers
-     */
-    Geometrie : GeometryCHLV95_V1.MultiSurface;
-  END Forstrevier;
 
   TOPIC Waldplan =
     OID AS INTERLIS.UUIDOID;
@@ -225,16 +236,7 @@ VERSION "2025-03-12"  =
       Biodiversitaet_ID : TEXT*100;
       /** Typ/Art des Biodiversitätsobjekts
        */
-      Biodiversitaet_Objekt : (
-        Waldreservat,
-        Altholzinsel,
-        Waldrand,
-        !!@ ili2db.dispName="Lichter Wald"
-        Lichter_Wald,
-        Wytweide,
-        !!@ ili2db.dispName="Prioritärer Lebensraum und Arten"
-        Lebensraum_prioritaer
-      );
+      Biodiversitaet_Objekt : SO_AWJF_Waldplan_Publikation_20250312.Typ_Biodiversitaet;
       /** Schutzwald-Nummer. Nur Erfassen wenn Art = Schutzwald oder Schutzwald / Biodiversität
        */
       Schutzwald_Nr : TEXT*10;
@@ -249,7 +251,9 @@ VERSION "2025-03-12"  =
       Bemerkung : MTEXT*500;
     END Waldfunktion;
 
-    CLASS Waldplan =
+    /** Waldplanattribute pro Liegenschaft. Der Web GIS Layer für das Waldeigentum wird ebenfalls aus dieser Klasse heraus generiert.
+     */
+    CLASS Waldplan_Liegenschaft =
       /** Offizielle Gemeindenummer. Wird für die genaue Zuteilung der Fläche zur Gemeinde benötigt.
        */
       BFS_Nr : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
@@ -264,16 +268,7 @@ VERSION "2025-03-12"  =
       Forstbetrieb : MANDATORY TEXT*200;
       /** Zuständiger Forstkreis
        */
-      Forstkreis : MANDATORY (
-        !!@ ili2db.dispName=Thal-Gäu
-        Thal_Gaeu,
-        !!@ ili2db.dispName=Dorneck-Thierstein
-        Dorneck_Thierstein,
-        !!@ ili2db.dispName=Olten-Gösgen
-        Olten_Goesgen,
-        !!@ ili2db.dispName="Region Solothurn"
-        Region_Solothurn
-      );
+      Forstkreis : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Forstkreise;
       /** Bezeichnung des Forstreviers
        */
       Forstrevier : MANDATORY TEXT*50;
@@ -295,19 +290,7 @@ VERSION "2025-03-12"  =
       Eigentuemer : MANDATORY TEXT*500;
       /** Eigentumstyp
        */
-      Typ : MANDATORY (
-        Bundeswald,
-        Staatswald,
-        !!@ ili2db.dispName=Bürgergemeinde
-        Buergergemeinde,
-        Einwohnergemeinde,
-        Einheitsgemeinde,
-        !!@ ili2db.dispName="Gemischt öffentlich und privat"
-        Gemischt_oeffentlich_privat,
-        !!@ Nameili2db.dispName="Öffentlich gemischt"
-        Oeffentlich_gemischt,
-        Privatwald
-      );
+      Typ : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Typ_Waldeigentum;
       /** Flächen in m2 nach Waldfunktion
        */
       !!@ ili2db.mapping=JSON
@@ -330,7 +313,10 @@ VERSION "2025-03-12"  =
       Produktive_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Produktiv;
       /** Hiebsatzrelevante Flächen in m2
        */
-      Hiebsatzrelevante_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Hiebsatz;
+      Hiebsatzrelevante_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Hiebsatzrelevant;
+      /** Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche : 0.000 .. 9999999999.000;
       /** Grundbuchname
        */
       Grundbuch : MANDATORY TEXT*100;
@@ -343,7 +329,7 @@ VERSION "2025-03-12"  =
       /** Bemerkung zum Waldplan
        */
       Bemerkung : MTEXT*500;
-    END Waldplan;
+    END Waldplan_Liegenschaft;
 
     /** Beschreibt welchen Typ die jeweiligen Waldflächen haben. Nicht erfasst werden Flächen mit dem Typ "Mit Wald bestockt". Diese werden für das Pub-Modell aus der Differenz zur Waldfunktionsfläche generiert.
      */
