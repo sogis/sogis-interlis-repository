@@ -5,13 +5,14 @@ INTERLIS 2.3;
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2024-09-11 | AW  | Erste Version
+ * !! 2025-06-16 | jek | Korr AchsNr Typ: Von Int auf Text
  * !!==============================================================================
  */
 !!@ technicalContact=mailto:agi@bd.so.ch
-!!@ furtherInformation=http://geo.so.ch/models/AVT/SO_AVT_Mehrjahresplanung_20240911.uml
-MODEL SO_AVT_Mehrjahresplanung_20240911 (de)
+!!@ furtherInformation=http://geo.so.ch/models/AVT/SO_AVT_Mehrjahresplanung_20240616.uml
+MODEL SO_AVT_Mehrjahresplanung_20240616 (de)
 AT "http://www.geo.so.ch/models/AVT"
-VERSION "2024-09-11"  =
+VERSION "2025-06-16"  =
   IMPORTS GeometryCHLV95_V1;
 
   TOPIC Kantonsstrassen =
@@ -44,7 +45,7 @@ VERSION "2024-09-11"  =
   END Kantonsstrassen;
 
   TOPIC Projekte =
-    DEPENDS ON SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen;
+    DEPENDS ON SO_AVT_Mehrjahresplanung_20240616.Kantonsstrassen;
 
     /** Klasse welche den CSV Export aus der Mehrjahresplanung abbildet.
      */
@@ -115,7 +116,7 @@ VERSION "2024-09-11"  =
       );
       /** Achsnummer der betroffenen Strasse
        */
-      AchsNr : MANDATORY 0 .. 10000;
+      AchsNr : MANDATORY TEXT*100;
       /** Anfangsbezugspunkt
        */
       BpAnfang : MANDATORY TEXT*40;
@@ -130,8 +131,10 @@ VERSION "2024-09-11"  =
       ProjektSuffix : 0 .. 100;
       /** Prüft ob die Kombination von Projekt Nummer und Suffix eindeutig ist
        */
-      !!@ name=UniqueProjektIdentifikation
+      /** Prüft ob die Kombination von Projekt Nummer und Suffix eindeutig ist
+       */
       !!@ ilivalid.msg="Projekt Identifikation ist nicht eindeutig"
+      !!@ name=UniqueProjektIdentifikation
       UNIQUE ProjektNr, ProjektSuffix;
     END Projekt;
 
@@ -151,27 +154,27 @@ VERSION "2024-09-11"  =
     END ProjektGeometrie;
 
     /** Beziehung zwischen Projekt und dem Anfangsbezugspunkt.
-     * Mit dieser Beziehung kann sicher gestellt werden, dass 
+     * Mit dieser Beziehung kann sicher gestellt werden, dass
      * referenzierte Anfangspunkte in dem Datensatz der Kantons-
      * strassen auch wirklich existieren.
      */
     !!@ name=Projekt_Anfangspunkt
     ASSOCIATION Projekt_Anfangspunkt =
       rProjekt -- {0..*} Projekt;
-      rAnfangsBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt;
+      rAnfangsBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240616.Kantonsstrassen.Bezugspunkt;
     END Projekt_Anfangspunkt;
 
     /** Beziehung zwischen Projekt und dem Endbezugspunkt.
-     * Mit dieser Beziehung kann sicher gestellt werden, dass 
+     * Mit dieser Beziehung kann sicher gestellt werden, dass
      * referenzierte Endpunkte in dem Datensatz der Kantons-
      * strassen auch wirklich existieren.
      */
     !!@ name=Projekt_Endpunkt
     ASSOCIATION Projekt_Endpunkt =
       rProjekte -- {0..*} Projekt;
-      rEndBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240911.Kantonsstrassen.Bezugspunkt;
+      rEndBezugspunkt (EXTERNAL) -- {1} SO_AVT_Mehrjahresplanung_20240616.Kantonsstrassen.Bezugspunkt;
     END Projekt_Endpunkt;
 
   END Projekte;
 
-END SO_AVT_Mehrjahresplanung_20240911.
+END SO_AVT_Mehrjahresplanung_20240616.
