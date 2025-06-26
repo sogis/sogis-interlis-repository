@@ -336,13 +336,26 @@ VERSION "2025-05-15"  =
   TOPIC Kartierer =
 
     CLASS KartiererPerson =
-      /** Name des Kartierers
+      /** Name der kartierenden Person
        */
-      Name : MANDATORY TEXT*30;
-      /** Kürzel des / der kartierenden Personen
+      Name : MANDATORY TEXT*50;
+      /** Vorname der kartierenden person
        */
-      Kuerzel : MANDATORY TEXT*10;
+      Vorname : TEXT*50;
     END KartiererPerson;
+
+    /** Ein Team besteht aus Kartierern, welche zusammen eine oder mehrere Gebiete Kartieren.
+     */
+    CLASS KartiererTeam =
+      /** Jedes Team hat einen Namen bzw. ein Kürzel
+       */
+      TeamKuerzel : MANDATORY TEXT*20;
+    END KartiererTeam;
+
+    ASSOCIATION AssociationDef88 =
+      KartiererPerson -- {1..*} KartiererPerson;
+      KartiererTeam -- {0..*} KartiererTeam;
+    END AssociationDef88;
 
   END Kartierer;
 
@@ -429,7 +442,7 @@ VERSION "2025-05-15"  =
        */
       Kartierer_Kuerzel : MANDATORY TEXT*20;
       MANDATORY CONSTRAINT Math.sum("Auspraegung->Gewichtung") == 100;
-      EXISTENCE CONSTRAINT Kartierer_Kuerzel REQUIRED IN SO_AFU_Bodeneinheiten_20250515.Kartierer.KartiererPerson:Kuerzel;
+      EXISTENCE CONSTRAINT Kartierer_Kuerzel REQUIRED IN SO_AFU_Bodeneinheiten_20250515.Kartierer.KartiererTeam:TeamKuerzel;
     END BodeneinheitHauptauspraegung;
 
     /** Bodeneinheit, welche sich nicht im Wald befindet.
