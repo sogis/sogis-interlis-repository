@@ -9,7 +9,7 @@ INTERLIS 2.3;
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AFU_Bootsanbindeplaetze_20250604 (de)
 AT "http://geo.so.ch/models/AWJF"
-VERSION "2025-02-10"  =
+VERSION "2025-06-04"  =
   IMPORTS GeometryCHLV95_V1;
 
   TOPIC Bootsanbindeplaetze =
@@ -23,11 +23,6 @@ VERSION "2025-02-10"  =
         Ruderboot,
         bis_6_kW,
         ueber_6_kW
-      );
-
-      Platzstatus = (
-        frei,
-        zugewiesen
       );
 
     /** Dokumente zum Hauptstandort und/oder zu den MieterInnen
@@ -74,16 +69,9 @@ VERSION "2025-02-10"  =
       /** E-Mail-Adresse des Kontaktes
        */
       EMail : TEXT*100;
-      /** Agiert die Person/Organisation als MieterIn oder VermieterIn?
-       * VermieterInnen können ebenfalls als MieterIn agieren.
-       */
-      Typ : (
-        MieterIn,
-        VermieterIn
-      );
       /** Handelt es sich um einen Kontokorrent-Kontakt?
        */
-      Kontokorrent : BOOLEAN;
+      Kontokorrent : MANDATORY BOOLEAN;
       /** Bemerkungen zum Kontakt
        */
       Bemerkung : MTEXT;
@@ -118,7 +106,7 @@ VERSION "2025-02-10"  =
       Bootskennzeichen : MANDATORY TEXT*20;
       /** Kategorie des Bootes
        */
-      Bootskategorie : Bootskategorie;
+      Bootstyp : Bootskategorie;
       /** Breite des Bootes in Meter
        */
       Bootsbreite : 1.00 .. 49.99;
@@ -131,9 +119,9 @@ VERSION "2025-02-10"  =
       /** Ablaufdatum der Bewilligung
        */
       Datum_Bewilligungsablauf : INTERLIS.XMLDate;
-      /** Existiert eine Zufahrtsbewilligung zum Bootsanbindeplatz?
+      /** Besteht eine Zufahrtsbewilligung zum Bootsanbindeplatz?
        */
-      Zufahrtsbewilligung : BOOLEAN;
+      Zufahrtsbewilligung : MANDATORY BOOLEAN;
       /** Beanspruchte Wasserfläche des Schiffsstegs in m2 für diesen Bootsanbindeplatz. Pro beanspruchte m2 Wasserfläche wird 6 Fr. verrechnet (minimum 60 Fr.).
        */
       Flaeche_Schiffsteg : 0.00 .. 1000.00;
@@ -143,9 +131,6 @@ VERSION "2025-02-10"  =
       /** Anzahl beanspruchte Schiffsanbindepfosten. Pro Schiffsanbindepfosten wird eine jährliche Gebühr von CHF 120 verrechnet.
        */
       Pfosten : 0 .. 2;
-      /** Status des Bootsanbindeplatzes
-       */
-      Status : Platzstatus;
       /** Punktgeometrie des Bootsanbindeplatzes
        */
       Geometrie : GeometryCHLV95_V1.Coord2;
@@ -169,7 +154,7 @@ VERSION "2025-02-10"  =
     EXTENDS Standortdaten =
       /** Angabe, ob sich der Standort privat vermietet wird.
        */
-      Privatvermietung : BOOLEAN;
+      Privatvermietung : MANDATORY BOOLEAN;
       /** Punktgeometrie des Standortes
        */
       Geometrie : GeometryCHLV95_V1.Coord2;
@@ -199,7 +184,12 @@ VERSION "2025-02-10"  =
       Standorteigentum -- {0..*} Standort;
       /** EigentümerIn des Standortes. Es können mehrere Personen als Eigentümer eines Standortes auftreten. Allerdings ist jeder Bootsanbindeplatz dann genau einem Eigentümer zugeordnet.
        */
-      Eigentuemer -- {0..*} Kontaktdaten;
+      EigentuemerIn -- {0..*} Kontaktdaten;
+      /** Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde
+       */
+      !!@ ilivalid.msg="Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde."
+      !!@ name=Check_Privatvermietung
+      MANDATORY CONSTRAINT (Standorteigentum->Privatvermietung);
     END Eigentum;
 
     /** Ein Hauptstandort kann einen oder mehrere (Unter-)Standorte besitzen. Umgekehrt muss ein Standort immer genau einem Haupstandort zugeteilt sein.
@@ -225,6 +215,11 @@ VERSION "2025-02-10"  =
       Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
     END Nutzer_Bootsanbindeplatz;
 
+    ASSOCIATION Rechnung_Nutzungsgebuehr =
+      Bootsanbindeplatz -- {0..*} Bootsanbindeplatz;
+      Rechnungsstelle_Nutzungsgebuehr -- {0..1} Kontaktdaten;
+    END Rechnung_Nutzungsgebuehr;
+
     /** Die Steggebühren werden immer dem Vermieter in Rechnung gestellt.
      */
     ASSOCIATION Rechnung_Steggebuehr =
@@ -236,11 +231,6 @@ VERSION "2025-02-10"  =
       Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
     END Rechnung_Steggebuehr;
 
-    ASSOCIATION Rechung_Nutzungsgebuehr =
-      Bootsanbindeplatz -- {0..*} Bootsanbindeplatz;
-      Rechnungsstelle_Nutzungsgebuehr -- {0..1} Kontaktdaten;
-    END Rechung_Nutzungsgebuehr;
-
     /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
      */
     ASSOCIATION Standort_Bootsanbindeplatz =
@@ -251,11 +241,6 @@ VERSION "2025-02-10"  =
        */
       Bootsanbindeplatz -- {1..*} Bootsanbindeplatz;
     END Standort_Bootsanbindeplatz;
-
-    ASSOCIATION Standort_Personendaten =
-      Standort -- {0..*} Standort;
-      Person -- {0..*} Kontaktdaten;
-    END Standort_Personendaten;
 
   END Bootsanbindeplaetze;
 
