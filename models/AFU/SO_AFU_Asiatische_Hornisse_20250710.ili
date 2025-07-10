@@ -1,0 +1,94 @@
+INTERLIS 2.3;
+
+/* !! Die Verbreitung und Behandlung der Nester der asiatischen Hornisse wird mittels der entsprechenden Fachapplikationen von infofauna.ch gepflegt.
+ * !! Die für den Kanton relevanten Informationen zur Behandlung separat und ohne Schnittstelle zu infofauna.ch vorerst unabhängig von infofauna.ch aufgebaut.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-07-02 | sc  | Initial erstellt.
+ * !! 2025-07-10 | cr  | Angepasst für den Import von infofauna WFS.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Asiatische_Hornisse_20240702 (de)
+AT "http://geo.so.ch/models/AFU/"
+VERSION "2025-07-10"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Asia_Hornisse =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Verbreitung und Behandlung der Nester der asiatischen Hornisse
+     */
+    CLASS basis =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Eindeutige und stabile Record-ID von infofauna */
+      MaterialEntity_Id : MANDATORY TEXT*200;
+      /** Nummer des Nests von InfoFauna (nicht stabil) - tbd: ist FK falls Hornisse */
+      Nid_Id : TEXT*200;
+      /** Datum der Sichtung */
+      Datum_Sichtung : MANDATORY INTERLIS.XMLDate;
+      /** Ort der Sichtung. Nächst gelegener Flurnamen */
+      Ort : TEXT*200;
+      /** Kanton */
+      Kanton : MANDATORY TEXT*200;
+      /** x-Koordinate LV 95 */
+      X_Koordinate : 1000000 .. 9000000;
+      /** y-Koordinate LV 95 */
+      Y_Koordinate : 1000000 .. 9000000;
+      /** Name der Beobachterin */
+      Kontakt_Name : TEXT*200;
+      /** Mail der Beobachterin */
+      Kontakt_Mail : TEXT*200;
+      /** Tel der Beobachterin */
+      Kontakt_Tel : TEXT*200;
+      /** Bemerkung zur Sichtung */
+      Bemerkung : MTEXT*600;
+      /** URL zum infofauna Record */
+      URL : TEXT*200;
+      /** URL zur infofauna Foto */
+      Foto_URL : TEXT*200;
+      /** Status der getroffenen Massnahmen */
+      Massnahmenstatus : (
+        /** neu */
+        neu,
+        /** in Bearbeitung */
+        in_Bearbeitung,
+        /** abgeschlossen */
+        abgeschlossen,
+        /** ungelöst (tbd: heisst das: kann nicht abgeschlossen werden?) */
+        ungeloest
+      );
+      /** Bemerkung zur Massnahme */
+      Bemerkung_Massnahme : MTEXT*600;
+      /** Wert ist eindeutig */
+      UNIQUE MaterialEntity_Id;
+    END basis;
+
+    CLASS hornisse =  /** tbd extends basis */
+      /** Nummer der Sichtung von InfoFauna (stabil ?) */
+      Occurrence_Id : TEXT*200;
+      /** Falls am Bienenstand gesichtet: Bienenstand-Nummer */
+      Bienenstand_Nr : TEXT*200;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen vor 10 Uhr */
+      Vor_10_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen zwischen 10 und 13 Uhr */
+      Zwischen_10_und_13_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen zwischen 13 und 17 Uhr */
+      Zwischen_13_und_17_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen nach 17 Uhr */
+      Nach_17_Uhr : 0 .. 99999999;
+    END hornisse;
+
+    CLASS nest =  /** tbd extends basis */
+      /** Status des Nests von infofauna */
+      Status :  (
+        /** bestehend (entspricht Wert "actif" bei infofauna bzw. Layer "active_nests") */
+        bestehend,
+        /** zerstört (entspricht Wert "détruit" bei infofauna bzw. Layer "unactive_nests") */
+        zerstört
+      );
+    END nest;
+
+  END Asia_Hornisse;
+
+END SO_AFU_Asiatische_Hornisse_20240702.
