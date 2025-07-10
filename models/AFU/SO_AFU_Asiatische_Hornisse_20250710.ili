@@ -1,6 +1,6 @@
 INTERLIS 2.3;
 
-/* !! Die Verbreitung und Behandlung der Nester der asiatischen Hornisse wird mittels der entsprechenden Fachapplikationen von infofauna.ch gepflegt.
+/** !! Die Verbreitung und Behandlung der Nester der asiatischen Hornisse wird mittels der entsprechenden Fachapplikationen von infofauna.ch gepflegt.
  * !! Die für den Kanton relevanten Informationen zur Behandlung separat und ohne Schnittstelle zu infofauna.ch vorerst unabhängig von infofauna.ch aufgebaut.
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Aenderung
@@ -8,7 +8,10 @@ INTERLIS 2.3;
  * !! 2024-07-02 | sc  | Initial erstellt.
  * !! 2025-07-10 | cr  | Angepasst für den Import von infofauna WFS.
  */
-!!@ technicalContact=mailto:agi@so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Asiatische_Hornisse_20250710.uml
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ shortDescription="Import und Behandlung von Sichtungen der Asiatischen Hornisse und ihrer Nester."
+!!@ title="Asiatische Hornisse"
 MODEL SO_AFU_Asiatische_Hornisse_20240702 (de)
 AT "http://geo.so.ch/models/AFU/"
 VERSION "2025-07-10"  =
@@ -17,9 +20,9 @@ VERSION "2025-07-10"  =
   TOPIC Asia_Hornisse =
     OID AS INTERLIS.UUIDOID;
 
-    /** Verbreitung und Behandlung der Nester der asiatischen Hornisse
+    /** Abstrakte Klasse für alle Attribute, welche sich Hornissen und Nester teilen
      */
-    CLASS basis =
+    CLASS Basis (ABSTRACT) =
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
       /** Eindeutige und stabile Record-ID von infofauna */
       MaterialEntity_Id : MANDATORY TEXT*200;
@@ -48,7 +51,7 @@ VERSION "2025-07-10"  =
       /** URL zur infofauna Foto */
       Foto_URL : TEXT*200;
       /** Status der getroffenen Massnahmen */
-      Massnahmenstatus : (
+      Massnahmenstatus : (  /** tbd - ist das spezifisch für Nester, Hornissen, beides? Check edit db */
         /** neu */
         neu,
         /** in Bearbeitung */
@@ -62,9 +65,12 @@ VERSION "2025-07-10"  =
       Bemerkung_Massnahme : MTEXT*600;
       /** Wert ist eindeutig */
       UNIQUE MaterialEntity_Id;
-    END basis;
+    END Basis;
 
-    CLASS hornisse =  /** tbd extends basis */
+    /** Sichtung und Behandlung von Hornissen
+     */
+    CLASS Hornisse
+    EXTENDS Basis =
       /** Nummer der Sichtung von InfoFauna (stabil ?) */
       Occurrence_Id : TEXT*200;
       /** Falls am Bienenstand gesichtet: Bienenstand-Nummer */
@@ -77,17 +83,22 @@ VERSION "2025-07-10"  =
       Zwischen_13_und_17_Uhr : 0 .. 99999999;
       /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen nach 17 Uhr */
       Nach_17_Uhr : 0 .. 99999999;
-    END hornisse;
+    END Hornisse;
 
-    CLASS nest =  /** tbd extends basis */
+    /** Sichtung und Behandlung von Nestern
+     */
+    CLASS Nest
+    EXTENDS Basis =
       /** Status des Nests von infofauna */
-      Status :  (
+      Status : MANDATORY (
         /** bestehend (entspricht Wert "actif" bei infofauna bzw. Layer "active_nests") */
         bestehend,
         /** zerstört (entspricht Wert "détruit" bei infofauna bzw. Layer "unactive_nests") */
         zerstört
       );
-    END nest;
+      /** Datum der Behandlung */
+      Datum_Behandlung : INTERLIS.XMLDate;
+    END Nest;
 
   END Asia_Hornisse;
 
