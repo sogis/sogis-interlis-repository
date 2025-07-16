@@ -25,94 +25,13 @@ VERSION "2025-06-04"  =
         ueber_6_kW
       );
 
-    /** Dokumente zum Hauptstandort und/oder zu den MieterInnen
-     */
-    CLASS Dokument =
-      /** Name des Dokuments inklusive Dokumentendung (ohne Pfad)
-       */
-      Name : MANDATORY TEXT*150;
-      /** Pfad zum Dokument
-       */
-      Pfad : MANDATORY TEXT;
-      /** Bemerkungen zum Dokument
-       */
-      Bemerkung : MTEXT;
-    END Dokument;
-
-    /** Kontaktdaten für die Bootsanbindeplatz-Mietende und -Vermietende.
-     */
-    CLASS Kontaktdaten =
-      /** Nachname der Kontaktperson
-       */
-      Name : TEXT*100;
-      /** Vorname der Kontaktperson
-       */
-      Vorname : TEXT*100;
-      /** Name der Organisation/Firma (falls vorhanden)
-       */
-      Organisation : TEXT*100;
-      /** Wohnstrasse und Hausnummer der Kontaktperson oder Organisation
-       */
-      Strasse_Nr : TEXT*100;
-      /** Postleitzahl der Kontaktperson oder Organisation
-       */
-      PLZ : 1000 .. 9999;
-      /** Ort/Gemeinde der Kontaktperson oder Organisation
-       */
-      Ort : TEXT*100;
-      /** SAP-Nummer des Kontaktes
-       */
-      SAP : TEXT*50;
-      /** Telefonnummer des Kontaktes
-       */
-      Telefon : TEXT*50;
-      /** E-Mail-Adresse des Kontaktes
-       */
-      EMail : TEXT*100;
-      /** Handelt es sich um einen Kontokorrent-Kontakt?
-       */
-      Kontokorrent : MANDATORY BOOLEAN;
-      /** Bemerkungen zum Kontakt
-       */
-      Bemerkung : MTEXT;
-    END Kontaktdaten;
-
-    /** Enthält die notwendigen Standortattribute
-     */
-    CLASS Standortdaten (ABSTRACT) =
-      /** Bezeichnung des Hauptstandortes
-       */
-      Bezeichnung : MANDATORY TEXT*100;
-      /** Nummer des Hauptstandortes.
-       */
-      Nummer : MANDATORY TEXT*10;
-      /** Bemerkungen zum Hauptstandort
-       */
-      Bemerkung : MTEXT;
-    END Standortdaten;
-
     CLASS Bootsanbindeplatz =
       /** Nummer des Bootsanbindeplatzes
        */
-      Platznummer : TEXT*10;
+      Platznummer : MANDATORY TEXT*10;
       /** Grösse des Bootsanbindeplatzes (Abstand Pfosten zu Pfosten)
        */
       Groesse : 1.00 .. 99.99;
-      /** Angabe ob der Bootsanbindeplatz vermietet ist.
-       */
-      Vermietung : BOOLEAN;
-      /** Bootskennzeichen (SO...)
-       */
-      Bootskennzeichen : MANDATORY TEXT*20;
-      /** Kategorie des Bootes
-       */
-      Bootstyp : Bootskategorie;
-      /** Breite des Bootes in Meter
-       */
-      Bootsbreite : 1.00 .. 49.99;
-      /** Länge des Bootes in Meter
-       */
-      Bootslaenge : 1.00 .. 99.99;
       /** Dati, der Bewilligung
        */
       Datum_Bewilligung : INTERLIS.XMLDate;
@@ -138,6 +57,90 @@ VERSION "2025-06-04"  =
        */
       Bemerkung : MTEXT;
     END Bootsanbindeplatz;
+
+    /** Dokumente zum Hauptstandort und/oder zu den MieterInnen
+     */
+    CLASS Dokument =
+      /** Name des Dokuments inklusive Dokumentendung (ohne Pfad)
+       */
+      Name : MANDATORY TEXT*150;
+      /** Pfad zum Dokument
+       */
+      Pfad : MANDATORY TEXT;
+      /** Bemerkungen zum Dokument
+       */
+      Bemerkung : MTEXT;
+    END Dokument;
+
+    /** Kontaktdaten für die Bootsanbindeplatz-Mietende und -Vermietende.
+     */
+    CLASS Kontaktdaten =
+      /** Nachname der Kontaktperson
+       */
+      Name : MANDATORY TEXT*100;
+      /** Vorname der Kontaktperson
+       */
+      Vorname : MANDATORY TEXT*100;
+      /** Name der Organisation/Firma (falls vorhanden)
+       */
+      Organisation : TEXT*100;
+      /** Strassenname und Hausnummer der Kontaktperson oder Organisation
+       */
+      Strasse_Nr : MANDATORY TEXT*100;
+      /** Postleitzahl der Kontaktperson oder Organisation
+       */
+      PLZ : MANDATORY 1000 .. 9999;
+      /** Ort/Gemeinde der Kontaktperson oder Organisation
+       */
+      Ort : MANDATORY TEXT*100;
+      /** SAP-Nummer des Kontaktes
+       */
+      SAP : MANDATORY TEXT*50;
+      /** Telefonnummer des Kontaktes
+       */
+      Telefon : MANDATORY TEXT*50;
+      /** E-Mail-Adresse des Kontaktes
+       */
+      EMail : MANDATORY TEXT*100;
+      /** Handelt es sich um einen Kontokorrent-Kontakt?
+       */
+      Kontokorrent : MANDATORY BOOLEAN;
+      /** Bemerkungen zum Kontakt
+       */
+      Bemerkung : MTEXT;
+    END Kontaktdaten;
+
+    /** Enthält die notwendigen Standortattribute
+     */
+    CLASS Standortdaten (ABSTRACT) =
+      /** Bezeichnung des Hauptstandortes
+       */
+      Bezeichnung : MANDATORY TEXT*100;
+      /** Nummer des Hauptstandortes.
+       */
+      Nummer : MANDATORY TEXT*10;
+      /** Bemerkungen zum Hauptstandort
+       */
+      Bemerkung : MTEXT;
+      /** Bezeichnung muss einzigartig sein.
+       */
+      UNIQUE Bezeichnung;
+    END Standortdaten;
+
+    CLASS Bootsdaten =
+      /** Bootskennzeichen (SO...)
+       */
+      Bootskennzeichen : MANDATORY TEXT*20;
+      /** Kategorie des Bootes
+       */
+      Bootstyp : MANDATORY Bootskategorie;
+      /** Breite des Bootes in Meter
+       */
+      Bootsbreite : 1.00 .. 49.99;
+      /** Länge des Bootes in Meter
+       */
+      Bootslaenge : 1.00 .. 99.99;
+    END Bootsdaten;
 
     /** Ein Hauptstandort fasst mehrere Standorte (Bootsstege / Treppen) zusammen
      */
@@ -168,6 +171,32 @@ VERSION "2025-06-04"  =
        */
       Person -- {0..1} Kontaktdaten;
     END Dokument_Person;
+
+    /** Ein Bootsanbindeplatz kann maximal von einer Person genutzt/gemietet werden.
+     * Eine Person darf maximal einen Botsanbindeplatz nutzen/mieten.
+     */
+    ASSOCIATION Nutzer_Bootsanbindeplatz =
+      /** Ein Bootsanbindeplatz kann maximal an eine Person vermietet werden.
+       */
+      Nutzer -- {0..1} Kontaktdaten;
+      /** Eine Person kann maximal einen Bootsanbindeplatz mieten/nutzen
+       */
+      Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
+    END Nutzer_Bootsanbindeplatz;
+
+    /** Zuteilung der Rechnungsstelle für die Steggebühren. Notwendig, da diese teilweise dem Vermieter und nicht dem Mieter (Nutzer) in Rechnung gestellt werden.
+     */
+    ASSOCIATION Rechnung_Steggebuehr =
+      /** Rechnungsstelle für die Steggebühr (nur bei privaten Standorten)
+       */
+      Rechnungsstelle_Steggebuehr -- {0..1} Kontaktdaten;
+      /** Wenn die Rechnungstelle der Bootsanbindeplatz-Vermietende ist, können diesem mehrere Bootsanbindeplätze zugeordnet werden.
+       */
+      Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
+      MANDATORY CONSTRAINT DEFINED(Bootsanbindeplatz_vermietet->Flaeche_Schiffsteg);
+      
+      
+    END Rechnung_Steggebuehr;
 
     /** Ein Dokument kann maximal einem Hauptstandort oder einer Person zugeteilt sein
      */
@@ -203,34 +232,6 @@ VERSION "2025-06-04"  =
       Standort -- {1..*} Standort;
     END Hauptstandort_Standort;
 
-    /** Ein Bootsanbindeplatz kann maximal von einer Person genutzt/gemietet werden.
-     * Eine Person darf maximal einen Botsanbindeplatz nutzen/mieten.
-     */
-    ASSOCIATION Nutzer_Bootsanbindeplatz =
-      /** Ein Bootsanbindeplatz kann maximal an eine Person vermietet werden.
-       */
-      Nutzer -- {0..1} Kontaktdaten;
-      /** Eine Person kann maximal einen Bootsanbindeplatz mieten/nutzen
-       */
-      Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
-    END Nutzer_Bootsanbindeplatz;
-
-    ASSOCIATION Rechnung_Nutzungsgebuehr =
-      Bootsanbindeplatz -- {0..*} Bootsanbindeplatz;
-      Rechnungsstelle_Nutzungsgebuehr -- {0..1} Kontaktdaten;
-    END Rechnung_Nutzungsgebuehr;
-
-    /** Die Steggebühren werden immer dem Vermieter in Rechnung gestellt.
-     */
-    ASSOCIATION Rechnung_Steggebuehr =
-      /** Rechnungsstelle für die Steggebühr (nur bei privaten Standorten)
-       */
-      Rechnungsstelle_Steggebuehr -- {0..1} Kontaktdaten;
-      /** Wenn die Rechnungstelle der Bootsanbindeplatz-Vermietende ist, können diesem mehrere Bootsanbindeplätze zugeordnet werden.
-       */
-      Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
-    END Rechnung_Steggebuehr;
-
     /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
      */
     ASSOCIATION Standort_Bootsanbindeplatz =
@@ -241,6 +242,11 @@ VERSION "2025-06-04"  =
        */
       Bootsanbindeplatz -- {1..*} Bootsanbindeplatz;
     END Standort_Bootsanbindeplatz;
+
+    ASSOCIATION Zuteilung_Boot =
+      Boot -- {0..1} Bootsdaten;
+      Bootsanbindeplatz -- {1} Bootsanbindeplatz;
+    END Zuteilung_Boot;
 
   END Bootsanbindeplaetze;
 
