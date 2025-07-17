@@ -29,10 +29,10 @@ VERSION "2025-06-04"  =
       /** Nummer des Bootsanbindeplatzes
        */
       Platznummer : MANDATORY TEXT*10;
-      /** Grösse des Bootsanbindeplatzes (Abstand Pfosten zu Pfosten)
+      /** Grösse des Bootsanbindeplatzes in Meter (Abstand Pfosten zu Pfosten)
        */
       Groesse : 1.00 .. 99.99;
-      /** Dati, der Bewilligung
+      /** Datum der Bewilligung
        */
       Datum_Bewilligung : INTERLIS.XMLDate;
       /** Ablaufdatum der Bewilligung
@@ -41,21 +41,21 @@ VERSION "2025-06-04"  =
       /** Besteht eine Zufahrtsbewilligung zum Bootsanbindeplatz?
        */
       Zufahrtsbewilligung : MANDATORY BOOLEAN;
-      /** Beanspruchte Wasserfläche des Schiffsstegs in m2 für diesen Bootsanbindeplatz. Pro beanspruchte m2 Wasserfläche wird 6 Fr. verrechnet (minimum 60 Fr.).
+      /** Beanspruchte Wasserfläche des Schiffsstegs in m2 für diesen Bootsanbindeplatz.
        */
       Flaeche_Schiffsteg : 0.00 .. 1000.00;
-      /** Mietkosten für den Bootsanbindeplatz. Wird nur bei gewissen kantonalen Bootsanbindeplätzen angewendet.
+      /** Mietkosten für den Bootsanbindeplatz. Wird nur bei gewissen kantonalen Bootsanbindeplätzen angewendet und ersetzt im Normalfall die meisten Nutzungsgebühren.
        */
       Miete : 0.00 .. 10000.00;
-      /** Anzahl beanspruchte Schiffsanbindepfosten. Pro Schiffsanbindepfosten wird eine jährliche Gebühr von CHF 120 verrechnet.
+      /** Anzahl beanspruchte Schiffsanbindepfosten.
        */
-      Pfosten : 0 .. 2;
+      Pfosten_Anz : 0 .. 2;
       /** Punktgeometrie des Bootsanbindeplatzes
        */
-      Geometrie : GeometryCHLV95_V1.Coord2;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
       /** Bemerkungen zum Bootsanbindeplatz
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Bootsanbindeplatz;
 
     /** Dokumente zum Hauptstandort und/oder zu den MieterInnen
@@ -69,7 +69,7 @@ VERSION "2025-06-04"  =
       Pfad : MANDATORY TEXT;
       /** Bemerkungen zum Dokument
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Dokument;
 
     /** Kontaktdaten für die Bootsanbindeplatz-Mietende und -Vermietende.
@@ -98,16 +98,16 @@ VERSION "2025-06-04"  =
       SAP : MANDATORY TEXT*50;
       /** Telefonnummer des Kontaktes
        */
-      Telefon : MANDATORY TEXT*50;
+      Telefon : TEXT*50;
       /** E-Mail-Adresse des Kontaktes
        */
-      EMail : MANDATORY TEXT*100;
+      EMail : TEXT*100;
       /** Handelt es sich um einen Kontokorrent-Kontakt?
        */
       Kontokorrent : MANDATORY BOOLEAN;
       /** Bemerkungen zum Kontakt
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Kontaktdaten;
 
     /** Enthält die notwendigen Standortattribute
@@ -116,12 +116,12 @@ VERSION "2025-06-04"  =
       /** Bezeichnung des Hauptstandortes
        */
       Bezeichnung : MANDATORY TEXT*100;
-      /** Nummer des Hauptstandortes.
+      /** Kennnummer des Standortes.
        */
-      Nummer : MANDATORY TEXT*10;
-      /** Bemerkungen zum Hauptstandort
+      Kennnummer : MANDATORY TEXT*10;
+      /** Bemerkungen zum Standort
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
       /** Bezeichnung muss einzigartig sein.
        */
       UNIQUE Bezeichnung;
@@ -149,6 +149,7 @@ VERSION "2025-06-04"  =
       /** Gemeinde des Hauptstandortes
        */
       Gemeinde : MANDATORY TEXT*100;
+      UNIQUE Kennnummer;
     END Hauptstandort;
 
     /** Ein Standort (Steg / Treppe) fasst mehrere Bootsanbindeplätze zusammen und ist einem Hauptstandort zugeordnet.
@@ -160,65 +161,52 @@ VERSION "2025-06-04"  =
       Privatvermietung : MANDATORY BOOLEAN;
       /** Punktgeometrie des Standortes
        */
-      Geometrie : GeometryCHLV95_V1.Coord2;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
     END Standort;
 
-    ASSOCIATION Dokument_Person =
-      /** Einer Person können mehrere Dokumente zugeordnet sein.
+    ASSOCIATION Dokument_Kontaktdaten =
+      /** Einem Kontakt können keine oder mehrere Dokumente zugeordnet sein.
        */
-      Dokument -- {0..*} Dokument;
-      /** Ein Dokument muss entweder einem Hauptstandort oder einer Person zugeordnet sein.
+      Dokument_R -- {0..*} Dokument;
+      /** Ein Dokument kann einem Kontakt oder einem Hauptstandort zugeordnet sein.
        */
-      Person -- {0..1} Kontaktdaten;
-    END Dokument_Person;
+      Kontaktdaten_R -- {0..1} Kontaktdaten;
+    END Dokument_Kontaktdaten;
 
-    /** Ein Bootsanbindeplatz kann maximal von einer Person genutzt/gemietet werden.
-     * Eine Person darf maximal einen Botsanbindeplatz nutzen/mieten.
-     */
     ASSOCIATION Nutzer_Bootsanbindeplatz =
-      /** Ein Bootsanbindeplatz kann maximal an eine Person vermietet werden.
+      /** Ein Bootsanbindeplatz kann maximal an einen Kontakt vermietet werden.
        */
-      Nutzer -- {0..1} Kontaktdaten;
-      /** Eine Person kann maximal einen Bootsanbindeplatz mieten/nutzen
+      Nutzer_Bootsanbindeplatz -- {0..1} Kontaktdaten;
+      /** Ein Kontakt kann maximal einen Bootsanbindeplatz mieten/nutzen
        */
-      Bootsanbindeplatz_genutzt -- {0..1} Bootsanbindeplatz;
+      Bootsanbindeplatz_zugeteilt -- {0..1} Bootsanbindeplatz;
     END Nutzer_Bootsanbindeplatz;
 
-    /** Zuteilung der Rechnungsstelle für die Steggebühren. Notwendig, da diese teilweise dem Vermieter und nicht dem Mieter (Nutzer) in Rechnung gestellt werden.
+    /** Zuteilung der Rechnungsstelle für die Steggebühren. Diese ist notwendig, da diese bei privaten Standorten auch der Vermieter die Rechnungsstelle sein kann.
      */
     ASSOCIATION Rechnung_Steggebuehr =
-      /** Rechnungsstelle für die Steggebühr (nur bei privaten Standorten)
+      /** Die Rechnung für die Steggebühr eines Bootsanbindeplatzes kann maximal einem Kontakt zugeordnet werden.
        */
       Rechnungsstelle_Steggebuehr -- {0..1} Kontaktdaten;
-      /** Wenn die Rechnungstelle der Bootsanbindeplatz-Vermietende ist, können diesem mehrere Bootsanbindeplätze zugeordnet werden.
+      /** Ein Kontakt kann für mehrere Bootsanbindeplatz die Rechnungsstelle sein.
        */
-      Bootsanbindeplatz_vermietet -- {0..*} Bootsanbindeplatz;
-      MANDATORY CONSTRAINT DEFINED(Bootsanbindeplatz_vermietet->Flaeche_Schiffsteg);
-      
-      
+      Bootsanbindeplatz_Steggebuehr -- {0..*} Bootsanbindeplatz;
     END Rechnung_Steggebuehr;
 
-    /** Ein Dokument kann maximal einem Hauptstandort oder einer Person zugeteilt sein
-     */
     ASSOCIATION Dokument_Hauptstandort =
       /** Einem Hauptstandort können keine oder mehrere Dokumente zugeordnet sein.
        */
-      Dokument -- {0..*} Dokument;
+      Dokument_R -- {0..*} Dokument;
       /** Ein Dokument kann einem Hauptstandort oder einer Person zugeordnet werden.
        */
-      Hauptstandort -- {0..1} Hauptstandort;
+      Hauptstandort_R -- {0..1} Hauptstandort;
     END Dokument_Hauptstandort;
 
     ASSOCIATION Eigentum =
-      Standorteigentum -- {0..*} Standort;
+      Standort_R -- {0..*} Standort;
       /** EigentümerIn des Standortes. Es können mehrere Personen als Eigentümer eines Standortes auftreten. Allerdings ist jeder Bootsanbindeplatz dann genau einem Eigentümer zugeordnet.
        */
-      EigentuemerIn -- {0..*} Kontaktdaten;
-      /** Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde
-       */
-      !!@ ilivalid.msg="Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde."
-      !!@ name=Check_Privatvermietung
-      MANDATORY CONSTRAINT (Standorteigentum->Privatvermietung);
+      Kontaktdaten_R -- {0..*} Kontaktdaten;
     END Eigentum;
 
     /** Ein Hauptstandort kann einen oder mehrere (Unter-)Standorte besitzen. Umgekehrt muss ein Standort immer genau einem Haupstandort zugeteilt sein.
@@ -226,10 +214,10 @@ VERSION "2025-06-04"  =
     ASSOCIATION Hauptstandort_Standort =
       /** Ein Standort wird genau einem Hauptstandort zugeordnet
        */
-      Hauptstandort -- {1} Hauptstandort;
+      Hauptstandort_R -- {1} Hauptstandort;
       /** Ein Hauptstandort kann einen oder mehrere Standorte haben
        */
-      Standort -- {1..*} Standort;
+      Standort_R -- {1..*} Standort;
     END Hauptstandort_Standort;
 
     /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
@@ -237,16 +225,45 @@ VERSION "2025-06-04"  =
     ASSOCIATION Standort_Bootsanbindeplatz =
       /** Ein Bootsanbindeplatz ist genau einem Standort zugeordnet
        */
-      Standort -- {1} Standort;
+      Standort_R -- {1} Standort;
       /** Ein Standort kann mehrere Bootsanbindeplätze haben.
        */
-      Bootsanbindeplatz -- {1..*} Bootsanbindeplatz;
+      Bootsanbindeplatz_R -- {1..*} Bootsanbindeplatz;
     END Standort_Bootsanbindeplatz;
 
+    /** Ein Boot muss genau einem Bootsanbindeplatz zugeordnet sein. Ein Bootsanbindeplatz kann mehrere Boote enthalten
+     */
     ASSOCIATION Zuteilung_Boot =
-      Boot -- {0..1} Bootsdaten;
-      Bootsanbindeplatz -- {1} Bootsanbindeplatz;
+      Bootsdaten_R -- {0..1} Bootsdaten;
+      Bootsanbindeplatz_R -- {1} Bootsanbindeplatz;
     END Zuteilung_Boot;
+
+    CONSTRAINTS OF Bootsanbindeplatz =
+      !!@ ilivalid.msg="Die Platznummer des Bootsanbindeplatzes muss innerhalb des Standortes einzigartig sein."
+      !!@ name=Check_Platznummer
+      UNIQUE Platznummer, Standort_R;
+      !!@ ilivalid.msg="Ein Boot darf nur einem Bootsanbindeplatz zugeordnet werden, wenn ebenfalls ein Kontakt zugeordnet wurde."
+      !!@ name=Check_Zuteilung_Boot
+      MANDATORY CONSTRAINT NOT (DEFINED(Bootsdaten_R) AND NOT(DEFINED(Nutzer_Bootsanbindeplatz)));
+      !!@ ilivalid.msg="Wenn eine Fläche zum Steg definiert wurde, dann muss auch die Rechnungsstelle für die Steggebühr definiert werden."
+      !!@ name=Check_Rechnungsstelle_Steggebühr
+      MANDATORY CONSTRAINT NOT (DEFINED(Flaeche_Schiffsteg) AND NOT(DEFINED(Rechnungsstelle_Steggebuehr)));
+    END;
+
+    CONSTRAINTS OF Kontaktdaten =
+      !!@ ilivalid.msg="Im Minimum muss eine Telefonnummer oder eine EMail-Adresse vorhanden sein."
+      !!@ name=Check_Kontaktdaten
+      MANDATORY CONSTRAINT DEFINED(Telefon) OR DEFINED(EMail);
+    END;
+
+    CONSTRAINTS OF Standort =
+      !!@ ilivalid.msg="Die Kennnummer des Standortes muss innerhalb des Hauptstandortes einzigartig sein."
+      !!@ name=Check_Kennnummer_Standort
+      UNIQUE Kennnummer, Hauptstandort_R;
+      !!@ ilivalid.msg="Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde."
+      !!@ name=Check_Privatvermietung
+      MANDATORY CONSTRAINT DEFINED(Privatvermietung) AND DEFINED(Kontaktdaten_R);
+    END;
 
   END Bootsanbindeplaetze;
 
