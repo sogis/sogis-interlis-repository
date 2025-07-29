@@ -122,9 +122,6 @@ VERSION "2025-06-04"  =
       /** Bemerkungen zum Standort
        */
       Bemerkung : MTEXT*1000;
-      /** Bezeichnung muss einzigartig sein.
-       */
-      UNIQUE Bezeichnung;
     END Standortdaten;
 
     CLASS Bootsdaten =
@@ -245,24 +242,24 @@ VERSION "2025-06-04"  =
       !!@ ilivalid.msg="Ein Boot darf nur einem Bootsanbindeplatz zugeordnet werden, wenn ebenfalls ein Kontakt zugeordnet wurde."
       !!@ name=Check_Zuteilung_Boot
       MANDATORY CONSTRAINT NOT (DEFINED(Bootsdaten_R) AND NOT(DEFINED(Nutzer_Bootsanbindeplatz)));
-      !!@ ilivalid.msg="Wenn eine Fläche zum Steg definiert wurde, dann muss auch die Rechnungsstelle für die Steggebühr definiert werden."
+      !!@ ilivalid.msg="Wenn eine Stegfläche definiert wurde, dann muss auch die Rechnungsstelle für die Steggebühr definiert werden."
       !!@ name=Check_Rechnungsstelle_Steggebühr
       MANDATORY CONSTRAINT NOT (DEFINED(Flaeche_Schiffsteg) AND NOT(DEFINED(Rechnungsstelle_Steggebuehr)));
     END;
 
     CONSTRAINTS OF Kontaktdaten =
-      !!@ ilivalid.msg="Im Minimum muss eine Telefonnummer oder eine EMail-Adresse vorhanden sein."
+      !!@ ilivalid.msg="Zum Kontakt muss mindestens eine Telefonnummer oder eine E-Mail-Adresse erfasst werden."
       !!@ name=Check_Kontaktdaten
       MANDATORY CONSTRAINT DEFINED(Telefon) OR DEFINED(EMail);
     END;
 
     CONSTRAINTS OF Standort =
-      !!@ ilivalid.msg="Die Kennnummer des Standortes muss innerhalb des Hauptstandortes einzigartig sein."
+      !!@ ilivalid.msg="Die Kennnummer des Standortes muss innerhalb eines Hauptstandortes einzigartig sein."
       !!@ name=Check_Kennnummer_Standort
       UNIQUE Kennnummer, Hauptstandort_R;
       !!@ ilivalid.msg="Ein Kontakt kann nur Eigentümer sein, wenn Privatvermietung ausgewählt wurde."
       !!@ name=Check_Privatvermietung
-      MANDATORY CONSTRAINT DEFINED(Privatvermietung) AND DEFINED(Kontaktdaten_R);
+      MANDATORY CONSTRAINT NOT(Privatvermietung) OR NOT(DEFINED(Kontaktdaten_R));
     END;
 
   END Bootsanbindeplaetze;
