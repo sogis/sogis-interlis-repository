@@ -215,6 +215,7 @@ VERSION "2025-06-04"  =
       /** Ein Hauptstandort kann einen oder mehrere Standorte haben
        */
       Standort_R -- {1..*} Standort;
+      UNIQUE Standort_R->Kennnummer, Hauptstandort_R;
     END Hauptstandort_Standort;
 
     /** Jeder Bootsanbindeplatz muss genau einem Standort zugeordnet sein. Ein Standort kann mehrere Bootsanbindeplätze besitzen
@@ -226,6 +227,7 @@ VERSION "2025-06-04"  =
       /** Ein Standort kann mehrere Bootsanbindeplätze haben.
        */
       Bootsanbindeplatz_R -- {1..*} Bootsanbindeplatz;
+      UNIQUE Bootsanbindeplatz_R->Platznummer, Standort_R;
     END Standort_Bootsanbindeplatz;
 
     /** Ein Boot muss genau einem Bootsanbindeplatz zugeordnet sein. Ein Bootsanbindeplatz kann mehrere Boote enthalten
@@ -236,9 +238,6 @@ VERSION "2025-06-04"  =
     END Zuteilung_Boot;
 
     CONSTRAINTS OF Bootsanbindeplatz =
-      !!@ ilivalid.msg="Die Platznummer des Bootsanbindeplatzes muss innerhalb des Standortes einzigartig sein."
-      !!@ name=Check_Platznummer
-      UNIQUE Platznummer, Standort_R;
       !!@ ilivalid.msg="Ein Boot darf nur einem Bootsanbindeplatz zugeordnet werden, wenn ebenfalls ein Kontakt zugeordnet wurde."
       !!@ name=Check_Zuteilung_Boot
       MANDATORY CONSTRAINT NOT (DEFINED(Bootsdaten_R) AND NOT(DEFINED(Nutzer_Bootsanbindeplatz)));
@@ -251,12 +250,6 @@ VERSION "2025-06-04"  =
       !!@ ilivalid.msg="Zum Kontakt muss mindestens eine Telefonnummer oder eine E-Mail-Adresse erfasst werden."
       !!@ name=Check_Kontaktdaten
       MANDATORY CONSTRAINT DEFINED(Telefon) OR DEFINED(EMail);
-    END;
-
-    CONSTRAINTS OF Standort =
-      !!@ ilivalid.msg="Die Kennnummer des Standortes muss innerhalb eines Hauptstandortes einzigartig sein."
-      !!@ name=Check_Kennnummer_Standort
-      UNIQUE Kennnummer, Hauptstandort_R;
     END;
 
     CONSTRAINTS OF Eigentum =
