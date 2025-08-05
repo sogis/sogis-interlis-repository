@@ -1,0 +1,100 @@
+@startuml
+
+package "Beziehungen" as bez {
+  package "Topic Aufträge" {
+    class "Autor" as ar
+    class "Auftrag" as at
+    class "Bericht" as b
+    class "Teilauftrag" as ta
+    class "Abklaerungsperimeter" as ap
+
+    at "1" -- "1..*" ta
+    at "1" -- "1..*" b
+    ar "1" -- "1..*" ta
+    ta "1..*" -right- "1..*" ap
+  }
+
+  package "Topic Befunde" {
+    class "Prozessquelle" as pq
+    class "PQ_Jaehrlichkeit_\nSteinBlockschlag" as psb
+    class "PQ_Jaehrlichkeit_\nBergFelssturz" as pbf
+    class "PQ_Jaehrlichkeit_\nSpontaneRutschung" as psr
+    class "PQ_Jaehrlichkeit_\nHangmure" as phm
+    class "Kennwert_\nTextPQ" as ktp
+    class "Befund_\nTextPQ" as btp
+    class "Befund\nSteinBlockschlag" as bsb
+    class "BefundBergFelssturz" as bbf
+    class "BefundHangmure" as bhm
+    class "Befund\nSpontane\nRutschung" as bsr
+    class "Fliessrichtungspfeil" as fl
+
+    pq "1" -- "*" psb
+    pq "1" -- "*" psr
+    pq "1" -- "*" phm
+    pq "1" -- "*" pbf
+    pq "1" -- "*" btp
+    pq "1" -- "*" ktp
+    pq "1" -- "*" fl
+
+    psb "1" -- "1..*" bsb
+    psr "1" -- "1..*" bsr
+
+    phm "1" -- "1..*" bhm
+    pbf "1" -- "1..*" bbf
+  }
+
+  ta "1" -- "*" pq
+}
+
+package "Vererbungen" as ext {
+  class "PQ_Jaehrlichkeit_\nSpontaneRutschung" as psr_
+  class "PQ_Jaehrlichkeit_\nRutsch_Mure_Base" as prm_
+  class "PQ_Jaehrlichkeit_Hangmure" as phm_
+  class "Befund_Basis" as bb_
+  class "Kennwert_TextPQ" as ktp_
+  class "Befund_TextPQ" as btp_
+  class "BefundAbsenkung" as ba_
+  class "BefundEinsturz" as be_
+  class "Befund\nSteinBlockschlag" as bsb_
+  class "Befund\nBergFelssturz" as bbf_
+  class "BefundHangmure" as bhm_
+  class "Befund\nPermanente\nRutschung" as bpr_
+  class "Befund\nSpontaneRutschung" as bsr_
+  class "BefundUebermurung" AS bum_
+  class "Befund\nUeberschwemmung\nDynamisch" as bud_
+  class "Befund\nUeberschwemmung\nStatisch" as bus_
+  class "BefundUfererosion" as bue_
+  class "BefundJaehrlichkeit" as bj_
+  class "Kennwert\nUeberschwemmung\nFliesstiefe" as kst_
+  class "Kennwert\nUeberschwemmung\nFliessgeschwindigkeit" as ksg_
+  class "Kennwert\nUebermurung\nFliesstiefe" as kmt_
+  class "Kennwert\nUebermurung\nFliessgeschwindigkeit" as kmg_
+
+  prm_ <|-- psr_
+  prm_ <|-- phm_
+
+  bb_ <|-- ktp_
+  bb_ <|---- btp_
+  bb_ <|-- bsb_
+  bb_ <|-- bbf_
+  bb_ <|-- bhm_
+  bb_ <|-- bsr_
+
+  btp_ <|-- ba_
+  btp_ <|-- be_
+  btp_ <|-- bpr_
+  btp_ <|-- bum_
+  btp_ <|-- bud_
+  btp_ <|-- bus_
+  btp_ <|-- bue_
+  btp_ <|-- bj_
+
+  ktp_ <|-- kst_
+  ktp_ <|-- ksg_
+  ktp_ <|-- kmt_
+  ktp_ <|-- kmg_
+}
+
+bhm -[hidden]-> bb_
+
+@enduml
