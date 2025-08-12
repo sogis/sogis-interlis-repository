@@ -13,5 +13,36 @@
         height="600" 
         style="border: none;">
     </iframe>
+
+<script>
+  const frame = document.getElementById('map');
+  let lastHref = '';
+
+  // Alle 300 ms prüfen, ob sich die iFrame-URL (SPA/pushState) geändert hat
+  const t = setInterval(() => {
+    console.log("Hallo Welt.");
+    try {
+      const href = frame.contentWindow.location.href; // klappt nur bei same-origin
+      if (href !== lastHref) {
+        lastHref = href;
+        const u = new URL(href);
+        let center = u.searchParams.get('c');
+        if (!center && u.hash) {
+          const m = u.hash.match(/c=([^&]+)/);
+          if (m) center = m[1];
+        }
+        if (center) {
+          console.log(center);
+          const url = new URL(location.href);
+          url.searchParams.set('c', center);
+          history.replaceState(null, '', url);
+        }
+      }
+    } catch (e) {
+      // Wenn du hier landest, ist es weiterhin cross-origin
+    }
+  }, 300);
+</script>
+
 </body>
 </html>
