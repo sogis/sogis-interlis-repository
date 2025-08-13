@@ -1,0 +1,156 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! $td
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-08-12 | OJ  | Initial erstellt. $td MTEXT
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Schadstoffe_Boden_Publikation_20250812 (de)
+  AT "http://geo.so.ch/models/AFU/"
+  VERSION "2025-08-12"
+  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Stoffe =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Informationen zur Probe und zum Ort der Probenahme. Der Standort der Probenahme
+     * ist als 2D-Punkt modelliert. $td bl Alle Probenahme-Attribute mit Standort_ notiert
+     */
+    CLASS Probe (ABSTRACT) =
+      /** Obergrenze der Probeentnahme.. $td BF mand
+       */
+      Tiefe_von : 0.0 .. 999.9;
+      /** Untergrenze der Probeentnahme.. $td BF mand
+       */
+      Tiefe_bis : 0.0 .. 999.9;
+      /** Tiefe der Probeentnahme.. $td G mand
+       */
+      Tiefe : 0.0 .. 999.9;
+      /** Datum der Probenahme
+       */
+      Probenahmedatum : MANDATORY INTERLIS.XMLDate;
+      /** Bezeichnung der Beprobung in der entsprechenden Tiefe an der entsprechenden Probenahmestelle. $td mand FG
+       */
+      Beprobungsnummer : TEXT*20;
+      /** Bemerkungen zur Probename (Aussergewöhnliches, …)
+       */
+      Bemerkungen : MTEXT*200;
+      /** Höhe des Grundwasserspiegels (m.ü.M) zum Zeitpunkt der Probenahme. $td mand G
+       */
+      Grundwasserspiegel : 0.1 .. 1999.5;
+      /** X/Y Koordinaten des Standorts.
+       */
+      Standort_Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Eindeutige Kennung des Standorts der Probeentnahme. $td Umbenannt, damit es besser auf Pub-Modell passt
+       */
+      Standort_Kennung : MANDATORY TEXT*100;
+      /** Projekte (Untersuchungskampagnen), in denen diese Probenahmestelle beprobt wurde. $td B mand
+       */
+      Standort_Projekte : MTEXT*500;
+      /** Kennung des KbS-Standortes, zu welchem an diesem Probestandort Proben entnommen wurden. $td F mandatory
+       */
+      Standort_KBS_Nummer : TEXT*15;
+      /** Oberkante der Sondierung in Meter über Meer. $td F mand
+       */
+      Standort_OK_Sondierung : 0.1 .. 1999.5;
+    END Probe;
+
+    CLASS Alle_Probe EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Probe =
+    END Alle_Probe;
+
+    CLASS Bodenschutz_Probe EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Probe =
+    END Bodenschutz_Probe;
+
+    CLASS Feststoffe_Probe EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Probe =
+    END Feststoffe_Probe;
+
+    CLASS Grundwasser_Probe EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Probe =
+    END Grundwasser_Probe;
+
+    CLASS Trinkwasser_Probe EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Probe =
+    END Trinkwasser_Probe;
+
+    /** Gemessener Wert eines Stoffs einer Probe. Damit auch nicht auf einen einzigen Stoff bezogenen Werte
+     * ebenfalls abgebildet werden können, verwendet das Modell die generischere Bezeichnungen Parameter anstatt
+     * Stoff.
+     * Beispiele für nicht stoffbezogene Werte:
+     * - Analysierte Temperatur
+     * - Aus mehreren Stoffwerten berechnete Summenwerte
+     */
+    CLASS Analysewert (ABSTRACT) =
+      /** Messwert oder Nachweisgrenze, abhängig von Attribut "Wert_Ist_Nachweisgrenze".
+       */
+      Wert : MANDATORY 0.00001 .. 99999.99999;
+      /** Ja: Attribut "Wert" ist Nachweisgrenze.
+       * Nein: Attribut "Wert" ist Messwert (Auch wenn Messwert knapp über Nachweisgrenze).
+       */
+      Ist_Nachweisgrenze : MANDATORY BOOLEAN;
+      /** Anzahl der signifikanten Nachkommastellen in Attribut "Wert". Negative Werte zur Notation der signifikanten Stellen vor dem Komma.
+       * Bsp 1: Nachkommastelle 2 und gespeicherter Wert 1.439 -> Darstellung als 1.44, da nur zwei Nachkommastellen signifikant.
+       * Bsp 2: Nachkommastelle -1 und gespeicherter Wert 54.987 -> Darstellung als 50, da die erste Stelle vor dem Komma nicht signifikant.
+       */
+      Nachkommastellen : MANDATORY -4 .. 5;
+      /** Einheit des Werts (ug/l, ug/kg, ...).
+       */
+      Einheit : MANDATORY TEXT*50;
+      /** Kurzbezeichnung (Kennung) des Analyseparamters.
+       */
+      Parameter_kurz : MANDATORY TEXT*50;
+      /** Analyseparamter ausgeschrieben. $td mand
+       */
+      Parameter_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Analysegruppe. Beispielsweise eine Stoffgruppe (Schwermetalle, PFAS). $td mand B
+       */
+      Gruppe_kurz : TEXT*50;
+      /** Analysegruppe ausgeschrieben. $td mand B
+       */
+      Gruppe_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Aufbereitung. $td mand B
+       */
+      Aufbereitung_kurz : TEXT*50;
+      /** Aufbereitung ausgeschrieben. $td mand B
+       */
+      Aufbereitung_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Analysemethode (Messgerät, ...). $td mand B
+       */
+      Analyse_kurz : TEXT*50;
+      /** Analysemethode ausgeschrieben (Messgerät, ...). $td mand B
+       */
+      Analyse_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Aufschlussmethode. $td mand B
+       */
+      Aufschluss_kurz : TEXT*50;
+      /** Aufschlussmethode ausgeschrieben. $td mand B
+       */
+      Aufschluss_lang : MTEXT*200;
+      /** Labor, in dem die Probe analysiert wurde. $td mand FG
+       */
+      Labor : MTEXT*500;
+      /** Temporäre Feld zum Erfassen der t_id der Probe, zu welcher dieser Wert gehört $td entfernen
+       */
+      Probe_Tid : 0 .. 999999;
+    END Analysewert;
+
+    CLASS Alle_Analysewert EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Analysewert =
+    END Alle_Analysewert;
+
+    CLASS Bodenschutz_Analysewert EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Analysewert =
+    END Bodenschutz_Analysewert;
+
+    CLASS Feststoffe_Analysewert EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Analysewert =
+    END Feststoffe_Analysewert;
+
+    CLASS Grundwasser_Analysewert EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Analysewert =
+    END Grundwasser_Analysewert;
+
+    CLASS Trinkwasser_Analysewert EXTENDS SO_AFU_Schadstoffe_Boden_Publikation_20250812.Stoffe.Analysewert =
+    END Trinkwasser_Analysewert;
+
+  END Stoffe;
+
+END SO_AFU_Schadstoffe_Boden_Publikation_20250812.
+
