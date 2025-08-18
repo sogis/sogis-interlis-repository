@@ -1,0 +1,62 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2022-08-18 | sz  | Ersterfassung
+ *  !! 2025-08-12 | sz  | Constraint angepasst auf Wunsch wintoall
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AWJF/SO_AWJF_Jagdreviergrenzen_EFJ2_20220811.uml
+!!@ shortDescription="Transfermodell zur Lieferung der Jagdreviere an EFJ2."
+!!@ title="Jagdreviergrenzen für EFJ2"
+MODEL SO_AWJF_Rahmenmodell_EFJ2_20250812 (de)
+AT "https://awjf.so.ch"
+VERSION "2022-08-11"  =
+  IMPORTS GeometryCHLV95_V1,Text;
+
+  TOPIC Gebiete =
+
+    /** Klasse für die verschiedenen generischen Gebietstypen
+     */
+    CLASS Gebiet =
+      /** Identifikator des Gebietes (Fremdschlüssel zu EFJ2-Objekt)
+       */
+      Identifikator : MANDATORY TEXT*100;
+      /** Fläche des Gebiets
+       */
+      Geometrie_Flaeche : GeometryCHLV95_V1.MultiSurface;
+      /** Linie des Gebiets
+       */
+      Geometrie_Linie : GeometryCHLV95_V1.MultiLine;
+      /** Gebietstyp. Freitext mit Constraints damit kantonale Bezeichnungen ohne Aufzähltyp abgehandelt werden können.
+       */
+      Typ : MANDATORY TEXT*100;
+      /** Es muss zwingend eine Geometrie erfasst sein.
+       */
+      MANDATORY CONSTRAINT DEFINED(Geometrie_Flaeche) OR DEFINED(Geometrie_Linie);
+      /** Als Enumeration-Ersatz. Eine Ergänzung einer Enumeration hat auf eine DB-Struktur grössere Auswirkung.
+       */
+      MANDATORY CONSTRAINT Typ=="Jagdrevier" OR Text.startsWith(Typ, "Jagdrevier.") OR Typ=="Wildraum" OR Typ=="Wildregion" OR Typ=="Fischereirevier" OR Text.startsWith(Typ, "Fischereirevier.")  OR Typ=="Gewässerstrecke" OR Typ=="Kanton";
+      /** Ein Identifikator und ein Typ sind zusammen eindeutig.
+       */
+      UNIQUE Identifikator, Typ;
+    END Gebiet;
+
+  END Gebiete;
+
+  TOPIC TransferMetadaten =
+    DEPENDS ON SO_AWJF_Rahmenmodell_EFJ2_20250812.Gebiete;
+
+    /** Metainformationen zur Lieferung
+     */
+    CLASS Datenbestand =
+      /** Zeitpunkt ab dem die Daten gültig sind.
+       */
+      gueltig_ab : INTERLIS.XMLDate;
+    END Datenbestand;
+
+  END TransferMetadaten;
+
+END SO_AWJF_Rahmenmodell_EFJ2_20250812.
