@@ -123,19 +123,19 @@ VERSION "2025-03-12"  =
       Schutzwald_Nr2 : MANDATORY TEXT*100;
       /** Sturz modelliert?
        */
-      Sturz : BOOLEAN;
+      Sturz : MANDATORY BOOLEAN;
       /** Rutschung modelliert?
        */
-      Rutsch : BOOLEAN;
+      Rutsch : MANDATORY BOOLEAN;
       /** gerinnerelevante Prozesse modelliert?
        */
-      gerinnerelevante_Prozesse : BOOLEAN;
+      gerinnerelevante_Prozesse : MANDATORY BOOLEAN;
       /** Lawine modelliert?
        */
-      Lawine : BOOLEAN;
+      Lawine : MANDATORY BOOLEAN;
       /** Schadenpotential in anderen Kantonen
        */
-      Andere_Kt : BOOLEAN;
+      Andere_Kt : MANDATORY BOOLEAN;
       /** Unterteilung des Schadenpotentials in Objektkategorien gemäss Bundesrichtlinien
        */
       Objektkategorie : SO_AWJF_Waldplan_20250312.Objekte_Schutzwald;
@@ -189,15 +189,10 @@ VERSION "2025-03-12"  =
       );
       /** Befindet sich der Wald auf dem Grundstück im Besitz einer ausserkantonalen Einwohnergemeinde, Bürgergemeinde oder Einheitsgemeinde?
        */
-      Ausserkantonal : BOOLEAN;
+      Ausserkantonal : MANDATORY BOOLEAN;
       /** Bemerkung zum Waldeigentum
        */
       Bemerkung : MTEXT*500;
-      /** Ausserkantonal darf nur ausgewählt sein, Typ = Bürgermeinde, Einheitsgemeinde oder Einwohnergemeinde
-       */
-      MANDATORY CONSTRAINT
-        DEFINED(Ausserkantonal) AND 
-        (Typ == #Buergergemeinde OR Typ == #Einwohnergemeinde OR Typ == #Einheitsgemeinde);
     END Waldeigentum;
 
     /** Beschreibt welche Funktionen die jeweiligen Waldflächen erfüllen. Die Summe aller Funktionsflächen ergbit die Waldübersicht. Das heisst Sie muss flächendeckend und vollumfänglich (also entsprechend der tatsächlichen Waldfläche) erfasst werden.
@@ -224,28 +219,6 @@ VERSION "2025-03-12"  =
       /** Bemerkung zur Waldfunktoinsfläche
        */
       Bemerkung : MTEXT*500;
-      /** Biodiversitaet_ID darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet ist.
-       */
-      !!@ ilivalid.msg="Biodiversitaet_ID darf nur definiert sein wenn Funktion = Biodiversitaet oder Schutzwald_Biodiversitaet ist."
-      !!@ name=Check_Biodiversitaet_ID
-      MANDATORY CONSTRAINT
-        DEFINED(Biodiversitaet_ID) AND 
-        (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet);
-      /** Das Attribut Biodiversitaet_Objekt darf nur den Wert Wytweide haben, wenn das Attribut Wytweide true ist.
-       */
-      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur den Wert Wytweide haben, wenn Wytweide true ist."
-      !!@ name=Check_Wytweide
-      MANDATORY CONSTRAINT NOT (
-        (Biodiversitaet_Objekt == #Wytweide) AND NOT (Wytweide)
-      );
-      
-      /** Biodiversitaet_Objekt darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet ist.
-       */
-      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet ist"
-      !!@ name=Check_Biodiversitaet_Objekt
-      MANDATORY CONSTRAINT
-        DEFINED(Biodiversitaet_Objekt) AND 
-        (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet);
     END Waldfunktion;
 
     /** Beschreibt welchen Typ die jeweiligen Waldflächen haben. Nicht erfasst werden Flächen mit dem Typ "Mit Wald bestockt". Diese werden für das Pub-Modell aus der Differenz zur Waldfunktionsfläche generiert.
@@ -284,6 +257,32 @@ VERSION "2025-03-12"  =
       
       
     END Waldfunktion_Schutzwald;
+
+    CONSTRAINTS OF Waldeigentum =
+      !!@ ilivalid.msg="Ausserkantonal darf nur ausgewählt sein, wenn Typ = Bürgermeinde, Einheitsgemeinde oder Einwohnergemeinde."
+      !!@ name=Check_Ausserkantonal
+      MANDATORY CONSTRAINT
+        DEFINED(Ausserkantonal) AND 
+        (Typ == #Buergergemeinde OR Typ == #Einwohnergemeinde OR Typ == #Einheitsgemeinde);
+    END;
+
+    CONSTRAINTS OF Waldfunktion =
+      !!@ ilivalid.msg="Biodiversitaet_ID darf nur definiert sein wenn Funktion = Biodiversitaet oder Schutzwald_Biodiversitaet ist."
+      !!@ name=Check_Biodiversitaet_ID
+      MANDATORY CONSTRAINT
+        DEFINED(Biodiversitaet_ID) AND 
+        (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet);
+      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur den Wert Wytweide haben, wenn Wytweide true ist."
+      !!@ name=Check_Wytweide
+      MANDATORY CONSTRAINT NOT (
+        (Biodiversitaet_Objekt == #Wytweide) AND NOT (Wytweide)
+      );
+      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet ist"
+      !!@ name=Check_Biodiversitaet_Objekt
+      MANDATORY CONSTRAINT
+        DEFINED(Biodiversitaet_Objekt) AND 
+        (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet);
+    END;
 
   END Waldplan;
 
