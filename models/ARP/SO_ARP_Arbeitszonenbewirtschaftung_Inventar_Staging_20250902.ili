@@ -1,0 +1,98 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2024-11-15 | al  | Ersterfassung
+ *  !! 2025-09-02 | al  | neues Attribut Watchlist_Prio und neue Werte bei Grund
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/ARP/SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Staging_20250902.uml
+MODEL SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Staging_20250902 (de)
+AT "https://agi.so.ch"
+VERSION "2025-09-02"  =
+  IMPORTS GeometryCHLV95_V1,Units;
+
+  /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück, welches in der Arbeitszone liegt. Damit die Daten der manuellen Bewertungen live im Web GIS Client angesehen werden können, ist ein Datenbank-View nötig. Damit dieser genügend schnell ist, werden die Daten amtlichen Vermessung, Nutzungsplanung, Bauzonenstatistik bereits aufbereitet.
+   */
+  TOPIC Arbeitszonenbewirtschaftung_Inventar =
+
+    /** Publikation der Arbeitszonenbewirtschaftung pro Grundstück
+     */
+    CLASS Arbeitszonenbewirtschaftung_Inventar =
+      /** Nummer des Grundstücks
+       */
+      Grundstuecknummer : MANDATORY TEXT*15;
+      /** Name des Grundbuchs (= Grundbuchkreis)
+       */
+      Grundbuch : MANDATORY TEXT*255;
+      /** Name der politischen Gemeinde
+       */
+      Gemeinde : MANDATORY TEXT*255;
+      /** Eidgenössischer Grundstücksidentifikator
+       */
+      EGRID : TEXT*14;
+      /** Fläche des Grundstückes in m2
+       */
+      Grundstueckflaeche : MANDATORY 0 .. 9999999999;
+      /** Link zur Eigentümerabfrage
+       */
+      Eigentuemer : INTERLIS.URI;
+      /** Name der Regionen der Arbeitszonenbewirtschaftung
+       */
+      Region : TEXT*255;
+      /** Bauzonenstatistik (Berechnung aus amtliche Vermessung Grundstück und Bodenbedeckung "befestigte Flächen"). Einteilung in drei Kategorien: Genutzt BB>30%; Teilgenutzt BB10-30%; Ungenutzt BB<10%
+       */
+      Nutzungsgrad : (
+        !!@ ili2db.dispName="teilgenutzt 10-30%"
+        teilgenutzt_zwischen_10_30Prozent,
+        !!@ ili2db.dispName="ungenutzt <10%"
+        ungenutzt_weniger_10Prozent,
+        /** genutzt > 30%
+         */
+        !!@ ili2db.dispName="genutzt > 30%"
+        genutzt_mehr_als_30Prozent
+      );
+      /** Link zum Zonenreglement. Herkunft Nutzungsplanung
+       */
+      Zonenreglement : INTERLIS.URI;
+      /** Link, falls ein Gestaltungsplan vorhanden ist. Herkunft Nutzungsplanung
+       */
+      Gestaltungsplan : TEXT;
+      /** Gestaltungsplanpflicht vorhanden? Herkunft Nutzungsplanung
+       */
+      Gestaltungsplanpflicht : BOOLEAN;
+      /** bebaut, teilweise bebaut oder unbebaut
+       */
+      Bebauungsstand : (
+        unbebaut,
+        !!@ ili2db.dispName="teilweise bebaut"
+        teilweise_bebaut,
+        bebaut
+      );
+      /** Link zum Baureglement. Herkunft Nutzungsplanung
+       */
+      Baureglement : INTERLIS.URI;
+      /** Grundnutzung aus der Nutzungsplanung gefiltert nach den Arbeitszonen. Falls für ein Grundstück mehrere Typen vorhanden sind, gibt es pro Typ eine Geometrie.
+       */
+      Grundnutzung_Typ_Kt : TEXT*255;
+      /** Liegenschaftsfläche beschnitten auf Bauzone im Siedlungsgebiet. Quelle Bauzonenstatistik
+       */
+      Flaeche_beschnitten : 0 .. 999999999 [Units.m2];
+      /** Fläche unbebaut - aus Methode der Berücksichtigung Zonen- und Liegenschaftsgrenzen. Quelle Bauzonenstatistik
+       */
+      Flaeche_unbebaut : 0 .. 999999999 [Units.m2];
+      /** Geometrie des Grundstücks (Liegenschaft ohne Baurecht)
+       */
+      Geometrie : GeometryCHLV95_V1.MultiSurface;
+      Grundstuecksart : (
+        Quellenrecht,
+        Baurecht,
+        Liegenschaft
+      );
+    END Arbeitszonenbewirtschaftung_Inventar;
+
+  END Arbeitszonenbewirtschaftung_Inventar;
+
+END SO_ARP_Arbeitszonenbewirtschaftung_Inventar_Staging_20250902.
