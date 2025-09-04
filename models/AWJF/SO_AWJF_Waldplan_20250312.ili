@@ -25,18 +25,6 @@ VERSION "2025-03-12"  =
       Region_Solothurn
     );
 
-    Objekte_Schutzwald = (
-      !!@ ili2db.dispName="kommunale Verkehrswege / Hofzufahrt"
-      Verkehrswege_kommunal_Hofzufahrt,
-      !!@ ili2db.dispName=Einzelgebäude
-      Einzelgebauede,
-      !!@ ili2db.dispName="Kantonsstrassen / Bahnlinien"
-      Kantonsstrassen_Bahnlinien,
-      !!@ ili2db.dispName="Geschlossene Siedlungen"
-      Geschlossene_Siedlungen,
-      Sonderobjekte
-    );
-
     Typ_Biodiversitaet = (
       Waldreservat,
       Altholzinsel,
@@ -89,7 +77,7 @@ VERSION "2025-03-12"  =
       Schutzwald_Biodiversitaet
     );
 
-    Typ_Waldplan = (
+    Walplan_Nutzungskategorie = (
       !!@ ili2db.dispName="Nachteilige Nutzung"
       Nachteilige_Nutzung,
       Waldstrasse,
@@ -99,8 +87,38 @@ VERSION "2025-03-12"  =
       !!@ ili2db.dispName="Rodung (temporär)"
       Rodung_temporaer,
       !!@ ili2db.dispName=Gewässer
-      Gewaesser,
-      Abbaustelle
+      Gewaesser
+    );
+
+    Typ_Wirtschaftszone = (
+      Jura,
+      Mittelland
+    );
+
+    Objekte_Schutzwald = (
+      !!@ ili2db.dispName="kommunale Verkehrswege / Hofzufahrt"
+      Verkehrswege_kommunal_Hofzufahrt,
+      !!@ ili2db.dispName=Einzelgebäude
+      Einzelgebauede,
+      !!@ ili2db.dispName="Kantonsstrassen / Bahnlinien"
+      Kantonsstrassen_Bahnlinien,
+      !!@ ili2db.dispName="Geschlossene Siedlungen"
+      Geschlossene_Siedlungen,
+      Sonderobjekte
+    );
+
+    Typ_Hauptgefahrenpotential = (
+      Sturz,
+      Rutschung,
+      !!@ ili2db.dispName="gerinnererlevane Prozesse"
+      gerinnerelevante_Prozesse,
+      Lawine
+    );
+
+    Typ_Intensitaet_geschaetzt = (
+      schwach,
+      mittel,
+      stark
     );
 
   TOPIC Waldplan =
@@ -109,18 +127,24 @@ VERSION "2025-03-12"  =
     CLASS Forstrevier =
       /** Bezeichnung des Forstreviers
        */
-      Name : MANDATORY TEXT*50;
+      Name : MANDATORY TEXT*100;
       /** Bemerkung zum Forstrevier
        */
       Bemerkung : MTEXT*500;
     END Forstrevier;
 
+    CLASS Forstbetrieb =
+      /** Bezeichnung des Forstbetriebes
+       */
+      Name : MANDATORY TEXT*200;
+      /** Bemerkung zum Forstbetrieb
+       */
+      Bemerkung : MTEXT*500;
+    END Forstbetrieb;
+
     /** Ausgeschiedene Schutzwälder nach Schaden- und Gefahrenpotential, Modellierung
      */
     CLASS Schutzwald =
-      /** Schutzwald-Nummer 2
-       */
-      Schutzwald_Nr2 : MANDATORY TEXT*100;
       /** Sturz modelliert?
        */
       Sturz : MANDATORY BOOLEAN;
@@ -144,23 +168,16 @@ VERSION "2025-03-12"  =
       Schadenpotential : TEXT*100;
       /** Hauptgefahrenpotential in der Schutzwaldfläche
        */
-      Hauptgefahrenpotential : (
-        Sturz,
-        Rutschung,
-        gerinnerelevante_Prozesse,
-        Lawine
-      );
+      Hauptgefahrenpotential : SO_AWJF_Waldplan_20250312.Typ_Hauptgefahrenpotential;
       /** Geschätzte Inensität des Hauptgefahrenpotentials
        */
-      Intensitaet_geschaetzt : (
-        schwach,
-        mittel,
-        stark
-      );
+      Intensitaet_geschaetzt : SO_AWJF_Waldplan_20250312.Typ_Intensitaet_geschaetzt;
+      /** Bemerkung zum Schutzwald
+       */
       Bemerkungen : MTEXT*500;
     END Schutzwald;
 
-    /** Tabelle wird für Erfassung mit AV-Daten kombiniert. Die Informationen beziehen sich daher immer auf einzelne Parzellen.
+    /** Tabelle wird für Erfassung über die EGRID-Nr. mit AV-Daten kombiniert. Die Informationen beziehen sich daher immer auf einzelne Liegenschaften.
      */
     CLASS Waldeigentum =
       /** Eidgenössische Grundstücksidentifikation
@@ -175,18 +192,12 @@ VERSION "2025-03-12"  =
        * Staatswald Seewen AfU (erfasst wird hier nur Seewen AfU) oder beim Typ Bundeswald: Bundeswald ASTRA (erfasst wird hier nur ASTRA).
        */
       Zusatzinformation : TEXT*500;
-      /** Zuständiger Forstbetrieb
-       */
-      Forstbetrieb : MANDATORY TEXT*200;
       /** Zuständiger Forstkreis
        */
       Forstkreis : MANDATORY SO_AWJF_Waldplan_20250312.Forstkreise;
       /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
        */
-      Wirtschaftszone : (
-        Jura,
-        Mittelland
-      );
+      Wirtschaftszone : SO_AWJF_Waldplan_20250312.Typ_Wirtschaftszone;
       /** Befindet sich der Wald auf dem Grundstück im Besitz einer ausserkantonalen Einwohnergemeinde, Bürgergemeinde oder Einheitsgemeinde?
        */
       Ausserkantonal : MANDATORY BOOLEAN;
@@ -210,6 +221,9 @@ VERSION "2025-03-12"  =
       /** Kann die Waldfläche als Weidefläche genutzt werden?
        */
       Wytweide : MANDATORY BOOLEAN;
+      /** Schutzwald-Nummer 2
+       */
+      Schutzwald_Nr2 : MANDATORY TEXT*10;
       /** Geometrie der Waldfunktionsfläche
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
@@ -221,12 +235,12 @@ VERSION "2025-03-12"  =
     /** Beschreibt welchen Typ die jeweiligen Waldflächen haben. Nicht erfasst werden Flächen mit dem Typ "Mit Wald bestockt". Diese werden für das Pub-Modell aus der Differenz zur Waldfunktionsfläche generiert.
      */
     CLASS Waldplantyp =
-      /** Waldplantyp
+      /** Nutzungskategorie
        * Die Differenz  zwischen allen erfassten Waldplantypflächen und der Summe der Waldfunktionsfläche ergbit den Typ "Mit Wald bestockt".
        * 
-       * Die Summe der Typen "Mit Wald bestockt" und "Niederhaltezone / Nachteilige Nutzung" ergibt die produktive Waldfläche.
+       * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
        */
-      Typ : MANDATORY SO_AWJF_Waldplan_20250312.Typ_Waldplan;
+      Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_20250312.Walplan_Nutzungskategorie;
       /** Geometrie der Waldplantypfläche
        */
       Geometrie : GeometryCHLV95_V1.AreaWithOverlaps2mm;
@@ -238,17 +252,22 @@ VERSION "2025-03-12"  =
     /** Jedes Waldeigentum (Grundstück, welches ganz oder teilweise mit Wald bedeckt ist) muss einem Forstrevier zugeordnet sein.
      */
     ASSOCIATION Waldeigentum_Forstrevier =
-      Grundstueck -- {0..*} Waldeigentum;
-      Forstrevier -- {1} Forstrevier;
+      Waldeigentum_R -- {0..*} Waldeigentum;
+      Forstrevier_R -- {1} Forstrevier;
     END Waldeigentum_Forstrevier;
 
+    ASSOCIATION Waldeigentum_Forstbetrieb =
+      Waldeigentum_R2 -- {0..*} Waldeigentum;
+      Forstbetrieb_R -- {1} Forstbetrieb;
+    END Waldeigentum_Forstbetrieb;
+
     ASSOCIATION Waldfunktion_Schutzwald =
-      Schutzwald -- {0..1} Schutzwald;      
-      Waldfunktion -- {1} Waldfunktion;
+      Schutzwald_R -- {0..1} Schutzwald;      
+      Waldfunktion_R -- {1} Waldfunktion;
       !!@ ilivalid.msg="Schutzwald darf nur definiert sein, wenn Funktion = Schutzwald oder Schutzwald_Biodiversitaet ist."
       !!@ name=Check_Schutzwald
       MANDATORY CONSTRAINT NOT (
-        DEFINED(Schutzwald) AND NOT (Waldfunktion->Funktion == #Schutzwald OR Waldfunktion->Funktion == #Schutzwald_Biodiversitaet)
+        DEFINED(Schutzwald_R) AND NOT (Waldfunktion_R->Funktion == #Schutzwald OR Waldfunktion_R->Funktion == #Schutzwald_Biodiversitaet)
       );
     END Waldfunktion_Schutzwald;
 
@@ -275,6 +294,11 @@ VERSION "2025-03-12"  =
       !!@ name=Check_Biodiversitaet_Objekt
       MANDATORY CONSTRAINT NOT (
         DEFINED(Biodiversitaet_Objekt) AND NOT (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet)
+      );
+      !!@ ilivalid.msg="Schutzwald darf nur definiert sein, wenn eine Schutzwald-Nr. erfasst wurde"
+      !!@ name=Check_Schutzwald_Nr
+      MANDATORY CONSTRAINT NOT (
+        DEFINED(Schutzwald_R) AND NOT (DEFINED(Schutzwald_Nr2))
       );
     END;
 
