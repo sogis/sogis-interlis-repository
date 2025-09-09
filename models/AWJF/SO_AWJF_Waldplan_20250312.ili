@@ -147,6 +147,9 @@ VERSION "2025-03-12"  =
     /** Ausgeschiedene Schutzwälder nach Schaden- und Gefahrenpotential, Modellierung
      */
     CLASS Schutzwald =
+      /** Schutzwald-Nummer
+       */
+      Schutzwald_Nr : MANDATORY TEXT*10;
       /** Sturz modelliert?
        */
       Sturz : MANDATORY BOOLEAN;
@@ -155,7 +158,7 @@ VERSION "2025-03-12"  =
       Rutsch : MANDATORY BOOLEAN;
       /** gerinnerelevante Prozesse modelliert?
        */
-      gerinnerelevante_Prozesse : MANDATORY BOOLEAN;
+      Gerinnerelevante_Prozesse : MANDATORY BOOLEAN;
       /** Lawine modelliert?
        */
       Lawine : MANDATORY BOOLEAN;
@@ -231,9 +234,6 @@ VERSION "2025-03-12"  =
       /** Kann die Waldfläche als Weidefläche genutzt werden?
        */
       Wytweide : MANDATORY BOOLEAN;
-      /** Schutzwald-Nummer 2
-       */
-      Schutzwald_Nr2 : TEXT*10;
       /** Geometrie der Waldfunktionsfläche
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
@@ -262,11 +262,6 @@ VERSION "2025-03-12"  =
     ASSOCIATION Waldfunktion_Schutzwald =
       Schutzwald_R -- {0..1} Schutzwald;      
       Waldfunktion_R -- {1} Waldfunktion;
-      !!@ ilivalid.msg="Schutzwald darf nur definiert sein, wenn Funktion = Schutzwald oder Schutzwald_Biodiversitaet ist."
-      !!@ name=Check_Schutzwald
-      MANDATORY CONSTRAINT NOT (
-        DEFINED(Schutzwald_R) AND NOT (Waldfunktion_R->Funktion == #Schutzwald OR Waldfunktion_R->Funktion == #Schutzwald_Biodiversitaet)
-      );
     END Waldfunktion_Schutzwald;
 
     CONSTRAINTS OF Waldeigentum =
@@ -278,25 +273,25 @@ VERSION "2025-03-12"  =
     END;
 
     CONSTRAINTS OF Waldfunktion =
-      !!@ ilivalid.msg="Biodiversitaet_ID darf nur definiert sein wenn Funktion = Biodiversitaet oder Schutzwald_Biodiversitaet ist."
+      !!@ ilivalid.msg="Biodiversitaet_ID darf nur definiert sein wenn Funktion = Biodiversitaet oder Schutzwald_Biodiversitaet."
       !!@ name=Check_Biodiversitaet_ID
       MANDATORY CONSTRAINT NOT (
         DEFINED(Biodiversitaet_ID) AND NOT (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet)
+      );
+      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet."
+      !!@ name=Check_Biodiversitaet_Objekt
+      MANDATORY CONSTRAINT NOT (
+        DEFINED(Biodiversitaet_Objekt) AND NOT (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet)
       );
       !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur den Wert Wytweide haben, wenn Wytweide true ist."
       !!@ name=Check_Wytweide
       MANDATORY CONSTRAINT NOT (
         (Biodiversitaet_Objekt == #Wytweide) AND NOT (Wytweide)
       );
-      !!@ ilivalid.msg="Biodiversitaet_Objekt darf nur definiert sein wenn Funktion = Biodiversitaet oder = Schutzwald_Biodiversitaet ist"
-      !!@ name=Check_Biodiversitaet_Objekt
+      !!@ ilivalid.msg="Schutzwald_R darf nur definiert sein, wenn Funktion = Schutzwald oder Schutzwald_Biodiversitaet."
+      !!@ name=Check_Schutzwald
       MANDATORY CONSTRAINT NOT (
-        DEFINED(Biodiversitaet_Objekt) AND NOT (Funktion == #Biodiversitaet OR Funktion == #Schutzwald_Biodiversitaet)
-      );
-      !!@ ilivalid.msg="Schutzwald darf nur definiert sein, wenn eine Schutzwald-Nr. erfasst wurde"
-      !!@ name=Check_Schutzwald_Nr
-      MANDATORY CONSTRAINT NOT (
-        DEFINED(Schutzwald_R) AND NOT (DEFINED(Schutzwald_Nr2))
+        DEFINED(Schutzwald_R) AND NOT (Funktion == #Schutzwald OR Funktion == #Schutzwald_Biodiversitaet)
       );
     END;
 
