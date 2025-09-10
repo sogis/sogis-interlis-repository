@@ -10,7 +10,7 @@ INTERLIS 2.3;
 MODEL SO_AWJF_Waldplan_20250312 (de)
 AT "https://geo.so.ch/models/AWJF"
 VERSION "2025-03-12"  =
-  IMPORTS GeometryCHLV95_V1,Text,CHAdminCodes_V1,SO_AWJF_Waldplan_Catalogues_20250910;
+  IMPORTS GeometryCHLV95_V1,Text,CHAdminCodes_V1,CatalogueObjects_V1;
 
   DOMAIN
 
@@ -121,9 +121,47 @@ VERSION "2025-03-12"  =
       stark
     );
 
+TOPIC WaldplanCatalogues =
+    OID AS INTERLIS.UUIDOID;
+    /** Wertekatalog für die Forstreviere
+     */
+    CLASS Forstrevier
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Bezeichnung des Forstreviers
+       */
+      Name : MANDATORY TEXT*100;
+      /** Bemerkung zum Forstrevier
+       */
+      Bemerkung : MTEXT*500;
+    END Forstrevier;
+    /** Wertekatalog für die Forstbetriebe
+     */
+    CLASS Forstbetrieb
+    EXTENDS CatalogueObjects_V1.Catalogues.Item =
+      /** Bezeichnung des Forstbetriebes
+       */
+      Name : MANDATORY TEXT*100;
+      /** Bemerkung zum Forstbetrieb
+       */
+      Bemerkung : MTEXT*500;
+    END Forstbetrieb;
+    /** Strukturklasse für Forstreviere
+     */
+    STRUCTURE ForstrevierRef
+      EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+        Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Forstrevier;
+    END ForstrevierRef;
+    /** Strukturklasse für Forstbetriebe
+     */
+    STRUCTURE ForstbetriebRef
+      EXTENDS CatalogueObjects_V1.Catalogues.MandatoryCatalogueReference =
+        Reference (EXTENDED) : MANDATORY REFERENCE TO (EXTERNAL) Forstbetrieb;
+    END ForstbetriebRef;
+  END WaldplanCatalogues;
+
   TOPIC Waldplan =
     OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_AWJF_Waldplan_Catalogues_20250910.Catalogues;
+    DEPENDS ON SO_AWJF_Waldplan_20250312.WaldplanCatalogues;
     /** Ausgeschiedene Schutzwälder nach Schaden- und Gefahrenpotential, Modellierung
      */
     CLASS Schutzwald =
@@ -182,10 +220,10 @@ VERSION "2025-03-12"  =
       Forstkreis : MANDATORY SO_AWJF_Waldplan_20250312.Forstkreise;
       /** Zuständiges Forstrevier
        */
-      Forstrevier : SO_AWJF_Waldplan_Catalogues_20250910.Catalogues.ForstrevierRef;
+      Forstrevier : SO_AWJF_Waldplan_20250312.WaldplanCatalogues.ForstrevierRef;
       /** Zuständiger Forstbetrieb
        */
-      Forstbetrieb : SO_AWJF_Waldplan_Catalogues_20250910.Catalogues.ForstbetriebRef;
+      Forstbetrieb : SO_AWJF_Waldplan_20250312.WaldplanCatalogues.ForstbetriebRef;
       /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
        */
       Wirtschaftszone : SO_AWJF_Waldplan_20250312.Typ_Wirtschaftszone;
