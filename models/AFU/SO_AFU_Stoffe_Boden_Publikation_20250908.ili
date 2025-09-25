@@ -1,0 +1,117 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Datenmodell der aus Böden entnommenen Proben (=Feldprobe) und
+ * !! deren Analyseresultate von chemischen Stoffen und weiteren Parametern.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-09-08 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Stoffe_Boden_Publikation_20250908 (de)
+  AT "http://geo.so.ch/models/AFU/"
+  VERSION "2025-09-08"
+  =
+  IMPORTS GeometryCHLV95_V1, SO_AFU_Stoffe_Messung_20250908;
+
+  DOMAIN
+    /** Beurteilungsklasse gemäss den VBBo Grenzwerten
+     * Richt-, Prüf- und Sanierungswert
+     * unter Annahme der empfindlichsten Bodennutzungsart
+     * bzw. -kategorie.
+     */
+    Beurteilungsklasse_VBBo = (
+      !!@ ili2db.dispName="kein Grenzwert"
+      kein_Grenzwert,
+      !!@ ili2db.dispName="<= RW"
+      kleiner_gleich_Richtwert,
+      !!@ ili2db.dispName="> RW"
+      groesser_Richtwert,
+      !!@ ili2db.dispName="> PW"
+      groesser_Pruefwert,
+      !!@ ili2db.dispName="> SW"
+      groesser_Sanierungswert
+    ) ORDERED;
+
+  TOPIC Stoffe =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Messwert EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Messwert =
+      /** Kurzbezeichnung (Kennung) der Aufbereitung.
+       */
+      Aufbereitung_kurz : TEXT*50;
+      /** Aufbereitung ausgeschrieben.
+       */
+      Aufbereitung_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Analysemethode (Messgerät, ...).
+       */
+      Analyse_kurz : TEXT*50;
+      /** Analysemethode ausgeschrieben (Messgerät, ...).
+       */
+      Analyse_lang : MTEXT*200;
+      /** Kurzbezeichnung (Kennung) der Aufschlussmethode.
+       */
+      Aufschluss_kurz : TEXT*50;
+      /** Aufschlussmethode ausgeschrieben.
+       */
+      Aufschluss_lang : MTEXT*200;
+      /** Beurteilungsklasse gemäss VBBo. Auf "kein_Grenzwert" klassiert,
+       * falls für den Stoff keine Grenzwerte definiert sind.
+       */
+      Beurteilungsklasse_VBBo : MANDATORY SO_AFU_Stoffe_Boden_Publikation_20250908.Beurteilungsklasse_VBBo;
+    END Messwert;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Wert_berechnet EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Wert_berechnet =
+      /** Beurteilungsklasse gemäss VBBo. Auf "kein_Grenzwert" klassiert,
+       * falls für den Stoff keine Grenzwerte definiert sind.
+       */
+      Beurteilungsklasse_VBBo : MANDATORY SO_AFU_Stoffe_Boden_Publikation_20250908.Beurteilungsklasse_VBBo;
+    END Wert_berechnet;
+
+    /** Informationen zur im Feld genommenen Probe und zum Ort der Probenahme. Der Standort der Probenahme
+     * ist als 2D-Punkt modelliert.
+     */
+    CLASS Feldprobe =
+      /** Datum der Probenahme
+       */
+      Probenahmedatum : MANDATORY INTERLIS.XMLDate;
+      /** X/Y Koordinaten des Standorts.
+       */
+      Standort_Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Eindeutige Kennung des Standorts der Probeentnahme.
+       */
+      Standort_Kennung : MANDATORY TEXT*100;
+      /** Beurteilungsklasse gemäss VBBo. Auf "kein_Grenzwert" klassiert,
+       * falls für keinen der gemessenen oder berechneten Werte ein Grenzwert vorliegt.
+       * Falls für mehrere Werte eine Grenzewert-Klassierung vorliegt, wird die gravierenste
+       * Klassierung abgebildet.
+       */
+      Beurteilungsklasse_VBBo : MANDATORY SO_AFU_Stoffe_Boden_Publikation_20250908.Beurteilungsklasse_VBBo;
+      /** Gemessene Werte von Stoffen, ... der Feldprobe.
+       * Messung kann vor Ort im Feld, und in 1-n Laboren erfolgen.
+       */
+      !!@ ili2db.mapping=JSON
+      Messwerte : BAG {1..*} OF SO_AFU_Stoffe_Boden_Publikation_20250908.Stoffe.Messwert;
+      /** Berechnete (=abgeleitete) Werte von Stoffen, ... .
+       */
+      !!@ ili2db.mapping=JSON
+      Werte_berechnet : BAG {1..*} OF SO_AFU_Stoffe_Boden_Publikation_20250908.Stoffe.Wert_berechnet;
+      /** Obergrenze der Probeentnahme in m. Bsp: 0.20 für 20 cm unterhalb OK Terrain.
+       */
+      Tiefe_von : MANDATORY 0.00 .. 9.99;
+      /** Untergrenze der Probeentnahme in m. Bsp: 0.40 für 40 cm unterhalb OK Terrain.
+       */
+      Tiefe_bis : MANDATORY 0.00 .. 9.99;
+      /** Projekte (Untersuchungskampagnen), in denen diese Probenahmestelle beprobt wurde.
+       */
+      Standort_Projekte : MANDATORY MTEXT*500;
+    END Feldprobe;
+
+  END Stoffe;
+
+END SO_AFU_Stoffe_Boden_Publikation_20250908.

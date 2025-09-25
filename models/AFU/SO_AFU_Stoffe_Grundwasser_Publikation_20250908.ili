@@ -1,0 +1,107 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Datenmodell der aus dem Grundwasser entnommenen Proben (=Feldprobe) und deren
+ * !! Analyseresultate von chemischen Stoffen und weiteren Parametern.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-09-08 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Stoffe_Grundwasser_Publikation_20250908 (de)
+  AT "http://geo.so.ch/models/AFU/"
+  VERSION "2025-09-08"
+  =
+  IMPORTS GeometryCHLV95_V1, SO_AFU_Stoffe_Messung_20250908;
+
+  DOMAIN
+    /** Beurteilungsklasse
+     */
+    Beurteilungsklasse = (
+      !!@ ili2db.dispName="kein Grenzwert"
+      kein_Grenzwert,
+      !!@ ili2db.dispName="weder überwachungs- noch sanierungsbedürftig"
+      weder_ueberwachung_noch_sanierung,
+      !!@ ili2db.dispName=ueberwachungsbedürftig
+      ueberwachungsbeduerftig,
+      !!@ ili2db.dispName=sanierungsbedürftig
+      sanierungsbeduerftig
+    ) ORDERED;
+
+  TOPIC Stoffe =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Messwert EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Messwert =
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für den Parameter kein Grenzwert definiert ist.
+       */
+      Beurteilungsklasse : MANDATORY SO_AFU_Stoffe_Grundwasser_Publikation_20250908.Beurteilungsklasse;
+    END Messwert;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Wert_berechnet EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Wert_berechnet =
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für den Parameter kein Grenzwert definiert ist.
+       */
+      Beurteilungsklasse : MANDATORY SO_AFU_Stoffe_Grundwasser_Publikation_20250908.Beurteilungsklasse;
+    END Wert_berechnet;
+
+    /** Informationen zur im Feld genommenen Probe und zum Ort der Probenahme. Der Standort der Probenahme
+     * ist als 2D-Punkt modelliert.
+     */
+    CLASS Feldprobe =
+      /** Datum der Probenahme
+       */
+      Probenahmedatum : MANDATORY INTERLIS.XMLDate;
+      /** Bemerkungen zur Probename (Aussergewöhnliches, …)
+       */
+      Bemerkungen : MTEXT*200;
+      /** X/Y Koordinaten des Standorts.
+       */
+      Standort_Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Oberkante der Sondierung in Meter über Meer.
+       */
+      Standort_OK_Sondierung : MANDATORY 250.00 .. 1999.99;
+      /** Bezeichnung des Standorts.
+       */
+      Standort_Bezeichnung : MANDATORY TEXT*100;
+      /** Kennung des KbS-Standortes, zu welchem an diesem Probestandort Proben entnommen wurden.
+       */
+      Standort_KBS_Nummer : MANDATORY TEXT*15;
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für keinen der gemessenen oder berechneten Werte ein Grenzwert vorliegt.
+       * Falls für mehrere Werte eine Grenzewert-Klassierung vorliegt, wird die gravierenste
+       * Klassierung abgebildet.
+       */
+      Beurteilungsklasse : MANDATORY SO_AFU_Stoffe_Grundwasser_Publikation_20250908.Beurteilungsklasse;
+      /** Gemessene Werte von Stoffen, ... der Feldprobe.
+       * Messung kann vor Ort im Feld, und in 1-n Laboren erfolgen.
+       */
+      !!@ ili2db.mapping=JSON
+      Messwerte : BAG {1..*} OF SO_AFU_Stoffe_Grundwasser_Publikation_20250908.Stoffe.Messwert;
+      /** Berechnete (=abgeleitete) Werte von Stoffen, ... .
+       */
+      !!@ ili2db.mapping=JSON
+      Werte_berechnet : BAG {1..*} OF SO_AFU_Stoffe_Grundwasser_Publikation_20250908.Stoffe.Wert_berechnet;
+      /** Entnahmetiefe der Probeentnahme in Meter. Bsp. 2.50 für 2.5 m unterhalb OK Terrain.
+       */
+      Entnahmetiefe : MANDATORY 0.0 .. 999.9;
+      /** Höhe des Grundwasserspiegels (m.ü.M) zum Zeitpunkt der Probenahme.
+       */
+      Grundwasserspiegel : MANDATORY 0.1 .. 1999.5;
+      /** True, falls die Probenahmestelle innerhalb des Grundwasserschutzbereichs "Au" liegt.
+       * Ist für die Berechnung der Grenzwertüberschreitungen notwendig.
+       */
+      In_GW_Schutzbereich : MANDATORY BOOLEAN;
+      /** Komma getrennte Liste der Labornamen der Labore, in welchen die Feldprobe analysiert wurde.
+       */
+      Labore : MANDATORY MTEXT*200;
+    END Feldprobe;
+
+  END Stoffe;
+
+END SO_AFU_Stoffe_Grundwasser_Publikation_20250908.
