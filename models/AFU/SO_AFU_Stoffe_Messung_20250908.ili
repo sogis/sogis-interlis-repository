@@ -1,0 +1,75 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Basismodell mit Modellübergreifend genutzten Datenstrukturen für gemessene
+ * !! und berechnete Werte von Stoffen, Stoffgruppen (Summenwerte) oder anderen
+ * !! Parametern (pH, Temperatur, ...).
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-09-08 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Stoffe_Messung_20250908 (de)
+  AT "http://geo.so.ch/models/AFU/"
+  VERSION "2025-08-12"
+  =
+
+  TOPIC Stoffe (ABSTRACT) =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Basisklasse für gemessene oder berechnete Werte
+     */
+    STRUCTURE Wert (ABSTRACT) =
+      /** Kurzbezeichnung (Kennung) des Analyseparamters.
+       */
+      Parameter_kurz : MANDATORY TEXT*50;
+      /** Analyseparameter ausgeschrieben.
+       */
+      Parameter_lang : MANDATORY MTEXT*200;
+      /** Wert oder Nachweisgrenze, abhängig von Attribut "Wert_Ist_Nachweisgrenze".
+       */
+      Wert : MANDATORY 0.00001 .. 99999.99999;
+      /** Alle Informationen zum Wert in einen menschenlesbaren String vereint.
+       * Beispiele:
+       * - "PFAS 14.34 ug/l": Auf zwei Nachkommastellen genauer Summenparameter "PFAS10".
+       * - "Cd < 34 mg/kg": Cadmium-Messung unter der Nachweisgrenze mit 0 Nachkommastellen".
+       */
+      Wert_Anzeige : MANDATORY TEXT*100;
+      /** Anzahl der signifikanten Nachkommastellen in Attribut "Wert".
+       * Bsp.: Nachkommastellen 2 und gespeicherter Wert 1.439 -> Darstellung als 1.44.
+       */
+      Nachkommastellen : MANDATORY 0 .. 5;
+      /** Einheit des Werts (ug/l, ug/kg, ...).
+       */
+      Einheit : MANDATORY TEXT*50;
+    END Wert;
+
+    /** Gemessener Wert eines Stoffs einer Probe. Damit auch nicht auf einen (einzigen) Stoff bezogene Werte
+     * abgebildet werden können, verwendet das Modell die generischere Bezeichnung Parameter anstatt
+     * Stoff.
+     * Beispiele für nicht auf einen Stoff bezogene Werte:
+     * - Analysierte Temperatur
+     * - Aus mehreren Stoffwerten berechnete Summenwerte
+     */
+    STRUCTURE Messwert (ABSTRACT) EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Wert =
+      /** Ja: Attribut "Wert" ist Nachweisgrenze.
+       * Nein: Attribut "Wert" ist Messwert (Auch wenn Messwert knapp über Nachweisgrenze).
+       */
+      Ist_Nachweisgrenze : MANDATORY BOOLEAN;
+      /** Kurzbezeichnung (Kennung) der Analysegruppe. Beispielsweise eine Stoffgruppe (Schwermetalle, PFAS).
+       */
+      Gruppe_kurz : MANDATORY TEXT*50;
+      /** Analysegruppe ausgeschrieben.
+       */
+      Gruppe_lang : MANDATORY MTEXT*200;
+    END Messwert;
+
+    /** Aus Werten berechneter "Summenwert" wie beispielsweise PFAS10.
+     */
+    STRUCTURE Wert_berechnet (ABSTRACT) EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Wert =
+    END Wert_berechnet;
+
+  END Stoffe;
+
+END SO_AFU_Stoffe_Messung_20250908.
