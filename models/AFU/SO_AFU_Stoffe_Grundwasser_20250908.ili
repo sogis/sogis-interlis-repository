@@ -1,34 +1,30 @@
 INTERLIS 2.3;
 
 /** !!
- * !! Datenmodell der aus Ablagerungsstandorten entnommenen Proben und
- * !! deren Analyseresultate von chemischen Stoffen und weiteren Parametern.
+ * !! Datenmodell der aus dem Grundwasser entnommenen Proben und deren
+ * !! Analyseresultate von chemischen Stoffen und weiteren Parametern.
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Aenderung
  * !!------------------------------------------------------------------------------
- * !! 2025-09-08 | OJ  | Initial erstellt.
+ * !! 2025-09-08 | CR  | Initial erstellt.
  */
 !!@ technicalContact=mailto:agi@so.ch
-MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
+MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
   AT "http://geo.so.ch/models/AFU/"
   VERSION "2025-09-08"
   =
   IMPORTS GeometryCHLV95_V1;
 
   DOMAIN
-    /** Abfallklassen gemäss VVEA.
+    /** Beurteilungsklasse
      */
-    Abfallklasse_VVEA = (
-      !!@ ili2db.dispName=U
-      unverschmutztes_Material,
-      !!@ ili2db.dispName=T
-      technisches_Material,
-      !!@ ili2db.dispName=B
-      Bauabfaelle,
-      !!@ ili2db.dispName=E
-      Erdaushub,
-      !!@ ili2db.dispName=S
-      Sonderabfaelle
+    Beurteilungsklasse = (
+      !!@ ili2db.dispName="weder überwachungs- noch sanierungsbedürftig"
+      weder_ueberwachung_noch_sanierung,
+      !!@ ili2db.dispName=ueberwachungsbedürftig
+      ueberwachungsbeduerftig,
+      !!@ ili2db.dispName=sanierungsbedürftig
+      sanierungsbeduerftig
     ) ORDERED;
 
   TOPIC Stoffe =
@@ -47,6 +43,13 @@ MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
       /** Kennung des KbS-Standortes, zu welchem an diser Probenahmestelle Proben entnommen wurden.
        */
       KBS_Nummer : MANDATORY TEXT*15;
+      /** Oberkante der Sondierung in Meter über Meer.
+       */
+      OK_Sondierung : MANDATORY 0.10 .. 1999.99;
+      /** True, falls die Probenahmestelle innerhalb des Grundwasserschutzbereichs "Au" liegt.
+       * Ist für die Berechnung der Grenzwertüberschreitungen notwendig.
+       */
+      In_GW_Schutzbereich : MANDATORY BOOLEAN;
       UNIQUE Bezeichnung, KBS_Nummer;
     END Probenahmestelle;
 
@@ -60,15 +63,12 @@ MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
       /** Bemerkungen zur Probename (Aussergewöhnliches, …)
        */
       Bemerkungen : MTEXT*200;
-      /** Obergrenze der Probeentnahme in Meter. Bsp: 0.20 für 20 cm unterhalb OK Terrain.
+      /** Entnahmetiefe der Probeentnahme in Meter. Bsp. 2.50 für 2.5 m unterhalb OK Terrain.
        */
-      Tiefe_von : MANDATORY 0.00 .. 999.99;
-      /** Untergrenze der Probeentnahme in Meter. Bsp: 0.40 für 40 cm unterhalb OK Terrain.
+      Entnahmetiefe : MANDATORY 0.0 .. 999.9;
+      /** Höhe des Grundwasserspiegels (m.ü.M) zum Zeitpunkt der Probenahme.
        */
-      Tiefe_bis : MANDATORY 0.00 .. 999.99;
-      /** Bezeichnung der Beprobung in der entsprechenden Tiefe an der entsprechenden Probenahmestelle.
-       */
-      Beprobungsnummer : MANDATORY TEXT*20;
+      Grundwasserspiegel : MANDATORY 0.1 .. 1999.5;
     END Feldprobe;
 
     /** Labor, in welchen die Feldprobe ganz oder teilweise analysiert wurde.
@@ -167,9 +167,9 @@ MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
       Berechnungsfehler : TEXT*200;
     END Wert_berechnet;
 
-    /** Höchstzulässiger Wert einer Abfallklasse für den entsprechenden Parameter.
+    /** Höchstzulässiger Wert einer Beurteilungsklasse für den entsprechenden Parameter.
      * Sprich: Nach Runden auf die signifikanten Stellen muss der Messwert kleiner oder
-     * gleich dem Grenzwert sein, damit die Probe in die entsprechende Abfallklasse fällt.
+     * gleich dem Grenzwert sein, damit die Probe in die entsprechende Beurteilungsklasse fällt.
      */
     CLASS Grenzwert =
       /** Höchstzulässiger Wert.
@@ -179,79 +179,79 @@ MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
        * Bsp.: Nachkommastellen 2 und gespeicherter Wert 1.439 -> Darstellung als 1.44.
        */
       Nachkommastellen : MANDATORY 0 .. 5;
-      /** Abfallklasse gemäss VVEA.
+      /** Beurteilungsklasse.
        */
-      Abfallklasse_VVEA : MANDATORY SO_AFU_Stoffe_Feststoffe_20250908.Abfallklasse_VVEA;
+      Beurteilungsklasse : MANDATORY SO_AFU_Stoffe_Grundwasser_20250908.Beurteilungsklasse;
     END Grenzwert;
 
     ASSOCIATION Einheit_Analysewert =
-      Einheit_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Einheit;
-      Analysewert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Analysewert;
+      Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
+      Analysewert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
     END Einheit_Analysewert;
 
     ASSOCIATION Einheit_Initialwert =
-      Einheit_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Einheit;
-      Initialwert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Initialwert;
+      Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
+      Initialwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Initialwert;
     END Einheit_Initialwert;
 
     ASSOCIATION Einheit__Wert_berechnet =
-      Einheit_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Einheit;
-      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Wert_berechnet;
+      Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
+      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
     END Einheit__Wert_berechnet;
 
     ASSOCIATION Einheit_Grenzwert =
-      Einheit_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Einheit;
-      Grenzwert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Grenzwert;
+      Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
+      Grenzwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Grenzwert;
     END Einheit_Grenzwert;
 
     ASSOCIATION Parameter_Analysegruppe =
-      Parameter_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Parameter;
-      Analysegruppe_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Analysegruppe;
+      Parameter_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
+      Analysegruppe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysegruppe;
     END Parameter_Analysegruppe;
 
     ASSOCIATION Parameter_Analysewert =
-      Parameter_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Parameter;
-      Analysewert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Analysewert;
+      Parameter_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
+      Analysewert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
     END Parameter_Analysewert;
 
     ASSOCIATION Parameter_Grenzwert =
-      Parameter_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Parameter;
-      Grenzwert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Grenzwert;
+      Parameter_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
+      Grenzwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Grenzwert;
     END Parameter_Grenzwert;
 
     ASSOCIATION Parameter_Initialwert =
-      Parameter_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Parameter;
-      Initialwert_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Initialwert;
+      Parameter_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
+      Initialwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Initialwert;
     END Parameter_Initialwert;
 
     ASSOCIATION Parameter__Wert_berechnet =
-      Parameter_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Parameter;
-      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Wert_berechnet;
+      Parameter_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
+      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
     END Parameter__Wert_berechnet;
 
     ASSOCIATION Laborprobe_Analysewert =
-      Laborprobe_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Laborprobe;
-      Analysewert_R -- {1..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Analysewert;
+      Laborprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
+      Analysewert_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
     END Laborprobe_Analysewert;
 
     ASSOCIATION Laborprobe_Feldprobe =
-      Laborprobe_R -- {1..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Laborprobe;
-      Feldprobe_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Feldprobe;
+      Laborprobe_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
+      Feldprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Feldprobe;
     END Laborprobe_Feldprobe;
 
     ASSOCIATION Laborprobe__Wert_berechnet =
-      Laborprobe_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Laborprobe;
-      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Wert_berechnet;
+      Laborprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
+      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
     END Laborprobe__Wert_berechnet;
 
     ASSOCIATION Labor_Laborprobe =
-      Labor_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Labor;
-      Laborprobe_R -- {0..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Laborprobe;
+      Labor_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Labor;
+      Laborprobe_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
     END Labor_Laborprobe;
 
     ASSOCIATION Probenahmestelle_Feldprobe =
-      Probenahmestelle_R -- {1} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Probenahmestelle;
-      Feldprobe_R -- {1..*} SO_AFU_Stoffe_Feststoffe_20250908.Stoffe.Feldprobe;
+      Probenahmestelle_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Probenahmestelle;
+      Feldprobe_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Feldprobe;
     END Probenahmestelle_Feldprobe;
 
     CONSTRAINTS OF Feldprobe=
@@ -277,11 +277,11 @@ MODEL SO_AFU_Stoffe_Feststoffe_20250908 (de)
       UNIQUE Parameter_R, Laborprobe_R;
     END;
     CONSTRAINTS OF Grenzwert=
-      /** Maximal ein Grenzwert pro Abfallklasse und Parameter
+      /** Maximal ein Grenzwert pro Beurteilungsklasse und Parameter
        */
-      UNIQUE Abfallklasse_VVEA, Parameter_R;
+      UNIQUE Beurteilungsklasse, Parameter_R;
     END;
 
   END Stoffe;
 
-END SO_AFU_Stoffe_Feststoffe_20250908.
+END SO_AFU_Stoffe_Grundwasser_20250908.
