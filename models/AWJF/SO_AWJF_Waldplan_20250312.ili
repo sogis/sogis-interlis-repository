@@ -72,12 +72,13 @@ VERSION "2025-03-12"  =
       Wirtschaftswald,
       Schutzwald,
       Erholungswald,
+      !!@ ili2db.dispName="Biodiversität"
       Biodiversitaet,
       !!@ ili2db.dispName="Schutzwald / Biodiversität"
       Schutzwald_Biodiversitaet
     );
 
-    Walplan_Nutzungskategorie = (
+    Typ_Nutzungskategorie = (
       !!@ ili2db.dispName="Nachteilige Nutzung"
       Nachteilige_Nutzung,
       Waldstrasse,
@@ -266,7 +267,7 @@ TOPIC WaldplanCatalogues =
        * 
        * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
        */
-      Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_20250312.Walplan_Nutzungskategorie;
+      Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_20250312.Typ_Nutzungskategorie;
       /** Geometrie der Waldplantypfläche
        */
       Geometrie : GeometryCHLV95_V1.AreaWithOverlaps2mm;
@@ -278,6 +279,11 @@ TOPIC WaldplanCatalogues =
     ASSOCIATION Waldfunktion_Schutzwald =
       Schutzwald_R -- {0..1} Schutzwald;      
       Waldfunktion_R -- {1} Waldfunktion;
+      !!@ ilivalid.msg="Schutzwald_R darf nur definiert sein, wenn Funktion = Schutzwald oder Schutzwald_Biodiversitaet."
+      !!@ name=Check_Schutzwald
+      MANDATORY CONSTRAINT NOT (
+        DEFINED(Schutzwald_R) AND NOT (Waldfunktion_R-> Funktion == #Schutzwald OR Waldfunktion_R-> Funktion == #Schutzwald_Biodiversitaet)
+      );
     END Waldfunktion_Schutzwald;
 
     CONSTRAINTS OF Waldeigentum =
@@ -303,11 +309,6 @@ TOPIC WaldplanCatalogues =
       !!@ name=Check_Wytweide
       MANDATORY CONSTRAINT NOT (
         (Biodiversitaet_Objekt == #Wytweide) AND NOT (Wytweide)
-      );
-      !!@ ilivalid.msg="Schutzwald_R darf nur definiert sein, wenn Funktion = Schutzwald oder Schutzwald_Biodiversitaet."
-      !!@ name=Check_Schutzwald
-      MANDATORY CONSTRAINT NOT (
-        DEFINED(Schutzwald_R) AND NOT (Funktion == #Schutzwald OR Funktion == #Schutzwald_Biodiversitaet)
       );
     END;
 
