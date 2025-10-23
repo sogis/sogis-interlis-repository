@@ -7,6 +7,7 @@ INTERLIS 2.3;
  * !! Version    | wer | Aenderung
  * !!------------------------------------------------------------------------------
  * !! 2025-09-08 | CR  | Initial erstellt.
+ * !! 2025-10-23 | CR  | Klasse Laborbericht eliminiert.
  */
 !!@ technicalContact=mailto:agi@so.ch
 MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
@@ -80,11 +81,6 @@ MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
       UNIQUE Name;
     END Labor;
 
-    /** Im Labor nach der gleichen Methodik gemesse Probe.
-     */
-    CLASS Laborprobe =
-    END Laborprobe;
-
     /** Stoff oder Parameter (pH, ...), zu dem gemessene oder berechnete Stoffwerte vorliegen.
      */
     CLASS Parameter =
@@ -122,7 +118,7 @@ MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
     /** Bestimmt, welche initialen Daten durch die Funktion "Initialwerte anlegen"
      * in der Klasse Analysewert angelegt wird. Der Wert der Funktion liegt insbesondere
      * in der Vordefinition aller Parameter und Einheiten, welche für eine Gruppe v
-     * on Messungen für jede Laborprobe angelegt wird.
+     * on Messungen für jede Feldprobe angelegt wird.
      * Die Initialwerte für Wert und Ist_Nachweisgrenze sind global in der Funktion selbst
      * definiert, und darum nicht Teil der Klasse.
      */
@@ -194,10 +190,10 @@ MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
       Initialwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Initialwert;
     END Einheit_Initialwert;
 
-    ASSOCIATION Einheit__Wert_berechnet =
+    ASSOCIATION Einheit_Wert_berechnet =
       Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
       Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
-    END Einheit__Wert_berechnet;
+    END Einheit_Wert_berechnet;
 
     ASSOCIATION Einheit_Grenzwert =
       Einheit_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Einheit;
@@ -224,30 +220,35 @@ MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
       Initialwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Initialwert;
     END Parameter_Initialwert;
 
-    ASSOCIATION Parameter__Wert_berechnet =
+    ASSOCIATION Parameter_Wert_berechnet =
       Parameter_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Parameter;
       Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
-    END Parameter__Wert_berechnet;
+    END Parameter_Wert_berechnet;
 
-    ASSOCIATION Laborprobe_Analysewert =
-      Laborprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
-      Analysewert_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
-    END Laborprobe_Analysewert;
-
-    ASSOCIATION Laborprobe_Feldprobe =
-      Laborprobe_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
+    ASSOCIATION Feldprobe_Analysewert =
       Feldprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Feldprobe;
-    END Laborprobe_Feldprobe;
+      Analysewert_R -- {1..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
+    END Feldprobe_Analysewert;
 
-    ASSOCIATION Laborprobe__Wert_berechnet =
-      Laborprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
+    ASSOCIATION Feldprobe_Wert_berechnet =
+      Feldprobe_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Feldprobe;
       Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
-    END Laborprobe__Wert_berechnet;
+    END Feldprobe_Wert_berechnet;
 
-    ASSOCIATION Labor_Laborprobe =
+    ASSOCIATION Labor_Analysewert =
       Labor_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Labor;
-      Laborprobe_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Laborprobe;
-    END Labor_Laborprobe;
+      Analysewert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Analysewert;
+    END Labor_Analysewert;
+
+    ASSOCIATION Labor_Wert_berechnet =
+      Labor_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Labor;
+      Wert_berechnet_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Wert_berechnet;
+    END Labor_Wert_berechnet;
+
+    ASSOCIATION Labor_Initialwert =
+      Labor_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Labor;
+      Initialwert_R -- {0..*} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Initialwert;
+    END Labor_Initialwert;
 
     ASSOCIATION Probenahmestelle_Feldprobe =
       Probenahmestelle_R -- {1} SO_AFU_Stoffe_Grundwasser_20250908.Stoffe.Probenahmestelle;
@@ -261,20 +262,15 @@ MODEL SO_AFU_Stoffe_Grundwasser_20250908 (de)
        */
       UNIQUE Probenahmestelle_R, Probenahmedatum;
     END;
-    CONSTRAINTS OF Laborprobe=
-      /** Maximal eine Laborprobe pro Labor und Feldprobe.
-       */
-      UNIQUE Labor_R, Feldprobe_R;
-    END;
     CONSTRAINTS OF Analysewert=
-      /** Maximal ein Analysewert pro Parameter und Laborprobe
+      /** Maximal ein Analysewert pro Parameter, Feldprobe und Labor
        */
-      UNIQUE Parameter_R, Laborprobe_R;
+      UNIQUE Parameter_R, Feldprobe_R, Labor_R;
     END;
     CONSTRAINTS OF Wert_berechnet=
-      /** Maximal ein berechneter Wert pro Parameter und Laborprobe
-       */
-      UNIQUE Parameter_R, Laborprobe_R;
+      /** Maximal ein berechneter Wert pro Parameter, Feldprobe und Labor
+       */ 
+      UNIQUE Parameter_R, Feldprobe_R, Labor_R;
     END;
     CONSTRAINTS OF Grenzwert=
       /** Maximal ein Grenzwert pro Beurteilungsklasse und Parameter
