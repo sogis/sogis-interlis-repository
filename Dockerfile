@@ -27,6 +27,7 @@ COPY models/AWA /opt/repository/AWA
 COPY models/AGS /opt/repository/AGS
 COPY models/HBA /opt/repository/HBA
 COPY models/GESA /opt/repository/GESA
+COPY models/LMK /opt/repository/LMK
 COPY models/mirror /opt/repository/mirror
 COPY models/SK /opt/repository/SK
 
