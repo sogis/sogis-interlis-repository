@@ -25,7 +25,7 @@ VERSION "2025-03-12"  =
       Region_Solothurn
     );
 
-    Typ_Biodiversitaet = (
+    Biodiversitaetstyp = (
       Waldreservat,
       Altholzinsel,
       Waldrand,
@@ -38,7 +38,7 @@ VERSION "2025-03-12"  =
       Andere_Foerderflaeche
     );
 
-    Typ_Waldeigentum = (
+    Waldeigentuemer = (
       !!@ ili2db.dispName="Bundeswald (Militär)"
       Bundeswald_Militaer,
       !!@ ili2db.dispName="Bundeswald (SBB)"
@@ -68,7 +68,7 @@ VERSION "2025-03-12"  =
       Privatwald
     );
 
-    Typ_Waldfunktion = (
+    Waldfunktionskategorie = (
       Wirtschaftswald,
       Schutzwald,
       Erholungswald,
@@ -78,22 +78,22 @@ VERSION "2025-03-12"  =
       Schutzwald_Biodiversitaet
     );
 
-    Typ_Nutzungskategorie = (
+    Waldnutzungskategorie = (
       !!@ ili2db.dispName="Nachteilige Nutzung"
       Nachteilige_Nutzung,
       Waldstrasse,
       Maschinenweg,
       !!@ ili2db.dispName="Bauten und Anlagen"
       Bauten_Anlagen,
-      !!@ ili2db.dispName="Rodung (temporär)"
-      Rodung_temporaer,
+      !!@ ili2db.dispName="Rodungsflächen (temporär)"
+      Rodungsflaechen_temporaer,
       !!@ ili2db.dispName=Gewässer
       Gewaesser,
       !!@ ili2db.dispName="Mit Wald bestockt"
       Wald_bestockt
     );
 
-    Typ_Wirtschaftszone = (
+    Wirtschaftszonen = (
       Jura,
       Mittelland
     );
@@ -110,15 +110,15 @@ VERSION "2025-03-12"  =
       Sonderobjekte
     );
 
-    Typ_Hauptgefahrenpotential = (
+    Art_Hauptgefahrenpotential = (
       Sturz,
       Rutschung,
-      !!@ ili2db.dispName="gerinnererlevane Prozesse"
+      !!@ ili2db.dispName="gerinnerelevante Prozesse"
       Gerinnerelevante_Prozesse,
       Lawine
     );
 
-    Typ_Intensitaet_geschaetzt = (
+    Intensitaetsstufe = (
       schwach,
       mittel,
       stark
@@ -142,14 +142,14 @@ VERSION "2025-03-12"  =
    */
   STRUCTURE Flaechen_Biodiversitaet_ID =
     ID : TEXT*100;
-    Biodiversitaet_Objekt : Typ_Biodiversitaet;
+    Biodiversitaet_Objekt : Biodiversitaetstyp;
     Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Biodiversitaet_ID;
 
   /** Biodiversitätsobjektflächen in m2
    */
   STRUCTURE Flaechen_Biodiversitaet_Objekt =
-    Biodiversitaet_Objekt : Typ_Biodiversitaet;
+    Biodiversitaet_Objekt : Biodiversitaetstyp;
     /** Fläche in m2
      */
     Flaeche : 0.000 .. 9999999999.000;
@@ -158,20 +158,20 @@ VERSION "2025-03-12"  =
   /** Waldfunktionsflächen in m2
    */
   STRUCTURE Flaechen_Waldfunktion =
-    Funktion : Typ_Waldfunktion;
+    Funktion : Waldfunktionskategorie;
     /** Fläche in m2
      */
     Flaeche : 0.000 .. 9999999999.000;
   END Flaechen_Waldfunktion;
 
-  /** Flächen der Waldplantypen in m2
+  /** Waldnutzungsflächen in m2
    */
-  STRUCTURE Flaechen_Waldplantyp =
-    Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Typ_Nutzungskategorie;
+  STRUCTURE Flaechen_Waldnutzung =
+    Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Waldnutzungskategorie;
     /** Fläche in m2
      */
     Flaeche : 0.000 .. 9999999999.000;
-  END Flaechen_Waldplantyp;
+  END Flaechen_Waldnutzung;
 
   TOPIC Waldplan =
     OID AS INTERLIS.UUIDOID;
@@ -243,7 +243,8 @@ VERSION "2025-03-12"  =
       Bemerkungen : MTEXT*500;
     END Schutzwald;
 
-    /** Beschreibt welche Funktionen die jeweiligen Waldflächen erfüllen. Die Summe aller Funktionsflächen ergbit die Waldübersicht. Das heisst Sie muss flächendeckend und vollumfänglich (also entsprechend der tatsächlichen Waldfläche) erfasst werden.
+    /** Beschreibt welche Funktionen die jeweiligen Waldflächen erfüllen. Die Summe aller Funktionsflächen ergibt die Waldübersicht.
+     * Das heisst Sie muss flächendeckend und vollumfänglich (also entsprechend der tatsächlichen Waldfläche) erfasst werden.
      */
     CLASS Waldfunktion =
       /** Art der Waldfunktion
@@ -264,7 +265,7 @@ VERSION "2025-03-12"  =
       Biodiversitaet_ID : TEXT*100;
       /** Typ/Art des Biodiversitätsobjekts
        */
-      Biodiversitaet_Objekt : SO_AWJF_Waldplan_Publikation_20250312.Typ_Biodiversitaet;
+      Biodiversitaet_Objekt : SO_AWJF_Waldplan_Publikation_20250312.Biodiversitaetstyp;
       /** Schutzwald-Nummer
        */
       Schutzwald_Nr : TEXT*10;
@@ -274,7 +275,7 @@ VERSION "2025-03-12"  =
       /** Geometrie der Waldfunktionsfläche
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
-      /** Bemerkung zur Waldfunktoinsfläche
+      /** Bemerkung zur Waldfunktionsfläche
        */
       Bemerkung : MTEXT*500;
     END Waldfunktion;
@@ -299,7 +300,7 @@ VERSION "2025-03-12"  =
       Forstrevier : MANDATORY TEXT*100;
       /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
        */
-      Wirtschaftszone : SO_AWJF_Waldplan_Publikation_20250312.Typ_Wirtschaftszone;
+      Wirtschaftszone : SO_AWJF_Waldplan_Publikation_20250312.Wirtschaftszonen;
       /** Grundbuchnummer
        */
       Grundstuecknummer : TEXT*15;
@@ -312,15 +313,15 @@ VERSION "2025-03-12"  =
       Eigentuemer : MANDATORY TEXT*500;
       /** Eigentumstyp
        */
-      Typ : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Typ_Waldeigentum;
+      Typ : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Waldeigentuemer;
       /** Flächen in m2 nach Waldfunktion
        */
       !!@ ili2db.mapping=JSON
       Waldfunktion_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldfunktion;
-      /** Flächen in m2 nach Waldplantyp
+      /** Flächen in m2 nach Waldnutzung
        */
       !!@ ili2db.mapping=JSON
-      Waldplantyp_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldplantyp;
+      Waldnutzung_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldnutzung;
       /** Flächen in m2 nach Biodiversitätsobjekt
        */
       !!@ ili2db.mapping=JSON
@@ -333,10 +334,12 @@ VERSION "2025-03-12"  =
        */
       Wytweide_Flaeche : 0.000 .. 9999999999.000;
       /** Produktive Flächen in m2
+       * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
        */
       !!@ ili2db.mapping=JSON
       Produktive_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Produktiv;
       /** Hiebsatzrelevante Flächen in m2
+       * Produktive Waldflächen, welche gleichzeitig auch die Waldfunktion Wartschaftswald, Schutzwald, Schutzwald / Biodiversität, Biodiversität oder Erholungswald haben gelten als hiebsatzrelevant.
        */
       !!@ ili2db.mapping=JSON
       Hiebsatzrelevante_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Hiebsatzrelevant;
@@ -357,22 +360,21 @@ VERSION "2025-03-12"  =
       Bemerkung : MTEXT*500;
     END Waldplan_Grundstueck;
 
-    /** Beschreibt welchen Typ die jeweiligen Waldflächen haben. Nicht erfasst werden Flächen mit dem Typ "Mit Wald bestockt". Diese werden für das Pub-Modell aus der Differenz zur Waldfunktionsfläche generiert.
+    /** Beschreibt welche Nutzungskategorie die jeweiligen Waldflächen haben.
+     * Die Nutzungskategorie "Mit Wald bestockt" wird nicht erfasst.
+     * Diese wird für das Publikationsmodell über die Differenz der erfassten Waldfunktions- zu den Waldnutzungsflächen berechnet".
      */
-    CLASS Waldplantyp =
-      /** Nutzungskategorie
-       * Die Differenz  zwischen allen erfassten Waldplantypflächen und der Summe der Waldfunktionsfläche ergbit den Typ "Mit Wald bestockt".
-       * 
-       * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
+    CLASS Waldnutzung =
+      /** Waldnutzung
        */
-      Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Typ_Nutzungskategorie;
-      /** Geometrie der Waldplantypfläche
+      Nutzungskategorie : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Waldnutzungskategorie;
+      /** Geometrie der Waldnutzungsfläche
        */
       Geometrie : GeometryCHLV95_V1.AreaWithOverlaps2mm;
-      /** Bemerkung zur Waldplantypfläche
+      /** Bemerkung zur Waldnutzungsfläche
        */
       Bemerkung : MTEXT*500;
-    END Waldplantyp;
+    END Waldnutzung;
 
     /** Waldfläche (Waldübersichtskarte)
      */
