@@ -1,0 +1,38 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2020-10-16 | sz  | Ersterfassung
+ *  !! 2025-09-24 | she | Anpassung Wertebereich ARA_Nummer an MGDM
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Einzugsgebiete_20250924.uml
+MODEL SO_AFU_ARA_Einzugsgebiete_20250924 (de)
+AT "https://afu.so.ch"
+VERSION "2025-09-24"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Einzugsgebiete =
+
+    /** Einzugsgebiet einer ARA
+     */
+    CLASS ARA_Einzugsgebiet =
+      /** Schweizweit eindeutige Nummer der ARA
+       */
+      ARA_Nummer : MANDATORY 1 .. 99999999;
+      /** Geometrie des Einzugsgebietes der ARA
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Geometrien der Einzugsgebiete dürfen sich nicht überlappen.
+       */
+      !!@ name = "EinzugsgebieteAreaConstraint"
+      !!@ ilivalid.msg = "Einzugsgebiete überlappen sich."
+      !! See https://github.com/claeis/ilivalidator/issues/342
+      !!SET CONSTRAINT INTERLIS.areAreas(ALL, UNDEFINED, >> Geometrie);
+    END ARA_Einzugsgebiet;
+
+  END Einzugsgebiete;
+
+END SO_AFU_ARA_Einzugsgebiete_20250924.
