@@ -1,0 +1,114 @@
+INTERLIS 2.4;
+
+MODEL IliValidGwr_V1_0
+  AT "mailto:ce@eisenhutinformatik.ch" VERSION "20250811" =
+	
+  DOMAIN
+  	Coord2 (ABSTRACT)   = COORD NUMERIC, NUMERIC;
+    MunicipalityId=0..9999;
+    GWR_EGID=0..999999999;
+    GWR_EDID=0..99;
+  /*  
+  STRUCTURE Gebaeudeingang =
+	EidgenssischerGebudeidentifikator: GWR_EGID;
+	EidgenssischerEingangsidentifikator: GWR_EDID;
+	EidgenssischerGebudeadressidentifikator: 0..999999999;
+	EingangsnummerGebude: TEXT*12;
+	EidgenssischerStrassenidentifikator: 0..99999999;
+	Strassenbezeichnung: TEXT*60;
+	StrassenbezeichnungKurz: TEXT*24;
+	StrassenbezeichnungIndex: TEXT*3;
+	StrassenbezeichnungSprache: 0..9999;
+	StrassenbezeichnungOffiziell: 0..9;
+	Postleitzahl: 0..9999;
+	PLZZusatzziffer: 0..99;
+	Ortsbezeichnung_Ortschaft: TEXT*40;
+	Eingangskoordinate: GeometryCHLV95_V2.Coord2;
+	OffizielleAdresse: 0..9;
+	DatumDesExports: DATE;
+  END Gebaeudeingang;
+  
+  STRUCTURE Wohnung =
+	EidgenssischerGebudeidentifikator: GWR_EGID;
+	EidgenssischerWohnungsidentifikator: 0..999;
+	EidgenssischerEingangsidentifikator: GWR_EDID;
+	AdministrativeWohnungsnummer: TEXT*12;
+	PhysischeWohnungsnummer: TEXT*12;
+	Stockwerk: 0..9999;
+	LageAufDemStockwerk: TEXT*40;
+	MehrgeschossigeWohnung: 0..9;
+	BaujahrWohnung: 0..9999;
+	AbbruchjahrWohnung: 0..9999;
+	Wohnungsstatus: 0..9999;
+	Wohnungsflche: 0..9999;
+	AnzahlZimmer: 0..99;
+	Kocheinrichtung: 0..9;
+	DatumDesExports: DATE;  
+  END Wohnung;
+  
+  STRUCTURE Gebaeude =
+	EidgenssischerGebudeidentifikator: GWR_EGID;
+	Kantonskrzel: TEXT*2;
+	BFS_Gemeindenummer: 0..9999;
+	Gemeindename: TEXT*40;
+	EidgenssischerGrundstcksidentifikator: TEXT*14;
+	Grundbuchkreisnummer: 0..9999;
+	Grundstcksnummer: TEXT*12;
+	SuffixDerGrundstcksnummer: TEXT*12;
+	TypDesGrundstcks: 0..9999;
+	AmtlicheGebudenummer: TEXT*12;
+	NameDesGebudes: TEXT*40;
+	Gebudekoordinate: GeometryCHLV95_V2.Coord2;
+	Koordinatenherkunft: 0..999;
+	Gebudestatus: 0..9999;
+	Gebudekategorie: 0..9999;
+	Gebudeklasse: 0..9999;
+	BaujahrDesGebudes: 0..9999;
+	BaumonatDesGebudes: 0..99;
+	Bauperiode: 0..9999;
+	AbbruchjahrDesGebudes: 0..9999;
+	Gebudeflche: 0..99999;
+	Gebudevolumen: 0..9999999;
+	GebudevolumenNorm: 0..999;
+	InformationsquelleZumGebaeudevolumen: 0..999;
+	AnzahlGeschosse: 0..99;
+	AnzahlWohnungen: 0..999;
+	AnzahlseparateWohnrume: 0..999;
+	Zivilschutzraum: 0..9;
+	Energiebezugsflaeche: 0..999999;
+	WrmeerzeugerHeizung1: 0..9999;
+	Energie_WrmequelleHeizung1: 0..9999;
+	InformationsquelleHeizung1: 0..999;
+	AktualisierungsdatumHeizung1: DATE;
+	WrmeerzeugerHeizung2: 0..9999;
+	Energie_WrmequelleHeizung2: 0..9999;
+	InformationsquelleHeizung2: 0..999;
+	AktualisierungsdatumHeizung2: DATE;
+	WrmeerzeugerWarmwasser1: 0..9999;
+	Energie_WrmequelleWarmwasser1: 0..9999;
+	InformationsquelleWarmwasser1: 0..999;
+	AktualisierungsdatumWarmwasser1: DATE;
+	WrmeerzeugerWarmwasser2: 0..9999;
+	Energie_WrmequelleWarmwasser2: 0..9999;
+	InformationsquelleWarmwasser2: 0..999;
+	AktualisierungsdatumWarmwasser2: DATE;
+	Gebaeudeingang: BAG {0..*} OF Gebaeudeingang;
+	Wohnung: BAG {0..*} OF Wohnung;
+	DatumDesExports: DATE;
+  END Gebaeude;
+  */  
+  FUNCTION egidSetCompareGWR(Objects: OBJECTS OF ANYCLASS; AttrPath: ATTRIBUTE OF @ Objects;municipality: MunicipalityId): BOOLEAN;
+  FUNCTION egidSetCompareGstatGWR(Objects: OBJECTS OF ANYCLASS; AttrPath: ATTRIBUTE OF @ Objects;municipality: MunicipalityId;gstat:BAG OF NUMERIC): BOOLEAN;
+  FUNCTION egidExistsInGWR(egid: GWR_EGID;municipality: MunicipalityId): BOOLEAN;
+  FUNCTION edidExistsInGWR(egid: GWR_EGID;edid:GWR_EDID;municipality: MunicipalityId): BOOLEAN;
+  
+  FUNCTION gebaeudeStatusGWR(egid: GWR_EGID): 0..9999;
+  FUNCTION gebaeudeCountEdidGWR(egid: GWR_EGID): 0..99; !! Anzahl Eingaenge im GWR
+  FUNCTION gebaeudeCountEdidAV(egid: GWR_EGID): 0..99; !! Anzahl Eingaenge in der AV
+  
+  FUNCTION  eingangStrassenbezeichnungGWR(egid: GWR_EGID;edid:GWR_EDID): TEXT*60;
+  FUNCTION  strassenbezeichnungExistsInGWR(names: LIST OF TEXT; municipality: MunicipalityId): BOOLEAN;
+  FUNCTION  expectEgidEdidGWR(egid: GWR_EGID;edid: GWR_EDID;Lokalisation: LIST OF TEXT; Hausnummer:TEXT; plz:0..9999; ortschaft:TEXT;gstatEqual:BAG OF NUMERIC):BOOLEAN;
+  FUNCTION  expectAdresseGWR(Lokalisation: LIST OF TEXT; Hausnummer:TEXT; plz:0..9999; ortschaft:TEXT;egid: GWR_EGID;edid: GWR_EDID;gstatNotEqual:BAG OF NUMERIC):BOOLEAN;
+
+END IliValidGwr_V1_0.
