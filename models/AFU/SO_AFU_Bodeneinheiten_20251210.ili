@@ -11,7 +11,7 @@ INTERLIS 2.3;
  * !!===============================
  */
 !!@ technicalContact=mailto:agi@so.ch
-MODEL SO_AFU_Bodeneinheiten_20251111 (de)
+MODEL SO_AFU_Bodeneinheiten_20251210 (de)
 AT "http://geo.so.ch/models/AFU"
 VERSION "2025-08-21"  =
   IMPORTS GeometryCHLV95_V1,Math;
@@ -618,8 +618,8 @@ VERSION "2025-08-21"  =
     END KartierTeam;
 
     ASSOCIATION KartierPersonTeam =
-      KartierPerson -- {1..*} KartierPerson;
-      KartierTeam -- {0..*} KartierTeam;
+      KartierPerson_r -- {1 .. *} KartierPerson;
+      KartierTeam_r -- {0 .. *} KartierTeam;
     END KartierPersonTeam;
 
   END Kartierer;
@@ -628,84 +628,152 @@ VERSION "2025-08-21"  =
    */
   TOPIC Bodeneinheiten =
     OID AS INTERLIS.UUIDOID;
-    DEPENDS ON SO_AFU_Bodeneinheiten_20251111.Kartierer;
+    DEPENDS ON SO_AFU_Bodeneinheiten_20251210.Kartierer;
     /** Die «Untertyp»-Klassen sind Hilfsklassen. Diese Untertypen können jeweils mehrere Werte aufweisen. Daher müssen sie als Klassen mit einer 0..n Beziehung zur Klasse Auspraegung modelliert werden . 
      */
     CLASS Untertyp_K_HauptLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_K_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_K_Enum;
     END Untertyp_K_HauptLandwirtschaft;
 
     CLASS Untertyp_K_HauptWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_K_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_K_Enum;
     END Untertyp_K_HauptWald;
 
     CLASS Untertyp_K_NebenLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_K_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_K_Enum;
     END Untertyp_K_NebenLandwirtschaft;
 
     CLASS Untertyp_K_NebenWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_K_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_K_Enum;
     END Untertyp_K_NebenWald;
 
     CLASS Untertyp_P_HauptLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_P_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_P_Enum;
     END Untertyp_P_HauptLandwirtschaft;
 
     CLASS Untertyp_P_HauptWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_P_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_P_Enum;
     END Untertyp_P_HauptWald;
 
     CLASS Untertyp_P_NebenLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_P_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_P_Enum;
     END Untertyp_P_NebenLandwirtschaft;
 
     CLASS Untertyp_P_NebenWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_P_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_P_Enum;
     END Untertyp_P_NebenWald;
 
     CLASS Untertyp_Diverse_HauptLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_Diverse_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_Diverse_Enum;
     END Untertyp_Diverse_HauptLandwirtschaft;
 
     CLASS Untertyp_Diverse_HauptWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_Diverse_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_Diverse_Enum;
     END Untertyp_Diverse_HauptWald;
 
     CLASS Untertyp_Diverse_NebenLandwirtschaft =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_Diverse_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_Diverse_Enum;
     END Untertyp_Diverse_NebenLandwirtschaft;
 
     CLASS Untertyp_Diverse_NebenWald =
       /** Untertyp Code
        */
-      Code : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_Diverse_Enum;
+      Code : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_Diverse_Enum;
     END Untertyp_Diverse_NebenWald;
 
-    /** Enthält die Attribute des Oberbodens.
+    /** Enthält die Attribute des Unterbodens in Landwirtschaftsgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
      */
-    STRUCTURE Oberboden (ABSTRACT) = 
+    STRUCTURE Unterboden_Landwirtschaft =
+      /** Tongehalt des Unterbodens in %
+       */
+      !!@ ili2db.dispName="Tongehalt Unterboden"
+      Tongehalt : 0 .. 100; 
+      /** Körnung Unterboden
+       */
+      !!@ ili2db.dispName="Körnung Unterboden"
+      Koernungsklasse : SO_AFU_Bodeneinheiten_20251210.Koernungsklasse;
+      /** Schluffgehalt des Unterbodens in %
+       */
+      !!@ ili2db.dispName="Schluffgehalt Unterboden"
+      Schluffgehalt : 0 .. 100;      
+      /** Kalkgehalt Unterboden
+       */
+      !!@ ili2db.dispName="Kalkgehalt Unterboden"
+      Kalkgehalt : SO_AFU_Bodeneinheiten_20251210.Kalkgehalt;  
+      /** Ph-Wert des Unterbodens
+       */
+      !!@ ili2db.dispName="Ph-Wert Unterboden"
+      Ph : 0.0 .. 10.0;  
+      /** Gefügeform Unterboden
+       */
+      !!@ ili2db.dispName="Gefügeform Unterboden"
+      Gefuegeform : SO_AFU_Bodeneinheiten_20251210.Gefuegeform;  
+      /** Gefügegrösse Unterboden
+       */
+      !!@ ili2db.dispName="Gefügegrösse Unterboden"
+      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251210.Gefuegegroesse;   
+      /** Skelettgehalt Unterboden
+       */
+      !!@ ili2db.dispName="Skelettgehalt Unterboden LW"
+      Skelettgehalt_Unterboden : SO_AFU_Bodeneinheiten_20251210.Skelettgehalt_Landwirtschaft;      
+
+      !!@ name = "CheckKoernungsklasseUbTongehalt_Land"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Unterboden Koernungsklasse, Tongehalt."  
+      MANDATORY CONSTRAINT (((Koernungsklasse == #sand OR Koernungsklasse == #schluffiger_sand) AND (Tongehalt >= 0.0 AND Tongehalt <= 5.0))
+                          OR (Koernungsklasse == #lehmiger_sand  AND (Tongehalt >= 5.0  AND Tongehalt <= 10.0))
+                          OR (Koernungsklasse == #lehmreicher_sand  AND (Tongehalt >= 10.0 AND Tongehalt <= 15.0))
+                          OR (Koernungsklasse == #sandiger_lehm  AND (Tongehalt >= 15.0 AND Tongehalt <= 20.0))
+                          OR (Koernungsklasse == #lehm  AND (Tongehalt >= 20.0 AND Tongehalt <= 30.0))
+                          OR (Koernungsklasse == #toniger_lehm AND (Tongehalt >= 30.0 AND Tongehalt <= 40.0))
+                          OR (Koernungsklasse == #lehmiger_ton  AND (Tongehalt >= 40.0 AND Tongehalt <= 50.0))
+                          OR (Koernungsklasse == #ton  AND (Tongehalt >= 50.0 AND Tongehalt <= 100.0))
+                          OR ((Koernungsklasse == #sandiger_schluff OR Koernungsklasse == #schluff) AND (Tongehalt >= 0.0 AND Tongehalt <= 10.0))
+                          OR (Koernungsklasse == #lehmiger_schluff AND (Tongehalt >= 10.0 AND Tongehalt <= 30.0))
+                          OR (Koernungsklasse == #toniger_schluff AND (Tongehalt >= 30.0 AND Tongehalt <= 50.0))
+                          );   
+      !!@ name = "CheckKoernungsklasseUbSchluff_Land"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Unterboden Koernungsklasse, Schluffgehalt."
+      MANDATORY CONSTRAINT ((Koernungsklasse == #sand AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 15.0))
+                         OR (Koernungsklasse == #schluffiger_sand  AND (Schluffgehalt >= 15.0 AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmiger_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmreicher_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #sandiger_lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #toniger_lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmiger_ton  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #ton  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #sandiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
+                         OR (Koernungsklasse == #schluff AND (Schluffgehalt >= 70.0 AND Schluffgehalt <= 100.0))
+                         OR (Koernungsklasse == #lehmiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 90.0))
+                         OR (Koernungsklasse == #toniger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
+                         );                      
+    END Unterboden_Landwirtschaft;
+
+    /** Enthält die Attribute des Oberbodens in Landwirtschaftsgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
+     */
+    STRUCTURE Oberboden_Landwirtschaft =
       /** Tongehalt des Oberbodens in %
        */
       !!@ ili2db.dispName="Tongehalt Oberboden"
@@ -713,7 +781,7 @@ VERSION "2025-08-21"  =
       /** Körnung Oberboden
        */
       !!@ ili2db.dispName="Körnung Oberboden"
-      Koernungsklasse : MANDATORY SO_AFU_Bodeneinheiten_20251111.Koernungsklasse;
+      Koernungsklasse : MANDATORY SO_AFU_Bodeneinheiten_20251210.Koernungsklasse;
       /** Schluffgehalt des Oberboden in %
        */
       !!@ ili2db.dispName="Schluffgehalt Oberboden"
@@ -721,7 +789,7 @@ VERSION "2025-08-21"  =
       /** Kalkgehalt Oberboden
        */
       !!@ ili2db.dispName="Kalkgehalt Oberboden"
-      Kalkgehalt : MANDATORY SO_AFU_Bodeneinheiten_20251111.Kalkgehalt;  
+      Kalkgehalt : MANDATORY SO_AFU_Bodeneinheiten_20251210.Kalkgehalt;  
       /** Ph-Wert des Oberboden
        */
       !!@ ili2db.dispName="Ph-Wert Oberboden"
@@ -729,14 +797,18 @@ VERSION "2025-08-21"  =
       /** Gefügeform Oberboden
        */
       !!@ ili2db.dispName="Gefügeform Oberboden"
-      Gefuegeform : MANDATORY SO_AFU_Bodeneinheiten_20251111.Gefuegeform;  
+      Gefuegeform : MANDATORY SO_AFU_Bodeneinheiten_20251210.Gefuegeform;  
       /** Gefügegrösse Oberboden
        */
       !!@ ili2db.dispName="Gefügegrösse Oberboden"
-      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251111.Gefuegegroesse;     
+      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251210.Gefuegegroesse;   
+      /** Skelettgehalt Oberboden
+       */
+      !!@ ili2db.dispName="Skelettgehalt Oberboden LW"
+      Skelettgehalt_Oberboden : SO_AFU_Bodeneinheiten_20251210.Skelettgehalt_Landwirtschaft;    
 
-      !!@ name = "CheckKoernungsklasseObTongehalt"
-      !!@ ilivalid.msg = "Ungueltige Kombination: Koernungsklasse Oberboden={Koernungsklasse}, Oberboden Tongehalt={Tongehalt}."                        
+      !!@ name = "CheckKoernungsklasseObTongehalt_Land"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Oberboden Koernungsklasse, Tongehalt."                        
       MANDATORY CONSTRAINT (((Koernungsklasse == #sand OR Koernungsklasse == #schluffiger_sand) AND (Tongehalt >= 0.0 AND Tongehalt <= 5.0))
                           OR (Koernungsklasse == #lehmiger_sand  AND (Tongehalt >= 5.0  AND Tongehalt <= 10.0))
                           OR (Koernungsklasse == #lehmreicher_sand  AND (Tongehalt >= 10.0 AND Tongehalt <= 15.0))
@@ -750,8 +822,8 @@ VERSION "2025-08-21"  =
                           OR (Koernungsklasse == #toniger_schluff AND (Tongehalt >= 30.0 AND Tongehalt <= 50.0))
                           );     
 
-      !!@ name = "CheckKoernungsklasseObSchluff"
-      !!@ ilivalid.msg = "Ungueltige Kombination: Koernungsklasse={Koernungsklasse}, Schluffgehalt={Schluffgehalt}."  
+      !!@ name = "CheckKoernungsklasseObSchluff_Land"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Oberboden Koernungsklasse, Schluffgehalt."  
       MANDATORY CONSTRAINT ((Koernungsklasse == #sand AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 15.0))
                          OR (Koernungsklasse == #schluffiger_sand  AND (Schluffgehalt >= 15.0 AND Schluffgehalt <= 50.0))
                          OR (Koernungsklasse == #lehmiger_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
@@ -765,12 +837,12 @@ VERSION "2025-08-21"  =
                          OR (Koernungsklasse == #schluff AND (Schluffgehalt >= 70.0 AND Schluffgehalt <= 100.0))
                          OR (Koernungsklasse == #lehmiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 90.0))
                          OR (Koernungsklasse == #toniger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
-                         );           
-    END Oberboden;
+                         );   
+    END Oberboden_Landwirtschaft;
 
-    /** Enthält die Attribute des Unterbodens.
+    /** Enthält die Attribute des Unterbodens in Waldgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
      */
-    STRUCTURE Unterboden (ABSTRACT) = 
+    STRUCTURE Unterboden_Wald =
       /** Tongehalt des Unterbodens in %
        */
       !!@ ili2db.dispName="Tongehalt Unterboden"
@@ -778,7 +850,7 @@ VERSION "2025-08-21"  =
       /** Körnung Unterboden
        */
       !!@ ili2db.dispName="Körnung Unterboden"
-      Koernungsklasse : SO_AFU_Bodeneinheiten_20251111.Koernungsklasse;
+      Koernungsklasse : SO_AFU_Bodeneinheiten_20251210.Koernungsklasse;
       /** Schluffgehalt des Unterbodens in %
        */
       !!@ ili2db.dispName="Schluffgehalt Unterboden"
@@ -786,7 +858,7 @@ VERSION "2025-08-21"  =
       /** Kalkgehalt Unterboden
        */
       !!@ ili2db.dispName="Kalkgehalt Unterboden"
-      Kalkgehalt : SO_AFU_Bodeneinheiten_20251111.Kalkgehalt;  
+      Kalkgehalt : SO_AFU_Bodeneinheiten_20251210.Kalkgehalt;  
       /** Ph-Wert des Unterbodens
        */
       !!@ ili2db.dispName="Ph-Wert Unterboden"
@@ -794,14 +866,18 @@ VERSION "2025-08-21"  =
       /** Gefügeform Unterboden
        */
       !!@ ili2db.dispName="Gefügeform Unterboden"
-      Gefuegeform : SO_AFU_Bodeneinheiten_20251111.Gefuegeform;  
+      Gefuegeform : SO_AFU_Bodeneinheiten_20251210.Gefuegeform;  
       /** Gefügegrösse Unterboden
        */
       !!@ ili2db.dispName="Gefügegrösse Unterboden"
-      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251111.Gefuegegroesse;        
+      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251210.Gefuegegroesse;  
+      /** Skelettgehalt Unterboden
+       */
+      !!@ ili2db.dispName="Skelettgehalt Unterboden Wald"
+      Skelettgehalt_Unterboden : SO_AFU_Bodeneinheiten_20251210.Skelettgehalt_Wald;       
 
-      !!@ name = "CheckKoernungsklasseUbTongehalt"
-      !!@ ilivalid.msg = "Ungueltige Kombination: Unterboden Koernungsklasse={Koernungsklasse}, Tongehalt Unterboden={Tongehalt}."  
+      !!@ name = "CheckKoernungsklasseUbTongehalt_Wald"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Unterboden Koernungsklasse, Tongehalt."  
       MANDATORY CONSTRAINT (((Koernungsklasse == #sand OR Koernungsklasse == #schluffiger_sand) AND (Tongehalt >= 0.0 AND Tongehalt <= 5.0))
                           OR (Koernungsklasse == #lehmiger_sand  AND (Tongehalt >= 5.0  AND Tongehalt <= 10.0))
                           OR (Koernungsklasse == #lehmreicher_sand  AND (Tongehalt >= 10.0 AND Tongehalt <= 15.0))
@@ -814,8 +890,8 @@ VERSION "2025-08-21"  =
                           OR (Koernungsklasse == #lehmiger_schluff AND (Tongehalt >= 10.0 AND Tongehalt <= 30.0))
                           OR (Koernungsklasse == #toniger_schluff AND (Tongehalt >= 30.0 AND Tongehalt <= 50.0))
                           );   
-      !!@ name = "CheckKoernungsklasseUbSchluff"
-      !!@ ilivalid.msg = "Ungueltige Kombination: Koernungsklasse Unterboden={Koernungsklasse}, Unterboden Schluffgehalt={Schluffgehalt}."
+      !!@ name = "CheckKoernungsklasseUbSchluff_Wald"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Unterboden Koernungsklasse, Schluffgehalt."
       MANDATORY CONSTRAINT ((Koernungsklasse == #sand AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 15.0))
                          OR (Koernungsklasse == #schluffiger_sand  AND (Schluffgehalt >= 15.0 AND Schluffgehalt <= 50.0))
                          OR (Koernungsklasse == #lehmiger_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
@@ -829,47 +905,76 @@ VERSION "2025-08-21"  =
                          OR (Koernungsklasse == #schluff AND (Schluffgehalt >= 70.0 AND Schluffgehalt <= 100.0))
                          OR (Koernungsklasse == #lehmiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 90.0))
                          OR (Koernungsklasse == #toniger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
-                         );               
-    END Unterboden;
-
-    /** Enthält die Attribute des Unterbodens in Landwirtschaftsgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
-     */
-    STRUCTURE Unterboden_Landwirtschaft
-    EXTENDS Unterboden =
-      /** Skelettgehalt Unterboden
-       */
-      !!@ ili2db.dispName="Skelettgehalt Unterboden LW"
-      Skelettgehalt_Unterboden : SO_AFU_Bodeneinheiten_20251111.Skelettgehalt_Landwirtschaft;                   
-    END Unterboden_Landwirtschaft;
-
-    /** Enthält die Attribute des Oberbodens in Landwirtschaftsgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
-     */
-    STRUCTURE Oberboden_Landwirtschaft
-    EXTENDS Oberboden = 
-      /** Skelettgehalt Oberboden
-       */
-      !!@ ili2db.dispName="Skelettgehalt Oberboden LW"
-      Skelettgehalt_Oberboden : SO_AFU_Bodeneinheiten_20251111.Skelettgehalt_Landwirtschaft;  
-    END Oberboden_Landwirtschaft;
-
-    /** Enthält die Attribute des Unterbodens in Waldgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
-     */
-    STRUCTURE Unterboden_Wald
-    EXTENDS Unterboden =
-      /** Skelettgehalt Unterboden
-       */
-      !!@ ili2db.dispName="Skelettgehalt Unterboden Wald"
-      Skelettgehalt_Unterboden : SO_AFU_Bodeneinheiten_20251111.Skelettgehalt_Wald;             
+                         );                
     END Unterboden_Wald;
 
     /** Enthält die Attribute des Oberbodens in Landwirtschaftsgebiet. Die Struktur wird in die Klasse Auspraegung integriert (expand)
      */
-    STRUCTURE Oberboden_Wald 
-    EXTENDS Oberboden =
+    STRUCTURE Oberboden_Wald =
+      /** Tongehalt des Oberbodens in %
+       */
+      !!@ ili2db.dispName="Tongehalt Oberboden"
+      Tongehalt : MANDATORY 0 .. 100; 
+      /** Körnung Oberboden
+       */
+      !!@ ili2db.dispName="Körnung Oberboden"
+      Koernungsklasse : MANDATORY SO_AFU_Bodeneinheiten_20251210.Koernungsklasse;
+      /** Schluffgehalt des Oberboden in %
+       */
+      !!@ ili2db.dispName="Schluffgehalt Oberboden"
+      Schluffgehalt : MANDATORY 0 .. 100;      
+      /** Kalkgehalt Oberboden
+       */
+      !!@ ili2db.dispName="Kalkgehalt Oberboden"
+      Kalkgehalt : MANDATORY SO_AFU_Bodeneinheiten_20251210.Kalkgehalt;  
+      /** Ph-Wert des Oberboden
+       */
+      !!@ ili2db.dispName="Ph-Wert Oberboden"
+      Ph : MANDATORY 0.0 .. 10.0;  
+      /** Gefügeform Oberboden
+       */
+      !!@ ili2db.dispName="Gefügeform Oberboden"
+      Gefuegeform : MANDATORY SO_AFU_Bodeneinheiten_20251210.Gefuegeform;  
+      /** Gefügegrösse Oberboden
+       */
+      !!@ ili2db.dispName="Gefügegrösse Oberboden"
+      Gefuegegroesse : SO_AFU_Bodeneinheiten_20251210.Gefuegegroesse;  
       /** Skelettgehalt Oberboden
        */
       !!@ ili2db.dispName="Skelettgehalt Oberboden Wald"
-      Skelettgehalt_Oberboden : SO_AFU_Bodeneinheiten_20251111.Skelettgehalt_Wald;  
+      Skelettgehalt_Oberboden : SO_AFU_Bodeneinheiten_20251210.Skelettgehalt_Wald;     
+
+      !!@ name = "CheckKoernungsklasseObTongehalt_Wald"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Oberboden Koernungsklasse, Tongehalt."                        
+      MANDATORY CONSTRAINT (((Koernungsklasse == #sand OR Koernungsklasse == #schluffiger_sand) AND (Tongehalt >= 0.0 AND Tongehalt <= 5.0))
+                          OR (Koernungsklasse == #lehmiger_sand  AND (Tongehalt >= 5.0  AND Tongehalt <= 10.0))
+                          OR (Koernungsklasse == #lehmreicher_sand  AND (Tongehalt >= 10.0 AND Tongehalt <= 15.0))
+                          OR (Koernungsklasse == #sandiger_lehm  AND (Tongehalt >= 15.0 AND Tongehalt <= 20.0))
+                          OR (Koernungsklasse == #lehm  AND (Tongehalt >= 20.0 AND Tongehalt <= 30.0))
+                          OR (Koernungsklasse == #toniger_lehm AND (Tongehalt >= 30.0 AND Tongehalt <= 40.0))
+                          OR (Koernungsklasse == #lehmiger_ton  AND (Tongehalt >= 40.0 AND Tongehalt <= 50.0))
+                          OR (Koernungsklasse == #ton  AND (Tongehalt >= 50.0 AND Tongehalt <= 100.0))
+                          OR ((Koernungsklasse == #sandiger_schluff OR Koernungsklasse == #schluff) AND (Tongehalt >= 0.0 AND Tongehalt <= 10.0))
+                          OR (Koernungsklasse == #lehmiger_schluff AND (Tongehalt >= 10.0 AND Tongehalt <= 30.0))
+                          OR (Koernungsklasse == #toniger_schluff AND (Tongehalt >= 30.0 AND Tongehalt <= 50.0))
+                          );     
+
+      !!@ name = "CheckKoernungsklasseObSchluff_Wald"
+      !!@ ilivalid.msg = "Ungueltige Kombination: Oberboden Koernungsklasse, Schluffgehalt."  
+      MANDATORY CONSTRAINT ((Koernungsklasse == #sand AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 15.0))
+                         OR (Koernungsklasse == #schluffiger_sand  AND (Schluffgehalt >= 15.0 AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmiger_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmreicher_sand  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #sandiger_lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #toniger_lehm  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #lehmiger_ton  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #ton  AND (Schluffgehalt >= 0.0  AND Schluffgehalt <= 50.0))
+                         OR (Koernungsklasse == #sandiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
+                         OR (Koernungsklasse == #schluff AND (Schluffgehalt >= 70.0 AND Schluffgehalt <= 100.0))
+                         OR (Koernungsklasse == #lehmiger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 90.0))
+                         OR (Koernungsklasse == #toniger_schluff AND (Schluffgehalt >= 50.0 AND Schluffgehalt <= 70.0))
+                         );   
     END Oberboden_Wald;
 
     /** Eine abstrakte Klasse, welche die meisten Informationen zum Boden enthält. 
@@ -886,15 +991,15 @@ VERSION "2025-08-21"  =
       /** Wasserhaushalt. Erfasst wird nur der Code. Weitere Informationen befinden sich in der Klasse Wasserhaushalt.
        */
       !!@ ili2db.dispName="Wasserhaushalt"
-      Wasserhaushalt : MANDATORY SO_AFU_Bodeneinheiten_20251111.WasserhaushaltCode_Enum;
+      Wasserhaushalt : MANDATORY SO_AFU_Bodeneinheiten_20251210.WasserhaushaltCode_Enum;
       /** Code des Bodentyp
        */
       !!@ ili2db.dispName="Bodentyp"
-      Bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20251111.BodentypCode;
+      Bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20251210.BodentypCode;
       /** Geländeform - Hangneigung und Einschränkungen
        */
       !!@ ili2db.dispName="Geländeform"
-      Gelaendeform : MANDATORY SO_AFU_Bodeneinheiten_20251111.Gelaendeform;
+      Gelaendeform : MANDATORY SO_AFU_Bodeneinheiten_20251210.Gelaendeform;
       /** Geologie
        */
       !!@ ili2db.dispName="Geologie"
@@ -926,19 +1031,19 @@ VERSION "2025-08-21"  =
       /** Untertyp E
        */
       !!@ ili2db.dispName="Untertyp E"
-      Untertyp_E : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_E_Enum;
+      Untertyp_E : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_E_Enum;
       /** Untertyp I
        */
       !!@ ili2db.dispName="Untertyp I"
-      Untertyp_I : SO_AFU_Bodeneinheiten_20251111.Untertyp_I_Enum;
+      Untertyp_I : SO_AFU_Bodeneinheiten_20251210.Untertyp_I_Enum;
       /** Untertyp G
        */
       !!@ ili2db.dispName="Untertyp G"
-      Untertyp_G : SO_AFU_Bodeneinheiten_20251111.Untertyp_G_Enum;
+      Untertyp_G : SO_AFU_Bodeneinheiten_20251210.Untertyp_G_Enum;
       /** Untertyp R
        */
       !!@ ili2db.dispName="Untertyp R"
-      Untertyp_R : SO_AFU_Bodeneinheiten_20251111.Untertyp_R_Enum;
+      Untertyp_R : SO_AFU_Bodeneinheiten_20251210.Untertyp_R_Enum;
       
       /** Die Kartierer sollen sich bewusst entscheiden, ob es in dieser Ausprägung einen Oberboden gibt (in diesem Fall sind die Werte des Oberbodens ein zu tragen) oder nicht (in diesem Fall muss dieses Attribut TRUE sein). 
        */
@@ -969,6 +1074,7 @@ VERSION "2025-08-21"  =
                          OR (Bodentyp == #V AND (Untertyp_G == #G4 OR Untertyp_G == #G5)) 
                          OR (Bodentyp == #W AND (Untertyp_G == #G5 OR Untertyp_G == #G6)) 
                          OR (Bodentyp == #G AND (Untertyp_G == #G5 OR Untertyp_G == #G6))
+                         OR (Bodentyp != #Y AND Bodentyp != #I AND Bodentyp != #V AND Bodentyp != #W AND Bodentyp != #G)
                         );
       !!@ name = "CheckBodentypM_HumusAh"
       !!@ ilivalid.msg = "Ungueltige Kombination: Bodentyp={Bodentyp}, Humusgehalt_ah={Humusgehalt_ah}. Bei bodentyp M muss Humusgehalt_ah >= 30 sein."                                           
@@ -999,7 +1105,7 @@ VERSION "2025-08-21"  =
     EXTENDS Auspraegung =
       /** Geometrie der Bodeneinheit
        */    
-      Geometrie : GeometryCHLV95_V1.Surface;
+      Geometrie : AREA WITH (ARCS,STRAIGHTS) VERTEX GeometryCHLV95_V1.Coord2 WITHOUT OVERLAPS>0;
       /** Gemeinde BFS-Nr.
        */
       !!@ ili2db.dispName="Gemeinde Nr."
@@ -1012,19 +1118,12 @@ VERSION "2025-08-21"  =
        */
       !!@ ili2db.dispName="Kartierquartal"
       Kartierquartal : MANDATORY 1 .. 4;
-      /** Kürzel des Kartierers
-       */
-      !!@ ili2db.dispName="Kartierer-Kürzel"
-      KartierTeam_Kuerzel : MANDATORY TEXT*20;
+
       /** Alte Daten vorhanden
        */
       !!@ ili2db.dispName="Alte Daten vorhanden?"
-      Alte_Daten_Vorhanden : MANDATORY SO_AFU_Bodeneinheiten_20251111.Alte_Daten_vorhanden_Enum;
-
-      !!@ name = "KartierTeamExistiert"
-      !!@ ilivalid.msg = "KartierTeam {KartierTeam_Kuerzel} existiert nicht."
-      EXISTENCE CONSTRAINT KartierTeam_Kuerzel REQUIRED IN SO_AFU_Bodeneinheiten_20251111.Kartierer.KartierTeam:TeamKuerzel;
-      
+      Alte_Daten_Vorhanden : MANDATORY SO_AFU_Bodeneinheiten_20251210.Alte_Daten_vorhanden_Enum;
+   
     END BodeneinheitHauptauspraegung;
 
     ASSOCIATION BodeneinheitHauptauspraegung_Los =
@@ -1036,6 +1135,11 @@ VERSION "2025-08-21"  =
       MANDATORY CONSTRAINT
         (NOT (los->Mit_Geometrie) OR DEFINED(BodeneinheitHauptAssociation_Los->Geometrie));
     END BodeneinheitHauptauspraegung_Los;    
+
+    ASSOCIATION BodeneinheitHauptauspraegung_Kartierer =
+      BodeneinheitHauptauspraegung_r -- {*} BodeneinheitHauptauspraegung;
+      Kartierer_r (EXTERNAL) -- {1} SO_AFU_Bodeneinheiten_20251210.Kartierer.KartierTeam;
+    END BodeneinheitHauptauspraegung_Kartierer;
 
     /** Abgeleitet aus BodeneinheitHauptauspraegung. Spezielle Klasse für Waldgebiete. Angereichert mit Attributen, welche nur den Wald betreffen. 
         Die Attribute Skelettgehalt Oberboden und Unterboden kommen erst hier dazu, da Skelettgehalt des Bodens in Landwirtschaft und Wald unterschiedliche Enumeration haben
@@ -1049,21 +1153,21 @@ VERSION "2025-08-21"  =
       /** Unterboden 
        */
       !!@ili2db.mapping=EXPAND
-      Unterboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Unterboden_Landwirtschaft;
+      Unterboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Unterboden_Landwirtschaft;
       /** Oberboden 
        */
       !!@ili2db.mapping=EXPAND
-      Oberboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Oberboden_Landwirtschaft;
+      Oberboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Oberboden_Landwirtschaft;
 
-      !!@ name = "CheckKalkgrenzeKalkgehalt"
+      !!@ name = "CheckKalkgrenzeKalkgehalt_Land"
       !!@ ilivalid.msg = "Ungueltige Kombination: Karbonatgrenze={Karbonatgrenze}, Oberboden Kalkgehalt={Oberboden->Kalkgehalt}." 
       MANDATORY CONSTRAINT ((Karbonatgrenze == 0 AND (Oberboden->Kalkgehalt == #mittel OR Oberboden->Kalkgehalt == #viel OR Oberboden->Kalkgehalt == #wenig))
                           OR (Karbonatgrenze == -1 AND (Oberboden->Kalkgehalt == #kein_kalk OR Oberboden->Kalkgehalt == #nur_im_skelett OR Oberboden->Kalkgehalt == #sehr_wenig OR Oberboden->Kalkgehalt == #wenig))
                           OR (Karbonatgrenze != 0 AND Karbonatgrenze != -1)
                           );
             
-      !!@ name = "UntertypENachPH_Unterboden"
-      !!@ ilivalid.msg = "Unterboden pH={Unterboden->Ph}: Untertyp_E passt nicht (ist {Untertyp_E})."
+      !!@ name = "UntertypENachPH_Unterboden_Land"
+      !!@ ilivalid.msg = "Unterboden pH: Untertyp_E passt nicht (ist {Untertyp_E})."
       MANDATORY CONSTRAINT (
         NOT (DEFINED(Unterboden->Ph))
         OR (
@@ -1076,17 +1180,27 @@ VERSION "2025-08-21"  =
         )
       );  
 
-      !!@ name = "Oberboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Oberboden=TRUE → es darf kein Oberboden erfasst sein (und umgekehrt)."
+      !!@ name = "Landwirtschaft_Oberboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = TRUE, dann darf kein Oberboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Oberboden == NOT (DEFINED(Oberboden)));
+        (NOT (Ohne_Oberboden)) OR (NOT (DEFINED(Oberboden->Tongehalt)));
 
-      !!@ name = "Unterboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Unterboden=TRUE → es darf kein Unterboden erfasst sein (und umgekehrt)."
+      !!@ name = "Landwirtschaft_Unterboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = TRUE, dann darf kein Unterboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Unterboden == NOT (DEFINED(Unterboden)));
+        (NOT (Ohne_Unterboden)) OR (NOT (DEFINED(Unterboden->Tongehalt)));
 
-      !!@ name = "UniqueBodeneinheitProGemeinde"
+      !!@ name = "Landwirtschaft_Oberboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = FALSE, muss Oberboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Oberboden) OR (DEFINED(Oberboden->Tongehalt));
+
+      !!@ name = "Landwirtschaft_Unterboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = FALSE, muss Unterboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Unterboden) OR (DEFINED(Unterboden->Tongehalt));
+
+      !!@ name = "Landwirtschaft_UniqueBodeneinheitProGemeinde"
       !!@ ilivalid.msg = "Bodeneinheit_Nummer {Bodeneinheit_Nummer} ist in Gemeinde_Nr {Gemeinde_Nr} bereits vergeben."
       UNIQUE Gemeinde_Nr, Bodeneinheit_Nummer;
 
@@ -1119,11 +1233,11 @@ VERSION "2025-08-21"  =
       /** Unterboden 
        */
       !!@ili2db.mapping=EXPAND
-      Unterboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Unterboden_Wald;
+      Unterboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Unterboden_Wald;
       /** Oberboden 
        */
       !!@ili2db.mapping=EXPAND
-      Oberboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Oberboden_Wald;
+      Oberboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Oberboden_Wald;
       /** Mächtigkeit des Ahh Horizonts
        */    
       !!@ ili2db.dispName="Mächtigkeit Ahh-Horizont"
@@ -1131,17 +1245,17 @@ VERSION "2025-08-21"  =
       /** Humusform im Wald
        */
       !!@ ili2db.dispName="Humusform Wald"          
-      Humusform_wald : SO_AFU_Bodeneinheiten_20251111.Humusform_wald;
+      Humusform_wald : SO_AFU_Bodeneinheiten_20251210.Humusform_wald;
 
-      !!@ name = "CheckKalkgrenzeKalkgehalt"
+      !!@ name = "CheckKalkgrenzeKalkgehalt_Wald"
       !!@ ilivalid.msg = "Ungueltige Kombination: Karbonatgrenze={Karbonatgrenze}, Oberboden Kalkgehalt={Oberboden->Kalkgehalt}." 
       MANDATORY CONSTRAINT ((Karbonatgrenze == 0 AND (Oberboden->Kalkgehalt == #mittel OR Oberboden->Kalkgehalt == #viel))
                           OR (Karbonatgrenze == -1 AND (Oberboden->Kalkgehalt == #kein_kalk OR Oberboden->Kalkgehalt == #nur_im_skelett OR Oberboden->Kalkgehalt == #sehr_wenig))
                           OR (Karbonatgrenze != 0 AND Karbonatgrenze != -1)
                           );
 
-      !!@ name = "UntertypENachPH_Unterboden"
-      !!@ ilivalid.msg = "Unterboden pH={Unterboden->Ph}: Untertyp_E passt nicht (ist {Untertyp_E})."
+      !!@ name = "UntertypENachPH_Unterboden_Wald"
+      !!@ ilivalid.msg = "Unterboden pH: Untertyp_E passt nicht (ist {Untertyp_E})."
       MANDATORY CONSTRAINT (
         NOT (DEFINED(Unterboden->Ph))
         OR (
@@ -1154,17 +1268,27 @@ VERSION "2025-08-21"  =
         )
       ); 
 
-      !!@ name = "Oberboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Oberboden=TRUE → es darf kein Oberboden erfasst sein (und umgekehrt)."
+      !!@ name = "Wald_Oberboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = TRUE, dann darf kein Oberboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Oberboden == NOT (DEFINED(Oberboden)));
+        (NOT (Ohne_Oberboden)) OR (NOT (DEFINED(Oberboden->Tongehalt)));
 
-      !!@ name = "Unterboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Unterboden=TRUE → es darf kein Unterboden erfasst sein (und umgekehrt)."
+      !!@ name = "Wald_Unterboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = TRUE, dann darf kein Unterboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Unterboden == NOT (DEFINED(Unterboden)));
+        (NOT (Ohne_Unterboden)) OR (NOT (DEFINED(Unterboden->Tongehalt)));
 
-      !!@ name = "UniqueBodeneinheitProGemeinde"
+      !!@ name = "Wald_Oberboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = FALSE, muss Oberboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Oberboden) OR (DEFINED(Oberboden->Tongehalt));
+
+      !!@ name = "Wald_Unterboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = FALSE, muss Unterboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Unterboden) OR (DEFINED(Unterboden->Tongehalt));
+
+      !!@ name = "Wald_UniqueBodeneinheitProGemeinde"
       !!@ ilivalid.msg = "Bodeneinheit_Nummer {Bodeneinheit_Nummer} ist in Gemeinde_Nr {Gemeinde_Nr} bereits vergeben."
       UNIQUE Gemeinde_Nr, Bodeneinheit_Nummer;
 
@@ -1193,21 +1317,21 @@ VERSION "2025-08-21"  =
       /** Unterboden 
        */
       !!@ili2db.mapping=EXPAND
-      Unterboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Unterboden_Landwirtschaft;
+      Unterboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Unterboden_Landwirtschaft;
       /** Oberboden 
        */
       !!@ili2db.mapping=EXPAND
-      Oberboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Oberboden_Landwirtschaft;
+      Oberboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Oberboden_Landwirtschaft;
 
-      !!@ name = "CheckKalkgrenzeKalkgehalt"
+      !!@ name = "CheckKalkgrenzeKalkgehalt_Land_Neben"
       !!@ ilivalid.msg = "Ungueltige Kombination: Karbonatgrenze={Karbonatgrenze}, Oberboden Kalkgehalt={Oberboden->Kalkgehalt}." 
       MANDATORY CONSTRAINT ((Karbonatgrenze == 0 AND (Oberboden->Kalkgehalt == #mittel OR Oberboden->Kalkgehalt == #viel))
                           OR (Karbonatgrenze == -1 AND (Oberboden->Kalkgehalt == #kein_kalk OR Oberboden->Kalkgehalt == #nur_im_skelett OR Oberboden->Kalkgehalt == #sehr_wenig))
                           OR (Karbonatgrenze != 0 AND Karbonatgrenze != -1)
                           );
 
-      !!@ name = "UntertypENachPH_Unterboden"
-      !!@ ilivalid.msg = "Unterboden pH={Unterboden->Ph}: Untertyp_E passt nicht (ist {Untertyp_E})."
+      !!@ name = "UntertypENachPH_Unterboden_Land_Neben"
+      !!@ ilivalid.msg = "Unterboden pH: Untertyp_E passt nicht (ist {Untertyp_E})."
       MANDATORY CONSTRAINT (
         NOT (DEFINED(Unterboden->Ph))
         OR (
@@ -1220,15 +1344,25 @@ VERSION "2025-08-21"  =
         )
       );  
 
-      !!@ name = "Oberboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Oberboden=TRUE → es darf kein Oberboden erfasst sein (und umgekehrt)."
+      !!@ name = "Neben_Landwirtschaft_Oberboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = TRUE, dann darf kein Oberboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Oberboden == NOT (DEFINED(Oberboden)));
+        (NOT (Ohne_Oberboden)) OR (NOT (DEFINED(Oberboden->Tongehalt)));
 
-      !!@ name = "Unterboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Unterboden=TRUE → es darf kein Unterboden erfasst sein (und umgekehrt)."
+      !!@ name = "Neben_Landwirtschaft_Unterboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = TRUE, dann darf kein Unterboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Unterboden == NOT (DEFINED(Unterboden)));
+        (NOT (Ohne_Unterboden)) OR (NOT (DEFINED(Unterboden->Tongehalt)));
+
+      !!@ name = "Neben_Landwirtschaft_Oberboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = FALSE, muss Oberboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Oberboden) OR (DEFINED(Oberboden->Tongehalt));
+
+      !!@ name = "Neben_Landwirtschaft_Unterboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = FALSE, muss Unterboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Unterboden) OR (DEFINED(Unterboden->Tongehalt));
 
     END Nebenauspraegung_Landwirtschaft;
 
@@ -1254,11 +1388,11 @@ VERSION "2025-08-21"  =
       /** Unterboden 
        */
       !!@ili2db.mapping=EXPAND
-      Unterboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Unterboden_Wald;
+      Unterboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Unterboden_Wald;
       /** Oberboden 
        */
       !!@ili2db.mapping=EXPAND
-      Oberboden : SO_AFU_Bodeneinheiten_20251111.Bodeneinheiten.Oberboden_Wald;
+      Oberboden : SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Oberboden_Wald;
       /** Mächtigkeit des Ahh Horizonts
        */    
       !!@ ili2db.dispName="Mächtigkeit Ahh-Horizont"
@@ -1266,17 +1400,17 @@ VERSION "2025-08-21"  =
       /** Humusform im Wald
        */    
       !!@ ili2db.dispName="Humusform Wald"        
-      Humusform_wald : SO_AFU_Bodeneinheiten_20251111.Humusform_wald;
+      Humusform_wald : SO_AFU_Bodeneinheiten_20251210.Humusform_wald;
 
-      !!@ name = "CheckKalkgrenzeKalkgehalt"
+      !!@ name = "CheckKalkgrenzeKalkgehalt_Wald_Neben"
       !!@ ilivalid.msg = "Ungueltige Kombination: Karbonatgrenze={Karbonatgrenze}, Oberboden Kalkgehalt={Oberboden->Kalkgehalt}." 
       MANDATORY CONSTRAINT ((Karbonatgrenze == 0 AND (Oberboden->Kalkgehalt == #mittel OR Oberboden->Kalkgehalt == #viel))
                           OR (Karbonatgrenze == -1 AND (Oberboden->Kalkgehalt == #kein_kalk OR Oberboden->Kalkgehalt == #nur_im_skelett OR Oberboden->Kalkgehalt == #sehr_wenig))
                           OR (Karbonatgrenze != 0 AND Karbonatgrenze != -1)
                           );
 
-      !!@ name = "UntertypENachPH_Unterboden"
-      !!@ ilivalid.msg = "Unterboden pH={Unterboden->Ph}: Untertyp_E passt nicht (ist {Untertyp_E})."
+      !!@ name = "UntertypENachPH_Unterboden_Wald_Neben"
+      !!@ ilivalid.msg = "Unterboden pH: Untertyp_E passt nicht (ist {Untertyp_E})."
       MANDATORY CONSTRAINT (
         NOT (DEFINED(Unterboden->Ph))
         OR (
@@ -1289,15 +1423,25 @@ VERSION "2025-08-21"  =
         )
       );  
 
-      !!@ name = "Oberboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Oberboden=TRUE → es darf kein Oberboden erfasst sein (und umgekehrt)."
+      !!@ name = "Neben_Wald_Oberboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = TRUE, dann darf kein Oberboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Oberboden == NOT (DEFINED(Oberboden)));
+        (NOT (Ohne_Oberboden)) OR (NOT (DEFINED(Oberboden->Tongehalt)));
 
-      !!@ name = "Unterboden_present_if_flag_false"
-      !!@ ilivalid.msg = "Ohne_Unterboden=TRUE → es darf kein Unterboden erfasst sein (und umgekehrt)."
+      !!@ name = "Neben_Wald_Unterboden_present_if_flag_true"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = TRUE, dann darf kein Unterboden (Tongehalt) erfasst sein."
       MANDATORY CONSTRAINT
-        (Ohne_Unterboden == NOT (DEFINED(Unterboden)));
+        (NOT (Ohne_Unterboden)) OR (NOT (DEFINED(Unterboden->Tongehalt)));
+
+      !!@ name = "Neben_Wald_Oberboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Oberboden = FALSE, muss Oberboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Oberboden) OR (DEFINED(Oberboden->Tongehalt));
+
+      !!@ name = "Neben_Wald_Unterboden_required_if_flag_false"
+      !!@ ilivalid.msg = "Wenn Ohne_Unterboden = FALSE, muss Unterboden (Tongehalt) erfasst sein."
+      MANDATORY CONSTRAINT
+        (Ohne_Unterboden) OR (DEFINED(Unterboden->Tongehalt));
 
     END Nebenauspraegung_Wald;
 
@@ -1319,33 +1463,52 @@ VERSION "2025-08-21"  =
     ASSOCIATION Bodeneinheit_Nebenauspraegungen_Landwirtschaft =
       Bodeneinheit -- {1} BodeneinheitHauptauspraegung_Landwirtschaft;
       Nebenauspraegung -- {0..3} Nebenauspraegung_Landwirtschaft;
-
-      !!@ name = "HauptHatMehrGewicht_alsNeben_Land"
-      !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Landwirtschaft)."
-      MANDATORY CONSTRAINT
-        (Bodeneinheit->Gewichtung > Nebenauspraegung->Gewichtung);
-
-      !!@ name = "GewichtungSumme100_Land" 
-      !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Landwirtschaft)."
-      MANDATORY CONSTRAINT
-        Math.add(Math.sum(Nebenauspraegung->Gewichtung),Bodeneinheit->Gewichtung) == 100;
-
     END Bodeneinheit_Nebenauspraegungen_Landwirtschaft;
 
     ASSOCIATION Bodeneinheit_Nebenauspraegungen_Wald =
       Bodeneinheit -- {1} BodeneinheitHauptauspraegung_Wald;
       Nebenauspraegung -- {0..3} Nebenauspraegung_Wald;
-
-      !!@ name = "HauptHatMehrGewicht_alsNeben_Wald"
-      !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Wald)."
-      MANDATORY CONSTRAINT
-        (Bodeneinheit->Gewichtung > Nebenauspraegung->Gewichtung);
-      !!@ name = "GewichtungSumme100_Wald" 
-      !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Wald)."
-      MANDATORY CONSTRAINT
-        Math.add(Math.sum(Nebenauspraegung->Gewichtung),Bodeneinheit->Gewichtung) == 100;
-
     END Bodeneinheit_Nebenauspraegungen_Wald;
+
+  CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Wald =
+    !!@ name = "GewichtungSumme100_Wald" 
+    !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Wald)."
+    MANDATORY CONSTRAINT 
+      (
+        DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
+      )
+      OR 
+      (
+        Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
+      );
+
+    !!@ name = "HauptHatMehrGewicht_alsNeben_Wald"
+    !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Wald)."
+    MANDATORY CONSTRAINT
+      NOT(DEFINED("Nebenauspraegung->Gewichtung")) 
+      OR 
+      (Gewichtung > (Nebenauspraegung->Gewichtung));
+  END;
+
+  CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Landwirtschaft =
+    !!@ name = "GewichtungSumme100_Land" 
+    !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Landwirtschaft)."
+    MANDATORY CONSTRAINT 
+      (
+        DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
+      )
+      OR 
+      (
+        Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
+      );
+
+    !!@ name = "HauptHatMehrGewicht_alsNeben_Landwirtschaft"
+    !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Landwirtschaft)."
+    MANDATORY CONSTRAINT
+      NOT(DEFINED("Nebenauspraegung->Gewichtung")) 
+      OR 
+      (Gewichtung > (Nebenauspraegung->Gewichtung));
+  END;
 
   END Bodeneinheiten;
   /** Dieses Topic dient dem Import von Daten aus einer Excel-Tabelle. Sie enthält nur eine Klasse / Tabelle, welche die Attribute beinhaltet, welche man aus Excel importieren kann. 
@@ -1365,15 +1528,15 @@ VERSION "2025-08-21"  =
       /** wasserhaushalt
        */
       !!@ ili2db.dispName="Wasserhaushalt"
-      wasserhhgr : MANDATORY SO_AFU_Bodeneinheiten_20251111.WasserhaushaltCode_Enum;
+      wasserhhgr : MANDATORY SO_AFU_Bodeneinheiten_20251210.WasserhaushaltCode_Enum;
       /** bodentyp 
        */
       !!@ ili2db.dispName="Bodentyp"
-      bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20251111.BodentypCode;
+      bodentyp : MANDATORY SO_AFU_Bodeneinheiten_20251210.BodentypCode;
       /** gelform 
        */
       !!@ ili2db.dispName="Geländeform"
-      gelform : MANDATORY SO_AFU_Bodeneinheiten_20251111.Gelaendeform;
+      gelform : MANDATORY SO_AFU_Bodeneinheiten_20251210.Gelaendeform;
       /** Geologie 
        */
       !!@ ili2db.dispName="Geologie"
@@ -1381,7 +1544,7 @@ VERSION "2025-08-21"  =
       /** Untertyp E. 
        */
       !!@ ili2db.dispName="Untertyp-E"
-      untertyp_e : MANDATORY SO_AFU_Bodeneinheiten_20251111.Untertyp_E_Enum;
+      untertyp_e : MANDATORY SO_AFU_Bodeneinheiten_20251210.Untertyp_E_Enum;
       /** Untertyp K. Mehrere Einträge möglich. Mit Komma trennen. Z.B. KR, KA 
        */
       !!@ ili2db.dispName="Untertyp-K"
@@ -1389,15 +1552,15 @@ VERSION "2025-08-21"  =
       /** Untertyp I 
        */
       !!@ ili2db.dispName="Untertyp-I"
-      untertyp_i : SO_AFU_Bodeneinheiten_20251111.Untertyp_I_Enum;
+      untertyp_i : SO_AFU_Bodeneinheiten_20251210.Untertyp_I_Enum;
       /** Untertyp G 
        */
       !!@ ili2db.dispName="Untertyp-G"
-      untertyp_g : SO_AFU_Bodeneinheiten_20251111.Untertyp_G_Enum;
+      untertyp_g : SO_AFU_Bodeneinheiten_20251210.Untertyp_G_Enum;
       /** Untertyp R 
        */
       !!@ ili2db.dispName="Untertyp-R"
-      untertyp_r : SO_AFU_Bodeneinheiten_20251111.Untertyp_R_Enum;
+      untertyp_r : SO_AFU_Bodeneinheiten_20251210.Untertyp_R_Enum;
       /** Untertyp P 
        */
       !!@ ili2db.dispName="Untertyp-P"
@@ -1469,7 +1632,7 @@ VERSION "2025-08-21"  =
       /** humusform des Waldbodens 
        */
       !!@ ili2db.dispName="Humusform-WA"
-      humusform_wa : SO_AFU_Bodeneinheiten_20251111.Humusform_wald;
+      humusform_wa : SO_AFU_Bodeneinheiten_20251210.Humusform_wald;
       /** Mächtigkeit des Ahh Horizonts
        */    
       !!@ ili2db.dispName="Mächtigkeit Ahh-Horizont"
@@ -1477,7 +1640,7 @@ VERSION "2025-08-21"  =
       /** Gefügeform des Oberbodens 
        */
       !!@ ili2db.dispName="Gefuegeform-OB"
-      gefuegeform_ob : SO_AFU_Bodeneinheiten_20251111.Gefuegeform;
+      gefuegeform_ob : SO_AFU_Bodeneinheiten_20251210.Gefuegeform;
       /** Gefügegrösse des Oberbodens 
        */
       !!@ ili2db.dispName="Gefueggr-OB"
@@ -1485,7 +1648,7 @@ VERSION "2025-08-21"  =
       /** Gefügeform des Unterbodens 
        */
       !!@ ili2db.dispName="Gefuegeform-UB"
-      gefuegeform_ub : SO_AFU_Bodeneinheiten_20251111.Gefuegeform;
+      gefuegeform_ub : SO_AFU_Bodeneinheiten_20251210.Gefuegeform;
       /** Gefügegrösse des Unterbodens 
        */
       !!@ ili2db.dispName="Gefueggr-UB"
@@ -1534,4 +1697,4 @@ VERSION "2025-08-21"  =
 
   END Excel_Import;
 
-END SO_AFU_Bodeneinheiten_20251111.
+END SO_AFU_Bodeneinheiten_20251210.
