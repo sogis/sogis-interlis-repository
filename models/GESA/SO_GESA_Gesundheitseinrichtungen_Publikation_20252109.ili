@@ -1,9 +1,13 @@
 INTERLIS 2.3;
 
 /** !!------------------------------------------------------------------------------
+ * !! Umfasst für alle Gesundheitseinrichtungen (Spitäler, Alters- und Pflegeheime,
+ * !! Institutionen für kognitiv beeinträchtige Personen) die Anzahl der betreuten
+ * !! Personen zwecks effektivem Evakuieren im Katastrophenfall.
+ * !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
- * !! 2023-11-08 | sz  | Ersterfassung
+ * !! 2025-12-09 | jek | Ersterfassung
  * !!==============================================================================
  */
 !!@ technicalContact=mailto:agi@bd.so.ch
@@ -17,11 +21,6 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
   TOPIC Gesundheitseinrichtungen =
 
     /** Basisklasse für Publikation und Import (Edit-Modell).
-     * Fragen:
-     * - In den Kommentaren durchgängig von schwerer Beeinträchtigung sprechen?
-     * - Name eindeutig?
-     * - Kommentare aufnehmen? Vorsicht bzgl. Datenschutz....
-     * - Unterscheidung APH, Spital, ... sinnvoll?
      */
     CLASS Gesundheitseinrichtung_Base (ABSTRACT) =
       /** Name der Einrichtung
@@ -39,61 +38,48 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
       /** Adresse: Hausnummer
        */
       Adresse_Hausnummer : TEXT*50;
-      /** Anzahl kognitiv beeinträchtigte betreute Personen am Tag.
+      /** Anzahl kognitiv schwer beeinträchtigte betreute Personen.
        * Umfasst demente Personen oder Menschen, die an einer ähnlichen kognitiven
        * Beeinträchtigung leiden sowie Personen mit schweren psychiatrischen Erkrankungen.
        * Personen dieser Gruppe sind nicht physisch beeinträchtigt.
        */
-      Tag_kognitiv_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl kognitiv und physisch beeinträchtigte betreute Personen am Tag.
+      Kognitiv_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      /** Anzahl kognitiv und physisch schwer beeinträchtigte betreute Personen.
        * Umfasst kognitiv beeinträchtigte Personen, welche gleichzeitig physisch beeinträchtigt sind
        * (Sprich: In ihrer Mobilität eingeschränkt).
        */
-      Tag_kognitiv_und_physisch_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl physisch beeinträchtigte betreute Personen am Tag.
+      Kognitiv_und_physisch_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      /** Anzahl physisch schwer beeinträchtigte betreute Personen.
        * Umfasst Personen mit eingeschränkter Mobilität, die auf besondere Gehhilfen,
        * Rollstühle oder ähnliche Mobilitätshilfen angewiesen sind sowie Personen die bettlägerig sind,
        * welche spezielle Transportmittel sowie barrierefreie Einrichtungen in den Evakuierungszentren.
        * Personen dieser Gruzppe sind nicht kognitiv beeinträchtigt.
        */
-      Tag_physisch_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl betreute Personen ohne schwere kognitive oder physische Beeinträchtigung am Tag.
+      Physisch_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      /** Anzahl betreute Personen ohne schwere kognitive oder physische Beeinträchtigung.
        * Die Personen sind in der Lage, sich selbständig zu bewegen
        * und den Evakuationsanweisungen zu folgen.
        */
-      Tag_nicht_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl betreute Personen ohne schwere kognitive oder physische Beeinträchtigung in der Nacht.
-       * Die Personen sind in der Lage, sich selbständig zu bewegen
-       * und den Evakuationsanweisungen zu folgen.
+      Nicht_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      /** Typ der Gesundheitseinrichtung
        */
-      Nacht_nicht_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl kognitiv beeinträchtigte betreute Personen in der Nacht.
-       * Umfasst demente Personen oder Menschen, die an einer ähnlichen kognitiven
-       * Beeinträchtigung leiden sowie Personen mit schweren psychiatrischen Erkrankungen.
-       * Die Personen dieser Gruppe sind nicht physisch beeinträchtigt.
-       */
-      Nacht_kognitiv_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl kognitiv und physisch beeinträchtigte betreute Personen in der Nacht.
-       * Umfasst kognitiv beeinträchtigte Personen, welche gleichzeitig physisch beeinträchtigt sind
-       * (Sprich: In ihrer Mobilität eingeschränkt).
-       */
-      Nacht_kognitiv_und_physisch_beeintraechtigt : MANDATORY 0 .. 1000;
-      /** Anzahl physisch beeinträchtigte betreute Personen in der Nacht.
-       * Umfasst Personen mit eingeschränkter Mobilität, die auf besondere Gehhilfen,
-       * Rollstühle oder ähnliche Mobilitätshilfen angewiesen sind sowie Personen die bettlägerig sind,
-       * welche spezielle Transportmittel sowie barrierefreie Einrichtungen in den Evakuierungszentren.
-       * Personen dieser Gruzppe sind nicht kognitiv beeinträchtigt.
-       */
-      Nacht_physisch_beeintraechtigt : MANDATORY 0 .. 1000;
+      Typ : MANDATORY (
+        !!@ ili2db.dispName="Alters und/oder Pflegeheim"
+        APH,
+        Spital,
+        !!@ ili2db.dispName="Sozialmedizinische Institution"
+        Sozmed
+      );
+      /** Kommentare zur Einrichtung wie beispielsweise Hinweise zu den Gebäuden, falls es sich
+      * bei der Gesundheitseinrichtung um ein Areal mit mehreren Gebäuden handelt.
+      */
+      Kommentare : MTEXT*500;
+
+      UNIQUE Name;
+
     END Gesundheitseinrichtung_Base;
 
     CLASS Gesundheitseinrichtung EXTENDS SO_GESA_Gesundheitseinrichtungen_Publikation_20251209.Gesundheitseinrichtungen.Gesundheitseinrichtung_Base =
-      /** Gesamtanzahl der betreuten Personen in der Nacht.
-       */
-      Nacht_Total : MANDATORY 0 .. 2000;
-      /** Gesamtanzahl der betreuten Personen am Tag.
-       */
-      Tag_Total : MANDATORY 0 .. 2000;
       /** Punktgeometrie der Lage der Gesundheitseinrichtung.
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
