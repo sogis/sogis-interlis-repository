@@ -1,0 +1,91 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Datenmodell der aus dem Trinkwasser entnommenen Proben (=Feldprobe) und deren
+ * !! Analyseresultate von chemischen Stoffen und weiteren Parametern.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-09-08 | OJ  | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_LMK_Stoffe_Trinkwasser_Publikation_20250908 (de)
+  AT "http://geo.so.ch/models/AFU/"
+  VERSION "2025-09-08"
+  =
+  IMPORTS GeometryCHLV95_V1, SO_AFU_Stoffe_Messung_20250908;
+
+  DOMAIN
+    /** Beurteilungsklasse
+     */
+    Beurteilungsklasse = (
+      !!@ ili2db.dispName="kein Grenzwert"
+      kein_Grenzwert,
+      /** Messwert abzüglich Messunsicherheit ist kleiner gleich Höchstwert
+       */
+      !!@ ili2db.dispName="Höchstwert eingehalten"
+      Hoechstwert_eingehalten,
+      /** Summe von Messwert und Messunsicherheit liegt über Höchstwert
+       */
+      !!@ ili2db.dispName=Messunsicherheit
+      Messunsicherheit,
+      /** Messwert abzüglich Messunsicherheit liegt über Höchstwert
+       */
+      !!@ ili2db.dispName="Höchstwert überschritten"
+      Hoechstwert_ueberschritten
+    ) ORDERED;
+
+  TOPIC Stoffe =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Messwert EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Messwert =
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für den Parameter kein Grenzwert definiert ist.
+       */
+      Beurteilungsklasse : MANDATORY SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.Beurteilungsklasse;
+    END Messwert;
+
+    /** Doku siehe Basisklasse
+     */
+    STRUCTURE Wert_berechnet EXTENDS SO_AFU_Stoffe_Messung_20250908.Stoffe.Wert_berechnet =
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für den Parameter kein Grenzwert definiert ist.
+       */
+      Beurteilungsklasse : MANDATORY SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.Beurteilungsklasse;
+    END Wert_berechnet;
+
+    /** Informationen zur im Feld genommenen Probe und zum Ort der Probenahme. Der Standort der Probenahme
+     * ist als 2D-Punkt modelliert.
+     */
+    CLASS Feldprobe =
+      /** Datum der Probenahme
+       */
+      Probenahmedatum : MANDATORY INTERLIS.XMLDate;
+      /** X/Y Koordinaten des Standorts.
+       */
+      Standort_Punkt : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Eindeutige Kennung des Standorts der Probeentnahme.
+       */
+      Standort_Kennung : MANDATORY TEXT*100;
+      /** Beurteilungsklasse. Auf "kein_Grenzwert" klassiert,
+       * falls für keinen der gemessenen oder berechneten Werte ein Grenzwert vorliegt.
+       * Falls für mehrere Werte eine Grenzewert-Klassierung vorliegt, wird die gravierenste
+       * Klassierung abgebildet.
+       */
+      Beurteilungsklasse : MANDATORY SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.Beurteilungsklasse;
+      /** Gemessene Werte von Stoffen, ... der Feldprobe.
+       * Messung kann vor Ort im Feld, und in 1-n Laboren erfolgen.
+       */
+      !!@ ili2db.mapping=JSON
+      Messwerte : BAG {1..*} OF SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.Stoffe.Messwert;
+      /** Berechnete (=abgeleitete) Werte von Stoffen, ... .
+       */
+      !!@ ili2db.mapping=JSON
+      Werte_berechnet : BAG {1..*} OF SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.Stoffe.Wert_berechnet;
+    END Feldprobe;
+
+  END Stoffe;
+
+END SO_LMK_Stoffe_Trinkwasser_Publikation_20250908.

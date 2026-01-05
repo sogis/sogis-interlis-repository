@@ -1,0 +1,76 @@
+INTERLIS 2.3;
+
+/** !! Publikationsmodell für Holznutzungsbewilligungen gemäss MGDM, die aus dem Waldportal importiert wurden.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2025-12-22 | CR | Initialversion
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ shortDescription="Holznutzungsbewilligungen gemäss MGDM, die aus dem Waldportal importiert wurden"
+!!@ title="Holznutzungsbewilligungen"
+MODEL SO_AFU_Holznutzungsbewilligung_Publikation_20251222 (de)
+AT "https://geo.so.ch/models/AWJF/"
+VERSION "2025-12-22" =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1;
+
+  TOPIC Holznutzung =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Klasse zur Beschreibung der bewilligten Menge pro Holzart */
+    STRUCTURE MengeHolzart =
+      /** Bewilligte Menge in Kubikmeter (m3) */
+      Bew_Menge_Holzart : MANDATORY 0.000 .. 99999.000;
+      /** Code der bewilligten Holzart gemäss Katalog Bewilligte_Holzart_Catalogue */
+      Bew_Holzart_Code : MANDATORY TEXT;
+      /** Deutsche Bezeichnung der bewilligten Holzart gemäss Katalog Bewilligte_Holzart_Catalogue */
+      Bew_Holzart_Text : MANDATORY TEXT;
+    END MengeHolzart;
+
+    /** Holznutzungsbewilligung mit Angaben zur bewilligten Holzmenge und Fläche */
+    CLASS Holznutzungsbewilligung =
+      /** Geometrie der Holznutzungsbewilligung */
+      Flaeche : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** E-GRID-Nummern der betroffenen Grundstücke (kommagetrennt) */
+      EGRIDs : MANDATORY TEXT*500;
+      /** Erzeugungsland des Holzes (dreistelliges Kürzel) */
+      Erzeugungsland : MANDATORY InternationalCodes_V1.CountryCode_ISO3166_1;
+      /** Kantonskürzel des Datenherrn */
+      Datenherr : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      /** BFS-Nummern der betroffenen Gemeinden (kommagetrennt) */
+      Gemeinden : MANDATORY TEXT*50;
+      /** Namen der betroffenen Reviere (kommagetrennt) */
+      Reviere : MANDATORY TEXT*500;
+      /** Name der bewilligenden Behörde */
+      Bewilligende_Behoerde : MANDATORY TEXT*100;
+      /** Datum der Bewilligungserteilung */
+      Bew_erteilt_am : MANDATORY INTERLIS.XMLDate;
+      /** Datum bis wann die Bewilligung gültig ist */
+      Bew_gueltig_bis : MANDATORY INTERLIS.XMLDate;
+      /** Total bewilligte Holzmenge in Kubikmeter (m3) */
+      Bew_Menge_Total : MANDATORY 0.000 .. 99999.000;
+      /** Bestätigung der Legalität der Holznutzung */
+      Bestaetigung_Legalitaet : MANDATORY BOOLEAN;
+      /** Allgemeine Holzart (Laubholz, Nadelholz oder beide) */
+      AllgHolzart : (
+        !!@ ili2db.dispName=Laubholz
+        LBH,
+        !!@ ili2db.dispName=Nadelholz
+        NDH,
+        !!@ ili2db.dispName=beide
+        beide
+      );
+      /** Bewilligte Menge Laubholz in Kubikmeter (m3) */
+      Bew_Menge_LBH : 0.000 .. 99999.000;
+      /** Bewilligte Menge Nadelholz in Kubikmeter (m3) */
+      Bew_Menge_NDH : 0.000 .. 99999.000;
+      /** Detaillierte Mengen pro Holzart */
+      !!@ ili2db.mapping=JSON
+      MengenHolzarten : BAG {0..*} OF MengeHolzart;
+      /** Kantonale Referenznummer */
+      Kantonale_Referenz : TEXT*30;
+    END Holznutzungsbewilligung;
+
+  END Holznutzung;
+
+END SO_AFU_Holznutzungsbewilligung_Publikation_20251222.

@@ -1,0 +1,113 @@
+INTERLIS 2.3;
+
+/** Rahmenmodell aller für die Erdwärmesonden-Abfrage relevanten 2D Input-Daten.
+ * Beachte verwandtes Modell SO_AFU_EWS_Abfrage_3D_YYYYMMMDD bezüglich 3D-Daten (Schichtenmodell).
+ */
+MODEL SO_AFU_EWS_Abfrage_2D_20230508 (de)
+AT "https://afu.so.ch"
+VERSION "2023-05-08"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Von_2D =
+
+    DOMAIN
+
+      Grund_Beschraenkung_Typ = (
+        GW_Schutzzone,
+        GW_Schutzareal,
+        Freihaltezone_GW_Nutzung,
+        Karstgrundwasserleiter,
+        Kluftgrundwasserleiter,
+        Tunnel,
+        NAGRA,
+        Instabiler_UG
+      );
+
+    /** Die Polygone umschliessen die Teile des Kantons Solothurn, in welchen das 3D-Schichtenmodell vorhanden ist. Im nördlichen Kantonsteil typischerweise nur in den Siedlungsgebieten.
+     */
+    CLASS Abfrageperimeter =
+      /** Polygon
+       */
+      MPoly : GeometryCHLV95_V1.MultiSurface;
+    END Abfrageperimeter;
+
+    DOMAIN
+
+      Hinweis_Art = (
+        EWS_Bohrung,
+        Grundwasservorkommen,
+        Instabiler_UG
+      );
+
+      Abklaerung_Art = (
+        Gewaesserraum,
+        KBS,
+        Rutschgebiet
+      );
+
+    /** Aus verschiedensten Ausgangsdaten des SOGIS-Datenschatzes aggregierte und auf Polygone harmonisierte
+     * Tiefenbeschränkungs-Polygone. Tiefe 0 bedeutet "Bohrung verboten".
+     */
+    CLASS Tiefenbeschraenkung =
+      /** Maximal zulässige Bohrtiefe aufgrund geolog. Schichtenmodell
+       */
+      Max_Bohrtiefe : MANDATORY 0 .. 2000 [INTERLIS.m];
+      /** Grund für die Bohrtiefenbeschränkung
+       */
+      Grund_Beschraenkung : MANDATORY Grund_Beschraenkung_Typ;
+      /** Polygongeometrie
+       */
+      MPoly : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Tiefenbeschraenkung;
+
+    /** Hinweis zum Untergrund an der Stelle
+     */
+    CLASS Hinweis =
+      /** Art des Hinweises
+       */
+      Hinweis : MANDATORY Hinweis_Art;
+      /** Beschreibender Text zum Hinweis, bei Bohrungen beispielsweise deren Kennung und Vorkommnisse.
+       */
+      Hinweistext : MTEXT;
+      /** Tiefe des Hinweises. Null bei Hinweisen ohne Bezug zur Bohrtiefe.
+       */
+      Tiefe_Hinweis : 0 .. 2000 [INTERLIS.m];
+      /** Hinweis öffentlich oder nur für AfU-Fachpersonen.
+       */
+      Hinweis_oeffentlich : MANDATORY BOOLEAN;
+      /** Polygongeometrie
+       */
+      MPoly : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Hinweis;
+
+    /** Perimeter, in welchen Einzelabklärungen bezüglich EWS-Bohrung notwendig ist.
+     */
+    CLASS Abklaerung =
+      /** Art des Hinweises
+       */
+      Abklaerung : MANDATORY Abklaerung_Art;
+      /** Polygongeometrie
+       */
+      MPoly : MANDATORY GeometryCHLV95_V1.MultiSurface;
+    END Abklaerung;
+
+    /** Auszug der im Kontext EWS_Abfrage (Objektblatt) relevanten Informationen zu den Grundstücken.
+     */
+    CLASS Grundstueck =
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Surface;
+      /** Grundbuchnummer
+       */
+      Nummer : MANDATORY TEXT*15;
+      /** Name des Grundbuchs (= Grundbuchkreis)
+       */
+      Grundbuch : MANDATORY TEXT*255;
+      /** Name der Gemeinde
+       */
+      Gemeinde : MANDATORY TEXT*255;
+    END Grundstueck;
+
+  END Von_2D;
+
+END SO_AFU_EWS_Abfrage_2D_20230508.

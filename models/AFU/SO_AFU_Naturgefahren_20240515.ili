@@ -7,11 +7,13 @@ INTERLIS 2.3;
   2022-01-01 | geo7  | Erstellung Fachmodell
   2024-03-13 | GeoW  | Technische Überarbeitung
   2024-05-01 | jek   | Korrekturen (Kommentare, Notation Wertebereiche, ...)
+  2025-05-08 | jek   | Korr: Verbot Restgefährdung BefundPermanenteRutschung, ...
+  2025-10-29 | jek   | Entfernung der Kennwert-Constraints
  ==============================================================================
 */
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AFU_Naturgefahren_20240515 (de) 
-  AT "http://geo.so.ch/models/AFU" VERSION "2024-08-29" = 
+  AT "http://geo.so.ch/models/AFU" VERSION "2025-10-29" = 
 
   IMPORTS UNQUALIFIED Units, Time, CoordSys;
   IMPORTS GeometryCHLV95_V1;
@@ -641,7 +643,7 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
 
     /** Befunde mit Kennwert (Fliessgeschwindigkeit) für Prozess Uebermurung -> Hauptprozess muss Wasser sein */
     CLASS KennwertUebermurungFliessgeschwindigkeit
-    EXTENDS Befund_TextPQ =
+    EXTENDS Kennwert_TextPQ =
       /** Angabe der Fliessgeschwindigkeit. */
       v : MANDATORY wUebermurungFliessgeschwindigkeit;
       /** Angabe der Jährlichkeit (Standard-Jährlichkeit) */
@@ -913,9 +915,9 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ name = "CheckBefundPermanenteRutschungKeineUeberlappung-permanent"
       !!@ ilivalid.msg = "Ungültige Überlappung von Befundsflächen mit gleicher Prozessquelle."
       SET CONSTRAINT WHERE IWCode == #rot_stark_permanent OR IWCode == #blau_mittel_permanent OR IWCode == #gelb_schwach_permanent: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckBefundPermanenteRutschungKeineUeberlappung-Restgef"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Befundsflächen mit gleicher Prozessquelle bei der Restgefährdung."
-      SET CONSTRAINT WHERE IWCode == #restgefaehrdung_stark OR IWCode == #restgefaehrdung_mittel OR IWCode == #restgefaehrdung_schwach: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
+      !!@ name = "CheckBefundPermanenteRutschungIWCode"
+      !!@ ilivalid.msg = "Die Codes restgefaehrdung_stark, restgefaehrdung_mittel, restgefaehrdung_schwach sind veraltet und dürfen nicht verwendet werden." 
+      MANDATORY CONSTRAINT IWCode != #restgefaehrdung_stark AND IWCode != #restgefaehrdung_mittel AND IWCode != #restgefaehrdung_schwach;
     END;
 
     CONSTRAINTS OF BefundSpontaneRutschung =
@@ -970,7 +972,6 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ name = "CheckBefundUebermurungFlaechenGroesse"
       !!@ ilivalid.msg = "Der Befund muss grösser als 5m2 sein."
       MANDATORY CONSTRAINT GeoW_FunctionsExt.GetArea(THIS, "Geometrie") > 5;
-      /**
       !!@ name = "CheckBefundUebermurungKeineUeberlappung-30"
       !!@ ilivalid.msg = "Ungültige Überlappung von Befundsflächen mit gleicher Prozessquelle und Jährlichkeit 30."
       SET CONSTRAINT WHERE IWCode == #rot_stark_30 OR IWCode == #rot_mittel_30 : INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
@@ -983,7 +984,6 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       !!@ name = "CheckBefundUebermurungKeineUeberlappung-Restgef"
       !!@ ilivalid.msg = "Ungültige Überlappung von Befundsflächen mit gleicher Prozessquelle und Restgefährdung."
       SET CONSTRAINT WHERE IWCode == #restgefaehrdung_stark OR IWCode == #restgefaehrdung_mittel: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      */
     END;
     
     CONSTRAINTS OF BefundUeberschwemmungDynamisch =
@@ -1055,75 +1055,12 @@ MODEL SO_AFU_Naturgefahren_20240515 (de)
       SET CONSTRAINT WHERE Intensitaet == #stark OR Intensitaet == #mittel OR Intensitaet == #schwach: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
     END;
 
-    CONSTRAINTS OF KennwertUeberschwemmungFliesstiefe =
-      !!@ name = "CheckKennwertUeberschwemmungFliesstiefeKeineUeberlappung-30"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 30."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_30: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliesstiefeKeineUeberlappung-100"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 100."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_100: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliesstiefeKeineUeberlappung-300"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 300."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_300: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliesstiefeKeineUeberlappung-Restgef"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Restgefährdung."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #restgefaehrdung: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-    END;
-    
-    CONSTRAINTS OF KennwertUeberschwemmungFliessgeschwindigkeit =
-      !!@ name = "CheckKennwertUeberschwemmungFliessgeschwindigkeitKeineUeberlappung-30"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 30."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_30: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliessgeschwindigkeitKeineUeberlappung-100"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 100."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_100: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliessgeschwindigkeitKeineUeberlappung-300"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Jährlichkeit 300."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_300: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUeberschwemmungFliessgeschwindigkeitKeineUeberlappung-Restgef"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Ueberschwemmung mit gleicher Prozessquelle und Restgefährdung."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #restgefaehrdung: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-    END;
-    
-    CONSTRAINTS OF KennwertUebermurungFliesstiefe =
-      !!@ name = "CheckKennwertUebermurungFliesstiefeKeineUeberlappung-30"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 30."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_30: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliesstiefeKeineUeberlappung-100"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 100."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_100: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliesstiefeKeineUeberlappung-300"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 300."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_300: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliesstiefeKeineUeberlappung-Restgef"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliesstiefe-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Restgefährdung."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #restgefaehrdung: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-    END;
-
-    CONSTRAINTS OF KennwertUebermurungFliessgeschwindigkeit =
-      !!@ name = "CheckKennwertUebermurungFliessgeschwindigkeitKeineUeberragungH" 
-      !!@ ilivalid.msg = "Ungültiger Überstand bei Befund mit gleicher Jährlichkeit und Prozessquelle."   
-      SET CONSTRAINT NGK_SO_FunctionsExt.IsInsideAreaByCode(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"), "Geometrie" ,"Jaehrlichkeit");
-      !!@ name = "CheckKennwertUebermurungFliessgeschwindigkeitKeineUeberlappung-30"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 30."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_30: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliessgeschwindigkeitKeineUeberlappung-100"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 100."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_100: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliessgeschwindigkeitKeineUeberlappung-300"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Jährlichkeit 300."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #j_300: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-      !!@ name = "CheckKennwertUebermurungFliessgeschwindigkeitKeineUeberlappung-Restgef"
-      !!@ ilivalid.msg = "Ungültige Überlappung von Fliessgeschwindigkeit-Kennwertsflächen Uebermurung mit gleicher Prozessquelle und Restgefährdung."
-      SET CONSTRAINT WHERE Jaehrlichkeit == #restgefaehrdung: INTERLIS.areAreas(GeoW_FunctionsExt.GetInGroups(ALL, "Prozessquelle_R"),UNDEFINED, >> Geometrie);
-    END;
-
     CONSTRAINTS OF Prozessquelle =
       !!@ name = "CheckProzessquelleBefundKennwertJaehrlichkeit"
       !!@ ilivalid.msg = "Eine Prozessquelle muss mit mindestens einem Objekt der Subklassen von Befund_TextPQ, Kennwert_TextPQ oder einem Objekt der PQ_Jaehrlichkeit_*-Klassen verknüpft sein."
       MANDATORY CONSTRAINT (DEFINED(Befund_TextPQ_R) OR DEFINED(Kennwert_TextPQ_R)) OR (DEFINED(PQ_Jaehrlichkeit_SteinBlockschlag_R) OR DEFINED(PQ_Jaehrlichkeit_BergFelssturz_R) OR DEFINED(PQ_Jaehrlichkeit_SpontaneRutschung_R) OR DEFINED(PQ_Jaehrlichkeit_Hangmure_R));
       !!@ name = "CheckTeilauftragWasserKennwert"
-      !!@ ilivalid.msg = "Es muss mindestens ein Objekt jeder Kennwert-Klasse verknüpft sein, da Wasserkennwerte auf TRUE gesetzt ist."
+      !!@ ilivalid.msg = "Es muss mindestens ein Objekt einer Kennwert-Klasse verknüpft sein, da Wasserkennwerte auf TRUE gesetzt ist."
       MANDATORY CONSTRAINT NOT(Teilauftrag_R->Wasserkennwerte) OR DEFINED(Kennwert_TextPQ_R);
       !!@ name = "CheckProzessquelleKennung"
       !!@ ilivalid.msg = "Der Prozessquellenname (Kennung) ist innerhalb dieses Teilauftrags nicht eindeutig."  

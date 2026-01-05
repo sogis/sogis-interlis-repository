@@ -9,7 +9,7 @@ INTERLIS 2.3;
 !!@ technicalContact=mailto:agi@bd.so.ch
 MODEL SO_AFU_Bootsanbindeplaetze_Publikation_20250604 (de)
 AT "http://geo.so.ch/models/AWJF"
-VERSION "2025-02-10"  =
+VERSION "2025-06-04"  =
   IMPORTS GeometryCHLV95_V1;
 
   TOPIC Bootsanbindeplaetze =
@@ -36,7 +36,7 @@ VERSION "2025-02-10"  =
       Pfad : MANDATORY TEXT;
       /** Bemerkungen zum Dokument
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Dokument;
 
     /** Kontaktdaten für die Bootsanbindeplatz-Mietende und -Vermietende.
@@ -44,40 +44,38 @@ VERSION "2025-02-10"  =
     STRUCTURE Kontaktdaten =
       /** Nachname der Kontaktperson
        */
-      Name : TEXT*100;
+      Name : MANDATORY TEXT*100;
       /** Vorname der Kontaktperson
        */
-      Vorname : TEXT*100;
+      Vorname : MANDATORY TEXT*100;
       /** Name der Organisation/Firma (falls vorhanden)
        */
       Organisation : TEXT*100;
-      /** Wohnstrasse und Hausnummer der Kontaktperson oder Organisation
+      /** Strassenname und Hausnummer der Kontaktperson oder Organisation
        */
-      Strasse_Nr : TEXT*100;
+      !!@ ili2db.dispName="Strasse und Hausnummer"
+      Strasse_Nr : MANDATORY TEXT*100;
       /** Postleitzahl der Kontaktperson oder Organisation
        */
-      PLZ : 1000 .. 9999;
+      PLZ : MANDATORY 1000 .. 9999;
       /** Ort/Gemeinde der Kontaktperson oder Organisation
        */
-      Ort : TEXT*100;
+      Ort : MANDATORY TEXT*100;
       /** SAP-Nummer des Kontaktes
        */
-      SAP : TEXT*50;
+      SAP : MANDATORY TEXT*50;
       /** Telefonnummer des Kontaktes
        */
       Telefon : TEXT*50;
       /** E-Mail-Adresse des Kontaktes
        */
       EMail : TEXT*100;
-      /** Ist der Kontakt EigentümerIn eines Bootsstandortes?
-       */
-      Eigentum : BOOLEAN;
       /** Handelt es sich um einen Kontokorrent-Kontakt?
        */
-      Kontokorrent : BOOLEAN;
+      Kontokorrent : MANDATORY BOOLEAN;
       /** Bemerkungen zum Kontakt
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Kontaktdaten;
 
     CLASS Bootsanbindeplatz =
@@ -86,7 +84,7 @@ VERSION "2025-02-10"  =
       Platznummer : MANDATORY TEXT*10;
       /** Grösse des Bootsanbindeplatzes in Meter (Abstand Pfosten zu Pfosten)
        */
-      Groesse : 1.00 .. 99.99;
+      Pfostenabstand : 1.00 .. 99.99;
       /** Angabe ob der Bootsanbindeplatz vermietet ist.
        */
       Vermietung : MANDATORY BOOLEAN;
@@ -102,26 +100,31 @@ VERSION "2025-02-10"  =
       /** Länge des Bootes in Meter
        */
       Bootslaenge : 1.00 .. 99.99;
-      /** Datum der Bewilligung
+      /** Datum der Nutzungsbewilligung
        */
+      !!@ ili2db.dispName="Bewilligungsdatum"
       Datum_Bewilligung : INTERLIS.XMLDate;
-      /** Ablaufdatum der Bewilligung
+      /** Ablaufdatum der Nutzungsbewilligung
        */
-      Datum_Bewilligung_Ende : INTERLIS.XMLDate;
-      /** GENAUE BEDEUTUNG ABKLÄREN
+      !!@ ili2db.dispName="Ablaufdatum Bewilligung"
+      Datum_Bewilligungsablauf : INTERLIS.XMLDate;
+      /** Besteht eine Zufahrtsbewilligung zum Bootsanbindeplatz?
        */
-      Zufahrtsbewilligung : BOOLEAN;
+      Zufahrtsbewilligung : MANDATORY BOOLEAN;
       /** Bootsgebühr in CHF
        */
+      !!@ ili2db.dispName="Bootsgebühr"
       Bootsgebuehr : 0.00 .. 10000.00;
       /** Steggebühr in CHF
        */
+      !!@ ili2db.dispName="Steggebühr"
       Steggebuehr : 0.00 .. 10000.00;
       /** Mietkosten in CHF
        */
       Mietkosten : 0.00 .. 10000.00;
       /** Pfostengebühr in CHF
        */
+      !!@ ili2db.dispName="Pfostengebühr"
       Pfostengebuehr : 0.00 .. 10000.00;
       /** Standortname mit Nummer
        */
@@ -129,26 +132,31 @@ VERSION "2025-02-10"  =
       /** Verweise auf Personendokumente
        */
       !!@ ili2db.mapping=JSON
-      Dokumente : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Dokument;
+      Dokumente :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Dokument;
       /** Angaben zum Mieter / zur Mieterin
        */
       !!@ ili2db.mapping=JSON
-      Nutzende_Person : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
+      Nutzer :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
       /** Rechnungsstelle für die Nutzungsgebühr
        */
-      Rechnungsstelle_Nutzungsgebuehr : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
+      !!@ ili2db.dispName="Rechnungsstelle Nutzungsgebühr"
+      !!@ ili2db.mapping=JSON
+      Rechnungsstelle_Nutzungsgebuehr :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
       /** Rechnungsstelle für die Steggebühr
        */
-      Rechnungsstelle_Steggebuehr : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
-      /** Beanspruchte Wasserfläche des Schiffsstegs in m2 für diesen Bootsanbindeplatz. Pro beanspruchte m2 Wasserfläche wird 6 Fr. verrechnet (minimum 60 Fr.).
+      !!@ ili2db.dispName="Rechnungsstelle Steggebühr"
+      !!@ ili2db.mapping=JSON
+      Rechnungsstelle_Steggebuehr :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
+      /** Anzahl beanspruchte Schiffsanbindepfosten.
        */
-      Flaeche_Schiffsteg : 0.00 .. 1000.00;
+      !!@ ili2db.dispName="Anzahl Pfosten"
+      Pfosten_Anz : 0 .. 2;
       /** Punktgeometrie des Bootsanbindeplatzes
        */
-      Geometrie : GeometryCHLV95_V1.Coord2;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
       /** Bemerkungen zum Bootsanbindeplatz
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
     END Bootsanbindeplatz;
 
     /** Enthält die notwendigen Standortattribute
@@ -157,10 +165,10 @@ VERSION "2025-02-10"  =
       /** Zusammengesetzte Bezeichnung aus Hauptstandort und Standort
        */
       Bezeichnung : MANDATORY TEXT*250;
-      /** Bezeichnung und Nummer des Hauptstandortes
+      /** Bezeichnung und Kennnummer des Hauptstandortes
        */
       Hauptstandort : MANDATORY TEXT*150;
-      /** Bezeichnung und Nummer Standort
+      /** Bezeichnung und Kennnummer des Standortes
        */
       Standort : MANDATORY TEXT*150;
       /** Gemeinde des Hauptstandortes
@@ -169,22 +177,20 @@ VERSION "2025-02-10"  =
       /** Verweise auf Dokumente zum Hauptstandort
        */
       !!@ ili2db.mapping=JSON
-      Dokumente : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Dokument;
+      Dokumente :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Dokument;
       /** Befindet sich der Standort in Privatbesitz?
        */
       Privatvermietung : MANDATORY BOOLEAN;
       /** EigentümerIn des Standortes
        */
-      EigentuemerIn : SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
-      /** Total beanspruchte Wasserfläche des Schiffsstegs in m2.
-       */
-      Flaeche_Schiffsteg : 0.00 .. 1000.00;
+      !!@ ili2db.mapping=JSON
+      EigentuemerIn :  BAG {0..*} OF SO_AFU_Bootsanbindeplaetze_Publikation_20250604.Bootsanbindeplaetze.Kontaktdaten;
       /** Bemerkungen zum Standort und Hauptstandort
        */
-      Bemerkung : MTEXT;
+      Bemerkung : MTEXT*1000;
       /** Punktgeometrie des Standortes
        */
-      Geometrie : GeometryCHLV95_V1.Coord2;
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
     END Standortdaten;
 
   END Bootsanbindeplaetze;

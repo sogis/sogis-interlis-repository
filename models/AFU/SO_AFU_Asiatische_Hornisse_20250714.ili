@@ -1,0 +1,140 @@
+INTERLIS 2.3;
+
+/** !! Die Verbreitung der Asiatischen Hornisse und ihrer Nester sowie deren Behandlungsstatus werden in der Fachapplikation www.asiatischehornisse.ch gepflegt und über den infofauna WFS importiert.
+ * !! Zusätzlich führt der Kanton einen Massnahmenstatus für Hornissen-Sichtungen, der darüber Auskunft gibt, ob die Sichtung beurteilt und gegebenenfalls Massnahmen ergriffen wurden.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2024-07-02 | sc  | Initial erstellt.
+ * !! 2025-07-14 | cr  | Angepasst anlässlich des Imports vom infofauna WFS.
+ */
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Asiatische_Hornisse_20250714.uml
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ shortDescription="Import und Behandlung von Sichtungen der Asiatischen Hornisse und ihrer Nester."
+!!@ title="Asiatische Hornisse"
+MODEL SO_AFU_Asiatische_Hornisse_20250714 (de)
+AT "http://geo.so.ch/models/AFU/"
+VERSION "2025-07-14"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Asia_Hornisse =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Abstrakte Klasse für alle Attribute, welche sich Hornissen-Sichtungen und Nester teilen.
+     */
+    CLASS Meldung (ABSTRACT) =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Eindeutige und stabile Record-ID von infofauna
+       */
+      Import_MaterialEntity_Id : MANDATORY TEXT*200;
+      /** Datum der Sichtung
+       */
+      Import_Datum_Sichtung : MANDATORY INTERLIS.XMLDate;
+      /** Ort der Sichtung. Nächst gelegener Flurnamen
+       */
+      Import_Ort : TEXT*200;
+      /** Kanton
+       */
+      Import_Kanton : MANDATORY TEXT*200;
+      /** x-Koordinate LV 95
+       */
+      Import_X_Koordinate : 1000000 .. 9000000;
+      /** y-Koordinate LV 95
+       */
+      Import_Y_Koordinate : 1000000 .. 9000000;
+      /** WGS 84 Koordinaten Latitude (Breitengrad) der Sichtung
+       */
+      Import_Lat : 45.709700 .. 47.830200;
+      /** WGS 84 Koordinaten Longitude (Längengrad) der Sichtung
+       */
+      Import_Lon : 5.535400 .. 10.753200;
+      /** Name der Beobachterin
+       */
+      Import_Kontakt_Name : TEXT*200;
+      /** Mail der Beobachterin
+       */
+      Import_Kontakt_Mail : TEXT*200;
+      /** Tel der Beobachterin
+       */
+      Import_Kontakt_Tel : TEXT*200;
+      /** Bemerkung zur Sichtung
+       */
+      Import_Bemerkung : MTEXT*600;
+      /** URL zum infofauna Record
+       */
+      Import_URL : URI;
+      /** URL zur infofauna Foto
+       */
+      Import_Foto_URL : URI;
+      /** Wert ist eindeutig
+       */
+      /** Wert ist eindeutig
+       */
+      UNIQUE Import_MaterialEntity_Id;
+    END Meldung;
+
+    /** Sichtungsmeldungen der Asiatischen Hornisse werden kontinuierlich über die Meldeplattform www.asiatischehornisse.ch erfasst und aktualisiert. Zusätzlich führt der Kanton einen Massnahmenstatus, der darüber Auskunft gibt, ob die Sichtung beurteilt und gegebenenfalls Massnahmen ergriffen wurden.
+     */
+    CLASS Sichtung
+    EXTENDS Meldung =
+      /** Nummer der Sichtung von InfoFauna (stabil ?)
+       */
+      Import_Occurrence_Id : TEXT*200;
+      /** Entspricht WFS Feld "unique_nid_id", Bedeutung unklar, scheint nicht mit "nid_id" von Nestern zu matchen
+       */
+      Import_Unique_Nest_id : TEXT*200;
+      /** Falls am Bienenstand gesichtet: Bienenstand-Nummer
+       */
+      Import_Bienenstand_Nr : TEXT*200;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen vor 10 Uhr
+       */
+      Import_Vor_10_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen zwischen 10 und 13 Uhr
+       */
+      Import_Zwischen_10_und_13_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen zwischen 13 und 17 Uhr
+       */
+      Import_Zwischen_13_und_17_Uhr : 0 .. 99999999;
+      /** Falls am Bienenstand gesichtet: Anzahl beobachteter Hornissen nach 17 Uhr
+       */
+      Import_Nach_17_Uhr : 0 .. 99999999;
+      /** Status der getroffenen Massnahmen
+       */
+      Massnahmenstatus : (
+        /** neu
+         */
+        neu,
+        /** abgeschlossen
+         */
+        abgeschlossen
+      );
+      /** Bemerkung zur Massnahme
+       */
+      Bemerkung_Massnahme : MTEXT*600;
+    END Sichtung;
+
+    /** Die Nester der Asiatischen Hornisse und deren Behandlungsstatus werden kontinuierlich über die Meldeplattform www.asiatischehornisse.ch erfasst und aktualisiert.
+     */
+    CLASS Nest
+    EXTENDS Meldung =
+      /** Entspricht WFS Feld "nid_id", eine ID von infofauna für das Nest - Achtung, nicht stabil
+       */
+      Import_Nest_Id : TEXT*200;
+      /** Status des Nests von infofauna
+       */
+      Import_Nest_Status : MANDATORY (
+        /** bestehend (entspricht Wert "actif" bei infofauna bzw. Layer "active_nests")
+         */
+        bestehend,
+        /** zerstoert (entspricht Wert "détruit" bei infofauna bzw. Layer "unactive_nests")
+         */
+        zerstoert
+      );
+      /** Datum der Behandlung
+       */
+      Import_Datum_Behandlung : INTERLIS.XMLDate;
+    END Nest;
+
+  END Asia_Hornisse;
+
+END SO_AFU_Asiatische_Hornisse_20250714.
