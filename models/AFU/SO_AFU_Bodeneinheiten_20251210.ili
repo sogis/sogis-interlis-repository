@@ -1366,6 +1366,11 @@ VERSION "2025-08-21"  =
 
     END Nebenauspraegung_Landwirtschaft;
 
+    ASSOCIATION Bodeneinheit_Nebenauspraegungen_Landwirtschaft =
+      Bodeneinheit -- {1} BodeneinheitHauptauspraegung_Landwirtschaft;
+      Nebenauspraegung -- {0..3} Nebenauspraegung_Landwirtschaft;
+    END Bodeneinheit_Nebenauspraegungen_Landwirtschaft;
+
     ASSOCIATION Nebenauspraegung_Landwirtschaft_Untertyp_K_NebenLandwirtschaft =
       NebenauspraegungLandAssociation_K -- {1} Nebenauspraegung_Landwirtschaft;
       Untertyp_K_Association_Land -- {0..10} Untertyp_K_NebenLandwirtschaft;
@@ -1380,6 +1385,13 @@ VERSION "2025-08-21"  =
       NebenauspraegungLandAssociation_Diverse -- {1} Nebenauspraegung_Landwirtschaft;
       Untertyp_Diverse_Association_Land -- {0..10} Untertyp_Diverse_NebenLandwirtschaft;
     END Nebenauspraegung_Landwirtschaft_Untertyp_Diverse_NebenLandwirtschaft;
+
+    CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Nebenauspraegung_Landwirtschaft = 
+      !!@ name = "HauptHatMehrGewicht_alsNeben_Landwirtschaft"
+      !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Landwirtschaft)."
+      MANDATORY CONSTRAINT
+        ((Bodeneinheit->Gewichtung) > Gewichtung);
+    END;
 
     /** NebenAusprägungen von Boden in Waldgebieten. Abgeleitete aus Auspraegungen. Angereichert mit Attributen, welche nur den Wald betreffen. Ergänzt mit Skelettgehalt.
      */
@@ -1460,55 +1472,43 @@ VERSION "2025-08-21"  =
       Untertyp_Diverse_Association_Wald -- {0..10} Untertyp_Diverse_NebenWald;
     END Nebenauspraegung_Wald_Untertyp_Diverse_NebenWald;
 
-    ASSOCIATION Bodeneinheit_Nebenauspraegungen_Landwirtschaft =
-      Bodeneinheit -- {1} BodeneinheitHauptauspraegung_Landwirtschaft;
-      Nebenauspraegung -- {0..3} Nebenauspraegung_Landwirtschaft;
-    END Bodeneinheit_Nebenauspraegungen_Landwirtschaft;
-
     ASSOCIATION Bodeneinheit_Nebenauspraegungen_Wald =
       Bodeneinheit -- {1} BodeneinheitHauptauspraegung_Wald;
       Nebenauspraegung -- {0..3} Nebenauspraegung_Wald;
     END Bodeneinheit_Nebenauspraegungen_Wald;
 
-  CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Wald =
-    !!@ name = "GewichtungSumme100_Wald" 
-    !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Wald)."
-    MANDATORY CONSTRAINT 
-      (
-        DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
-      )
-      OR 
-      (
-        Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
-      );
+    CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Nebenauspraegung_Wald = 
+      !!@ name = "HauptHatMehrGewicht_alsNeben_Wald"
+      !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Wald)."
+      MANDATORY CONSTRAINT
+        ((Bodeneinheit->Gewichtung) > Gewichtung);
+    END;
 
-    !!@ name = "HauptHatMehrGewicht_alsNeben_Wald"
-    !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Wald)."
-    MANDATORY CONSTRAINT
-      NOT(DEFINED("Nebenauspraegung->Gewichtung")) 
-      OR 
-      (Gewichtung > (Nebenauspraegung->Gewichtung));
-  END;
+    CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Wald =
+      !!@ name = "GewichtungSumme100_Wald" 
+      !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Wald)."
+      MANDATORY CONSTRAINT 
+        (
+          DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
+        )
+        OR 
+        (
+          Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
+        );
+    END;
 
-  CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Landwirtschaft =
-    !!@ name = "GewichtungSumme100_Land" 
-    !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Landwirtschaft)."
-    MANDATORY CONSTRAINT 
-      (
-        DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
-      )
-      OR 
-      (
-        Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
-      );
-
-    !!@ name = "HauptHatMehrGewicht_alsNeben_Landwirtschaft"
-    !!@ ilivalid.msg = "Die Hauptausprägung muss mehr Gewichtung haben als die Nebenausprägungen (Landwirtschaft)."
-    MANDATORY CONSTRAINT
-      NOT(DEFINED("Nebenauspraegung->Gewichtung")) 
-      OR 
-      (Gewichtung > (Nebenauspraegung->Gewichtung));
-  END;
+    CONSTRAINTS OF SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.BodeneinheitHauptauspraegung_Landwirtschaft =
+      !!@ name = "GewichtungSumme100_Land" 
+      !!@ ilivalid.msg = "Die summierten Gewichtungen (Haupt + Neben) ergeben nicht 100% (Landwirtschaft)."
+      MANDATORY CONSTRAINT 
+        (
+          DEFINED(Math.sum("Nebenauspraegung->Gewichtung")) AND Math.add(Math.sum("Nebenauspraegung->Gewichtung"), Gewichtung) == 100
+        )
+        OR 
+        (
+          Gewichtung == 100 AND NOT(DEFINED(Math.sum("Nebenauspraegung->Gewichtung"))) 
+        );
+    END;
 
   END Bodeneinheiten;
   /** Dieses Topic dient dem Import von Daten aus einer Excel-Tabelle. Sie enthält nur eine Klasse / Tabelle, welche die Attribute beinhaltet, welche man aus Excel importieren kann. 
