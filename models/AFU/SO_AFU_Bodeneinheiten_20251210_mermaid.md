@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
   namespace SO_AFU_Bodeneinheiten_20251210__Bodeneinheiten {
     class SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Auspraegung["Auspraegung"] {
@@ -313,4 +314,6 @@ classDiagram
   SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Nebenauspraegung_Wald "1" -- "0..10" SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Untertyp_Diverse_NebenWald : NebenauspraegungWaldAssociation_Diverse–Untertyp_Diverse_Association_Wald
   SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Nebenauspraegung_Wald "1" -- "0..10" SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Untertyp_K_NebenWald : NebenauspraegungWaldAssociation_K–Untertyp_K_Association_Wald
   SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Nebenauspraegung_Wald "1" -- "0..10" SO_AFU_Bodeneinheiten_20251210.Bodeneinheiten.Untertyp_P_NebenWald : NebenauspraegungWaldAssociation_P–Untertyp_P_Association_Wald
+
   SO_AFU_Bodeneinheiten_20251210.Kartierer.KartierPerson "1..*" -- "0..*" SO_AFU_Bodeneinheiten_20251210.Kartierer.KartierTeam : KartierPerson_r–KartierTeam_r
+```mermaid
