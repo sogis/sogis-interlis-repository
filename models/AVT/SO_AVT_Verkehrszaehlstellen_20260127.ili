@@ -31,21 +31,24 @@ VERSION "2026-01-27"  =
       Jahr : MANDATORY INTERLIS.GregorianYear;
     END Dokument;
 
-    CLASS Staedische_Verkehrszaehlstelle =
-      /** Bezeichnung der städtischen Verkehrszählstelle
+    CLASS Zaehlstelle (ABSTRACT) = 
+      /** Bezeichnung der Verkehrszählstelle
        */
       Bezeichnung : MANDATORY TEXT*15;
       /** Darstellung der Zaehlstelle als Punkt
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      UNIQUE Bezeichnung;
+    END Zaehlstelle;
+
+    CLASS Staedische_Verkehrszaehlstelle 
+    EXTENDS Zaehlstelle =
     END Staedische_Verkehrszaehlstelle;
 
     /** Stelle an der der Verkehr manuell oder automatisch gezaehlt wird.
      */
-    CLASS Verkehrszaehlstelle =
-      /** Bezeichnung der Zaehlstelle
-       */
-      Bezeichnung : MANDATORY TEXT*15;
+    CLASS Verkehrszaehlstelle 
+    EXTENDS Zaehlstelle =
       /** Was wird gezählt?
        */
       Zaehlobjekt : MANDATORY (
@@ -82,29 +85,16 @@ VERSION "2026-01-27"  =
         !!@ ili2db.dispName="permanent"
         permanent
       );
-      /** Darstellung der Zaehlstelle als Punkt
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
-      UNIQUE Bezeichnung;
     END Verkehrszaehlstelle;
 
-    ASSOCIATION Verkehrszaehlstelle_Dokument =
-      /** Fremdschluessel zu Verkehrszaehlstelle
+    ASSOCIATION zaehlstelle_Dokument =
+      /** Fremdschluessel zur Zaehlstelle
        */
-      Verkehrszaehlstelle -- {1} Verkehrszaehlstelle;
+      Zaehlstelle -- {1} Zaehlstelle;
       /** Fremdschluessel zu Dokument
        */
       Dokument -- {0..*} Dokument;
-    END Verkehrszaehlstelle_Dokument;
-
-    ASSOCIATION Staedische_Verkehrszaehlstellen_Dokument =
-      /** Fremdschluessel zu Staedische_Verkehrszaehlstellen
-       */
-      Staedische_Verkehrszaehlstelle -- {1} Staedische_Verkehrszaehlstelle;
-      /** Fremdschluessel zu Dokument
-       */
-      Dokument -- {0..*} Dokument;
-    END Staedische_Verkehrszaehlstellen_Dokument;
+    END zaehlstelle_Dokument;
 
   END Verkehrszaehlstellen;
 
