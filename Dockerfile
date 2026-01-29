@@ -30,6 +30,7 @@ COPY models/GESA /opt/repository/GESA
 COPY models/LMK /opt/repository/LMK
 COPY models/mirror /opt/repository/mirror
 COPY models/SK /opt/repository/SK
+COPY models/KAPO /opt/repository/KAPO
 
 COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/
