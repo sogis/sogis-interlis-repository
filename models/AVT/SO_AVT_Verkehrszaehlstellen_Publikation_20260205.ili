@@ -1,0 +1,97 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Aenderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2019-01-30 | NS  | Erstversion
+ *  !! 2019-02-01 | NS  | Anpassung Zaehlart
+ *  !! 2019-02-06 | NS  | Anpassung Laenge Bezeichnung
+ *  !! 2026-02-05 | MS  | Auftrennen staedtische Verkehrszaehlung und verkehrszaehlstellen und JSON-Struktur für Dokumente
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AVT_Verkehrszaehlstellen_Publikation_20260205 (de)
+AT "http://geo.so.ch/models/AVT"
+VERSION "2026-02-05"  =
+  IMPORTS GeometryCHLV95_V1;
+
+    TOPIC Verkehrszaehlstellen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Information zu den Dokumenten
+     */
+    STRUCTURE Dokument =
+      /** Bezeichnung fuer das Datenblatt
+       */
+      Bezeichnung : MANDATORY TEXT*500;
+      /** Link zum Datenblatt
+       */
+      Link : MANDATORY INTERLIS.URI;
+      /** Jahrgang des Datenblatts
+       */
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+    END Dokument;
+
+    CLASS Zaehlstelle (ABSTRACT) =
+      /** Bezeichnung der Verkehrszählstelle
+       */
+      Bezeichnung : MANDATORY TEXT*15;
+      /** Dokumente einer Zählstelle oder einer Zählung
+       */
+      !!@ ili2db.mapping=JSON
+      Dokumente : BAG {0..*} OF SO_AVT_Verkehrszaehlstellen_Publikation_20260205.Verkehrszaehlstellen.Dokument;
+      /** Darstellung der Zaehlstelle als Punkt
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+
+
+      UNIQUE Bezeichnung;
+    END Zaehlstelle;
+
+    CLASS Staedtische_Verkehrszaehlung 
+        EXTENDS SO_AVT_Verkehrszaehlstellen_Publikation_20260205.Verkehrszaehlstellen.Zaehlstelle =
+    END Staedtische_Verkehrszaehlung;
+
+    /** Stelle an der der Verkehr manuell oder automatisch gezaehlt wird.
+     */
+    CLASS Verkehrszaehlstelle 
+        EXTENDS SO_AVT_Verkehrszaehlstellen_Publikation_20260205.Verkehrszaehlstellen.Zaehlstelle =
+      /** Was wird gezählt?
+       */
+      Zaehlobjekt : MANDATORY (
+        !!@ ili2db.dispName=gemischt
+        gemischt,
+        !!@ ili2db.dispName="Motorisierter Individualverkehr (MIV)"
+        MIV,
+        !!@ ili2db.dispName=Velo
+        Velo
+      );
+      /** Art der Zaehlung
+       */
+      Zaehlart : MANDATORY (
+        /** automatische Verkehrszaehlstelle (AVZ)
+         */
+        automatische_Verkehrszaehlstelle (
+          !!@ ili2db.dispName="automatische Verkehrszählstelle"
+          Allgemein,
+          !!@ ili2db.dispName="automatische Verkehrszählstelle Lichtsignalanlage"
+          Lichtsignalanlage,
+          !!@ ili2db.dispName="automatische Verkehrszählstelle Seitenradar"
+          Seitenradar
+        ),
+        /** manuelle Zaehlung
+         */
+        !!@ ili2db.dispName="manuelle Verkehrszählstelle"
+        manuell
+      );
+      /** Zählkandenz
+       */
+      Zaehlkadenz : MANDATORY (
+        !!@ ili2db.dispName=fünfjährlich
+        fuenfjaehrlich,
+        !!@ ili2db.dispName=permanent
+        permanent
+      );
+    END Verkehrszaehlstelle;
+  END Verkehrszaehlstellen;
+END SO_AVT_Verkehrszaehlstellen_Publikation_20260205.
