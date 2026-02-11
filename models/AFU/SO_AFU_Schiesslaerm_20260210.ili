@@ -1,0 +1,53 @@
+INTERLIS 2.3;
+
+/** !!
+ * !! Import-Modell für die Publikation der Schiesslärm-Flächen der aktiven
+ * !! Schiessplätze des kantons Solothurn.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Aenderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-02-10 | JEK | Initial erstellt.
+ */
+!!@ technicalContact=mailto:agi@so.ch
+MODEL SO_AFU_Schiesslaerm_20260210 (de)
+AT "http://geo.so.ch/models/AFU/"
+VERSION "2026-02-10"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+
+  TOPIC Schiesslaerm =
+
+    /** Umfasst alle Attribute der Schiessanlage, welche jeder Lärmfläche dynamisch hinzugefügt wird. */
+    CLASS Anlage_Attribute =
+      /** Identifikation der Schiessanlage. Die ID setzt sich zusammen aus der AFU-Gemeindenummer
+      und ggf. einem Suffix, sofern mehrere Schiessanlagen innerhalb eines Gemeindegebiets existieren.
+      Beispiel für eine ID mit Suffix: 80.2 */
+      ID : MANDATORY TEXT*50;
+      /** Bezeichnung der Schiessanlage
+       */
+      Bezeichnung : MANDATORY TEXT*255;
+      UNIQUE ID;
+    END Anlage_Attribute;
+
+    /** Hilfsklasse. Über diese wird sichergestellt, dass die im GRETL-Job als Parameter
+    übergebene ID in der Klasse Anlage_Attribute definiert ist. */
+    CLASS Anlage_Kandidat =
+      /** Identifikation der Anlage der zu verarbeitenden Schiesslärm-Flächen.
+       */
+      ID : MANDATORY TEXT*50;
+
+      EXISTENCE CONSTRAINT ID REQUIRED IN SO_AFU_Schiesslaerm_20260210.Schiesslaerm.Anlage_Attribute:ID;
+
+    END Anlage_Kandidat;
+
+    /** Hilfsklasse. In diese werden die Rohdaten (Schiessflächen-Quadrate) einer Anlage importiert.. */
+    CLASS Schiessflaeche_Import =
+      /** Identifikation der Anlage der zu verarbeitenden Schiesslärm-Flächen.
+       */
+      Value : MANDATORY TEXT*50;
+
+    END Schiessflaeche_Import;
+  END Schiesslaerm;
+
+END SO_AFU_Schiesslaerm_20260210.
