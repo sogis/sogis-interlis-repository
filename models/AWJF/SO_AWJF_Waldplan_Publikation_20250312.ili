@@ -141,7 +141,7 @@ VERSION "2025-03-12"  =
   /** Biodiversitätsobjektflächen in m2
    */
   STRUCTURE Flaechen_Biodiversitaet_Objekt =
-    Biodiversitaet_Objekt : TEXT*100;
+    Biodiversitaet_Objekt : SO_AWJF_Waldplan_Publikation_20250312.Biodiversitaetstyp;
     /** Fläche in m2
      */
     Flaeche : 0 .. 9999999999;
@@ -150,7 +150,7 @@ VERSION "2025-03-12"  =
   /** Waldfunktionsflächen in m2
    */
   STRUCTURE Flaechen_Waldfunktion =
-    Funktion : TEXT*100;
+    Funktion : SO_AWJF_Waldplan_Publikation_20250312.Waldfunktionskategorie;
     /** Fläche in m2
      */
     Flaeche : 0 .. 9999999999;
@@ -159,11 +159,20 @@ VERSION "2025-03-12"  =
   /** Waldnutzungsflächen in m2
    */
   STRUCTURE Flaechen_Waldnutzung =
-    Nutzungskategorie : TEXT*100;
+    Nutzungskategorie : SO_AWJF_Waldplan_Publikation_20250312.Waldnutzungskategorie;
     /** Fläche in m2
      */
     Flaeche : 0 .. 9999999999;
   END Flaechen_Waldnutzung;
+
+  STRUCTURE Auswertung_Flaeche =
+    Funktion : SO_AWJF_Waldplan_Publikation_20250312.Waldfunktionskategorie;
+    Biodiversitaet_Objekt : SO_AWJF_Waldplan_Publikation_20250312.Biodiversitaetstyp;
+    Nutzungskategorie : SO_AWJF_Waldplan_Publikation_20250312.Waldnutzungskategorie;
+    /** Fläche in m2
+     */
+    Flaeche : 0 .. 9999999999;
+  END Auswertung_Flaeche;
 
   TOPIC Waldplan =
     OID AS INTERLIS.UUIDOID;
@@ -244,82 +253,6 @@ VERSION "2025-03-12"  =
       Bemerkung : MTEXT*500;
     END Waldfunktion;
 
-    /** Waldplanattribute pro Grundstück. Der Web GIS Layer für das Waldeigentum wird ebenfalls aus dieser Klasse heraus generiert.
-     */
-    CLASS Waldplan_Grundstueck =
-      /** Eidgenössische Grundstücksidentifikation
-       */
-      EGRID : MANDATORY TEXT*14;
-      /** Name der Gemeinde
-       */
-      Gemeinde : MANDATORY TEXT*255;
-      /** Zuständiger Forstkreis
-       */
-      Forstkreis : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Forstkreise;
-      /** Zuständiges Forstrevier
-       */
-      Forstrevier : TEXT*100;
-      /** Zuständiger Forstbetrieb
-       */
-      Forstbetrieb : TEXT*100;
-      /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
-       */
-      Wirtschaftszone : SO_AWJF_Waldplan_Publikation_20250312.Wirtschaftszonen;
-      /** Grundbuchnummer
-       */
-      Grundstuecknummer : TEXT*15;
-      /** Fläche des Grundstückes in m2
-       */
-      Flaechenmass : 0 .. 9999999999;
-      /** Eigentümer des Waldes auf der entsprechenden Liegenschaft
-       */
-      Eigentuemer : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Waldeigentuemer;
-      /** Setzt sich aus dem Attribut "Eigentuemer" und "Zusatzinformation" aus der Waldeigentumsklasse im Erfassungsmodell zusammen.
-       */
-      Eigentuemerinformation : MANDATORY TEXT*500;
-      /** Flächen in m2 nach Waldfunktion
-       */
-      !!@ ili2db.mapping=JSON
-      Waldfunktion_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldfunktion;
-      /** Flächen in m2 nach Waldnutzung
-       */
-      !!@ ili2db.mapping=JSON
-      Waldnutzung_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldnutzung;
-      /** Flächen in m2 nach Biodiversitätsobjekt
-       */
-      !!@ ili2db.mapping=JSON
-      Biodiversitaetsobjekt_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Biodiversitaet_Objekt;
-      /** Wytweide Fläche in m2
-       */
-      Wytweide_Flaeche : 0 .. 9999999999;
-      /** Produktive Flächen in m2
-       * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
-       */
-      !!@ ili2db.mapping=JSON
-      Produktive_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Produktiv;
-      /** Hiebsatzrelevante Flächen in m2
-       * Produktive Waldflächen, welche gleichzeitig auch die Waldfunktion Wartschaftswald, Schutzwald, Schutzwald / Biodiversität, Biodiversität oder Erholungswald haben gelten als hiebsatzrelevant.
-       * Ausgenommen sind Flächen, welche gleichzeitig die Funktion Biodiversität und den Objekttyp Altholzinsel oder Waldreservat besitzen.
-       */
-      !!@ ili2db.mapping=JSON
-      Hiebsatzrelevante_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Hiebsatzrelevant;
-      /** Waldfläche in m2 auf der Liegenschaft
-       */
-      Waldflaeche : 0 .. 9999999999;
-      /** Grundbuchname
-       */
-      Grundbuch : MANDATORY TEXT*100;
-      /** Befindet sich der Wald auf dem Grundstück im Besitz einer ausserkantonalen Einwohnergemeinde, Bürgergemeinde oder Einheitsgemeinde?
-       */
-      Ausserkantonal : MANDATORY BOOLEAN;
-      /** Geometrie der Waldfunktionsfläche
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
-      /** Bemerkung zum Waldplan
-       */
-      Bemerkung : MTEXT*500;
-    END Waldplan_Grundstueck;
-
     /** Beschreibt welche Nutzungskategorie die jeweiligen Waldflächen haben.
      * Die Nutzungskategorie "Mit Wald bestockt" wird nicht erfasst.
      * Diese wird für das Publikationsmodell über die Differenz der erfassten Waldfunktions- zu den Waldnutzungsflächen berechnet".
@@ -336,6 +269,92 @@ VERSION "2025-03-12"  =
       Bemerkung : MTEXT*500;
     END Waldnutzung;
 
+    /** Basistabelle für die Grundstückdaten
+     */
+    CLASS Grundstueck_Basisdaten (ABSTRACT) =
+      /** Eidgenössische Grundstücksidentifikation
+       */
+      EGRID : MANDATORY TEXT*14;
+      /** Name der Gemeinde
+       */
+      Gemeinde : MANDATORY TEXT*255;
+      /** Grundbuchname
+       */
+      Grundbuch : MANDATORY TEXT*100;
+      /** Zuständiger Forstkreis
+       */
+      Forstkreis : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Forstkreise;
+      /** Zuständiges Forstrevier
+       */
+      Forstrevier : TEXT*100;
+      /** Zuständiger Forstbetrieb
+       */
+      Forstbetrieb : TEXT*100;
+      /** Waldbauliche Planungseinheit, die sich auf natürliche, klimatische und standörtliche Unterschiede bezieht und zur Anpassung der Waldbewirtschaftung dient.
+       */
+      Wirtschaftszone : SO_AWJF_Waldplan_Publikation_20250312.Wirtschaftszonen;
+      /** Grundstücknummer
+       */
+      Grundstuecknummer : TEXT*15;
+      /** Fläche des Grundstückes in m2
+       */
+      Flaechenmass : 0 .. 9999999999;
+      /** Eigentümer des Waldes auf der entsprechenden Liegenschaft
+       */
+      Eigentuemer : MANDATORY SO_AWJF_Waldplan_Publikation_20250312.Waldeigentuemer;
+      /** Setzt sich aus dem Attribut "Eigentuemer" und "Zusatzinformation" aus der Waldeigentumsklasse im Erfassungsmodell zusammen.
+       */
+      Eigentuemerinformation : MANDATORY TEXT*500;
+      /** Wytweide Fläche in m2
+       */
+      Wytweide_Flaeche : 0 .. 9999999999;
+      /** Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche : 0 .. 9999999999;
+      /** Geometrie der Waldfunktionsfläche
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.MultiSurface;
+      /** Bemerkung zum Waldplan
+       */
+      Bemerkung : MTEXT*500;
+    END Grundstueck_Basisdaten;
+
+    /** Waldplanattribute pro Grundstück. Der Web GIS Layer für das Waldeigentum wird ebenfalls aus dieser Klasse heraus generiert.
+     */
+    CLASS Waldplan_Grundstueck
+    EXTENDS Grundstueck_Basisdaten = 
+      /** Flächen in m2 nach Waldfunktion
+       */
+      !!@ ili2db.mapping=JSON
+      Waldfunktion_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldfunktion;
+      /** Flächen in m2 nach Waldnutzung
+       */
+      !!@ ili2db.mapping=JSON
+      Waldnutzung_Flaechen : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Waldnutzung;
+      /** Flächen in m2 nach Biodiversitätsobjekt
+       */
+      !!@ ili2db.mapping=JSON
+      Biodiversitaetsobjekt_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Biodiversitaet_Objekt;
+      /** Produktive Flächen in m2.
+       * Die Summe der Nutzungskategorie "Mit Wald bestockt" und "Nachteilige Nutzung" ergibt die produktive Waldfläche.
+       */
+      !!@ ili2db.mapping=JSON
+      Produktive_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Produktiv;
+      /** Hiebsatzrelevante Flächen in m2.
+       * Produktive Waldflächen, welche gleichzeitig auch die Waldfunktion Wartschaftswald, Schutzwald, Schutzwald / Biodiversität, Biodiversität oder Erholungswald haben gelten als hiebsatzrelevant.
+       * Ausgenommen sind Flächen, welche gleichzeitig die Funktion Biodiversität und den Objekttyp Altholzinsel oder Waldreservat besitzen.
+       */
+      !!@ ili2db.mapping=JSON
+      Hiebsatzrelevante_Flaeche : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Flaechen_Hiebsatzrelevant;
+      /** Detaillierte Flächenauswertung nach Waldfunktion und Waldnutzung
+       */
+      !!@ ili2db.mapping=JSON
+      Flaechenauswertung_Detailliert : BAG {0..*} OF SO_AWJF_Waldplan_Publikation_20250312.Auswertung_Flaeche;
+      /** Befindet sich der Wald auf dem Grundstück im Besitz einer ausserkantonalen Einwohnergemeinde, Bürgergemeinde oder Einheitsgemeinde?
+       */
+      Ausserkantonal : MANDATORY BOOLEAN;
+    END Waldplan_Grundstueck;
+
     /** Waldfläche (Waldübersichtskarte)
      */
     CLASS Walduebersicht =
@@ -345,5 +364,260 @@ VERSION "2025-03-12"  =
     END Walduebersicht;
 
   END Waldplan;
+
+  TOPIC Waldplan_Auswertung =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Flächenwerte auf Grundstücksebene nach unterschiedlichen Parametern.
+      * Diese werden für die Generierung diverser Auswertungen und Reports benötigt. 
+     */
+    CLASS Auswertung
+    EXTENDS SO_AWJF_Waldplan_Publikation_20250312.Waldplan.Grundstueck_Basisdaten =
+      /** Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet : 0 .. 9999999999;
+      /** Schutzwald-Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Biodiversitaet : 0 .. 9999999999;
+      /** Mit Wald bestockte Fläche in m2 auf der Liegenschaft
+       */
+      Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilige Nutzungsfläche in m2 auf der Liegenschaft
+       */
+      Nachteilige_Nutzung : 0 .. 9999999999;
+      /** Waldstrassenfläche in m2 auf der Liegenschaft
+       */
+      Waldstrasse : 0 .. 9999999999;
+      /** Maschinenwegfläche in m2 auf der Liegenschaft
+       */
+      Maschinenweg : 0 .. 9999999999;
+      /** Bauten- und Anlagefläche in m2 auf der Liegenschaft
+       */
+      Bauten_Anlagen : 0 .. 9999999999;
+      /** Temporäre Rodungsfläche in m2 auf der Liegenschaft
+       */
+      Rodung_temporaer : 0 .. 9999999999;
+      /** Gewässerfläche in m2 auf der Liegenschaft
+       */
+      Gewaesser : 0 .. 9999999999;
+      /** Waldreservatfläche in m2 auf der Liegenschaft
+       */
+      Waldreservat : 0 .. 9999999999;
+      /** Altholzinselfläche in m2 auf der Liegenschaft
+       */
+      Altholzinsel : 0 .. 9999999999;
+      /** Waldrandfläche in m2 auf der Liegenschaft
+       */
+      Waldrand : 0 .. 9999999999;
+      /** Lichte Waldfläche in m2 auf der Liegenschaft
+       */
+      Lichter_Wald : 0 .. 9999999999;
+      /** Prioritäre Lebensraum- und Artenfläche in m2 auf der Liegenschaft
+       */
+      Lebensraum_prioritaer : 0 .. 9999999999;
+      /** Andere Förderfläche in m2 auf der Liegenschaft
+       */
+      Andere_Foerderflaeche : 0 .. 9999999999;
+      /** Produktive Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche_produktiv : 0 .. 9999999999;
+      /** Unproduktive Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche_unproduktiv : 0 .. 9999999999;
+      /** Produktive Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_produktiv : 0 .. 9999999999;
+      /** Unproduktive Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_unproduktiv : 0 .. 9999999999;
+      /** Produktive Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_produktiv : 0 .. 9999999999;
+      /** Unproduktive Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_unproduktiv : 0 .. 9999999999;
+      /** Produktive Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_produktiv : 0 .. 9999999999;
+      /** Unproduktive Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_unproduktiv : 0 .. 9999999999;
+      /** Produktive Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_produktiv : 0 .. 9999999999;
+      /** Unproduktive Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_unproduktiv : 0 .. 9999999999;
+      /** Produktive Schutzwald-Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_produktiv : 0 .. 9999999999;
+      /** Unproduktive Schutzwald-Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_unproduktiv : 0 .. 9999999999;
+      /** Hiebsatzrelevante Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Waldfläche in m2 auf der Liegenschaft
+       */
+      Waldflaeche_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Biodversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante Schutzwald-Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante Schutzwald-Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante mit Wald bestockte Fläche in m2 auf der Liegenschaft
+       */
+      Wald_bestockt_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante mit Wald bestockte Fläche in m2 auf der Liegenschaft
+       */
+      Wald_bestockt_n_hiebrel : 0 .. 9999999999;
+      /** Hiebsatzrelevante nachteilige Nutzungsfläche in m2 auf der Liegenschaft
+       */
+      Nachteilige_Nutzung_hiebrel : 0 .. 9999999999;
+      /** Nicht hiebsatzrelevante nachteilige Nutzungsfläche in m2 auf der Liegenschaft
+       */
+      Nachteilige_Nutzung_n_hiebrel : 0 .. 9999999999;
+      /** Mit Wald bestockte Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilig genutzte Wirtschaftswaldfläche in m2 auf der Liegenschaft
+       */
+      Wirtschaftswald_Nt_Nutzung : 0 .. 9999999999;
+      /** Wirtschaftswaldfläche in m2 mit Waldstrasse auf der Liegenschaft
+       */
+      Wirtschaftswald_Waldstrasse : 0 .. 9999999999;
+      /** Wirtschaftswaldfläche in m2 mit Maschinenweg auf der Liegenschaft
+       */
+      Wirtschaftswald_Maschinenweg : 0 .. 9999999999;
+      /** Wirtschaftswaldfläche in m2 mit Bauten und Anlagen auf der Liegenschaft
+       */
+      Wirtschaftswald_BauAnl : 0 .. 9999999999;
+      /** Wirtschaftswaldfläche in m2 mit Gewässer auf der Liegenschaft
+       */
+      Wirtschaftswald_Gewaesser : 0 .. 9999999999;
+      /** Wirtschaftswaldfläche in m2 mit temporärer Rodung auf der Liegenschaft
+       */
+      Wirtschaftswald_Rodung_temp : 0 .. 9999999999;
+      /** Mit Wald bestockte Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilig genutzte Schutzwaldfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Nt_Nutzung : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 mit Waldstrasse auf der Liegenschaft
+       */
+      Schutzwald_Waldstrasse : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 mit Maschinenweg auf der Liegenschaft
+       */
+      Schutzwald_Maschinenweg : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 mit Bauten und Anlagen auf der Liegenschaft
+       */
+      Schutzwald_BauAnl : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 mit Gewässer auf der Liegenschaft
+       */
+      Schutzwald_Gewaesser : 0 .. 9999999999;
+      /** Schutzwaldfläche in m2 mit temporärer Rodung auf der Liegenschaft
+       */
+      Schutzwald_Rodung_temp : 0 .. 9999999999;
+      /** Mit Wald bestockte Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilig genutzte Erholungswaldfläche in m2 auf der Liegenschaft
+       */
+      Erholungswald_Nt_Nutzung : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 mit Waldstrasse auf der Liegenschaft
+       */
+      Erholungswald_Waldstrasse : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 mit Maschinenweg auf der Liegenschaft
+       */
+      Erholungswald_Maschinenweg : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 mit Bauten und Anlagen auf der Liegenschaft
+       */
+      Erholungswald_BauAnl : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 mit Gewässer auf der Liegenschaft
+       */
+      Erholungswald_Gewaesser : 0 .. 9999999999;
+      /** Erholungswaldfläche in m2 mit temporärer Rodung auf der Liegenschaft
+       */
+      Erholungswald_Rodung_temp : 0 .. 9999999999;
+      /** Mit Wald bestockte Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilig genutzte Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Biodiversitaet_Nt_Nutzung : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 mit Waldstrasse auf der Liegenschaft
+       */
+      Biodiversitaet_Waldstrasse : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 mit Maschinenweg auf der Liegenschaft
+       */
+      Biodiversitaet_Maschinenweg : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 mit Bauten und Anlagen auf der Liegenschaft
+       */
+      Biodiversitaet_BauAnl : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 mit Gewässer auf der Liegenschaft
+       */
+      Biodiversitaet_Gewaesser : 0 .. 9999999999;
+      /** Biodiversitätsfläche in m2 mit temporärer Rodung auf der Liegenschaft
+       */
+      Biodiversitaet_Rodung_temp : 0 .. 9999999999;
+      /** Mit Wald bestockte Schutzwald_Biodversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_Wald_bestockt : 0 .. 9999999999;
+      /** Nachteilig genutzte Schutzwald_Biodiversitätsfläche in m2 auf der Liegenschaft
+       */
+      Schutzwald_Bio_Nt_Nutzung : 0 .. 9999999999;
+      /** Schutzwald_Biodiversitätsfläche in m2 mit Waldstrasse auf der Liegenschaft
+       */
+      Schutzwald_Bio_Waldstrasse : 0 .. 9999999999;
+      /** Schutzwald_Biodiversitätsfläche in m2 mit Maschinenweg auf der Liegenschaft
+       */
+      Schutzwald_Bio_Maschinenweg : 0 .. 9999999999;
+      /** Schutzwald_Biodiversitätsfläche in m2 mit Bauten und Anlagen auf der Liegenschaft
+       */
+      Schutzwald_Bio_BauAnl : 0 .. 9999999999;
+      /** Schutzwald_Biodiversitätsfläche in m2 mit Gewässer auf der Liegenschaft
+       */
+      Schutzwald_Bio_Gewaesser : 0 .. 9999999999;
+      /** Schutzwald_Biodiversitätsfläche in m2 mit temporärer Rodung auf der Liegenschaft
+       */
+      Schutzwald_Bio_Rodung_temp : 0 .. 9999999999;
+    END Auswertung;
+
+  END Waldplan_Auswertung;
 
 END SO_AWJF_Waldplan_Publikation_20250312.
