@@ -1,7 +1,7 @@
 INTERLIS 2.3;
 
 /** !!
- * !! Datenmodell der aus Ablagerungsstandorten entnommenen Proben und
+ * !! Datenmodell der aus Ablagerungsstandorten entnommenen Proben (= Feldprobe) und
  * !! deren Analyseresultate von chemischen Stoffen und weiteren Parametern.
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Aenderung
@@ -45,10 +45,12 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Bezeichnung des Standorts, beispielsweise "BS1".
        */
       Bezeichnung : MANDATORY TEXT*100;
-      /** Kennung des KbS-Standortes, zu welchem an diser Probenahmestelle Proben entnommen wurden.
+      /** Kennung des KbS-Standortes, zu welchem an dieser Probenahmestelle Proben entnommen wurden. 
+       * Es sind andere Bezeichnungen als KbS-Nummern (z. B. BauGK-Nr.) zulässig.
        */
-      KBS_Nummer : MANDATORY TEXT*15;
-      UNIQUE Bezeichnung, KBS_Nummer;
+      KbS_Nummer : MANDATORY TEXT*25;
+      !!@ ilivalid.msg="Bezeichnung {Bezeichnung} und KbS_Nummer {KbS_Nummer} der Probenahmestelle sind keine eindeutige Kombination."
+      UNIQUE Bezeichnung, KbS_Nummer;
     END Probenahmestelle;
 
     /** Entnommene Probe an der entsprechenden
@@ -67,9 +69,9 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Untergrenze der Probeentnahme in Meter. Bsp: 0.40 für 40 cm unterhalb OK Terrain.
        */
       Tiefe_bis : MANDATORY 0.00 .. 999.99;
-      /** Bezeichnung der Beprobung in der entsprechenden Tiefe an der entsprechenden Probenahmestelle.
+      /** Bezeichnung des Büros für die Beprobung in der entsprechenden Tiefe an der entsprechenden Probenahmestelle.
        */
-      Beprobungsnummer : MANDATORY TEXT*20;
+      Probebezeichnung : MANDATORY TEXT*20;
     END Feldprobe;
 
     /** Labor, in welchen die Feldprobe ganz oder teilweise analysiert wurde.
@@ -78,6 +80,7 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Name des Labors
        */
       Name : MANDATORY TEXT*100;
+      !!@ ilivalid.msg="Name {Name} des Labors ist nicht eindeutig."
       UNIQUE Name;
     END Labor;
 
@@ -90,6 +93,10 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Analyseparameter ausgeschrieben.
        */
       Langbezeichnung : MANDATORY MTEXT*200;
+      /** Anzeigereihenfolge des Analyseparameters (aufsteigend, 1–9999).
+       */
+      Position : MANDATORY 1 .. 9999;
+      !!@ ilivalid.msg="Kurzbezeichnung {Kurzbezeichnung} des Parameters ist nicht eindeutig."
       UNIQUE Kurzbezeichnung;
     END Parameter;
 
@@ -102,7 +109,9 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Analysegruppe ausgeschrieben.
        */
       Langbezeichnung : MANDATORY MTEXT*200;
+      !!@ ilivalid.msg="Kurzbezeichnung {Kurzbezeichnung} der Analysegruppe ist nicht eindeutig."
       UNIQUE Kurzbezeichnung;
+      !!@ ilivalid.msg="Langbezeichnung {Langbezeichnung} der Analysegruppe ist nicht eindeutig."
       UNIQUE Langbezeichnung;
     END Analysegruppe;
 
@@ -112,23 +121,25 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       /** Bezeichnung der Einheit (ug/l, ug/kg, ...).
        */
       Bezeichnung : MANDATORY TEXT*50;
+      !!@ ilivalid.msg="Bezeichnung {Bezeichnung} der Einheit ist nicht eindeutig."
       UNIQUE Bezeichnung;
     END Einheit;
 
     /** Bestimmt, welche initialen Daten durch die Funktion "Initialwerte anlegen"
      * in der Klasse Analysewert angelegt wird. Der Wert der Funktion liegt insbesondere
-     * in der Vordefinition aller Parameter und Einheiten, welche für eine Gruppe v
-     * on Messungen für jede Feldprobe angelegt wird.
-     * Die Initialwerte für Wert und Ist_Nachweisgrenze sind global in der Funktion selbst
-     * definiert, und darum nicht Teil der Klasse.
+     * in der Vordefinition aller Parameter und Einheiten, welche für eine Gruppe von
+     * Messungen für jede Feldprobe angelegt wird.
      */
     CLASS Initialwert =
       /** Nur aktive Initialwerte werden angelegt.
        */
       Aktiv : MANDATORY BOOLEAN;
-      /** Zu setzender Initialwert für die Nachkommastellen (Nur für Messwerte).
+      /** Zu setzender Initialwert für die Nachkommastellen (nur für Messwerte).
        */
       Nachkommastellen : MANDATORY 0 .. 5;
+      /** Der initiale Messwert wird auf die Nachweisgrenze gesetzt, falls erfasst.
+       */
+      Nachweisgrenze : 0.00001 .. 99999.99999;
     END Initialwert;
 
     /** Analyseresultat (Messwert) eines Stoffs/Parameters.
@@ -145,15 +156,22 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
        * Bsp.: Nachkommastellen 2 und gespeicherter Wert 1.439 -> Darstellung als 1.44.
        */
       Nachkommastellen : MANDATORY 0 .. 5;
+      /** Benutzername der Person, welche die letzte Änderung am Analysewert vorgenommen hat.
+       */
+      Bearbeitet_von : TEXT*10;
+      /** Datum der letzten Änderung des Analysewerts.
+       */
+      Bearbeitet_am : MANDATORY INTERLIS.XMLDate;
     END Analysewert;
 
     /** Aus Ausgangswerten berechneter Wert.
      * Die Ausgangswerte können Messwerte oder berechnete Werte sein.
      */
     CLASS Wert_berechnet =
-      /** Berechneter Wert.
+      /** Berechneter Wert. Der Wert '0' ist zulässig, weil Analysewerte unterhalb 
+       * der Nachweisgrenze bei der Summenbildung als '0' angenommen werden.
        */
-      Wert : MANDATORY 0.00001 .. 99999.99999;
+      Wert : MANDATORY 0.00000 .. 99999.99999;
       /** Anzahl der signifikanten Nachkommastellen in Attribut "Wert".
        * Bsp.: Nachkommastellen 2 und gespeicherter Wert 1.439 -> Darstellung als 1.44.
        */
@@ -245,24 +263,20 @@ MODEL SO_AFU_Stoffe_Feststoffe_20251106 (de)
       Feldprobe_R -- {1..*} SO_AFU_Stoffe_Feststoffe_20251106.Stoffe.Feldprobe;
     END Probenahmestelle_Feldprobe;
 
-    CONSTRAINTS OF Feldprobe=
-      /** Maximal eine Feldprobe pro Tag an einer Probenahmestelle in einer bestimmten Tiefe.
-       */
+    CONSTRAINTS OF Feldprobe =
+      !!@ ilivalid.msg = "Es ist nur eine Feldprobe pro Tag an einer Probenahmestelle in einer bestimmten Tiefe zulässig."
       UNIQUE Probenahmestelle_R, Probenahmedatum, Tiefe_von, Tiefe_bis;
     END;
-    CONSTRAINTS OF Analysewert=
-      /** Maximal ein Analysewert pro Parameter und Feldprobe
-       */
+    CONSTRAINTS OF Analysewert =
+      !!@ ilivalid.msg = "Es ist nur ein Analysewert pro Parameter und Feldprobe zulässig."
       UNIQUE Parameter_R, Feldprobe_R;
     END;
-    CONSTRAINTS OF Wert_berechnet=
-      /** Maximal ein berechneter Wert pro Parameter und Feldprobe
-       */ 
+    CONSTRAINTS OF Wert_berechnet =
+      !!@ ilivalid.msg = "Es ist nur ein berechneter Wert pro Parameter und Feldprobe zulässig."
       UNIQUE Parameter_R, Feldprobe_R;
     END;
-    CONSTRAINTS OF Grenzwert=
-      /** Maximal ein Grenzwert pro Abfallklasse und Parameter
-       */
+    CONSTRAINTS OF Grenzwert =
+      !!@ ilivalid.msg = "Es ist nur ein Grenzwert pro Abfallklasse und Parameter zulässig."
       UNIQUE Abfallklasse_VVEA, Parameter_R;
     END;
 
