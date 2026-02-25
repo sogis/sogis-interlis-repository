@@ -1,6 +1,6 @@
 INTERLIS 2.3;
 CONTRACTED MODEL GeoW_FunctionsExt
-  AT "mailto:info@geowerkstatt.ch" VERSION "2024-02-26" =
+  AT "mailto:info@geowerkstatt.ch" VERSION "2025-05-28" =
     IMPORTS GeometryCHLV95_V1;
     /**
     * Geometrie-Funktionen
@@ -10,7 +10,7 @@ CONTRACTED MODEL GeoW_FunctionsExt
     !!@ fn.param = "LineAttr: Pfad zum Geometrieattribut oder UNDEFINED";
     !!@ fn.return = "Länge der Geometrie";
     !!@ fn.since = "2021-11-15";
-    !!sample = "MANDATORY CONSTRAINT GeoW_FunctionsExt.GetArea(THIS, "testAttribute") < 60;";
+    !!sample = "MANDATORY CONSTRAINT GeoW_FunctionsExt.GetLength(THIS, "polylineAttribute") > 13000;";
     FUNCTION GetLength (Objects: OBJECTS OF ANYCLASS; LineAttr: TEXT): NUMERIC;
 
     !!@ fn.description = "Ermittelt die Fläche einer (bzw. die Summe mehrerer) Polygon-Geometrien. Für 'Objects' können Objekte oder Geometrien angegeben werden. Für 'AreaAttr' soll der Pfad zur Flächen-Geometrie in INTERLIS 2 Syntax angegeben werden. Falls 'Objects' bereits die Geometrien enthält, soll für 'AreaAttr' 'UNDEFINED' übergeben werden. Wird über eine Beziehung die gleiche Geometrie mehrmals gefunden, wird dessen Fläche mehrmals gezählt.";
@@ -18,7 +18,7 @@ CONTRACTED MODEL GeoW_FunctionsExt
     !!@ fn.param = "AreaAttr: Pfad zum Geometrieattribut oder UNDEFINED";
     !!@ fn.return = "Fläche der Geometrie";
     !!@ fn.since = "2021-11-15";
-    !!sample = "MANDATORY CONSTRAINT GeoW_FunctionsExt.GetLength(THIS, "polylineAttribute") > 13000;";
+    !!sample = "MANDATORY CONSTRAINT GeoW_FunctionsExt.GetArea(THIS, "testAttribute") < 60;";
     FUNCTION GetArea (Objects: OBJECTS OF ANYCLASS; AreaAttr: TEXT): NUMERIC;
 
     !!@ fn.description = "Zählt die inneren Ringe in einer Fläche. Für 'Object' kann ein Objekt oder Geometrie angegeben werden. Für 'AreaAttr' soll der Pfad zur Flächen-Geometrie in INTERLIS 2 Syntax angegeben werden.. Falls 'Object' bereits die Geometrie enthält, soll für 'AreaAttr' 'UNDEFINED' übergeben werden.";
@@ -100,4 +100,12 @@ CONTRACTED MODEL GeoW_FunctionsExt
     !!@ fn.since = "2024-04-04";
     !!sample = "MANDATORY CONSTRAINT INTERLIS.elementCount(GeoW_FunctionsExt.Filter(THIS->references, "WHERE active == #true;")) >= 1";
     FUNCTION Filter(Objects: BAG OF ANYSTRUCTURE; Filter: TEXT): BAG OF ANYSTRUCTURE;
+
+    !!@ fn.description = "Extrahiert die Werte eines Attributes aus der Eingabemenge.";
+    !!@ fn.param = "Objects: Ausgangsobjekte.";
+    !!@ fn.param = "Attribute: Name des Attributs, welches extrahiert werden soll.";
+    !!@ fn.return = "Die extrahierten Attributwerte";
+    !!@ fn.since = "2025-05-25";
+    !!sample = "MANDATORY CONSTRAINT SomeFunction(GeoW_FunctionsExt.ExtractAttribute(SomeOtherFunction(THIS->Path), "Text"))";
+    FUNCTION ExtractAttribute(Objects: OBJECTS OF ANYCLASS; Attribute: TEXT): BAG OF ANYSTRUCTURE;
 END GeoW_FunctionsExt.
