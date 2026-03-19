@@ -104,6 +104,10 @@ MODEL SO_AFU_Stoffe_Grundwasser_20251106 (de)
        * Die CAS-Nummer dient dem fachübergreifenden Abgleich.
        */
       CAS_Nummer : TEXT*20;
+      /** Der Toxizitätsäquivalenzfaktor (TEF) ist ein dimensionsloser Faktor, der die relative Toxizität einer 
+       * Stoffs ausdrückt und bei der Summenbildung angewendet wird.
+       */
+      TEF : 0.0001 .. 999.9999;
       !!@ ilivalid.msg="Kurzbezeichnung {Kurzbezeichnung} des Parameters ist nicht eindeutig."
       UNIQUE Kurzbezeichnung;
       !!@ ilivalid.msg="CAS_Nummer {CAS_Nummer} des Parameters ist nicht eindeutig."
@@ -168,7 +172,7 @@ MODEL SO_AFU_Stoffe_Grundwasser_20251106 (de)
       Nachkommastellen : MANDATORY 0 .. 5;
       /** Benutzername der Person, welche die letzte Änderung am Analysewert vorgenommen hat.
        */
-      Bearbeitet_von : TEXT*10;
+      Bearbeitet_von : MANDATORY TEXT*10;
       /** Datum der letzten Änderung des Analysewerts.
        */
       Bearbeitet_am : MANDATORY INTERLIS.XMLDate;
@@ -293,6 +297,10 @@ MODEL SO_AFU_Stoffe_Grundwasser_20251106 (de)
     CONSTRAINTS OF Grenzwert =
       !!@ ilivalid.msg = "Es ist nur ein Grenzwert pro Beurteilungsklasse und Parameter zulässig."
       UNIQUE Beurteilungsklasse, Parameter_R;
+    END;
+    CONSTRAINTS OF Parameter =
+      !!@ ilivalid.msg = "Position {Position} ist nicht eindeutig. Die Position muss pro Analysegruppe eindeutig sein."
+      UNIQUE Position, Analysegruppe_R;
     END;
 
   END Stoffe;
