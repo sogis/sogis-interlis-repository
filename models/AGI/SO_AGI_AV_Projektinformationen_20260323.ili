@@ -1,0 +1,93 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2026-03-23 | ru  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ shortDescription="Informationen zu AV-Projekten"
+!!@ furtherInformation=https://geo.so.ch/models/AGI/SO_AGI_Projektinformationen_20260323.uml
+!!@ title=AV-Projekte
+MODEL SO_AGI_AV_Projektinformationen_20260323 (de)
+AT "http://www.geo.so.ch/models/AGI"
+VERSION "2026-03-23"  =
+  IMPORTS CHAdminCodes_V1,GeometryCHLV95_V1,INTERLIS;
+
+  TOPIC Projektinformationen =
+
+    CLASS Dokument =
+      /** Dokumenten Namen (RRB PNF…)
+       */
+      Name : TEXT*20;
+      Nummer : TEXT*20;
+    END Dokument;
+
+    CLASS Firma =
+      /** Firmennamen
+       */
+      Firma : TEXT*80;
+      /** Zuständiger Nachführungsgeometer
+       */
+      Geometer : TEXT*80;
+    END Firma;
+
+    CLASS Geometrie =
+      /** BFS-Nummer der aktuellen Gemeinde
+       */
+      BFS_Nr : CHAdminCodes_V1.CHMunicipalityCode;
+      /** Gemeindename oder Perimetername
+       */
+      Name : TEXT*500;
+      /** Geometrie der Gemeinden oder Perimeter.
+       * Die Gemeindegrenzen werden nicht nachgeführt.
+       */
+      Geometrie : GeometryCHLV95_V1.Surface;
+    END Geometrie;
+
+    CLASS Projekt =
+      /** Projektname
+       */
+      Name : TEXT*80;
+      /** Datum der Eröffnung
+       */
+      Vertragsbeginn : DATE;
+      /** Datum der Anerkennung
+       */
+      Anerkennung : DATE;
+      /** Vertragsnummer des AMO Operat
+       */
+      AMO_Nr : TEXT*20;
+      /** Los Nummer, wenn vorhanden
+       */
+      Los_Nr : 0 .. 99;
+      /** Nummer für die Archivablage AGI
+       */
+      Archiv_Nr : TEXT*20;
+      /** AMO-Bemerkungstext zum Los oder Operat
+       */
+      Bemerkung : TEXT*250;
+      /** AMO-Tätigkeitsfeld
+       */
+      Taetigkeit : TEXT*100;
+    END Projekt;
+
+    ASSOCIATION Projekt_Dokument =
+      projekt -- {0..*} Projekt;
+      dokument -- {0..*} Dokument;
+    END Projekt_Dokument;
+
+    ASSOCIATION Projekt_Firma =
+      projekt -- {1} Projekt;
+      firma -- {0..*} Firma;
+    END Projekt_Firma;
+
+    ASSOCIATION Projekt_Geometrie =
+      projekt -- {1..*} Projekt;
+      geometrie -- {1..*} Geometrie;
+    END Projekt_Geometrie;
+
+  END Projektinformationen;
+
+END SO_AGI_AV_Projektinformationen_20260323.
