@@ -1,0 +1,86 @@
+INTERLIS 2.4;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-03-16 | sz  | Initalversion
+ * !!==============================================================================
+ */
+!!@ shortDescription="a short description"
+!!@ title="Bewilligungsverfahren für Solaranlagen pro Gebäude"
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ tags="Solaranlagen,Bewilligung,Bewilligungsverfahren"
+MODEL SO_ARP_Solaranlagen_Bewilligungsverfahren_20260313 (de)
+  AT "https://arp.so.ch"
+  VERSION "2026-03-16"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+    RechtsstatusDokument = (
+      inKraft,
+      laufendeAenderung
+    );
+
+  STRUCTURE Dokument =
+    Titel : MANDATORY TEXT*500;
+    Abkuerzung : TEXT*20;
+    Nummer : TEXT*100;
+    Datum : DATE;
+    Rechtsstatus : SO_ARP_Solaranlagen_Bewilligungsverfahren_20260313.RechtsstatusDokument;
+    Link : MANDATORY INTERLIS.URI;
+  END Dokument;
+
+  STRUCTURE Objektinformation =
+    Thema : MANDATORY TEXT*100;
+    Quelle : MANDATORY TEXT*500;
+    ObjektId : MANDATORY TEXT*500;
+    Objektname : TEXT*500;
+    Schutzstatus : TEXT*100;
+    Objektblatt : INTERLIS.URI;
+    Nummer : TEXT*100;
+    Kategorie : TEXT*100;
+    Typ : TEXT*100;
+    Bezeichnung : TEXT*500;
+    !!@ ili2db.mapping=JSON
+    Dokumente : BAG {0..*} OF SO_ARP_Solaranlagen_Bewilligungsverfahren_20260313.Dokument;
+  END Objektinformation;
+
+  TOPIC Bauten =
+
+    /** Bauten mit Informationen bezüglich Bewilligungsverfahren von Solardachanlagen.
+     */
+    CLASS Baute =
+      /** Geometrie der Baute aus der amtlichen Vermessung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.SurfaceWithoutArcs;
+      /** Art der Baute
+       */
+      Art : (
+        !!@ ili2db.dispName=Gebäude
+        Gebaeude,
+        !!@ ili2db.dispName=Unterstand
+        Unterstand
+      );
+      /** Bewilligungsverfahren für Solardachanlagen gemäss Regelwerk.
+       */
+      Bewilligungsverfahren : MANDATORY (
+        !!@ ili2db.dispName=Baubewilligungsverfahren
+        Baubewilligungsverfahren,
+        !!@ ili2db.dispName="Baubewilligungsverfahren auf kommunaler Ebene zu klären"
+        Baubewilligungsverfahren_auf_kommunaler_Ebene_zu_klaeren,
+        !!@ ili2db.dispName=Meldeverfahren
+        Meldeverfahren
+      );
+      /** Zusätzlichen Informationen aus den Fachdaten, die für die Bestimmung des Bewilligungsverfahrens benutzt wurden.
+       */
+      !!@ ili2db.mapping=JSON
+      Objektinformation : BAG {0..*} OF SO_ARP_Solaranlagen_Bewilligungsverfahren_20260313.Objektinformation;
+      /** Offizielle Gemeindenummer
+       */
+      BFSNr : MANDATORY 2000 .. 3000;
+    END Baute;
+
+  END Bauten;
+
+END SO_ARP_Solaranlagen_Bewilligungsverfahren_20260313.
