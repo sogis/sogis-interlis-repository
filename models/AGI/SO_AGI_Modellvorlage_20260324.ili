@@ -1,0 +1,137 @@
+INTERLIS 2.4;
+
+/** Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente.
+ * 
+ * Nicht Teil des Vorlage-Modells sind die folgenden weniger gängigen Elemente:
+ * - Constraints, inkl. Existance Contraints
+ * - Nicht als UUID modellierte Objektidentifikatoren
+ * - Verwendung von Strukturen aus anderen Beweggründen ausser Json
+ * - Einheiten
+ * - Beziehungen über Topicgrenzen hinweg
+ * - Verwendung von Topics für partiellen Datentransfer
+ * - Kreisbogen-Geometrien
+ * - Nutzung von Funktionen
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-03-24 | jek | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente"
+!!@ title=Modellvorlage
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AGI_Modellvorlage_20260324 (de)
+  AT "https://geo.so.ch/models/AGI"
+  VERSION "2026-03-24"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+    Referenziert_Typ = (
+      eins,
+      zwei,
+      drei,
+      vier,
+      !!@ ili2db.dispName=fünf
+      fuenf
+    );
+
+  TOPIC Attribute =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Numerisch =
+      Ganzzahl : MANDATORY 0 .. 10;
+      Zahl_mit_zwei_Kommastellen : MANDATORY 0.00 .. 10.99;
+      Boolean : MANDATORY BOOLEAN;
+      Suffix : MANDATORY 0 .. 10;
+      UNIQUE Ganzzahl, Suffix;
+    END Numerisch;
+
+    CLASS Textuell =
+      Einzeilig : MANDATORY TEXT*10;
+      Mehrzeilig : MANDATORY MTEXT*500;
+    END Textuell;
+
+    CLASS Datum_Zeit =
+      Zeitstempel : MANDATORY DATETIME;
+      Datum : MANDATORY DATE;
+      Uhrzeit_ohne_Datum : MANDATORY TIMEOFDAY;
+    END Datum_Zeit;
+
+    CLASS Geometrie_2D =
+      Punkt : MANDATORY GeometryCHLV95_V2.Coord2;
+      Einzellinie : MANDATORY GeometryCHLV95_V2.LineWithoutArcs;
+      Multilinie : MANDATORY GeometryCHLV95_V2.MultiLineWithoutArcs;
+      Einzelpolygon : MANDATORY GeometryCHLV95_V2.SurfaceWithoutArcs;
+      Multipolygon : MANDATORY GeometryCHLV95_V2.MultiSurfaceWithoutArcs;
+    END Geometrie_2D;
+
+    CLASS Aufzaelung =
+      Inline_Linear : MANDATORY (
+        rot,
+        !!@ ili2db.dispName=grün
+        gruen,
+        gelb
+      );
+      Inline_Baumstruktur : MANDATORY (
+        rot (
+          hellrot,
+          dunkelrot
+        ),
+        !!@ ili2db.dispName=grün
+        gruen,
+        gelb
+      );
+      Referenzierte_Aufzaehlung : MANDATORY SO_AGI_Modellvorlage_20260324.Referenziert_Typ;
+    END Aufzaelung;
+
+    CLASS Weitere_Attribute =
+      URL : MANDATORY INTERLIS.URI;
+      UUID : MANDATORY INTERLIS.UUIDOID;
+    END Weitere_Attribute;
+
+  END Attribute;
+
+  TOPIC Beziehungen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Mutter =
+    END Mutter;
+
+    CLASS Kind =
+    END Kind;
+
+    ASSOCIATION Mutter_Kind =
+      Mutter_R -- {1} SO_AGI_Modellvorlage_20260324.Beziehungen.Mutter;
+      Kind_R -- {0..*} SO_AGI_Modellvorlage_20260324.Beziehungen.Kind;
+    END Mutter_Kind;
+
+    CLASS Bruder =
+    END Bruder;
+
+    CLASS Schwester =
+    END Schwester;
+
+    ASSOCIATION Bruder_Schwester =
+      Bruder_R -- {0..*} SO_AGI_Modellvorlage_20260324.Beziehungen.Bruder;
+      Schwester_R -- {0..*} SO_AGI_Modellvorlage_20260324.Beziehungen.Schwester;
+    END Bruder_Schwester;
+
+  END Beziehungen;
+
+  TOPIC Json =
+    OID AS INTERLIS.UUIDOID;
+
+    STRUCTURE Dokument =
+      Name : MANDATORY TEXT*255;
+      Nummer : MANDATORY 1 .. 1000;
+    END Dokument;
+
+    CLASS Json_Attribute =
+      Mehrere_Dokumente : BAG {1..*} OF SO_AGI_Modellvorlage_20260324.Json.Dokument;
+      Ein_Dokument : MANDATORY SO_AGI_Modellvorlage_20260324.Json.Dokument;
+    END Json_Attribute;
+
+  END Json;
+
+END SO_AGI_Modellvorlage_20260324.
