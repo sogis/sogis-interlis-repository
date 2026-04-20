@@ -1,0 +1,59 @@
+INTERLIS 2.4;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-04-24 | sz | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Informationen über die Energieberatenden im Kanton Solothurn"
+!!@ title="Energieberatende im Kanton Solothurn"
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AWA_Energieberater_20260417 (de)
+  AT "https://geo.so.ch/models/AWA"
+  VERSION "2026-04-17"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  TOPIC Energieberater =
+
+    DOMAIN
+      Themengebiete = (
+        !!@ ili2db.dispName=Bauphysik
+        Bauphysik,
+        !!@ ili2db.dispName=Gebäudehülle
+        Gebaeudehuelle,
+        !!@ ili2db.dispName=Haustechnik
+        Haustechnik
+      );
+
+    CLASS Region =
+      Name : MANDATORY TEXT*50;
+      Perimeter : MANDATORY GeometryCHLV95_V2.MultiSurfaceWithoutArcs;
+    END Region;
+
+    CLASS Berater =
+      Name : MANDATORY TEXT*255;
+      Vorname : MANDATORY TEXT*255;
+      Firmenname : TEXT*255;
+      Strassenname : TEXT*255;
+      Hausnummer : TEXT*10;
+      PLZ : 1000 .. 9999;
+      Ortschaft : TEXT*255;
+      Email : MANDATORY INTERLIS.URI;
+      Web : INTERLIS.URI;
+      Telefonnummer : MANDATORY TEXT*40;
+      Themengebiete : LIST {1..3} OF SO_AWA_Energieberater_20260417.Energieberater.Themengebiete;
+      Aus_Weiterbildung : LIST {1..*} OF TEXT*255;
+      Foto : INTERLIS.URI;
+      Standort : MANDATORY GeometryCHLV95_V2.Coord2;
+    END Berater;
+
+    ASSOCIATION Region_Berater =
+      Region_R -- {1} SO_AWA_Energieberater_20260417.Energieberater.Region;
+      Berater_R -- {1..*} SO_AWA_Energieberater_20260417.Energieberater.Berater;
+    END Region_Berater;
+
+  END Energieberater;
+
+END SO_AWA_Energieberater_20260417.
