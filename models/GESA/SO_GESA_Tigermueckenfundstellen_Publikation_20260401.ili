@@ -14,25 +14,21 @@ VERSION "2026-04-01"  =
 
   TOPIC Tigermueckenfundstelle =
     OID AS INTERLIS.UUIDOID;
-     /** CSV Importdatei des Tropeninstitutes
+     /** Aggregierte Punktdaten für jede Fundstelle
        */
-    CLASS Punkte =
+    CLASS Fundstelle =
       /** ID der Falle
        */
       TrapID : TEXT*15;
-      /** PLZ und Gemeindename
-       */
-      Gemeinde : TEXT*100;
-      /** Einsendetyp
+      /** Fundstellentyp
        */
       Typ : TEXT*20;
       /** Kanton
        */
       Kanton : TEXT*2;
-      /** Postleitzahl der Fundstelle
+      /** PLZ und Gemeindename
        */
-      PLZ : 1000 .. 9999;
-
+      Gemeinde : TEXT*100;
       /** Fundstellenstandort
        */
       Standort : TEXT*50;
@@ -42,7 +38,7 @@ VERSION "2026-04-01"  =
       /** LV95 Nord-Koordinate (Y-Koordinate)
        */
       LV95_N : 1062000 .. 1302000;
-      /** Jahreszahl des Fundes
+      /** Fundstellenjahr
        */
       Jahr : 2000 .. 2100;
       /** Kalenderwoche des Fundes
@@ -50,23 +46,23 @@ VERSION "2026-04-01"  =
       Woche : 0 .. 53;
       /** Erste Aufstellung der Falle
        */
-      DatumSetFirst : TEXT*20;
+      DatumSetFirst : INTERLIS.XMLDate;
       /** Letze Aufstellung der Falle
        */
-      DatumSetLast : TEXT*20;
-      /** Sammel-/Meldedatum 
+      DatumSetLast : INTERLIS.XMLDate;
+      /** Sammeldatum des Fundes
        */
-      DatumSam : TEXT*20;
+      Sammeldatum : INTERLIS.XMLDate;
       /** Sammelzeitraum 
        */
-      ZeitraumSam : TEXT*100;
+      Sammelzeitraum : TEXT*100;
       /** Sammelmethode
        */
-      SamMethode : TEXT*100;
-      /** Wie war der Befund der letzten Sammlung?
+      Sammelmethode : TEXT*100;
+      /** War der letzte Befund positiv?
       */
       Positiv : TEXT*10;
-      /** Anzahl gefangene Exemplare
+      /** Anzahl gefangene Exemplare beim letzten Fund
       */
       n_Individuen : 0 .. 1000;
       /** Tigermückengeschlecht
@@ -75,7 +71,7 @@ VERSION "2026-04-01"  =
       /** Tigermückenart
        */
       Art : TEXT*50;
-      /** Sicherheitsgrad des Befundes
+      /** Wie sicher sind die Angaben zum letzten Fund?
        */
       Sicherheit : TEXT*50;
       /** Anzahl Individuen, welche mit MALDI-TOF-MS analysiert wurden 
@@ -93,7 +89,28 @@ VERSION "2026-04-01"  =
       /** Kommentar / Bemerkung
        */
       Kommentar : MTEXT*100;
-    END Punkte;
+      /** Anzahl positive Funde über das ganze Jahr
+      */
+      Positiv_Anzahl: 0 .. 100
+      /** Anzahl negative Funde über das ganze Jahr
+      */
+      Negativ_Anzahl: 0 .. 100
+      /** Letztes Sammeldatum mit positivem Fund
+       */
+      Sammeldatum_positiv : INTERLIS.XMLDate;
+      /** Punktgeometrie der Fundstelle
+      */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+    END Fundstelle;
+
+    /** Aus Punktdaten abgeleitetes Ausbreitungsgebiet der Tigermücken
+    */
+    CLASS Ausbreitung =
+    /** Ausbreitungsgebiet
+    */
+    Geometrie : MANDATORY GeometryCHLV95_V1.Area;
+    END Ausbreitung;
+
 
   END Tigermueckenfundstelle;
 
