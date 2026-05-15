@@ -308,6 +308,9 @@ XTF examples and validation:
 
 - Use `createImportLine` for explicit import requests.
 - Prefer qualified imports unless an existing local model pattern clearly differs.
+- Qualified references to predefined INTERLIS base types such as `INTERLIS.URI`, `INTERLIS.XMLDate`, or `INTERLIS.UUIDOID` do not require an import.
+- Do not add `IMPORTS INTERLIS;` or `IMPORTS UNQUALIFIED INTERLIS;` solely because attributes, OIDs, or other declarations use `INTERLIS.*` base types.
+- Add import lines only for real external models that must be imported, for example `GeometryCHLV95_V2`.
 - For geometry attributes, use `ensureGeometryDependencies` before manual geometry assembly.
 - For standard geometry mappings to `GeometryCHLV95_V2.*`, call `ensureGeometryDependencies` with `chbase=true` and the qualified CHBase geometry type.
 - Do not create local `Coord2` domains or inline `SURFACE WITH ... VERTEX ...` as a substitute for a mapped `GeometryCHLV95_V2.*` type.

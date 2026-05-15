@@ -98,6 +98,12 @@ For `GeometryCHLV95_V2.AreaWithoutArcs`, always include an explicit open decisio
 
 For standard geometry mappings to `GeometryCHLV95_V2.*`, call `ensureGeometryDependencies` with `chbase=true` and the qualified geometry type. Do not create local `Coord2` domains or inline `SURFACE WITH ... VERTEX ...` as a substitute for a mapped CHBase geometry type.
 
+Import rule for predefined INTERLIS base types:
+
+- Qualified references to `INTERLIS.*` base types, for example `INTERLIS.URI`, `INTERLIS.XMLDate`, or `INTERLIS.UUIDOID`, do not require an import.
+- Do not add `IMPORTS INTERLIS;` or `IMPORTS UNQUALIFIED INTERLIS;` solely because attributes, OIDs, or other declarations use those qualified base types.
+- Add import lines only for real external models that must be imported, for example `GeometryCHLV95_V2`.
+
 Default workflow contract:
 
 1. Classify the input.
