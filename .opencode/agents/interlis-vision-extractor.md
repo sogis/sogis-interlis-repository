@@ -1,7 +1,7 @@
 ---
 description: Whiteboard/UML-Fotos in einen strukturierten, unsicherheitsmarkierten UML-Extraktionsreport ueberfuehren.
 mode: subagent
-model: infomaniak/qwen3
+model: infomaniak/Qwen/Qwen3.5-122B-A10B-FP8
 permission:
   edit: deny
   bash: deny
