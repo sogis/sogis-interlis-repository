@@ -22,6 +22,8 @@ MODEL SO_AGI_DataCatalog_Edit_20260523 (en)
   TOPIC Metadata =
 
     DOMAIN
+      /** https://semiceu.github.io/GeoDCAT-AP/releases/3.1.0/#maintenance-information---not-in-iso19115-core
+       */
       MaintenanceFrequencyCode = (
         continual,
         daily,
@@ -65,6 +67,19 @@ MODEL SO_AGI_DataCatalog_Edit_20260523 (en)
         Verwaltung,
         Volkswirtschaft
       );
+      AccessLevel = (
+        OPEN,
+        PUBLIC_WITH_CONDITIONS,
+        RESTRICTED,
+        INTERNAL,
+        CONFIDENTIAL
+      );
+      PublicationStatus = (
+        DRAFT,
+        IN_REVIEW,
+        PUBLISHED,
+        ARCHIVED
+      );
 
     STRUCTURE ContactPoint =
       name : TEXT*255;
@@ -88,17 +103,17 @@ MODEL SO_AGI_DataCatalog_Edit_20260523 (en)
 
     STRUCTURE DatasetAttribute =
       name : MANDATORY TEXT*255;
-      dataType : TEXT*255;
+      dataType : MANDATORY TEXT*255;
       description : MTEXT;
       unit : TEXT*255;
       codeList : INTERLIS.URI;
-      mandatory : BOOLEAN;
+      mandatory : MANDATORY BOOLEAN;
     END DatasetAttribute;
 
+    /** Hierarchical issue/edition of a DatasetSeries.
+     * In a relational/core model, each issue can become a real Dataset object.
+     */
     STRUCTURE DatasetIssue =
-      /** Hierarchical issue/edition of a DatasetSeries.
-       * In a relational/core model, each issue can become a real Dataset object.
-       */
       identifier : MANDATORY TEXT*255;
       title : TEXT*255;
       description : TEXT*1024;
@@ -106,8 +121,8 @@ MODEL SO_AGI_DataCatalog_Edit_20260523 (en)
        */
       issueLabel : MANDATORY TEXT*255;
       isCurrentIssue : MANDATORY BOOLEAN;
-      /** Mapping zu EU frequency vocabulary URI siehe https://semiceu.github.io/GeoDCAT-AP/releases/3.1.0/#maintenance-information---not-in-iso19115-core
-       */
+      accessLevel : MANDATORY SO_AGI_DataCatalog_Edit_20260523.Metadata.AccessLevel;
+      publicationStatus : MANDATORY SO_AGI_DataCatalog_Edit_20260523.Metadata.PublicationStatus;
       accrualPeriodicity : SO_AGI_DataCatalog_Edit_20260523.Metadata.MaintenanceFrequencyCode;
       issued : DATE;
       modified : DATE;
@@ -133,6 +148,12 @@ MODEL SO_AGI_DataCatalog_Edit_20260523 (en)
       /** dct:description
        */
       description : MANDATORY TEXT*1024;
+      /** access level
+       */
+      accessLevel : MANDATORY SO_AGI_DataCatalog_Edit_20260523.Metadata.AccessLevel;
+      /** publication status
+       */
+      publicationStatus : MANDATORY SO_AGI_DataCatalog_Edit_20260523.Metadata.PublicationStatus;
       /** dct:publisher
        */
       publisherRef : MANDATORY TEXT*255;
