@@ -1,0 +1,239 @@
+INTERLIS 2.4;
+
+/** Hierarchical edit/transfer model for the Canton Solothurn data catalog.
+ * 
+ * Purpose:
+ * - Human-friendly metadata capture for the "Datenportal" / modern data infrastructure.
+ * - Not limited to Open Government Data: accessLevel allows restricted and internal data.
+ * - Designed as a hierarchical model: top-level Dataset and DatasetSeries objects contain BAG OF STRUCTURE attributes.
+ * 
+ * Mapping idea:
+ * - Dataset maps to a DCAT Dataset / Cataloged Resource.
+ * - DatasetSeries maps to a DCAT Dataset Series.
+ * - Each DatasetIssue inside a DatasetSeries can be materialized as a Dataset in a relational/core model.
+ * 
+ * Im direkten Vergleich mit der erarbeiteten XLSX-Datei fehlen hier Attribute. Diese werden automatisch durch das Datenportal / während eines Prozesses abgefüllt und erscheinen auch später in der Publikation. Im relationalen/normalisierten Datenmodell XXX sind sie ebenfalls vorhanden.
+ * - modified
+ * - landingPage
+ * - Zugriffs-Url
+ * - Themen-Vokabular (wohl nur für dcat-ap-ch-Abgabe relevant)
+ * - Datenformate
+ */
+MODEL SO_AGI_DataCatalog_Datasheet_20260523 (en)
+  AT "https://agi.so.ch"
+  VERSION "2026-05-23"
+  =
+
+  TOPIC Metadata =
+
+    DOMAIN
+      /** Muss für dcat-ap-ch gemäss https://semiceu.github.io/GeoDCAT-AP/releases/3.1.0/#maintenance-information---not-in-iso19115-core gemappt werden.
+       */
+      MaintenanceFrequencyCode = (
+        continual,
+        daily,
+        weekly,
+        biweekly,
+        monthly,
+        quarterly,
+        biannually,
+        annually,
+        asNeeded,
+        irregular,
+        notPlanned,
+        unknown
+      );
+      /** Muss für dcat-ap-ch gemäss https://dcat-ap.ch/vocabulary/themes/20231122.rdf gemappt werden. EU-Themen sind zu grob.
+       */
+      Theme = (
+        Arbeit_Erwerb,
+        Bau_und_Wohnungswesen,
+        Bevoelkerung,
+        Bildung_Wissenschaft,
+        Energie,
+        Finanzen,
+        Geografie,
+        Gesetzgebung,
+        Gesundheit,
+        Handel,
+        Industrie_und_Dienstleistungen,
+        Kriminalitaet_Strafrecht,
+        Kultur_Medien_Informationsgesellschaft_Sport,
+        Landwirtschaft_Forstwirtschaft,
+        Mobilitaet_und_Verkehr,
+        Oeffentliche_Ordnung_und_Sicherheit,
+        Politik,
+        Preise,
+        Raum_und_Umwelt,
+        Soziale_Sicherheit,
+        Statistische_Grundlagen,
+        Tourismus,
+        Verwaltung,
+        Volkswirtschaft
+      );
+      /** Es geht explizit «nur» um die Zugänglichkeit der Daten. Diese Kategorisie rung unterscheidet sich von der Klassifizierung der Datensätze, etwa im Rahmen eines Informationssicherheitsgeset-
+       * zes o.ä.
+       */
+      AccessLevel = (
+        !!@ ili2db.dispName="Öffentlich, frei zugänglich"
+        open,
+        !!@ ili2db.dispName="Öffentlich, aber mit technischen/administrativen Bedingungen"
+        public_with_conditions,
+        !!@ ili2db.dispName=Eingeschränkt
+        restricted,
+        !!@ ili2db.dispName="Eingeschränkt oder nicht öffentlich, je nach Governance"
+        internal,
+        !!@ ili2db.dispName="Nicht öffentlich"
+        confidental
+      );
+      PublicationStatus = (
+        draft,
+        in_review,
+        published,
+        archived
+      );
+
+    /** Kontaktstelle. Name und Abteilungen etc. sind bewusst Freitext.
+     */
+    STRUCTURE ContactPoint =
+      name : TEXT*255;
+      organizationUnit : TEXT*255;
+      email : MANDATORY INTERLIS.URI;
+      phone : TEXT*255;
+      url : INTERLIS.URI;
+    END ContactPoint;
+
+    /** Use startDate/endDate for intervals.
+     * Use referenceDate for point-in-time datasets.
+     */
+    STRUCTURE TemporalCoverage =
+      startDate : DATE;
+      endDate : DATE;
+      referenceDate : DATE;
+      /** Constraint: entweder startDate UND endDate sind gesetzt, ODER beide sind null und referenceDate ist gesetzt.
+       */
+      MANDATORY CONSTRAINT (DEFINED(startDate) AND DEFINED(endDate)) OR (NOT (DEFINED(startDate)) AND NOT (DEFINED(endDate)) AND DEFINED(referenceDate));
+    END TemporalCoverage;
+
+    STRUCTURE DatasetAttribute =
+      name : MANDATORY TEXT*255;
+      dataType : MANDATORY TEXT*255;
+      description : MTEXT;
+      unit : TEXT*255;
+      codeList : INTERLIS.URI;
+      mandatory : MANDATORY BOOLEAN;
+    END DatasetAttribute;
+
+    /** Hierarchical issue/edition of a DatasetSeries.
+     * In a relational/core model, each issue can become a real Dataset object.
+     */
+    STRUCTURE DatasetIssue =
+      identifier : MANDATORY TEXT*255;
+      title : TEXT*255;
+      description : TEXT*1024;
+      /** e.g. "2026", "2025-05", "Stand_2026-01-01"
+       */
+      issueLabel : MANDATORY TEXT*255;
+      isCurrentIssue : MANDATORY BOOLEAN;
+      accessLevel : MANDATORY SO_AGI_DataCatalog_Datasheet_20260523.Metadata.AccessLevel;
+      publicationStatus : MANDATORY SO_AGI_DataCatalog_Datasheet_20260523.Metadata.PublicationStatus;
+      accrualPeriodicity : SO_AGI_DataCatalog_Datasheet_20260523.Metadata.MaintenanceFrequencyCode;
+      issued : DATE;
+      modified : DATE;
+      temporalCoverage : SO_AGI_DataCatalog_Datasheet_20260523.Metadata.TemporalCoverage;
+      surveyMethod : MTEXT;
+      attributes : BAG {0..*} OF SO_AGI_DataCatalog_Datasheet_20260523.Metadata.DatasetAttribute;
+      dataAvailableFrom : TEXT*255;
+      furtherUses : MTEXT;
+      auxiliaryData : MTEXT;
+      remarks : MTEXT;
+    END DatasetIssue;
+
+    /** Stand-alone dataset, not part of a dataset series in this hierarchical edit model.
+     * Corresponds to a Dataset / Cataloged Resource.
+     */
+    CLASS Dataset =
+      /** Identifier
+       */
+      !!@ dct=identifier
+      identifier : MANDATORY TEXT*255;
+      /** Titel
+       */
+      !!@ dct=title
+      title : MANDATORY TEXT*255;
+      /** Beschreibung
+       */
+      !!@ dct=description
+      description : MANDATORY TEXT*1024;
+      /** Zungänglichkeit der Daten
+       */
+      !!@ dct.so=accessLevel
+      accessLevel : MANDATORY SO_AGI_DataCatalog_Datasheet_20260523.Metadata.AccessLevel;
+      /** Publikationsstatus
+       */
+      !!@ dct.so=publicationStatus
+      publicationStatus : MANDATORY SO_AGI_DataCatalog_Datasheet_20260523.Metadata.PublicationStatus;
+      /** Referenz auf Publisher (Amt)
+       */
+      !!@ dct=publisher
+      publisherRef : MANDATORY TEXT*255;
+      /** Referenz auf Datenherr (Amt)
+       */
+      !!@ dct=creator
+      creatorRef : MANDATORY TEXT*255;
+      /** Kontaktstelle (z.B. für weitere Informationen)
+       */
+      !!@ dct=contactPoint
+      contactPoint : MANDATORY SO_AGI_DataCatalog_Datasheet_20260523.Metadata.ContactPoint;
+      /** Themen
+       */
+      !!@ dct=theme
+      themes : BAG {1..*} OF SO_AGI_DataCatalog_Datasheet_20260523.Metadata.Theme;
+      /** Keywords
+       */
+      !!@ dct=keyword
+      keywords : BAG {0..*} OF TEXT*255;
+      /** Aktualisierungsinterval
+       */
+      !!@ dct=accrualPeriodicity
+      accrualPeriodicity : SO_AGI_DataCatalog_Datasheet_20260523.Metadata.MaintenanceFrequencyCode;
+      /** Datum der letzten inhaltlichen Änderung des Datensatzes
+       */
+      !!@ dct=modified
+      modified : MANDATORY DATE;
+      /** Zeitliche Abdeckung oder Stichtag
+       */
+      !!@ dct=temporal
+      temporalCoverage : SO_AGI_DataCatalog_Datasheet_20260523.Metadata.TemporalCoverage;
+      /** Erhebungs- / Messmethode (inkl. Erfassungsmethode)
+       */
+      !!@ dct.so=surveyMethod
+      surveyMethod : MTEXT;
+      /** Beschreibung der Attribute in Datensatz
+       */
+      !!@ dct.so=attributes
+      attributes : BAG {0..*} OF SO_AGI_DataCatalog_Datasheet_20260523.Metadata.DatasetAttribute;
+      /** Verfügbare Daten ab
+       */
+      !!@ dct.so=dataAvaibleFrom
+      dataAvailableFrom : TEXT*255;
+      /** Weitere Verwendungen / Hilfsdaten
+       */
+      !!@ dct.so=furtherUses
+      furtherUses : MTEXT;
+      /** Bemerkungen (inkl. Interpretationshinweise)
+       */
+      !!@ dct.so=remarks
+      remarks : MTEXT;
+    END Dataset;
+
+    /** Hierarchical data series.
+     * The series carries the common metadata; each issue carries edition-specific metadata.
+     */
+    CLASS DatasetSeries EXTENDS SO_AGI_DataCatalog_Datasheet_20260523.Metadata.Dataset =
+      issues : BAG {1..*} OF SO_AGI_DataCatalog_Datasheet_20260523.Metadata.DatasetIssue;
+    END DatasetSeries;
+
+  END Metadata;
+
+END SO_AGI_DataCatalog_Datasheet_20260523.
