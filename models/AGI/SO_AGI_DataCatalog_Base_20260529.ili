@@ -1,7 +1,6 @@
 INTERLIS 2.4;
 
-/** 
- * !!------------------------------------------------------------------------------
+/** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2026-03-24 | jek | Initiale Erstellung
@@ -17,6 +16,154 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
 
   DOMAIN
     DCOID = OID TEXT*255;
+    /** Herkunft. Damit auch zukünftig Daten publiziert werden können, die vom Bund oder von Gemeinden integriert wurden.
+     */
+    Origin = (
+      !!@ ili2db.dispName=Bund
+      federal,
+      !!@ ili2db.dispName=Kanton
+      cantonal,
+      !!@ ili2db.dispName=Gemeinde
+      municipal,
+      !!@ ili2db.dispName=Weitere
+      other
+    );
+    /** Muss für dcat-ap-ch gemäss https://semiceu.github.io/GeoDCAT-AP/releases/3.1.0/#maintenance-information---not-in-iso19115-core gemappt werden.
+     */
+    MaintenanceFrequencyCode = (
+      !!@ ili2db.dispName=kontinuierlich
+      continual,
+      !!@ ili2db.dispName=täglich
+      daily,
+      !!@ ili2db.dispName=wöchentlich
+      weekly,
+      !!@ ili2db.dispName=zweiwöchentlich
+      biweekly,
+      !!@ ili2db.dispName=monatlich
+      monthly,
+      !!@ ili2db.dispName=quartalsweise
+      quarterly,
+      !!@ ili2db.dispName=halbjährlich
+      biannually,
+      !!@ ili2db.dispName=jährlich
+      annually,
+      !!@ ili2db.dispName="bei Bedarf"
+      asNeeded,
+      !!@ ili2db.dispName=unregelmässig
+      irregular,
+      !!@ ili2db.dispName="nicht geplant"
+      notPlanned,
+      !!@ ili2db.dispName=unbekannt
+      unknown
+    );
+    /** Muss für dcat-ap-ch gemäss https://dcat-ap.ch/vocabulary/themes/20231122.rdf gemappt werden. EU-Themen sind zu grob.
+     */
+    Theme = (
+      !!@ ili2db.dispName="Arbeit und Erwerb"
+      Arbeit_Erwerb,
+      !!@ ili2db.dispName="Bau- und Wohnungswesen"
+      Bau_und_Wohnungswesen,
+      !!@ ili2db.dispName=Bevölkerung
+      Bevoelkerung,
+      !!@ ili2db.dispName="Bildung und Wissenschaft"
+      Bildung_Wissenschaft,
+      !!@ ili2db.dispName=Energie
+      Energie,
+      !!@ ili2db.dispName=Finanzen
+      Finanzen,
+      !!@ ili2db.dispName=Geografie
+      Geografie,
+      !!@ ili2db.dispName=Gesetzgebung
+      Gesetzgebung,
+      !!@ ili2db.dispName=Gesundheit
+      Gesundheit,
+      !!@ ili2db.dispName=Handel
+      Handel,
+      !!@ ili2db.dispName="Industrie und Dienstleistungen"
+      Industrie_und_Dienstleistungen,
+      !!@ ili2db.dispName="Kriminalität und Strafrecht"
+      Kriminalitaet_Strafrecht,
+      !!@ ili2db.dispName="Kultur, Medien, Informationsgesellschaft und Sport"
+      Kultur_Medien_Informationsgesellschaft_Sport,
+      !!@ ili2db.dispName="Landwirtschaft und Forstwirtschaft"
+      Landwirtschaft_Forstwirtschaft,
+      !!@ ili2db.dispName="Mobilität und Verkehr"
+      Mobilitaet_und_Verkehr,
+      !!@ ili2db.dispName="Öffentliche Ordnung und Sicherheit"
+      Oeffentliche_Ordnung_und_Sicherheit,
+      !!@ ili2db.dispName=Politik
+      Politik,
+      !!@ ili2db.dispName=Preise
+      Preise,
+      !!@ ili2db.dispName="Raum und Umwelt"
+      Raum_und_Umwelt,
+      !!@ ili2db.dispName="Soziale Sicherheit"
+      Soziale_Sicherheit,
+      !!@ ili2db.dispName="Statistische Grundlagen"
+      Statistische_Grundlagen,
+      !!@ ili2db.dispName=Tourismus
+      Tourismus,
+      !!@ ili2db.dispName=Verwaltung
+      Verwaltung,
+      !!@ ili2db.dispName=Volkswirtschaft
+      Volkswirtschaft
+    );
+    /** Es geht explizit «nur» um die Zugänglichkeit der Daten. Diese Kategorisie rung unterscheidet sich von der Klassifizierung der Datensätze, etwa im Rahmen eines Informationssicherheitsgeset-
+     * zes o.ä.
+     */
+    AccessLevel = (
+      !!@ ili2db.dispName="Öffentlich, frei zugänglich"
+      open,
+      !!@ ili2db.dispName="Öffentlich, aber mit technischen/administrativen Bedingungen"
+      public_with_conditions,
+      !!@ ili2db.dispName=Eingeschränkt
+      restricted,
+      !!@ ili2db.dispName="Eingeschränkt oder nicht öffentlich, je nach Governance"
+      internal,
+      !!@ ili2db.dispName="Nicht öffentlich"
+      confidental
+    );
+    PublicationStatus = (
+      !!@ ili2db.dispName=Entwurf
+      draft,
+      !!@ ili2db.dispName="in Prüfung"
+      in_review,
+      !!@ ili2db.dispName=veröffentlicht
+      published,
+      !!@ ili2db.dispName=archiviert
+      archived
+    );
+
+  /** Kontaktstelle. Name und Abteilungen etc. sind bewusst Freitext.
+   */
+  STRUCTURE ContactPoint =
+    name : TEXT*255;
+    organizationUnit : TEXT*255;
+    email : MANDATORY INTERLIS.URI;
+    phone : TEXT*255;
+    url : INTERLIS.URI;
+  END ContactPoint;
+
+  /** Use startDate/endDate for intervals.
+   * Use referenceDate for point-in-time datasets.
+   */
+  STRUCTURE TemporalCoverage =
+    startDate : DATE;
+    endDate : DATE;
+    referenceDate : DATE;
+    /** Constraint: entweder startDate UND endDate sind gesetzt, ODER beide sind null und referenceDate ist gesetzt.
+     */
+    MANDATORY CONSTRAINT (DEFINED(startDate) AND DEFINED(endDate)) OR (NOT (DEFINED(startDate)) AND NOT (DEFINED(endDate)) AND DEFINED(referenceDate));
+  END TemporalCoverage;
+
+  STRUCTURE DatasetAttribute =
+    name : MANDATORY TEXT*255;
+    dataType : MANDATORY TEXT*255;
+    description : MTEXT;
+    unit : TEXT*255;
+    codeList : INTERLIS.URI;
+    mandatory : MANDATORY BOOLEAN;
+  END DatasetAttribute;
 
   TOPIC Office =
     OID AS SO_AGI_DataCatalog_Base_20260529.DCOID;
