@@ -1,31 +1,31 @@
 INTERLIS 2.4;
 
 /** Publikations- und Transfermodell für den Datenkatalog des Kantons Solothurn.
- *
+ * 
  * Zweck:
  * - Dieses Modell beschreibt die vollständig aufbereiteten Publikationsmetadaten.
  * - Die Transferdatei wird durch GRETL aus dem Datasheet-Modell, statischer
- *   Konfiguration sowie generierten Datei-, URL- und Downloadinformationen erzeugt.
+ * Konfiguration sowie generierten Datei-, URL- und Downloadinformationen erzeugt.
  * - Die Transferdatei dient der Datenportal-Anwendung als Quelle für Suche,
- *   Detailseiten und Downloads.
+ * Detailseiten und Downloads.
  * - Aus derselben Transferdatei kann ein DCAT-AP-CH-/opendata.swiss-konformer
- *   RDF/XML-Export erzeugt werden.
- *
+ * RDF/XML-Export erzeugt werden.
+ * 
  * Modellierungsprinzipien:
  * - Das Modell ist bewusst hierarchisch aufgebaut: Ein Catalog-Objekt enthält
- *   Offices, einzelne Datasets und DatasetSeries.
+ * Offices, einzelne Datasets und DatasetSeries.
  * - DatasetIssues sind im Publikationsmodell vollständig materialisierte Datasets.
- *   Werte, die in der Erfassung nur auf der Serie gepflegt werden, werden durch
- *   GRETL auf das jeweilige Issue übernommen.
+ * Werte, die in der Erfassung nur auf der Serie gepflegt werden, werden durch
+ * GRETL auf das jeweilige Issue übernommen.
  * - Metadaten werden einsprachig geführt, in der Regel deutsch. Der RDF/XML-Export
- *   kann für Textwerte fest xml:lang="de" setzen.
+ * kann für Textwerte fest xml:lang="de" setzen.
  * - Lokale Katalogwerte werden dort, wo für DCAT-AP CH kontrollierte URIs benötigt
- *   werden, zusammen mit der zu exportierenden URI geführt, z.B. bei Themen,
- *   Zugriffsrechten und Aktualisierungsintervallen.
+ * werden, zusammen mit der zu exportierenden URI geführt, z.B. bei Themen,
+ * Zugriffsrechten und Aktualisierungsintervallen.
  * - Das Modell enthält nur Felder, die für das Datenportal oder den DCAT-AP-CH-
- *   Export unmittelbar nützlich sind. Optionale Details wie byteSize, checksum,
- *   Vorschaubilder, Dokumentationsseiten, DataService und CatalogRecord werden
- *   im Kernmodell bewusst nicht geführt.
+ * Export unmittelbar nützlich sind. Optionale Details wie byteSize, checksum,
+ * Vorschaubilder, Dokumentationsseiten, DataService und CatalogRecord werden
+ * im Kernmodell bewusst nicht geführt.
  */
 MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
   AT "https://geo.so.ch/models/AGI"
@@ -47,33 +47,29 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
 
   /** Kantonale Stelle, die im RDF/XML-Export als foaf:Agent verwendet wird.
    */
-  !!@ dcatap.class="foaf:Agent"
+  !!@ dcatap.class=foaf:Agent
   STRUCTURE Office =
     /** Stabile URI der Stelle. Sie wird im RDF/XML-Export als rdf:about
      * des foaf:Agent verwendet.
      */
-    !!@ rdf.subject="rdf:about"
+    !!@ rdf.subject=rdf:about
     officeUri : MANDATORY INTERLIS.URI;
-
     /** Vollständiger Name der Stelle, z.B. "Amt für Geoinformation".
      */
-    !!@ dcatap.property="foaf:name"
+    !!@ dcatap.property=foaf:name
     name : MANDATORY TEXT*255;
-
     /** Kurze Abkürzung der Stelle, z.B. "AGI". Dieses Attribut dient
      * primär der Anzeige und der internen Zuordnung im Datenportal.
      */
     abbreviation : MANDATORY TEXT*32;
-
     /** Allgemeine E-Mail-Adresse der Stelle. Im RDF/XML-Export kann der
      * Wert als foaf:mbox verwendet werden.
      */
-    !!@ dcatap.property="foaf:mbox"
+    !!@ dcatap.property=foaf:mbox
     email : MANDATORY INTERLIS.URI;
-
     /** Öffentliche Webseite der Stelle.
      */
-    !!@ dcatap.property="foaf:homepage"
+    !!@ dcatap.property=foaf:homepage
     officeAtWeb : MANDATORY INTERLIS.URI;
   END Office;
 
@@ -84,10 +80,9 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
     /** Lokales Thema für Suche, Filterung und Anzeige im kantonalen Datenportal.
      */
     localTheme : MANDATORY SO_AGI_DataCatalog_Base_20260529.Theme;
-
     /** URI, die im RDF/XML-Export als dcat:theme verwendet wird.
      */
-    !!@ dcatap.property="dcat:theme"
+    !!@ dcatap.property=dcat:theme
     themeUri : MANDATORY INTERLIS.URI;
   END ThemeAssignment;
 
@@ -99,11 +94,10 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
      * Datenportal.
      */
     localAccessLevel : MANDATORY SO_AGI_DataCatalog_Base_20260529.AccessLevel;
-
     /** URI, die im RDF/XML-Export als dct:accessRights verwendet wird,
      * typischerweise ein Wert des EU Access Rights Vocabulary.
      */
-    !!@ dcatap.property="dct:accessRights"
+    !!@ dcatap.property=dct:accessRights
     accessRightsUri : MANDATORY INTERLIS.URI;
   END AccessRights;
 
@@ -114,167 +108,144 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
     /** Lokaler Code für das Aktualisierungsintervall.
      */
     localFrequency : MANDATORY SO_AGI_DataCatalog_Base_20260529.MaintenanceFrequencyCode;
-
     /** URI, die im RDF/XML-Export als dct:accrualPeriodicity verwendet wird,
      * typischerweise ein Wert des EU Frequency Vocabulary.
      */
-    !!@ dcatap.property="dct:accrualPeriodicity"
+    !!@ dcatap.property=dct:accrualPeriodicity
     frequencyUri : MANDATORY INTERLIS.URI;
   END AccrualPeriodicity;
 
   /** Technische Repräsentation eines Datensatzes, z.B. CSV, XLSX oder Parquet.
    */
-  !!@ dcatap.class="dcat:Distribution"
+  !!@ dcatap.class=dcat:Distribution
   STRUCTURE Distribution =
     /** Stabile URI der Distribution. Sie wird im RDF/XML-Export als rdf:about
      * der dcat:Distribution verwendet.
      */
-    !!@ rdf.subject="rdf:about"
+    !!@ rdf.subject=rdf:about
     distributionUri : MANDATORY INTERLIS.URI;
-
     /** URL, über die der Zugriff auf diese Distribution erfolgt.
      * In diesem Modell wird pro Distribution genau eine accessURL geführt.
      */
-    !!@ dcatap.property="dcat:accessURL"
+    !!@ dcatap.property=dcat:accessURL
     accessURL : MANDATORY INTERLIS.URI;
-
     /** Direkte Download-URL, falls sie von der accessURL abweicht oder zusätzlich
      * explizit ausgewiesen werden soll.
      */
-    !!@ dcatap.property="dcat:downloadURL"
+    !!@ dcatap.property=dcat:downloadURL
     downloadURL : INTERLIS.URI;
-
     /** Lokaler Formatcode der Distribution. GRETL kann diesen Wert für den
      * RDF/XML-Export auf dct:format und/oder dcat:mediaType abbilden.
      */
-    !!@ dcatap.property="dct:format"
+    !!@ dcatap.property=dct:format
     format : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.DistributionFormat;
   END Distribution;
 
   /** Gemeinsame publikationsrelevante Metadaten von Dataset, DatasetIssue
    * und DatasetSeries.
    */
-  !!@ dcatap.class="dcat:Resource"
+  !!@ dcatap.class=dcat:Resource
   STRUCTURE DataResource (ABSTRACT) =
     /** Stabile URI der Ressource. Sie wird im RDF/XML-Export als rdf:about
      * der jeweiligen dcat:Resource, dcat:Dataset oder dcat:DatasetSeries verwendet.
      */
-    !!@ rdf.subject="rdf:about"
+    !!@ rdf.subject=rdf:about
     resourceUri : MANDATORY INTERLIS.URI;
-
     /** Stabiler öffentlicher oder lokaler Identifikator der Ressource.
      */
-    !!@ dcatap.property="dct:identifier"
+    !!@ dcatap.property=dct:identifier
     identifier : MANDATORY TEXT*255;
-
     /** Titel der Ressource. Der Wert wird einsprachig geführt; GRETL kann im
      * RDF/XML-Export xml:lang="de" ergänzen.
      */
-    !!@ dcatap.property="dct:title"
+    !!@ dcatap.property=dct:title
     title : MANDATORY TEXT*255;
-
     /** Beschreibung der Ressource. Der Wert wird einsprachig geführt; GRETL kann
      * im RDF/XML-Export xml:lang="de" ergänzen.
      */
-    !!@ dcatap.property="dct:description"
+    !!@ dcatap.property=dct:description
     description : MANDATORY MTEXT;
-
     /** Stelle, die die Ressource veröffentlicht bzw. verfügbar macht.
      */
-    !!@ dcatap.property="dct:publisher"
+    !!@ dcatap.property=dct:publisher
     publisher : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.Office;
-
     /** Fachlicher Datenherr bzw. fachlich verantwortliche Stelle.
      */
-    !!@ dcatap.property="dct:creator"
+    !!@ dcatap.property=dct:creator
     creator : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.Office;
-
     /** Kontaktstelle für fachliche oder organisatorische Fragen zur Ressource.
      */
-    !!@ dcatap.property="dcat:contactPoint"
+    !!@ dcatap.property=dcat:contactPoint
     contactPoint : MANDATORY SO_AGI_DataCatalog_Base_20260529.ContactPoint;
-
     /** Themen der Ressource. Der lokale Themenwert dient dem Datenportal; die
      * URI innerhalb der ThemeAssignment wird als dcat:theme exportiert.
      */
     themes : BAG {1..*} OF SO_AGI_DataCatalog_PublishedCatalog_20260602.ThemeAssignment;
-
     /** Schlagwörter für Suche und Anzeige. Die Werte werden im RDF/XML-Export
      * als dcat:keyword ausgegeben.
      */
-    !!@ dcatap.property="dcat:keyword"
+    !!@ dcatap.property=dcat:keyword
     keywords : BAG {0..*} OF TEXT*255;
-
     /** Menschlich lesbare Detailseite zur Ressource. Dies ist nicht der direkte
      * Downloadlink, sondern die Landingpage des Datenportal-Eintrags.
      */
-    !!@ dcatap.property="dcat:landingPage"
+    !!@ dcatap.property=dcat:landingPage
     landingPage : INTERLIS.URI;
-
     /** Formales Erstpublikationsdatum der Ressource.
      */
-    !!@ dcatap.property="dct:issued"
+    !!@ dcatap.property=dct:issued
     issued : DATE;
-
     /** Datum der letzten für die Publikation relevanten Änderung der Ressource.
      */
-    !!@ dcatap.property="dct:modified"
+    !!@ dcatap.property=dct:modified
     modified : MANDATORY DATE;
-
     /** Lizenz- bzw. Nutzungsbedingungen der Ressource. Falls opendata.swiss die
      * Lizenz auf Distributionsebene erwartet, kann GRETL diesen Wert dort
      * zusätzlich ausgeben.
      */
-    !!@ dcatap.property="dct:license"
+    !!@ dcatap.property=dct:license
     licenseUri : INTERLIS.URI;
-
     /** Zugriffsinformation der Ressource. Der lokale Wert steuert das Datenportal;
      * die URI innerhalb der AccessRights wird als dct:accessRights exportiert.
      */
     accessRights : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.AccessRights;
-
     /** Interner Publikationsstatus für den Workflow im Datenportal bzw. in der
      * GRETL-Pipeline. Dieses Attribut ist kein direktes DCAT-AP-CH-Pflichtfeld.
      */
     publicationStatus : MANDATORY SO_AGI_DataCatalog_Base_20260529.PublicationStatus;
-
     /** Herkunft bzw. Verwaltungsebene der Daten, z.B. Kanton, Gemeinde oder Bund.
      * Dieses Attribut dient der lokalen fachlichen Einordnung.
      */
     origin : SO_AGI_DataCatalog_Base_20260529.Origin;
-
     /** Aktualisierungsintervall. Bei Dataset beschreibt es die Aktualisierung
      * des Datensatzes; bei DatasetSeries beschreibt es den Rhythmus, in dem neue
      * Issues zur Serie hinzukommen.
      */
     accrualPeriodicity : SO_AGI_DataCatalog_PublishedCatalog_20260602.AccrualPeriodicity;
-
     /** Zeitliche Abdeckung der Ressource.
      */
-    !!@ dcatap.property="dct:temporal"
+    !!@ dcatap.property=dct:temporal
     temporalCoverage : SO_AGI_DataCatalog_Base_20260529.TemporalCoverage;
-
   END DataResource;
 
   /** Vollständig publizierbarer Datensatz mit mindestens einer Distribution.
    */
-  !!@ dcatap.class="dcat:Dataset"
+  !!@ dcatap.class=dcat:Dataset
   STRUCTURE Dataset EXTENDS SO_AGI_DataCatalog_PublishedCatalog_20260602.DataResource =
     /** Technische Repräsentationen des Datensatzes, z.B. CSV, XLSX oder Parquet.
      */
-    !!@ dcatap.property="dcat:distribution"
+    !!@ dcatap.property=dcat:distribution
     distributions : BAG {1..*} OF SO_AGI_DataCatalog_PublishedCatalog_20260602.Distribution;
   END Dataset;
 
   /** Vollständig materialisierte Ausgabe innerhalb einer DatasetSeries.
    * Im RDF/XML-Export wird ein DatasetIssue als dcat:Dataset ausgegeben.
    */
-  !!@ dcatap.class="dcat:Dataset"
+  !!@ dcatap.class=dcat:Dataset
   STRUCTURE DatasetIssue EXTENDS SO_AGI_DataCatalog_PublishedCatalog_20260602.Dataset =
     /** Bezeichnung der Ausgabe, z.B. "2026", "2025" oder "Stand 2026-05-15".
      */
     issueLabel : MANDATORY TEXT*100;
-
     /** Kennzeichnet die aktuelle Ausgabe der Serie für Anzeige, Suche und API.
      */
     isCurrentIssue : BOOLEAN;
@@ -282,7 +253,7 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
 
   /** Datenreihe, die mehrere separat publizierte DatasetIssues gruppiert.
    */
-  !!@ dcatap.class="dcat:DatasetSeries"
+  !!@ dcatap.class=dcat:DatasetSeries
   STRUCTURE DatasetSeries EXTENDS SO_AGI_DataCatalog_PublishedCatalog_20260602.DataResource =
     /** Vollständig materialisierte Ausgaben dieser Serie. Beim RDF/XML-Export
      * kann GRETL bei den Issues zusätzlich dcat:inSeries auf diese Serie setzen.
@@ -296,59 +267,49 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
     /** Wurzelobjekt des Transfers. Es enthält den publizierten Katalog
      * inklusive Offices, Datasets und DatasetSeries.
      */
-    !!@ dcatap.class="dcat:Catalog"
+    !!@ dcatap.class=dcat:Catalog
     CLASS Catalog =
       /** Stabile URI des Katalogs. Sie wird im RDF/XML-Export als rdf:about
        * des dcat:Catalog verwendet.
        */
-      !!@ rdf.subject="rdf:about"
+      !!@ rdf.subject=rdf:about
       catalogUri : MANDATORY INTERLIS.URI;
-
       /** Titel des Katalogs.
        */
-      !!@ dcatap.property="dct:title"
+      !!@ dcatap.property=dct:title
       title : MANDATORY TEXT*255;
-
       /** Beschreibung des Katalogs.
        */
-      !!@ dcatap.property="dct:description"
+      !!@ dcatap.property=dct:description
       description : MANDATORY MTEXT;
-
       /** Stelle, die den Katalog veröffentlicht bzw. verfügbar macht.
        */
-      !!@ dcatap.property="dct:publisher"
+      !!@ dcatap.property=dct:publisher
       publisher : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.Office;
-
       /** Öffentliche Homepage des Katalogs oder Datenportals.
        */
-      !!@ dcatap.property="foaf:homepage"
+      !!@ dcatap.property=foaf:homepage
       homepage : INTERLIS.URI;
-
       /** Datum der letzten relevanten Änderung des Katalogs.
        */
-      !!@ dcatap.property="dct:modified"
+      !!@ dcatap.property=dct:modified
       modified : DATE;
-
       /** Im Transfer enthaltene Stellen, die von publisher-, creator- oder
        * Kontaktangaben referenziert bzw. verwendet werden.
        */
       agents : BAG {1..*} OF SO_AGI_DataCatalog_PublishedCatalog_20260602.Office;
-
       /** Einzelne Datensätze des Katalogs.
        */
-      !!@ dcatap.property="dcat:dataset"
+      !!@ dcatap.property=dcat:dataset
       datasets : BAG {0..*} OF SO_AGI_DataCatalog_PublishedCatalog_20260602.Dataset;
-
       /** Datenreihen des Katalogs. Beim RDF/XML-Export kann GRETL diese
        * Ressourcen als dcat:DatasetSeries ausgeben und die enthaltenen Issues
        * als dcat:Dataset mit dcat:inSeries verknüpfen.
        */
       datasetSeries : BAG {0..*} OF SO_AGI_DataCatalog_PublishedCatalog_20260602.DatasetSeries;
-
       /** Der Katalog muss mindestens einen Datensatz oder eine Datenreihe enthalten.
        */
       MANDATORY CONSTRAINT INTERLIS.elementCount(datasets) > 0 OR INTERLIS.elementCount(datasetSeries) > 0;
-
       UNIQUE catalogUri;
     END Catalog;
 
