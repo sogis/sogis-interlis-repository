@@ -30,6 +30,10 @@ MODEL SO_AGI_DataCatalog_Datasheet_20260523 (en)
   TOPIC Metadata =
     OID AS SO_AGI_DataCatalog_Base_20260529.DCOID;
 
+    STRUCTURE ClosedTemporalCoverage EXTENDS SO_AGI_DataCatalog_Base_20260529.TemporalCoverage =
+      MANDATORY CONSTRAINT (DEFINED(startDate) AND DEFINED(endDate) AND NOT (DEFINED(referenceDate))) OR (DEFINED(referenceDate) AND NOT (DEFINED(startDate)) AND NOT (DEFINED(endDate)));
+    END ClosedTemporalCoverage;
+
     /** Hierarchical issue/edition of a DatasetSeries.
      * In a relational/core model, each issue can become a real Dataset object.
      */
@@ -44,7 +48,7 @@ MODEL SO_AGI_DataCatalog_Datasheet_20260523 (en)
       publicationStatus : MANDATORY SO_AGI_DataCatalog_Base_20260529.PublicationStatus;
       accrualPeriodicity : SO_AGI_DataCatalog_Base_20260529.MaintenanceFrequencyCode;
       modified : DATE;
-      temporalCoverage : SO_AGI_DataCatalog_Base_20260529.TemporalCoverage;
+      temporalCoverage : ClosedTemporalCoverage;
       surveyMethod : MTEXT;
       attributes : BAG {0..*} OF SO_AGI_DataCatalog_Base_20260529.DatasetAttribute;
       model : TEXT*255;
@@ -70,7 +74,7 @@ MODEL SO_AGI_DataCatalog_Datasheet_20260523 (en)
        */
       !!@ dct=description
       description : MANDATORY TEXT*1024;
-      /** Zungänglichkeit der Daten
+      /** Zugänglichkeit der Daten
        */
       !!@ dct.so=accessLevel
       accessLevel : MANDATORY SO_AGI_DataCatalog_Base_20260529.AccessLevel;
@@ -105,7 +109,7 @@ MODEL SO_AGI_DataCatalog_Datasheet_20260523 (en)
       /** Zeitliche Abdeckung oder Stichtag
        */
       !!@ dct=temporal
-      temporalCoverage : SO_AGI_DataCatalog_Base_20260529.TemporalCoverage;
+      temporalCoverage : ClosedTemporalCoverage;
       /** Erhebungs- / Messmethode (inkl. Erfassungsmethode)
        */
       !!@ dct.so=surveyMethod

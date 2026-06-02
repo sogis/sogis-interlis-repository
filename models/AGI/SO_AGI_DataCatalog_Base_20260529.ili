@@ -151,9 +151,12 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
     startDate : DATE;
     endDate : DATE;
     referenceDate : DATE;
-    /** Constraint: entweder startDate UND endDate sind gesetzt, ODER beide sind null und referenceDate ist gesetzt.
+    /** At least one temporal value must be provided.
      */
-    MANDATORY CONSTRAINT (DEFINED(startDate) AND DEFINED(endDate)) OR (NOT (DEFINED(startDate)) AND NOT (DEFINED(endDate)) AND DEFINED(referenceDate));
+    MANDATORY CONSTRAINT DEFINED(startDate) OR DEFINED(endDate) OR DEFINED(referenceDate);
+    /** A point-in-time value must not be mixed with an interval.
+     */
+    MANDATORY CONSTRAINT NOT (DEFINED(referenceDate) AND (DEFINED(startDate) OR DEFINED(endDate)));
   END TemporalCoverage;
 
   STRUCTURE DatasetAttribute =
