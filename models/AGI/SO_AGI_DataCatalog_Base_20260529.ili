@@ -1,13 +1,39 @@
 INTERLIS 2.4;
 
-/** !!------------------------------------------------------------------------------
+/** Gemeinsames Basismodell für den Datenkatalog des Kantons Solothurn.
+ * 
+ * Zweck:
+ * - Definiert gemeinsame Identifikator-, Struktur- und Codelisten-Typen, die in
+ * den Datasheet- und PublishedCatalog-Modellen wiederverwendet werden.
+ * - Enthält kontrollierte Werte für Herkunft, Aktualisierungsintervall, Thema,
+ * Zugriffsstufe und Publikationsstatus.
+ * - Enthält einfache Basisstrukturen für Kontaktstellen, zeitliche Abdeckung,
+ * Attributbeschreibungen und kantonale Stellen.
+ * 
+ * Abgrenzung:
+ * - Dieses Modell ist kein vollständiges DCAT-AP-CH-Publikationsmodell.
+ * - DCAT-AP-CH-spezifische URIs und Mappings werden in den abgeleiteten
+ * Publikationsstrukturen materialisiert, wo die konkrete DCAT-Rolle klar ist.
+ * - Die ili2db.dispName-Metaattribute der Aufzählwerte werden bewusst erhalten,
+ * damit Editor-, Datenbank- und GUI-Anwendungen lesbare deutsche Bezeichnungen
+ * anzeigen können.
+ * 
+ * Hinweise:
+ * - TemporalCoverage ist bewusst allgemein gehalten und erlaubt auch offene
+ * Intervalle. Fachmodelle können diese Struktur bei Bedarf mit EXTENDS
+ * verschärfen.
+ * - Die Schreibweise bestehender Aufzählwerte wurde nicht verändert, um bestehende
+ * Transferdaten und abhängige Modelle nicht zu brechen.
+ * 
+ * !!----------------------------------------------------------------------------
  * !! Version    | wer | Änderung
- * !!------------------------------------------------------------------------------
- * !! 2026-03-24 | jek | Initiale Erstellung
- * !!==============================================================================
+ * !!----------------------------------------------------------------------------
+ * !! 2026-03-24 | sz  | Initiale Erstellung
+ * !! 2026-06-02 | sz  | Kommentare und Dokumentation für Datenkatalog überarbeitet
+ * !!============================================================================
  */
-!!@ shortDescription="Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente"
-!!@ title=Modellvorlage
+!!@ shortDescription="Gemeinsame Typen und Codelisten für den Datenkatalog des Kantons Solothurn"
+!!@ title="Datenkatalog Basismodell"
 !!@ technicalContact=agi@bd.so.ch
 MODEL SO_AGI_DataCatalog_Base_20260529 (de)
   AT "https://geo.so.ch/models/AGI"
@@ -15,8 +41,15 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
   =
 
   DOMAIN
+    /** Allgemeiner Objektidentifikator für Datenkatalog-Transferdaten.
+     */
     DCOID = OID TEXT*1024;
-    /** Herkunft. Damit auch zukünftig Daten publiziert werden können, die vom Bund oder von Gemeinden integriert wurden.
+    /** Herkunft beziehungsweise Verwaltungsebene der Daten.
+     * 
+     * Die Herkunft beschreibt, aus welchem institutionellen Kontext die Daten
+     * stammen. Dies ist bewusst allgemeiner als Publisher oder Datenherr und
+     * erlaubt auch zukünftig die Publikation integrierter Daten von Bund,
+     * Gemeinden oder weiteren Stellen.
      */
     Origin = (
       !!@ ili2db.dispName=Bund
@@ -28,7 +61,11 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
       !!@ ili2db.dispName=Weitere
       other
     );
-    /** Muss für dcat-ap-ch gemäss https://semiceu.github.io/GeoDCAT-AP/releases/3.1.0/#maintenance-information---not-in-iso19115-core gemappt werden.
+    /** Lokaler Code für das Aktualisierungsintervall eines Datensatzes oder
+     * einer Datenreihe.
+     * 
+     * Im Publikationsmodell wird dieser Wert zusammen mit einer URI aus dem
+     * für DCAT-AP-CH verwendeten Frequency-Vokabular materialisiert.
      */
     MaintenanceFrequencyCode = (
       !!@ ili2db.dispName=kontinuierlich
@@ -56,7 +93,10 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
       !!@ ili2db.dispName=unbekannt
       unknown
     );
-    /** Muss für dcat-ap-ch gemäss https://dcat-ap.ch/vocabulary/themes/20231122.rdf gemappt werden. EU-Themen sind zu grob.
+    /** Lokales Themenvokabular für das kantonale Datenportal.
+     * 
+     * Die Werte dienen der Erfassung, Suche und Filterung. Für DCAT-AP-CH wird
+     * im Publikationsmodell zusätzlich die passende Themen-URI geführt.
      */
     Theme = (
       !!@ ili2db.dispName="Arbeit und Erwerb"
@@ -108,8 +148,12 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
       !!@ ili2db.dispName=Volkswirtschaft
       Volkswirtschaft
     );
-    /** Es geht explizit «nur» um die Zugänglichkeit der Daten. Diese Kategorisie rung unterscheidet sich von der Klassifizierung der Datensätze, etwa im Rahmen eines Informationssicherheitsgeset-
-     * zes o.ä.
+    /** Lokale Zugriffsstufe für Daten im Datenportal.
+     * 
+     * Diese Kategorisierung beschreibt die Zugänglichkeit der Daten. Sie ist
+     * nicht gleichzusetzen mit einer Informationssicherheitsklassifikation. Im
+     * Publikationsmodell wird der lokale Wert zusammen mit einer URI für
+     * dct:accessRights geführt.
      */
     AccessLevel = (
       !!@ ili2db.dispName="Öffentlich, frei zugänglich"
@@ -123,6 +167,12 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
       !!@ ili2db.dispName="Nicht öffentlich"
       confidental
     );
+    /** Interner Publikationsstatus eines Datenblatts oder einer publizierten
+     * Datenressource.
+     * 
+     * Der Status steuert den Redaktions- und Publikationsprozess im Datenportal.
+     * Er ist kein direktes DCAT-AP-CH-Pflichtfeld.
+     */
     PublicationStatus = (
       !!@ ili2db.dispName=Entwurf
       draft,
@@ -134,48 +184,114 @@ MODEL SO_AGI_DataCatalog_Base_20260529 (de)
       archived
     );
 
-  /** Kontaktstelle. Name und Abteilungen etc. sind bewusst Freitext.
+  /** Kontaktstelle für Rückfragen zu einem Datensatz oder Datenblatt.
+   * 
+   * Name, Organisationseinheit und weitere Angaben sind bewusst einfach
+   * gehalten, damit fachliche Kontaktstellen ohne eigenes Organisationsmodell
+   * erfasst werden können.
    */
+  !!@ dcatap.class=vcard:Kind
   STRUCTURE ContactPoint =
+    /** Name der Kontaktperson oder allgemeine Bezeichnung der Kontaktstelle.
+     */
+    !!@ dcatap.property=vcard:fn
     name : TEXT*255;
+    /** Organisationseinheit der Kontaktstelle, zum Beispiel Abteilung oder Team.
+     */
     organizationUnit : TEXT*255;
+    /** E-Mail-Adresse der Kontaktstelle, vorzugsweise als mailto-URI.
+     */
+    !!@ dcatap.property=vcard:hasEmail
     email : MANDATORY INTERLIS.URI;
+    /** Telefonnummer der Kontaktstelle als Freitext.
+     */
+    !!@ dcatap.property=vcard:hasTelephone
     phone : TEXT*255;
+    /** Webseite mit weiteren Informationen zur Kontaktstelle.
+     */
+    !!@ dcatap.property=vcard:hasURL
     url : INTERLIS.URI;
   END ContactPoint;
 
-  /** Use startDate/endDate for intervals.
-   * Use referenceDate for point-in-time datasets.
+  /** Zeitliche Abdeckung eines Datensatzes oder einer Datenreihe.
+   * 
+   * Für Zeitintervalle werden startDate und/oder endDate verwendet. Ein einzelner
+   * Stichtag wird mit referenceDate erfasst. Offene Intervalle sind erlaubt, damit
+   * laufende Datenreihen oder Datensätze ab einem bestimmten Zeitpunkt abgebildet
+   * werden können.
    */
+  !!@ dcatap.class=dct:PeriodOfTime
   STRUCTURE TemporalCoverage =
+    /** Beginn der zeitlichen Abdeckung.
+     */
+    !!@ dcatap.property=dcat:startDate
     startDate : DATE;
+    /** Ende der zeitlichen Abdeckung.
+     */
+    !!@ dcatap.property=dcat:endDate
     endDate : DATE;
+    /** Stichtag, wenn die Daten keinen Zeitraum, sondern einen einzelnen
+     * Zeitpunkt beschreiben.
+     */
     referenceDate : DATE;
-    /** At least one temporal value must be provided.
+    /** Mindestens ein zeitlicher Wert muss angegeben werden.
      */
     MANDATORY CONSTRAINT DEFINED(startDate) OR DEFINED(endDate) OR DEFINED(referenceDate);
-    /** A point-in-time value must not be mixed with an interval.
+    /** Ein Stichtag darf nicht gleichzeitig mit einem Zeitraum kombiniert werden.
      */
     MANDATORY CONSTRAINT NOT (DEFINED(referenceDate) AND (DEFINED(startDate) OR DEFINED(endDate)));
   END TemporalCoverage;
 
+  /** Beschreibung eines Attributs beziehungsweise einer Spalte in einem Datensatz.
+   * 
+   * Diese Struktur dient der fachlichen Dokumentation der Dateninhalte im
+   * Datenblatt und Datenportal. Sie ist eine lokale Ergänzung und kein direktes
+   * DCAT-AP-CH-Element.
+   */
   STRUCTURE DatasetAttribute =
+    /** Name des Attributs beziehungsweise der Spalte im Datensatz.
+     */
     name : MANDATORY TEXT*255;
+    /** Datentyp des Attributs als verständlicher Text.
+     */
     dataType : MANDATORY TEXT*255;
+    /** Fachliche Beschreibung des Attributs.
+     */
     description : MTEXT;
+    /** Einheit des Attributs, falls anwendbar.
+     */
     unit : TEXT*255;
+    /** URI einer Codeliste oder eines Wertebereichs, falls vorhanden.
+     */
     codeList : INTERLIS.URI;
+    /** Angabe, ob das Attribut im Datensatz zwingend belegt sein muss.
+     */
     mandatory : MANDATORY BOOLEAN;
   END DatasetAttribute;
 
   TOPIC Office =
     OID AS SO_AGI_DataCatalog_Base_20260529.DCOID;
 
+    /** Kantonale Stelle, die im Datenkatalog als Datenherr, Herausgeber oder
+     * zuständige Stelle verwendet werden kann.
+     */
+    !!@ dcatap.class=foaf:Agent
     CLASS Office =
+      /** Vollständiger Name der Stelle.
+       */
+      !!@ dcatap.property=foaf:name
       name : MANDATORY TEXT*255;
+      /** Kurzbezeichnung oder Abkürzung der Stelle.
+       */
       abbreviation : MANDATORY TEXT*10;
+      /** Zentrale Telefonnummer der Stelle.
+       */
       phoneNumber : MANDATORY TEXT*64;
+      /** Zentrale E-Mail-Adresse der Stelle.
+       */
       email : MANDATORY INTERLIS.URI;
+      /** Webseite der Stelle.
+       */
       officeAtWeb : MANDATORY INTERLIS.URI;
       UNIQUE abbreviation;
       UNIQUE name;
