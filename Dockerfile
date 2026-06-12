@@ -36,9 +36,6 @@ COPY ilisite.xml /opt/repository/
 COPY ilimodels.xml /opt/repository/
 COPY ilimodels.html /opt/repository/
 COPY ilidata.xml /opt/repository/
-COPY dummy.html /opt/repository/
-COPY dummy_select.html /opt/repository/
-
 COPY version.txt /opt/repository/
 
 COPY ilismeta /opt/repository/ilismeta
