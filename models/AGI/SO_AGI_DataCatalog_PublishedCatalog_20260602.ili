@@ -141,6 +141,50 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
     format : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.DistributionFormat;
   END Distribution;
 
+  /** Zusammenfassung der technischen Qualität des publizierten Datensatzes.
+   * Die Struktur enthält das Ergebnis der Validierung, die Anzahl festgestellter
+   * Fehler, den Zeitpunkt der Prüfung sowie optional einen Link zum detaillierten
+   * Validierungsreport.
+   */
+  STRUCTURE QualitySummary =
+    /** Ergebnis der technischen Validierung des publizierten Datensatzes.
+     * success bedeutet, dass die Validierung erfolgreich abgeschlossen wurde.
+     * fail bedeutet, dass die Validierung fehlgeschlagen ist.
+     */
+    status : MANDATORY (
+      success,
+      fail
+    );
+    /** Anzahl Fehler, die bei der technischen Validierung festgestellt wurden.
+     * Bei einer erfolgreichen Validierung ist der Wert in der Regel 0.
+     */
+    errors : MANDATORY 0 .. 99999999;
+    /** Zeitpunkt, zu dem die technische Validierung durchgeführt wurde.
+     * Der Wert enthält Datum, Uhrzeit und Zeitzoneninformation.
+     */
+    validatedAt : MANDATORY DATETIME;
+    /** Link zum Validierungsreport.
+     * Der Report enthält die detaillierten Meldungen der technischen Prüfung.
+     */
+    reportUrl : MANDATORY INTERLIS.URI;
+  END QualitySummary;
+
+  /** Zusammenfassung der publizierten Datenstruktur.
+   * Die Struktur enthält einfache Kennzahlen zur Grösse und zum Aufbau des
+   * Datensatzes, insbesondere die Anzahl publizierter Objekte und Attribute.
+   */
+  STRUCTURE StructureSummary =
+    /** Anzahl fachlicher Objekte im publizierten Datensatz.
+     * Bei tabellarischen Daten entspricht dies in der Regel der Anzahl Datenzeilen.
+     * Bei Geodaten entspricht dies in der Regel der Anzahl Features.
+     */
+    objectCount : MANDATORY 0 .. 99999999;
+    /** Anzahl Attribute in der publizierten Datenstruktur.
+     * Gezählt werden die publizierten Spalten beziehungsweise Felder des Datensatzes.
+     */
+    attributeCount : MANDATORY 0 .. 9999;
+  END StructureSummary;
+
   /** Gemeinsame publikationsrelevante Metadaten von Dataset, DatasetIssue
    * und DatasetSeries.
    */
@@ -246,6 +290,16 @@ MODEL SO_AGI_DataCatalog_PublishedCatalog_20260602 (en)
     /** Hinweise auf Hilfsdaten oder zusätzliche Datengrundlagen.
      */
     auxiliaryData : MTEXT;
+    /** Zusammenfassung der technischen Qualitätsprüfung dieser Datenressource.
+     * Enthält den Validierungsstatus, die Anzahl festgestellter Fehler,
+     * den Zeitpunkt der Prüfung sowie einen Verweis auf den Validierungsreport.
+     */
+    qualitySummary : SO_AGI_DataCatalog_PublishedCatalog_20260602.QualitySummary;
+    /** Zusammenfassung der publizierten Datenstruktur dieser Datenressource.
+     * Enthält einfache Kennzahlen zur Grösse und zum Aufbau der Daten,
+     * insbesondere die Anzahl Objekte und Attribute.
+     */
+    structureSummary : MANDATORY SO_AGI_DataCatalog_PublishedCatalog_20260602.StructureSummary;
   END DataResource;
 
   /** Vollständig publizierbarer Datensatz mit mindestens einer Distribution.
