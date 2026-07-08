@@ -1,0 +1,133 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-06-24 | ms  | Initalversion
+ * !!==============================================================================
+ */
+!!@ shortDescription="Datenmodell für die Fruchtfolgeflächen Beanspruchungen und Kompensationen."
+!!@ title="Fruchtfolgeflächen Kompensation"
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ tags="Fruchtfolgeflächen,Beanspruchung,Kompensation"
+MODEL SO_ARP_FFF_Kompensation_20260624 (de)
+  AT "https://arp.so.ch"
+  VERSION "2026-06-24" = 
+
+  IMPORTS GeometryCHLV95_V1;
+
+  DOMAIN
+    Verfahrensstand = (
+      !!@ ili2db.dispName=Voranfrage
+      Voranfrage,
+      !!@ ili2db.dispName=Vorprüfung
+      Vorpruefung,
+      !!@ ili2db.dispName=Beschluss
+      Beschluss
+    );
+    Kompensationsmassnahme = (
+      !!@ ili2db.dispName=Aufwertung
+      Aufwertung,
+      !!@ ili2db.dispName=Auszonung
+      Auszonung,
+      !!@ ili2db.dispName=Sonstiges
+      Sonstiges
+    );
+
+  TOPIC Kompensation =
+
+    CLASS Gesuchsteller =
+      /** Vor- und Nachname der Kontaktperson"
+      */
+      Kontaktperson : TEXT*200;
+      /** Name der Firma, des Unternehmens
+      */
+      Firma : MANDATORY TEXT*200;
+      /** Unternehmens-Indentifikator UID 
+      */
+      UID : MANDATORY TEXT*20;
+      /** Adresse
+      */
+      Adresse : MTEXT;
+      /** Tel. Nr.S
+      */
+      Telefon : TEXT*200;
+      /** E-Mail
+      */
+      Mail : TEXT*200;
+      UNIQUE Firma, Kontaktperson;
+    END Gesuchsteller;
+
+    CLASS Projekt =
+      /** Projektname
+      */
+      Projektname : MANDATORY TEXT*500;
+      /** Eingangsdatum
+      */
+      Eingangsdatum : MANDATORY INTERLIS.XMLDate;
+      /** Verfahrensstand
+      */
+      Verfahrensstand : MANDATORY SO_ARP_FFF_Kompensation_20260624.Verfahrensstand;
+      /** Bemerkungen
+      */
+      Projekt_Bemerkungen : MTEXT;
+      UNIQUE Projektname;
+    END Projekt;
+
+    CLASS Beanspruchungsflaeche =
+      /** Bezeichnung der Beanspruchungsfläche
+      */
+      Bezeichnung : TEXT*500;     
+      /** Anrechenbare Fläche in m2"
+      */
+      Flaeche : 0 .. 9999999;
+      /** Status der Beanspruchungsfläche
+      */
+      Status : MANDATORY SO_ARP_FFF_Kompensation_20260624.Verfahrensstand;
+      /** Bemerkungen
+      */
+      Beanspruchungsflaeche_Bemerkungen : MTEXT;
+      /** Geometrie der Beanspruchungsfläche
+      */
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+    END Beanspruchungsflaeche;
+
+    CLASS Kompensationsflaeche =
+      /** Bezeichnung der Kompensationsfläche
+      */
+      Bezeichnung : TEXT*500;   
+      /** Anrechenbare Fläche in m2
+      */
+      Flaeche : 0 .. 9999999;
+      /** Kompensationsmassnahmen
+      */
+      Kompensationsmassnahme : MANDATORY SO_ARP_FFF_Kompensation_20260624.Kompensationsmassnahme;
+      /** Status der Kompensationsfläche
+      */
+      Status : MANDATORY SO_ARP_FFF_Kompensation_20260624.Verfahrensstand;
+      /** Bemerkungen
+      */
+      Kompensation_Bemerkungen : MTEXT;
+      /** Geometrie der Kompensationsfläche
+      */
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+    END Kompensationsflaeche;
+
+    ASSOCIATION Projekt_Beanspruchung =
+      Projekt_r -- {1} SO_ARP_FFF_Kompensation_20260624.Kompensation.Projekt;
+      Beanspruchung_r -- {0..*} SO_ARP_FFF_Kompensation_20260624.Kompensation.Beanspruchungsflaeche;
+    END Projekt_Beanspruchung;
+
+    ASSOCIATION Projekt_Kompensation =
+      Projekt_r -- {1} SO_ARP_FFF_Kompensation_20260624.Kompensation.Projekt;
+      Kompensation_r -- {0..*} SO_ARP_FFF_Kompensation_20260624.Kompensation.Kompensationsflaeche;
+    END Projekt_Kompensation;
+
+    ASSOCIATION Projekt_Gesuchsteller =
+      Projekt_r -- {0..*} SO_ARP_FFF_Kompensation_20260624.Kompensation.Projekt;
+      Gesuchsteller_r -- {1} SO_ARP_FFF_Kompensation_20260624.Kompensation.Gesuchsteller;
+    END Projekt_Gesuchsteller;
+
+  END Kompensation;
+
+END SO_ARP_FFF_Kompensation_20260624.

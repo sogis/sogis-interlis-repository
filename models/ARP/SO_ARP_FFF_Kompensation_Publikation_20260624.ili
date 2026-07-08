@@ -1,0 +1,114 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-06-24 | ms  | Initalversion
+ * !!==============================================================================
+ */
+!!@ shortDescription="Publikationsmodell für die Fruchtfolgeflächen Beanspruchungen und Kompensationen."
+!!@ title="Fruchtfolgeflächen Kompensation Publikation"
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ tags="Fruchtfolgeflächen,Beanspruchung,Kompensation,Publikation"
+MODEL SO_ARP_FFF_Kompensation_Publikation_20260624 (de)
+  AT "https://arp.so.ch"
+  VERSION "2026-06-24" = 
+
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Kompensation =
+
+  DOMAIN
+    Verfahrensstand = (
+      !!@ ili2db.dispName=Voranfrage
+      Voranfrage,
+      !!@ ili2db.dispName=Vorprüfung
+      Vorpruefung,
+      !!@ ili2db.dispName=Beschluss
+      Beschluss
+    );
+    Flaechenart = (
+      !!@ ili2db.dispname=Beanspruchung
+      Beanspruchung,
+      !!@ ili2db.dispName="Kompensation - Aufwertung"
+      Aufwertung,
+      !!@ ili2db.dispName="Kompensation - Auszonung"
+      Auszonung,
+      !!@ ili2db.dispName="Kompensation - Sonstiges"
+      Sonstiges
+    );
+
+    STRUCTURE Teilflaechen =
+      /** Flächenart
+      */
+      Flaechenart : MANDATORY Flaechenart;
+      /** Flächenbezeichnung
+      */
+      Bezeichnung : TEXT*500;
+      /** Fläche in m2
+      */
+      Flaeche : 0 .. 9999999;   
+      /** Flächenbezeichnung
+      */
+      Link : MANDATORY TEXT*500;
+    END Teilflaechen;
+
+
+    CLASS Flaechen =
+      /** Art der Fläche (Beanspruchung / Kompensation - Massnahme x)
+      */
+      Flaechenart : MANDATORY Flaechenart;
+      /** Projektname
+      */
+      Projektname : MANDATORY TEXT*500;
+      /** Vor- und Nachname der Kontaktperson
+      */
+      Kontaktperson : TEXT*200;
+      /** Firma
+      */
+      Firma : MANDATORY TEXT*200;
+      /** Unternehmens-Indentifikator UID 
+      */
+      UID : MANDATORY TEXT*20;
+      /** Adresse
+      */
+      Adresse : MTEXT;
+      /** Tel. Nr.
+      */
+      Telefon : TEXT*200;
+      /** E-Mail
+      */
+      Mail : TEXT*200;
+      /** Eingangsdatum
+      */
+      Eingangsdatum : MANDATORY INTERLIS.XMLDate;
+      /** Projekt Verfahrensstand
+      */
+      Verfahrensstand : MANDATORY Verfahrensstand;
+      /** Bemerkungen Projekt
+      */
+      Projekt_Bemerkungen : MTEXT;
+      /** Anrechenbare Fläche in m2
+      */
+      Flaeche_anrechenbar : 0 .. 9999999;
+      /** Berechnete Fläche in m2
+      */
+      Flaeche_berechnet : 0 .. 9999999;
+      /** Status der Fläche
+      */
+      Status : MANDATORY Verfahrensstand;
+      /** Bemerkungen Fläche
+      */
+      Flaeche_Bemerkungen : MTEXT;
+      /** Geometrie der Beanspruchungsfläche
+      */
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+      /** Flächen, welche auch noch zum selben Projekt gehören (JSON)
+      */
+      !!@ ili2db.mapping=JSON
+      Projektflaechen :  BAG {0..*} OF Teilflaechen;
+    END Flaechen;
+
+  END Kompensation;
+
+END SO_ARP_FFF_Kompensation_Publikation_20260624.
