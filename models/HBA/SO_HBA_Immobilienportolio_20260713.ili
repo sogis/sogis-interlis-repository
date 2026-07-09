@@ -1,0 +1,170 @@
+INTERLIS 2.4;
+
+/** Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente.
+ * Nicht Teil des Vorlage-Modells sind die folgenden weniger gängigen Elemente:
+ * - Constraints, inkl. Existance Contraints
+ * - Nicht als UUID modellierte Objektidentifikatoren
+ * - Verwendung von Strukturen aus anderen Beweggründen ausser Json
+ * - Einheiten
+ * - Beziehungen über Topicgrenzen hinweg
+ * - Verwendung von Topics für partiellen Datentransfer
+ * - Kreisbogen-Geometrien
+ * - Nutzung von Funktionen
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-07-13 | pb | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente"
+!!@ title=Modellvorlage
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_HBA_Immobilienportfolio_20260713 (de)
+  AT "https://geo.so.ch/models/HBA"
+  VERSION "2026-07-13"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+    Vermoegensart = (
+      !!@ ili2db.dispName=Anmietobjekt
+      AM,
+      !!@ ili2db.dispName=Stiftungsvermögen
+      SV,
+      !!@ ili2db.dispName=Verwaltungsvermögen
+      VV,
+      !!@ ili2db.dispName=Finanzvermögen
+      FV
+    );
+
+    Prioritaetsstufe = (
+      !!@ ili2db.dispName=betriebsnotwendig
+      A,
+      !!@ ili2db.dispName="periodische Überprüfung"
+      B,
+      !!@ ili2db.dispName=verwertbar
+      C
+    );
+
+  TOPIC Import_CSV =
+
+    CLASS Gebaeude_Import =
+      /** Eidgenössischer Gebäudeidentifikator
+      */
+      egid : 1 .. 999999999;
+      /** HBA-interne, eindeutige Nummer (id_ge)
+      */
+      id_ge : TEXT*20;
+      /** Notwendig?
+      */
+      public : TEXT*50;
+      /** Vermögensart
+      */
+      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Vermögensart Text*/
+      vermoegensart_dialog : TEXT*50;
+      /** Priorität im Kontext der Immobilienstrategie
+      */
+      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+      /** Priorität Text
+      */
+      prio_dialog : TEXT*50;
+      
+
+
+      
+    END Gebaeude_Import;
+
+
+
+
+
+    CLASS Textuell =
+      Einzeilig : MANDATORY TEXT*10;
+      Mehrzeilig : MANDATORY MTEXT*500;
+    END Textuell;
+
+    CLASS Datum_Zeit =
+      Zeitstempel : MANDATORY DATETIME;
+      Datum : MANDATORY DATE;
+      Uhrzeit_ohne_Datum : MANDATORY TIMEOFDAY;
+    END Datum_Zeit;
+
+    CLASS Geometrie_2D =
+      Punkt : MANDATORY GeometryCHLV95_V2.Coord2;
+      Einzellinie : MANDATORY GeometryCHLV95_V2.LineWithoutArcs;
+      Multilinie : MANDATORY GeometryCHLV95_V2.MultiLineWithoutArcs;
+      Einzelpolygon : MANDATORY GeometryCHLV95_V2.SurfaceWithoutArcs;
+      Multipolygon : MANDATORY GeometryCHLV95_V2.MultiSurfaceWithoutArcs;
+    END Geometrie_2D;
+
+    CLASS Aufzaehlung =
+      Inline_Linear : MANDATORY (
+        rot,
+        !!@ ili2db.dispName=grün
+        gruen,
+        gelb
+      );
+      Inline_Baumstruktur : MANDATORY (
+        rot (
+          hellrot,
+          dunkelrot
+        ),
+        !!@ ili2db.dispName=grün
+        gruen,
+        gelb
+      );
+    END Aufzaehlung;
+
+    CLASS Weitere_Attribute =
+      URL : MANDATORY URI;
+      UUID : MANDATORY INTERLIS.UUIDOID;
+    END Weitere_Attribute;
+
+  END Import_CSV;
+
+  TOPIC Beziehungen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Mutter =
+    END Mutter;
+
+    CLASS Kind =
+    END Kind;
+
+    ASSOCIATION Mutter_Kind =
+      Mutter_R -- {1} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Mutter;
+      Kind_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Kind;
+    END Mutter_Kind;
+
+    CLASS Bruder =
+    END Bruder;
+
+    CLASS Schwester =
+    END Schwester;
+
+    ASSOCIATION Bruder_Schwester =
+      Bruder_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Bruder;
+      Schwester_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Schwester;
+    END Bruder_Schwester;
+
+  END Beziehungen;
+
+  TOPIC Json =
+    OID AS INTERLIS.UUIDOID;
+
+    STRUCTURE Dokument =
+      Name : MANDATORY TEXT*255;
+      Nummer : MANDATORY 1 .. 1000;
+    END Dokument;
+
+    CLASS Json_Attribute =
+      !!@ ili2db.mapping="JSON"
+      Mehrere_Dokumente : BAG {1..*} OF SO_HBA_Immobilienportfolio_20260713.Json.Dokument;
+      !!@ ili2db.mapping="JSON"
+      Ein_Dokument : MANDATORY SO_HBA_Immobilienportfolio_20260713.Json.Dokument;
+    END Json_Attribute;
+
+  END Json;
+
+END SO_HBA_Immobilienportfolio_20260713.
