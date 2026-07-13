@@ -1,4 +1,4 @@
-INTERLIS 2.4;
+INTERLIS 2.3;
 /**
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
@@ -6,14 +6,14 @@ INTERLIS 2.4;
  * !! 2026-07-13 | pb | Initiale Erstellung
  * !!==============================================================================
  */
-!!@ shortDescription="Importmodell für das Immobilienportfolio des HBA"
+!!@ shortDescription="Publikationsmodell für das Immobilienportfolio des HBA"
 !!@ title="Grundstücke und Gebäude des Kanton Solothurns (Immobilienportfolio)"
 !!@ technicalContact=agi@bd.so.ch
-MODEL SO_HBA_Immobilienportfolio_20260713 (de)
+MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
   AT "https://geo.so.ch/models/HBA"
   VERSION "2026-07-13"
   =
-  IMPORTS GeometryCHLV95_V2;
+  IMPORTS GeometryCHLV95_V1;
 
   DOMAIN
     Vermoegensart = (
@@ -57,85 +57,79 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       veraeussert
     );
 
-  TOPIC Import_CSV =
+  TOPIC Immobilienportfolio =
 
-    /** Gebäude-Importdaten
+    /** Staatsportfolio der Gebäude
     */
-    CLASS Gebaeude_Import =
+    CLASS Gebaeude =
       /** Eidgenössischer Gebäudeidentifikator
       */
-      egid : 1 .. 999999999;
-      /** HBA-interne, eindeutige Gebäudenummer
+      EGID : 1 .. 999999999;
+      /** HBA-interne, eindeutige Gebäudenummer (id_ge)
       */
-      id_ge : TEXT*20;
+      Wirtschaftseinheit : TEXT*20;
       /** Notwendig?
       */
       public : TEXT*50;
       /** Vermögensart
       */
-      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
-      /** Vermögensart Text*/
-      vermoegensart_dialog : TEXT*50;
+      Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
       /** Priorität im Kontext der Immobilienstrategie
       */
-      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
-      /** Priorität Text
-      */
-      prio_dialog : TEXT*50;
+      Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Bauperiode des Gebäudes
       */
-      baujahr_gruppe : TEXT*50;
+      Bauperiode : TEXT*50;
       /** Gebäudenutzungsart
       */
-      nutzung : SO_HBA_Immobilienportfolio_20260713.Nutzungsart;
+      Nutzung : SO_HBA_Immobilienportfolio_Publikation_20260713.Nutzungsart;
       /** Beschreibung!!
       */
-      anmiete : SO_HBA_Immobilienportfolio_20260713.Anmiete;
-      /** Anmiete Text
-      */
-      anmiete_dialog : TEXT*50;
+      anmiete : SO_HBA_Immobilienportfolio_Publikation_20260713.Anmiete;
       /** Beschreibung!!
       */
       eigenbedarf : TEXT*50;
+      /** Grundriss des Gebäudes gemäss amtlicher Vermessung
+       */
+      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
 
-      UNIQUE egid;
-    END Gebaeude_Import;
+      UNIQUE EGID;
+    END Gebaeude;
 
-    CLASS Grundsteucke_Import =
+    /** Staatsportfolio der Grundstücke
+    */
+    CLASS Grundsteucke =
       /** Eidgenössischer Grundstücksidentifikator
        */
-      egrid : MANDATORY TEXT*14;
-      /** HBA-interne, eindeutige Grundstücknummer
+      EGRID : MANDATORY TEXT*14;
+      /** HBA-interne, eindeutige Grundstücknummer (id_gr)
       */
-      id_gr : TEXT*20;
+      Wirtschaftseinheit : TEXT*20;
       /** Priorität im Kontext der Immobilienstrategie
       */
-      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
-      /** Priorität Text
-      */
-      prio_dialog : TEXT*50;
+      Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Vermögensart
       */
-      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
-      /** Vermögensart Text
+      Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
+      /** Besteht Eigenbedarf?
       */
-      vermoegensart_dialog : TEXT*50;
-      /** Eigenbedarf
+      eigenbedarf : BOOLEAN;
+      /** Besteht ein Baurecht für Dritte?
       */
-      eigenbedarf : TEXT*50;
-      /** Baurecht
-      */
-      baurecht : TEXT*50;
+      Baurecht : BOOLEAN;
       /** Veräusserungsjahr
       */
-      jahr_veraeussert : 1900 .. 2100;
+      Veraeusserungsjahr : 1900 .. 2100;
       /** Grundstückstatus
       */
-      status : SO_HBA_Immobilienportfolio_20260713.Grundstueckstatus;
+      Status : SO_HBA_Immobilienportfolio_Publikation_20260713.Grundstueckstatus;
+      /** Geometrie des Grundstückes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
 
-      UNIQUE egrid;
-    END Grundsteucke_Import;
+      UNIQUE EGRID;
+    END Grundsteucke;
 
-  END Import_CSV;
+  END Immobilienportfolio;
 
-END SO_HBA_Immobilienportfolio_20260713.
+END SO_HBA_Immobilienportfolio_Publikation_20260713.
