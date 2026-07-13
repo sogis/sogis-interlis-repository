@@ -46,13 +46,36 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       C
     );
 
+    Nutzungsart = (
+      Bildung,
+      Gesundheit,
+      !!@ ili2db.dispName="Lager / Archiv"
+      Lager_Archiv,
+      Sicherheit,
+      Sonstige,
+      Stiftung,
+      Verwaltung
+    );
+
+    Anmiete = (
+      !!@ ili2db.dispName=Mietliegenschaft
+      AM
+    );
+
+    Grundstueckstatus = (
+      !!@ ili2db.dispName=veräussert
+      veraeussert
+    );
+
   TOPIC Import_CSV =
 
+    /** Gebäude-Importdaten
+    */
     CLASS Gebaeude_Import =
       /** Eidgenössischer Gebäudeidentifikator
       */
       egid : 1 .. 999999999;
-      /** HBA-interne, eindeutige Nummer (id_ge)
+      /** HBA-interne, eindeutige Gebäudenummer
       */
       id_ge : TEXT*20;
       /** Notwendig?
@@ -69,102 +92,60 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       /** Priorität Text
       */
       prio_dialog : TEXT*50;
-      
+      /** Bauperiode des Gebäudes
+      */
+      baujahr_gruppe : TEXT*50;
+      /** Gebäudenutzungsart
+      */
+      nutzung : SO_HBA_Immobilienportfolio_20260713.Nutzungsart;
+      /** Beschreibung!!
+      */
+      anmiete : SO_HBA_Immobilienportfolio_20260713.Anmiete;
+      /** Anmiete Text
+      */
+      anmiete_dialog : TEXT*50;
+      /** Beschreibung!!
+      */
+      eigenbedarf : TEXT*50;
 
-
-      
+      UNIQUE egid;
     END Gebaeude_Import;
 
+    CLASS Grundsteucke_Import =
+      /** Eidgenössischer Grundstücksidentifikator
+       */
+      egrid : MANDATORY TEXT*14;
+      /** HBA-interne, eindeutige Grundstücknummer
+      */
+      id_gr : TEXT*20;
+      /** Priorität im Kontext der Immobilienstrategie
+      */
+      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+      /** Priorität Text
+      */
+      prio_dialog : TEXT*50;
+      /** Vermögensart
+      */
+      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Vermögensart Text
+      */
+      vermoegensart_dialog : TEXT*50;
+      /** Eigenbedarf
+      */
+      eigenbedarf : TEXT*50;
+      /** Baurecht
+      */
+      baurecht : TEXT*50;
+      /** Veräusserungsjahr
+      */
+      jahr_veraeussert : 1900 .. 2100;
+      /** Grundstückstatus
+      */
+      status : SO_HBA_Immobilienportfolio_20260713.Grundstueckstatus;
 
-
-
-
-    CLASS Textuell =
-      Einzeilig : MANDATORY TEXT*10;
-      Mehrzeilig : MANDATORY MTEXT*500;
-    END Textuell;
-
-    CLASS Datum_Zeit =
-      Zeitstempel : MANDATORY DATETIME;
-      Datum : MANDATORY DATE;
-      Uhrzeit_ohne_Datum : MANDATORY TIMEOFDAY;
-    END Datum_Zeit;
-
-    CLASS Geometrie_2D =
-      Punkt : MANDATORY GeometryCHLV95_V2.Coord2;
-      Einzellinie : MANDATORY GeometryCHLV95_V2.LineWithoutArcs;
-      Multilinie : MANDATORY GeometryCHLV95_V2.MultiLineWithoutArcs;
-      Einzelpolygon : MANDATORY GeometryCHLV95_V2.SurfaceWithoutArcs;
-      Multipolygon : MANDATORY GeometryCHLV95_V2.MultiSurfaceWithoutArcs;
-    END Geometrie_2D;
-
-    CLASS Aufzaehlung =
-      Inline_Linear : MANDATORY (
-        rot,
-        !!@ ili2db.dispName=grün
-        gruen,
-        gelb
-      );
-      Inline_Baumstruktur : MANDATORY (
-        rot (
-          hellrot,
-          dunkelrot
-        ),
-        !!@ ili2db.dispName=grün
-        gruen,
-        gelb
-      );
-    END Aufzaehlung;
-
-    CLASS Weitere_Attribute =
-      URL : MANDATORY URI;
-      UUID : MANDATORY INTERLIS.UUIDOID;
-    END Weitere_Attribute;
+      UNIQUE egrid;
+    END Grundsteucke_Import;
 
   END Import_CSV;
-
-  TOPIC Beziehungen =
-    OID AS INTERLIS.UUIDOID;
-
-    CLASS Mutter =
-    END Mutter;
-
-    CLASS Kind =
-    END Kind;
-
-    ASSOCIATION Mutter_Kind =
-      Mutter_R -- {1} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Mutter;
-      Kind_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Kind;
-    END Mutter_Kind;
-
-    CLASS Bruder =
-    END Bruder;
-
-    CLASS Schwester =
-    END Schwester;
-
-    ASSOCIATION Bruder_Schwester =
-      Bruder_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Bruder;
-      Schwester_R -- {0..*} SO_HBA_Immobilienportfolio_20260713.Beziehungen.Schwester;
-    END Bruder_Schwester;
-
-  END Beziehungen;
-
-  TOPIC Json =
-    OID AS INTERLIS.UUIDOID;
-
-    STRUCTURE Dokument =
-      Name : MANDATORY TEXT*255;
-      Nummer : MANDATORY 1 .. 1000;
-    END Dokument;
-
-    CLASS Json_Attribute =
-      !!@ ili2db.mapping="JSON"
-      Mehrere_Dokumente : BAG {1..*} OF SO_HBA_Immobilienportfolio_20260713.Json.Dokument;
-      !!@ ili2db.mapping="JSON"
-      Ein_Dokument : MANDATORY SO_HBA_Immobilienportfolio_20260713.Json.Dokument;
-    END Json_Attribute;
-
-  END Json;
 
 END SO_HBA_Immobilienportfolio_20260713.
