@@ -1,0 +1,225 @@
+INTERLIS 2.4;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Aenderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2026-07-15 | MS  | Erstversion 
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AFU_Grundwassereinbauten_20260715 (de)
+AT "http://geo.so.ch/models/AFU"
+VERSION "2026-07-15"  =
+  IMPORTS GeometryCHLV95_V2;
+
+  TOPIC Grundwassereinbauten =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      Art_Wasserhaltung_Enum = (
+        !!@ ili2db.dispName = "Keine Wasserhaltung"
+        Keine_Wasserhaltung,
+        !!@ ili2db.dispName = "Wellpoint"
+        Wellpoint,
+        !!@ ili2db.dispName = "Pumpensumpf"
+        Pumpensumpf,
+        !!@ ili2db.dispName = "Filterbrunnen"
+        Filterbrunnen,
+        !!@ ili2db.dispName = "Andere"
+        Andere
+      );
+
+      Ableitung_Pumpwasser_Enum = (
+        !!@ ili2db.dispName = "Wiederversickerung"
+        Wiederversickerung,
+        !!@ ili2db.dispName = "Fliessgewässer"
+        Fliessgewaesser,
+        !!@ ili2db.dispName = "Kanalisation"
+        Kanalisation
+      );
+
+      Status_Einbau_Enum = (
+        !!@ ili2db.dispName = "Voranfrage"
+        Voranfrage,
+        !!@ ili2db.dispName = "Bewilligung in Arbeit"
+        Bewilligung_in_Arbeit,
+        !!@ ili2db.dispName = "Bewilligung erstellt"
+        Bewilligung_erstellt,
+        !!@ ili2db.dispName = "Bewilligung durch Behörde eröffnet"
+        Bewilligung_durch_Baubehoerde_eroeffnet,
+        !!@ ili2db.dispName = "Abnahme erforderlich"
+        Abnahme_erforderlich,
+        !!@ ili2db.dispName = "Bau Wasserhaltung abgeschlossen"
+        Bau_Wasserhaltung_abgeschlossen,
+        !!@ ili2db.dispName = "Bewilligung nicht ausgeführt"
+        Bewilligt_nicht_ausgefuehrt
+      );
+
+      Art_Einbau_Enum = (
+        !!@ ili2db.dispName = "Fundament"
+        Fundament,
+        !!@ ili2db.dispName = "Vertiefungen"
+        Vertiefungen,
+        !!@ ili2db.dispName = "Andere"
+        andere,
+        !!@ ili2db.dispName = "Pfähle"
+        Pfaehle,
+        !!@ ili2db.dispName = "Temporäre Wasserhaltung"
+        Temporaere_Wasserhaltung
+      );
+
+      Status_Abnahme_Enum = (
+        !!@ ili2db.dispName = "keine Abnahme erforderlich"
+        keine_Abnahme,
+        !!@ ili2db.dispName = "pendent"
+        pendent,
+        !!@ ili2db.dispName = "abgenommen"
+        abgenommen
+      );
+    /** Grundwassereinbauten und zugehörige Angaben aus Bewilligung, Bau und Abnahme.
+     */
+    CLASS Grundwassereinbau =
+      /** Art des Einbaus.
+       */
+      Art : BAG {1..*} OF Art_Einbau_Enum;
+      /** Objektidentifikation; ehemalige VEGAS-ID.
+       */
+      Objekt_ID : MANDATORY 592138001 .. 645262999;
+      /** Objektname.
+       */
+      Bezeichnung : MANDATORY TEXT*300;
+      /** Technische Beschreibung.
+       */
+      Beschreibung : MTEXT*8000;
+      /** Allgemeines Bemerkungsfeld.
+       */
+      Bemerkung : MTEXT*2000;
+      /** Datum der Objektaufnahme.
+       */
+      Aufnahmedatum : MANDATORY INTERLIS.XMLDate;
+      /** Name des Datenerfassers.
+       */
+      Erfasser : MANDATORY TEXT*200;
+      /** Art der Wasserhaltung.
+       */
+      Art_Wasserhaltung : BAG {1..*} OF Art_Wasserhaltung_Enum;
+      /** Geschäftsnummer BauGK, falls vorhanden.
+       */
+      BauGK_Geschaeft : TEXT*200;
+      /** eBau-Nummer.
+       */
+      eBau_Nummer : TEXT*200;
+      /** Räumliche Darstellung des Grundwassereinbaus als Punkt in LV95.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Aktennummer gemäss Registraturplan.
+       */
+      Aktennummer : MANDATORY TEXT*20;
+      /** Datum der Bewilligung.
+       */
+      Bewilligungsdatum : INTERLIS.XMLDate;
+      /** Datum der Eröffnung durch die Baubehörde.
+       */
+      Eroeffnung_Baubehoerde : INTERLIS.XMLDate;
+      /** Kote des höchsten Grundwasserspiegels in Meter über Meer.
+       */
+      Kote_HGW : 0.0 .. 9999.9;
+      /** Kote des mittleren Grundwasserspiegels in Meter über Meer.
+       */
+      Kote_MGW : 0.0 .. 9999.9;
+      /** Kote des tiefsten Grundwasserspiegels in Meter über Meer.
+       */
+      Kote_TGW : 0.0 .. 9999.9;
+      /** Kote des Stauers in Meter über Meer.
+       */
+      Kote_Stauer : 0.0 .. 9999.9;
+      /** Kote der generellen Fundation, beispielsweise der Bodenplatte, in Meter über Meer.
+       */
+      Kote_generelle_Fundation : 0.00 .. 9999.99;
+      /** Kote von Vertiefungen, beispielsweise einer Liftunterfahrt, in Meter über Meer.
+       */
+      Kote_Vertiefungen : 0.00 .. 9999.99;
+      /** Kote der Pfahlfundation in Meter über Meer.
+       */
+      Kote_Pfahlfundation : 0.00 .. 9999.99;
+      /** Beanspruchtes Volumen unter dem mittleren Grundwasserspiegel in Kubikmetern.
+       */
+      Beanspruchtes_Volumen_unter_MGW : 0.00 .. 9999.99;
+      /** Querschnittsverringerung unter dem mittleren Grundwasserspiegel in Prozent.
+       */
+      Querschnittsverringerung_unter_MGW : 0.00 .. 100.00;
+      /** Gegenmassnahmen, beispielsweise Massnahmen zur Förderung des Durchflusses.
+       */
+      Gegenmassnahmen : MTEXT*2000;
+      /** Art der Ableitung des Pumpwassers.
+       */
+      Ableitung_Pumpwasser : BAG {0..*} OF Ableitung_Pumpwasser_Enum;
+      /** Ort der Rückgabe; beispielsweise Parzelle der Versickerung, Name des Fliessgewässers oder ARA.
+       */
+      Ort_der_Rueckgabe : TEXT*200;
+      /** Höchste Pumpmenge in Litern pro Minute.
+       */
+      Hoechste_Pumpmenge : 0 .. 99999;
+      /** Mittlere Pumpmenge in Litern pro Minute.
+       */
+      Mittlere_Pumpmenge : 0 .. 99999;
+      /** Voraussichtliche Pumpdauer in Wochen.
+       */
+      Voraussichtliche_Pumpdauer : 0.0 .. 99.9;
+      /** Gesamte Pumpmenge in Kubikmetern.
+       */
+      Gesamte_Pumpmenge : 0 .. 99999999;
+      /** Bearbeitungs- beziehungsweise Bewilligungsstatus des Einbaus.
+       */
+      Status_Einbau : MANDATORY Status_Einbau_Enum;
+      /** Zuständige Person oder Stelle.
+       */
+      Zustaendigkeit : MANDATORY TEXT*200;
+      /** Status der Abnahme der Hinterfüllung. 
+       */
+      Abnahme_Hinterfuellung : MANDATORY Status_Abnahme_Enum;
+      /** Datum der Abnahme der Hinterfüllung. 
+       */
+      Abnahme_Hinterfuellung_Datum : INTERLIS.XMLDate;
+      /** Status der Abnahme der Ersatzmassnahmen.
+       */
+      Abnahme_Ersatzmassnahmen : MANDATORY Status_Abnahme_Enum;
+      /** Datum der Abnahme der Ersatzmassnahmen.
+       */
+      Abnahme_Ersatzmassnahmen_Datum : INTERLIS.XMLDate;      
+      /** Status der Schadstoffanalyse vor Pumpbeginn.
+       */
+      Schadstoffanalyse_vor_Pumpbeginn : MANDATORY Status_Abnahme_Enum;
+      /** Datum der Schadstoffanalyse vor Pumpbeginn.
+       */
+      Schadstoffanalyse_vor_Pumpbeginn_Datum : INTERLIS.XMLDate;
+      /** Status der Abnahme des Pumpprotokolls.
+       */
+      Abnahme_Pumpprotokoll : MANDATORY Status_Abnahme_Enum;
+      /** Datum der Abnahme des Pumpprotokolls.
+       */
+      Abnahme_Pumpprotokoll_Datum : INTERLIS.XMLDate;
+      /** Status der Abnahme der Pfähle.
+       */
+      Abnahme_Pfaehle : MANDATORY Status_Abnahme_Enum;
+      /** Datum der Abnahme der Pfähle.
+       */
+      Abnahme_Pfaehle_Datum : INTERLIS.XMLDate;
+      /** Status des Monitorings.
+       */
+      Monitoring : MANDATORY Status_Abnahme_Enum;
+      /** Datum des Monitorings.
+       */
+      Monitoring_Datum : INTERLIS.XMLDate;
+      /** Kommentare und Beanstandungen im Zusammenhang mit den Abnahmen.
+       */
+      Kommentar_Beanstandungen : MTEXT*2000;
+
+      UNIQUE Objekt_ID;
+      UNIQUE Aktennummer;
+    END Grundwassereinbau;
+
+  END Grundwassereinbauten;
+
+END SO_AFU_Grundwassereinbauten_20260715.
