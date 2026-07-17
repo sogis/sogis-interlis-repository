@@ -1,0 +1,307 @@
+INTERLIS 2.3;
+
+/** Das Geodatenmodell AfricanSwineFeverContainment_V1 dient der einheitlichen Erfassung und Bewertung von Lücken in Eindämmungsbarrieren gegen die Afrikanische Schweinepest. Es bildet die Grundlage für die Planung, Priorisierung und Umsetzung von Massnahmen zu deren Schliessung.
+ * 
+ * !!----------------------------------------------------------------------------------------------------------------
+ * !! Version    | wer  | Änderung
+ * !!----------------------------------------------------------------------------------------------------------------
+ * !! 2026-07-16 | scu  | kantonale Erweiterungen zum Modell AfricanSwineFeverContainment_V1 für die Erfassung von Eindämmungsbarrieren gegen die Afrikanische Schweinepest
+ * !!============================================================================================
+ */
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_ALW_Tiergesundheit_Eindaemmungsbarrieren_20260716 (de)
+AT "https://geo.so.ch/models/ALW"
+VERSION "2026-07-16"  =
+  IMPORTS GeometryCHLV95_V1,CHAdminCodes_V1,InternationalCodes_V1,WithOneState_V1;
+
+  /** Das Topic ContainmentBarrierGaps umfasst die Erfassung und Verwaltung von Lücken in der Eindämmungsbarriere gegen die Afrikanische Schweinepest, einschliesslich deren Lage, Bewertung sowie der Planung und Priorisierung von Schliessungsmassnahmen.
+   */
+  TOPIC Tiergesundheit_Eindaemmungsbarrieren =
+
+    DOMAIN
+
+      AstraObjectNumber = TEXT*40;
+
+      /** Der Wertebereich ClosurePriorityType beschreibt die Priorität für die Schliessung einer Lücke in der Eindämmungsbarriere. Die Priorisierung basiert auf der Bewertung der Durchgangswahrscheinlichkeit von Wildschweinen sowie dem Aufwand für die bauliche Schliessung.
+       */
+      ClosurePriorityType = (
+        /** Prio 1
+         */
+        High,
+        /** Prio 2
+         */
+        Medium,
+        /** Prio 3
+         */
+        Low
+      );
+
+      /** Der Wertebereich ClosureRequirement beschreibt, ob eine bauliche Schliessung der Lücke notwendig ist oder aus bestimmten Gründen (z. B. vorhandene unpassierbare Strukturen oder natürliche Barrieren) nicht notwendig ist.
+       */
+      ClosureRequirement = (
+        /** Ja
+         */
+        Required,
+        /** Nein - unüberwindbares Bauwerk
+         */
+        NotRequiredImpassableStructure,
+        /** Nein - See breiter als 5 km
+         */
+        NotRequiredLake5kmWide,
+        /** Nein - anderes unüberwindbares natürliches Hindernis
+         */
+        NotRequiredImpassableNaturalBarrier,
+        /** Nein - Strasse mit > 10’000 Autos pro Tag
+         */
+        NotRequiredRoad10000VehiclesDay
+      );
+
+      Date = FORMAT INTERLIS.XMLDate "2026-01-01" .. "2099-12-31";
+
+      MaterialMeter = 0 .. 9999 [INTERLIS.m];
+
+      MaterialsCount = 0 .. 999;
+
+      /** Der Wertebereich StructuralClosureFeasibility beschreibt, ob und in welchem Ausmass eine bauliche Schliessung der Lücke möglich ist oder durch bestehende Infrastrukturen bzw. natürliche Gegebenheiten eingeschränkt wird.
+       */
+      StructuralClosureFeasibility = (
+        /** Ja
+         */
+        Possible,
+        /** Nein - Bahnunterführung
+         */
+        NotPossibleRailUnderpass,
+        /** Nein - Bach oder Fluss
+         */
+        NotPossibleStreamOrLake,
+        /** Nein - grössere Strasse < 10’000 Autos pro Tag
+         */
+        NotPossibleRoad10000VehiclesDay,
+        /** Teilweise
+         */
+        PartiallyPossible
+      );
+
+      Text = TEXT*400;
+
+      TextMultiline = MTEXT*5000;
+
+    /** Die Klasse ContainmentBarrierGap beschreibt erfasste Lücken in der Eindämmungsbarriere gegen die Afrikanische Schweinepest. Sie enthält Angaben zur Lage, zur Bewertung der Schliessungsnotwendigkeit und -möglichkeit sowie zu möglichen Massnahmen und Prioritäten für deren Schliessung.
+     */
+    CLASS ContainmentBarrierGap =
+      /** Datum der Erhebung
+       */
+      SurveyDate : MANDATORY Date;
+      /** Zuständige Stelle
+       */
+      ResponsibleAuthority : MANDATORY Text;
+      /** Land, CHE oder LIE
+       */
+      Country : MANDATORY InternationalCodes_V1.CountryCode_ISO3166_1;
+      /** Kantonsabkürzung, massgebend ist der Standort des Bauwerks bzw. der Lücke
+       */
+      Canton : CHAdminCodes_V1.CHCantonCode;
+      /** aus ASTRA Bauwerksliste übernehmen, Spalte C+D
+       */
+      Location : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Bezeichnung aus ASTRA Viewer oder Bauwerksliste, Spalte I
+       */
+      LocationDescription : MANDATORY Text;
+      /** aus ASTRA Viewer oder Bauwerksliste übernehmen, Spalte H
+       */
+      ASTRAObjectNumber : AstraObjectNumber;
+      /** Schliessung notwendig?
+       */
+      ClosureRequiredStatus : MANDATORY ClosureRequirement;
+      /** Bauliche Schliessung möglich?
+       */
+      StructuralClosurePossibleStatus : MANDATORY StructuralClosureFeasibility;
+      /** Link zu kantonalem Server, wo die Bilder abgelegt sind.
+       */
+      AttachmentsPath : Text;
+      /** Alternative, wenn Schliessung nicht möglich. «Kanalzäunung»: beidseitig, Bauzaun oder Knotengitter, Verblendung mit weissen Blachen H120 cm, bei Strasse/Bahn L mind. 50m, bei Gewässer L mind. 100m
+       */
+      AlternativeCanalFencingBothSides : BOOLEAN;
+      /** Alternative, wenn Schliessung nicht möglich. Überwachung mit Wildkamera (Achtung: Datenschutzbestimmungen)
+       */
+      AlternativeWildlifeCameraMonitoring : BOOLEAN;
+      /** Alternative, wenn Schliessung nicht möglich. Wildvergrämer mit Duftstoffen (Achtung: Aufwand Unterhalt)
+       */
+      AlternativeWildlifeRepellentScent : BOOLEAN;
+      /** Mobilzaun, H120 B350
+       */
+      RequiredMaterialA1 : MaterialsCount;
+      /** Mobilzaun, H200 B350
+       */
+      RequiredMaterialA2 : MaterialsCount;
+      /** Torelement in Mobilzaun, H120 B350
+       */
+      RequiredMaterialA3 : MaterialsCount;
+      /** Tor für Fussgänger in Mobilzaun
+       */
+      RequiredMaterialA4 : MaterialsCount;
+      /** Knotengitterzaun mit Holzpfosten, H140
+       */
+      RequiredMaterialB1 : MaterialMeter;
+      /** Knotengitterzaun mit Metallpfosten, H140
+       */
+      RequiredMaterialB2 : MaterialMeter;
+      /** Tor für Strasse in Knotengitterzaun
+       */
+      RequiredMaterialB3 : MaterialsCount;
+      /** Tor für Weg in Knotengitterzaun
+       */
+      RequiredMaterialB4 : MaterialsCount;
+      /** Sonderanfertigung Tor für Strasse/Weg (Skizze)
+       */
+      RequiredMaterialB5 : MaterialsCount;
+      /** Elektrozaun 90 cm, 4 Litzen
+       */
+      RequiredMaterialC1 : MaterialMeter;
+      /** Tor für Strasse in Elektrozaun mit 4 Litzen
+       */
+      RequiredMaterialC2 : MaterialMeter;
+      /** Tor für Weg in Elektrozaun
+       */
+      RequiredMaterialC3 : MaterialsCount;
+      /** Mobiler Weiderost, L300 B300
+       */
+      RequiredMaterialD1 : MaterialsCount;
+      /** Cattle Grid Typ Coschen, L640 B380
+       */
+      RequiredMaterialD2 : MaterialsCount;
+      /** STRAILgrid (Hindernis Betreten von Gleisen)
+       */
+      RequiredMaterialD3 : MaterialsCount;
+      /** Doppelstabmatte, L200 H103
+       */
+      RequiredMaterialE1 : MaterialsCount;
+      /** Sonderanfertigung Gitter (Siehe Skizze)
+       */
+      RequiredMaterialE2 : MaterialsCount;
+      /** Weisse Blache für «Kanalzäunung» H120
+       */
+      RequiredMaterialF1 : MaterialMeter;
+      /** Wildkamera
+       */
+      RequiredMaterialF2 : MaterialsCount;
+      /** Wildvergrämer mit Duftstoffen
+       */
+      RequiredMaterialF3 : MaterialsCount;
+      /** Betonklotz (Durchfahrhindernis)
+       */
+      RequiredMaterialG1 : MaterialsCount;
+      /** Signalisationstafel (zB. Fahrverbot, Umleitung)
+       */
+      RequiredMaterialG2 : MaterialsCount;
+      /** Informationstafel
+       */
+      RequiredMaterialG3 : MaterialsCount;
+      /** Röhre für Kleinlebewesen
+       */
+      RequiredMaterialG4 : MaterialsCount;
+      /** Bemerkungen / Hinweise
+       * 
+       * Beispiele:
+       * - Vor dem Aufbau des Zauns abklären, ob Feldwege links und rechts gesperrt werden können oder ob Zauntor nötig ist.
+       * - Hochwassergefahr berücksichtigen
+       * - Intensive Rotwildwechsel, Spuren gesichtet
+       */
+      Comments : TextMultiline;
+      /** Schlussbeurteilung, Priorisierungsmatrix für Schliessung
+       * 
+       * Kombination aus EW \ AS. EW=Wahrscheinlichkeit, dass aus heutiger Sicht hier Wildschweine einen Durchgang suchen. AS=Aufwand für die bauliche Schliessung der Lücke.
+       */
+      ClosurePriority : ClosurePriorityType;
+      /** Hinweis, dass der aktuelle Stand abgebildet wird.
+       */
+      ModInfo : MANDATORY WithOneState_V1.ModInfo;
+      /** User (Benutzerkürzel) der letzten Erfassung/Änderung
+       */
+      User : TEXT*20;
+      /** TBA-Nummer ASTRA
+       */
+      ASTRA_TBA_Nummer : TEXT*40;
+      /** BfS-Code Standortgemeinde
+       */
+      bfs_Gemeindenummer : MANDATORY 0 .. 9999;
+      /** Standortgemeinde
+       */
+      Standortgemeinde : TEXT*255;
+      /** Typcode
+       */
+      Bauwerk_Typcode : 0 .. 99999;
+      /** Typ (Werte gemäss Typcode Tabelle «Tabelle_ASTRA-Bauwerke_Typcode.xlsx»)
+       */
+      Bauwerk_Typ : TEXT*100;
+      /** Funktion
+       */
+      Bauwerk_Funktion : TEXT*100;
+      /** Länge [m] vom Buwerk
+       */
+      Laenge : 0.00 .. 9999.99;
+      /** Breite [m] vom Buwerk
+       */
+      Breite : 0.00 .. 9999.99;
+      /** Bauart vom Bauwerk
+       */
+      Bauart : TEXT*100;
+      /** Strassen-Eigentümer in ASTRA-Bauwerkstabelle; Wert "ASTRA" bei Nationalstrassen
+       */
+      Bauwerk_Eigentuemer : TEXT*100;
+      /** Überarbeiten bis …; Datumsfeld für notwendige Überprüfungen (z.B. wenn Bauwerk im Bau)
+       */
+      Nachbeurteilung : Date;
+      /** EW=Wahrscheinlichkeit, dass aus heutiger Sicht hier Wildschweine einen Durchgang suchen
+       */
+      Faktor_Eintretenswahrscheinlichkeit : (
+        /** sehr unwarscheinlich
+         */
+        sehr_unwarscheinlich,
+        /** saisonal
+         */
+        saisonal,
+        /** monatlich
+         */
+        monatlich,
+        /** wöchentlich
+         */
+        woechentlich,
+        /** täglich
+         */
+        taeglich
+      );
+      /** AS=Aufwand für die bauliche Schliessung der Lücke
+       */
+      Faktor_Aufwand : (
+        /** sehr hoch
+         */
+        sehr_hoch,
+        /** hoch
+         */
+        hoch,
+        /** mittel
+         */
+        mittel,
+        /** tief
+         */
+        tief,
+        /** sehr tief
+         */
+        sehr_tief
+      );
+      /** Der Wert von Country darf nur Schweiz oder Liechtenstein sein.
+       */
+      /** Der Wert von Country darf nur Schweiz oder Liechtenstein sein.
+       */
+      MANDATORY CONSTRAINT Country == #CHE OR Country == #LIE;
+      /** Wenn Country = Schweiz, dann muss Canton gesetzt sein
+       */
+      /** Wenn Country = Schweiz, dann muss Canton gesetzt sein
+       */
+      MANDATORY CONSTRAINT NOT (Country == #CHE) OR DEFINED (Canton);
+    END ContainmentBarrierGap;
+
+  END Tiergesundheit_Eindaemmungsbarrieren;
+
+END SO_ALW_Tiergesundheit_Eindaemmungsbarrieren_20260716.
