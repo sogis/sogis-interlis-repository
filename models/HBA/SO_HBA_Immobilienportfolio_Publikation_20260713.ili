@@ -1,6 +1,6 @@
 INTERLIS 2.3;
-/**
- * !!------------------------------------------------------------------------------
+
+/** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2026-07-13 | pb | Initiale Erstellung
@@ -26,7 +26,6 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       !!@ ili2db.dispName=Finanzvermögen
       FV
     );
-
     Prioritaetsstufe = (
       !!@ ili2db.dispName=betriebsnotwendig
       A,
@@ -35,7 +34,6 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       !!@ ili2db.dispName=verwertbar
       C
     );
-
     Nutzungsart = (
       Bildung,
       Gesundheit,
@@ -47,86 +45,83 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       Verwaltung
     );
 
-    Anmiete = (
-      !!@ ili2db.dispName=Mietliegenschaft
-      AM
-    );
-
-    Grundstueckstatus = (
-      !!@ ili2db.dispName=veräussert
-      veraeussert
-    );
-
   TOPIC Immobilienportfolio =
 
     /** Staatsportfolio der Gebäude
-    */
+     */
     CLASS Gebaeude =
       /** Eidgenössischer Gebäudeidentifikator
-      */
+       */
       EGID : 1 .. 999999999;
       /** HBA-interne, eindeutige Gebäudenummer (id_ge)
-      */
+       */
       Wirtschaftseinheit : TEXT*20;
+      /** Gebäudebezeichnung
+       */
+      Bezeichnung : TEXT*100;
       /** Notwendig?
-      */
+       */
       public : TEXT*50;
       /** Vermögensart
-      */
+       */
       Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
       /** Priorität im Kontext der Immobilienstrategie
-      */
+       */
       Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Bauperiode des Gebäudes
-      */
+       */
       Bauperiode : TEXT*50;
       /** Gebäudenutzungsart
-      */
+       */
       Nutzung : SO_HBA_Immobilienportfolio_Publikation_20260713.Nutzungsart;
-      /** Beschreibung!!
-      */
-      anmiete : SO_HBA_Immobilienportfolio_Publikation_20260713.Anmiete;
-      /** Beschreibung!!
-      */
-      eigenbedarf : TEXT*50;
+      /** Wird das Gebäude vom Kanton gemietet?
+       */
+      anmiete : BOOLEAN;
+      /** Eigenbedarf des Kantons, wenn Prio A oder B
+       */
+      eigenbedarf : BOOLEAN;
+      /** Ist die Liegenschaft an Dritte vermietet?
+       */
+      Vermietet : BOOLEAN;
       /** Grundriss des Gebäudes gemäss amtlicher Vermessung
        */
       Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
-
       UNIQUE EGID;
     END Gebaeude;
 
     /** Staatsportfolio der Grundstücke
-    */
+     */
     CLASS Grundsteucke =
       /** Eidgenössischer Grundstücksidentifikator
        */
       EGRID : MANDATORY TEXT*14;
       /** HBA-interne, eindeutige Grundstücknummer (id_gr)
-      */
+       */
       Wirtschaftseinheit : TEXT*20;
       /** Priorität im Kontext der Immobilienstrategie
-      */
+       */
       Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Vermögensart
-      */
+       */
       Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
       /** Besteht Eigenbedarf?
-      */
-      eigenbedarf : BOOLEAN;
+       */
+      Eigenbedarf : BOOLEAN;
       /** Besteht ein Baurecht für Dritte?
-      */
+       */
       Baurecht : BOOLEAN;
+      /** Fachliche Verantwortung (Kantonales Amt) für das Grundstück
+      */
+      Fachverantwortung : TEXT*50;
       /** Veräusserungsjahr
-      */
+       */
       Veraeusserungsjahr : 1900 .. 2100;
-      /** Grundstückstatus
-      */
-      Status : SO_HBA_Immobilienportfolio_Publikation_20260713.Grundstueckstatus;
+      /** Wurde das Grundstück veräussert? Abgleitet aus dem Status.
+       */
+      Veraeusserung : BOOLEAN;
       /** Geometrie des Grundstückes
        */
       Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
-
       UNIQUE EGRID;
     END Grundsteucke;
 

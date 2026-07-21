@@ -1,6 +1,6 @@
-INTERLIS 2.4;
-/**
- * !!------------------------------------------------------------------------------
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
  * !!------------------------------------------------------------------------------
  * !! 2026-07-13 | pb | Initiale Erstellung
@@ -13,7 +13,7 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
   AT "https://geo.so.ch/models/HBA"
   VERSION "2026-07-13"
   =
-  IMPORTS GeometryCHLV95_V2;
+  IMPORTS GeometryCHLV95_V1;
 
   DOMAIN
     Vermoegensart = (
@@ -26,7 +26,6 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       !!@ ili2db.dispName=Finanzvermögen
       FV
     );
-
     Prioritaetsstufe = (
       !!@ ili2db.dispName=betriebsnotwendig
       A,
@@ -35,7 +34,6 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       !!@ ili2db.dispName=verwertbar
       C
     );
-
     Nutzungsart = (
       Bildung,
       Gesundheit,
@@ -46,12 +44,6 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
       Stiftung,
       Verwaltung
     );
-
-    Anmiete = (
-      !!@ ili2db.dispName=Mietliegenschaft
-      AM
-    );
-
     Grundstueckstatus = (
       !!@ ili2db.dispName=veräussert
       veraeussert
@@ -60,44 +52,41 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
   TOPIC Import_CSV =
 
     /** Gebäude-Importdaten
-    */
+     */
     CLASS Gebaeude_Import =
       /** Eidgenössischer Gebäudeidentifikator
-      */
-      egid : 1 .. 999999999;
+       */
+      egid : MANDATORY 1 .. 999999999;
       /** HBA-interne, eindeutige Gebäudenummer
-      */
+       */
       id_ge : TEXT*20;
       /** Notwendig?
-      */
+       */
       public : TEXT*50;
       /** Vermögensart
-      */
+       */
       vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
-      /** Vermögensart Text*/
-      vermoegensart_dialog : TEXT*50;
       /** Priorität im Kontext der Immobilienstrategie
-      */
+       */
       prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
-      /** Priorität Text
-      */
-      prio_dialog : TEXT*50;
       /** Bauperiode des Gebäudes
-      */
+       */
       baujahr_gruppe : TEXT*50;
       /** Gebäudenutzungsart
-      */
+       */
       nutzung : SO_HBA_Immobilienportfolio_20260713.Nutzungsart;
-      /** Beschreibung!!
-      */
-      anmiete : SO_HBA_Immobilienportfolio_20260713.Anmiete;
-      /** Anmiete Text
-      */
-      anmiete_dialog : TEXT*50;
-      /** Beschreibung!!
-      */
+      /** Wird das Gebäude vom Kanton gemietet? (AM = Anmiete)
+       */
+      anmiete : TEXT*10;
+      /** Gebäudebezeichnung
+       */
+      Gebaeude_Bez : TEXT*100;
+      /** Eigenbedarf des Kantons, wenn Prio A oder B
+       */
       eigenbedarf : TEXT*50;
-
+      /** Ist die Liegenschaft an Dritte vermietet?
+       */
+      vermietet : TEXT*50;
       UNIQUE egid;
     END Gebaeude_Import;
 
@@ -106,33 +95,32 @@ MODEL SO_HBA_Immobilienportfolio_20260713 (de)
        */
       egrid : MANDATORY TEXT*14;
       /** HBA-interne, eindeutige Grundstücknummer
-      */
+       */
       id_gr : TEXT*20;
+      /** Ist das Gebäude in Kantonsbesitz?
+       */
+      public : TEXT*50;
       /** Priorität im Kontext der Immobilienstrategie
-      */
+       */
       prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
-      /** Priorität Text
-      */
-      prio_dialog : TEXT*50;
       /** Vermögensart
-      */
+       */
       vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
-      /** Vermögensart Text
-      */
-      vermoegensart_dialog : TEXT*50;
       /** Eigenbedarf
-      */
+       */
       eigenbedarf : TEXT*50;
       /** Baurecht
-      */
+       */
       baurecht : TEXT*50;
-      /** Veräusserungsjahr
+      /** Fachliche Verantwortung für das Grundstück nach Code
       */
+      fachliche_Verantwortung : 0 .. 999;
+      /** Veräusserungsjahr
+       */
       jahr_veraeussert : 1900 .. 2100;
       /** Grundstückstatus
-      */
+       */
       status : SO_HBA_Immobilienportfolio_20260713.Grundstueckstatus;
-
       UNIQUE egrid;
     END Grundsteucke_Import;
 
