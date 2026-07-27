@@ -1,0 +1,66 @@
+INTERLIS 2.4;
+
+/** Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente.
+ * Nicht Teil des Vorlage-Modells sind die folgenden weniger gängigen Elemente:
+ * - Constraints, inkl. Existance Contraints
+ * - Nicht als UUID modellierte Objektidentifikatoren
+ * - Verwendung von Strukturen aus anderen Beweggründen ausser Json
+ * - Einheiten
+ * - Beziehungen über Topicgrenzen hinweg
+ * - Verwendung von Topics für partiellen Datentransfer
+ * - Kreisbogen-Geometrien
+ * - Nutzung von Funktionen
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-07-28 | pb | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Vorlage-Modell zum Kopieren der im AGI häufig genutzten Modell-Elemente"
+!!@ title=Modellvorlage
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AFU_Klaeranlagen_20260708 (de)
+  AT "https://geo.so.ch/models/AFU/"
+  VERSION "2026-07-28"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+    Anlagentyp = (
+      kommunal,
+      privat
+    );
+
+  TOPIC Klaeranlagen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS ARA =
+      /** Nummer der ARA
+      */
+      Nummer : MANDATORY 0 .. 999999;
+      /** Name der ARA
+      */
+      Name : MANDATORY TEXT*500;
+      /** ARA Anlagentyp
+      */
+      Typ : MANDATORY SO_AFU_Klaeranlagen_20260708.Anlagentyp;
+      /** Dimensionsgrösser der ARA nach CSB.
+      * Annahme: Belastung von 120 g CSB pro Einwohner und Tag.
+      */
+      DIM_EW_CSB : MANDATORY 0..999999;
+      /** Ist die ARA in Betrieb?
+      */
+      Betriebsstatus : BOOLEAN;
+      /** Name der Gemeinde
+      */
+      Gemeindename : TEXT*255;
+      /** Räumlicher Standort der ARA.
+      */
+      Geometrie : GeometryCHLV95_V2.Coord2;
+      UNIQUE Nummer, Name;
+    END ARA;
+
+  END Klaeranlagen;
+
+
+END SO_AFU_Klaeranlagen_20260708.
