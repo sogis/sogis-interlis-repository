@@ -25,42 +25,125 @@ MODEL SO_AFU_Klaeranlagen_20260708 (de)
   =
   IMPORTS GeometryCHLV95_V2;
 
-  DOMAIN
-    Anlagentyp = (
-      kommunal,
-      privat
-    );
-
   TOPIC Klaeranlagen =
     OID AS INTERLIS.UUIDOID;
 
-    CLASS ARA =
-      /** Nummer der ARA
+    DOMAIN
+      /** ARA Anlagentypen
       */
-      Nummer : MANDATORY 0 .. 999999;
-      /** Name der ARA
+      Anlagentyp_ARA = (
+        kommunal,
+        privat
+      );
+      /** Kleinkläranlagentypen
       */
+      Anlagentyp = (
+        MBR,
+        !!@ ili2db.dispName="ONE SBR"
+        ONE_SBR,
+        Sandfilter,
+        Sandpflanzenfilter,
+        SBR,
+        !!@ ili2db.dispName=Tauchtropfkörper
+        Tauchtropfkoerper,
+        !!@ ili2db.dispName=Tropfkörper
+        Tropfkoerper,
+        !!@ ili2db.dispName="UTB HKA"
+        UTB_HKA,
+        Wurmkompost,
+        !!@ ili2db.dispName="Abflusslose Grube"
+        Abflusslose_Grube
+      );
+      /** Zustand der Anlage
+      */
+      Betriebszustand = (
+        !!@ ili2db.dispName="sehr gut"
+        sehr_gut, 
+        gut,
+        !!@ ili2db.dispName="KSW Tropfk"
+        KSW_Tropfk, 
+        !!@ ili2db.dispName="san. 2014"
+        san_2014, 
+        unterbe
+      );
+
+    /** Abstrakte Klasse mit gemeinsamen Attributen für ale Anlagen
+     */
+    CLASS Anlage (ABSTRACT) =
+      /** Name der Anlage
+       */
       Name : MANDATORY TEXT*500;
-      /** ARA Anlagentyp
-      */
-      Typ : MANDATORY SO_AFU_Klaeranlagen_20260708.Anlagentyp;
-      /** Dimensionsgrösser der ARA nach CSB.
-      * Annahme: Belastung von 120 g CSB pro Einwohner und Tag.
-      */
-      DIM_EW_CSB : MANDATORY 0..999999;
-      /** Ist die ARA in Betrieb?
-      */
-      Betriebsstatus : BOOLEAN;
-      /** Name der Gemeinde
-      */
+      /** Nummer der Anlage
+       */
+      Nummer : MANDATORY 0 .. 999999;
+      /** Name der Gemeinde in der die Anlage steht
+       */
       Gemeindename : TEXT*255;
-      /** Räumlicher Standort der ARA.
-      */
-      Geometrie : GeometryCHLV95_V2.Coord2;
+      /** Geometrie (Standort) der Anlage
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+    END Anlage;
+
+    /** Klasse für ARA-Anlagen
+     */
+    CLASS ARA EXTENDS SO_AFU_Klaeranlagen_20260708.Klaeranlagen.Anlage =
+      /** ARA Anlagentyp
+       */
+      Typ : MANDATORY SO_AFU_Klaeranlagen_20260708.Klaeranlagen.Anlagentyp_ARA;
+      /** Dimensionsgrösser der ARA nach CSB.
+       * Annahme: Belastung von 120 g CSB pro Einwohner und Tag.
+       */
+      DIM_EW_CSB : MANDATORY 0 .. 999999;
+      /** Ist die ARA in Betrieb?
+       */
+      Betriebsstatus : BOOLEAN;
       UNIQUE Nummer, Name;
     END ARA;
 
-  END Klaeranlagen;
+    /** Klasse für Kleinkläranlagen und abflusslose Gruben
+     */
+    CLASS Kleinklaeranlage EXTENDS SO_AFU_Klaeranlagen_20260708.Klaeranlagen.Anlage =
+      /** Nachname des Anlagenbetreuers / der Anlagenbetreuerin
+       */
+      Name_Betreuer : TEXT*200;
+      /** Vorname des Anlagenbetreuers / der Anlagenbetreuerin
+       */
+      Vorname_Betreuer : TEXT*200;
+      /** Adresse des Anlagenbetreuers / der Anlagenbetreuerin
+       */
+      Adresse_Betreuer : TEXT*200;
+      /** KLARA: Gewässer, das gereinigtes Abwasser aufnimmt (sofern nicht Versickerung)
+       */
+      Vorfluter : TEXT*200;
+      /** Anlagentyp
+      */
+      Typ : SO_AFU_Klaeranlagen_20260708.Klaeranlagen.Anlagentyp;
+      /** KLARA: Grösse Einwohnergleichwert
+      */
+      Groesse_EG : 0..999;
+      /** Anzahl angeschlossene Einwohner
+      */
+      Anz_angeschlossene_Einwohner : 1..99;
+      /** Ist die Anlage dauerhaft belegt?
+      */
+      Dauerhafte_Belegung : BOOLEAN;
+      /** Betriebszustand der Anlage
+      */
+      Betriebszustand : SO_AFU_Klaeranlagen_20260708.Klaeranlagen.Betriebszustand;
+      /** Wurde die Anlage aufgehoben?
+      */
+      Aufgehoben : BOOLEAN;
+      /** Gewässer in das das gereinigte Abwasser gelangt*/
+      Gewaesser : TEXT*200;
+      /** Wird das gereinigte Abwasser in ein Gewässer geleitet?
+      */
+      Gewaesser_Drainage : BOOLEAN;
+      /** Wird das gereinigte Abwasser versickert?
+      */
+      Gewaesser_Versicherkung : BOOLEAN;
 
+    END Kleinklaeranlage;
+
+  END Klaeranlagen;
 
 END SO_AFU_Klaeranlagen_20260708.
