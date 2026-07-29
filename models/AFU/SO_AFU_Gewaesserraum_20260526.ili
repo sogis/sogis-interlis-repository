@@ -1,0 +1,72 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2026-05-26 | al  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Gewaesserraum_20260526.uml
+MODEL SO_AFU_Gewaesserraum_20260526 (de)
+AT "https://alw.so.ch"
+VERSION "2026-05-26"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Gewaesserraum =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      RechtsstatusArt = (
+        inKraft,
+        /** bereits öffentlich aufgelegen
+         */
+        AenderungMitVorwirkung,
+        /** noch nicht öffentlich aufgelegen
+         */
+        AenderungOhneVorwirkung,
+        /** Herkunft Ökomorphologie
+         */
+        hinweisend
+      );
+
+      Typ = (
+        !!@ ili2db.dispName="zusätzliche Bewirtschaftungseinschränkung"
+        Bewirtschaftungseinschraenkung,
+        Raumsicherung,
+        !!@ ili2db.dispName="Gewässerraum nach Gewässerschutzverordnung"
+        Gewaesserraum_GSchV,
+        !!@ ili2db.dispName=Ökomorphologie
+        Oekomorphologie
+      );
+
+    CLASS Bemerkung =
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      Bemerkung : TEXT*300;
+    END Bemerkung;
+
+    /** Die Übersicht des Gewässerraums des Kantons Solothurn dient der Landwirtschaft als Grundlage für die Einhaltung der geltenden Bewirtschaftungsauflagen im Gewässerraum.
+     */
+    CLASS Gewaesserraum =
+      OID AS INTERLIS.UUIDOID;
+      /** Geometrie
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.AreaWithOverlaps2mm;
+      /** Rechtsstatus
+       */
+      Rechtsstatus : MANDATORY RechtsstatusArt;
+      /** Herkunft des Gewässerraums
+       */
+      Typ : MANDATORY Typ;
+      /** Entspricht dem Attribut publiziert_ab in der Nutzungsplanung.
+       */
+      Rechtskraftdatum : INTERLIS.XMLDate;
+      /** Bemerkung
+       */
+      Bemerkung : TEXT*200;
+    END Gewaesserraum;
+
+  END Gewaesserraum;
+
+END SO_AFU_Gewaesserraum_20260526.
