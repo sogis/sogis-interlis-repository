@@ -6,10 +6,10 @@ INTERLIS 2.4;
  * !! 2026-07-28 | pb | Initiale Erstellung
  * !!==============================================================================
  */
-!!@ shortDescription="Erfassungs- und Importschema für ARA- und Kleinkläranlagen"
+!!@ shortDescription="Publikationsmodell für ARA- und Kleinkläranlagen"
 !!@ title=Kläranlagen
 !!@ technicalContact=agi@bd.so.ch
-MODEL SO_AFU_Klaeranlagen_20260708 (de)
+MODEL SO_AFU_Klaeranlagen_Publikation_20260708 (de)
   AT "https://geo.so.ch/models/AFU/"
   VERSION "2026-07-28"
   =
@@ -22,32 +22,45 @@ MODEL SO_AFU_Klaeranlagen_20260708 (de)
       /** Kleinkläranlagentypen
        */
       Anlagentyp = (
+        !!@ili2db.dispName="Membranbioreaktor"
         MBR,
-        !!@ ili2db.dispName="ONE SBR"
+        !!@ ili2db.dispName="Einkammer SBR "
         ONE_SBR,
         Sandfilter,
         Sandpflanzenfilter,
+        !!@ili2db.dispName="Mehrkammer SBR"
         SBR,
         !!@ ili2db.dispName=Tauchtropfkörper
         Tauchtropfkoerper,
-        !!@ ili2db.dispName=Tropfkörper
+        !!@ ili2db.dispName="Tropfkörper berieselt"
         Tropfkoerper,
-        !!@ ili2db.dispName="UTB HKA"
+        !!@ ili2db.dispName="System UTW"
         UTB_HKA,
         Wurmkompost,
         !!@ ili2db.dispName="Abflusslose Grube"
         Abflusslose_Grube
       );
 
-    /** Klasse für ARA-Anlagen
+    /** Abstrakte Klasse mit gemeinsamen Attributen für ale Anlagen
      */
-    CLASS ARA =
-      /** Name der Anlage
+    CLASS Anlage (ABSTRACT) =
+      /** Name der Anlage oder der Besitzers
        */
       Name : MANDATORY TEXT*500;
       /** Nummer der Anlage
        */
       Nummer : MANDATORY 0 .. 999999;
+      /** Name der Gemeinde in der die Anlage steht
+       */
+      Gemeindename : TEXT*255;
+      /** Geometrie (Standort) der Anlage
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+    END Anlage;
+
+    /** Klasse für ARA-Anlagen
+     */
+    CLASS ARA EXTENDS SO_AFU_Klaeranlagen_Publikation_20260708.Klaeranlagen.Anlage =
       /** Bezeichnung des ARA-Besitzers
        */
       Organisation : TEXT*200;
@@ -61,65 +74,47 @@ MODEL SO_AFU_Klaeranlagen_20260708 (de)
       /** Ist die ARA in Betrieb?
        */
       Betriebsstatus : BOOLEAN;
-      /** Geometrie (Standort) der Anlage
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
       UNIQUE Nummer, Name;
     END ARA;
 
-    /** Klasse für die Importdaten zu den Kleinkläranlagen und abflusslose Gruben.
+    /** Klasse für Kleinkläranlagen und abflusslose Gruben
      */
-    CLASS Kleinklaeranlage_Import =
-      /** Nachname des Anlagenbesitzers/der Anlagenbesitzerin oder Name der Anlage selbst
-       */
-      AnlageName : TEXT*200;
-      /** Vorname des Anlagenbesitzers/der Anlagenbesitzerin oder Namenszusatz für die Anlage
-       */
-      AnlageVorname : TEXT*200;
-      /** Nummer der Anlage
-       */
-      AnlageNummer : MANDATORY 0 .. 999999;
+    CLASS Kleinklaeranlage EXTENDS SO_AFU_Klaeranlagen_Publikation_20260708.Klaeranlagen.Anlage =
+      /** Vorname des Besitzers oder Bezeichnung Anlage
+      */
+      Vorname : TEXT*200;
       /** Nachname des Anlagenbetreuers/der Anlagenbetreuerin
        */
-      BetreuerName : TEXT*200;
+      Name_Betreuer : TEXT*200;
       /** Vorname des Anlagenbetreuers/der Anlagenbetreuerin
        */
-      BetreuerVorname : TEXT*200;
-      /** Gemeindename des Anlagenstandortes
+      Vorname_Betreuer : TEXT*200;
+      /** Gewässer in welches das gereinigte Abwasser geleitet wird (Vorfluter).
        */
-      AnlageStandort : TEXT*200;
-      /** Adresse der Anlage
-       */
-      AnlageStandortStrasse1 : TEXT*200;
-      /** X-Koordinate der Anlage
-       */
-      X_Koordinate : 2480000 .. 2865000;
+      Vorfluter : TEXT*200;
       /** Anlagenttyp
        */
-      AnlageTyp : TEXT*200;
+      AnlagenTyp : SO_AFU_Klaeranlagen_Publikation_20260708.Klaeranlagen.Anlagentyp;
       /** Grösse Einwohnergleichwert (Einwohnerkapazität der Anlage)
        */
       Groesse_EG : 0 .. 999;
       /** Anzahl an die Anlage angeschlossene Einwohner
        */
-      AngEinwohner : 1 .. 999;
-      /** Y-Koordinate
-       */
-      Y_Koordinate : 1062000 .. 1302000;
+      Anz_angeschlossene_Einwohner : 1 .. 999;
       /** Wurde die Anlage aufgehoben?
        */
       Aufgehoben : BOOLEAN;
-      /** Gewässer in welches das gereinigte Abwasser geleitet wird (Vorfluter).
+      /** Wird das gereinigte Abwasser in ein Gewässer geleitet?
        */
-      Gewaesser : TEXT*200;
-      /** Wird das gereinigte  Abwassers in eine Drainage abgeleitet?
-       */
-      Gewaesser_Drainagen : BOOLEAN;
+      Ableitung_Drainage : BOOLEAN;
       /** Wird das gereinigte Abwasser versickert?
        */
-      Gewaesser_Versickerung : BOOLEAN;
-    END Kleinklaeranlage_Import;
+      Versicherkung_Gewaesser : BOOLEAN;
+      /** Wird das gereinigte  Abwassers in ein Gewässer abgeleitet?
+      */
+      Ableitung_Gewaesser : BOOLEAN;
+    END Kleinklaeranlage;
 
   END Klaeranlagen;
 
-END SO_AFU_Klaeranlagen_20260708.
+END SO_AFU_Klaeranlagen_Publikation_20260708.
