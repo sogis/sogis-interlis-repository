@@ -1,0 +1,89 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-07-13 | pb | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Importmodell für die Gebäude aus dem Immobilienportfolio des Hochbauamtes Kanton Solothurn"
+!!@ title="Gebäude des Kanton Solothurns (Immobilienportfolio)"
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
+  AT "https://geo.so.ch/models/HBA"
+  VERSION "2026-07-13"
+  =
+
+  DOMAIN
+    Vermoegensart = (
+      AM,
+      SV,
+      VV,
+      FV
+    );
+    Prioritaetsstufe = (
+      A,
+      B,
+      C
+    );
+    Nutzungsart = (
+      /** HPSZ, BBZ, Kantonsschule, FHNW
+       */
+      Bildung,
+      /** Spitäler
+       */
+      Gesundheit,
+      Lager_Archiv,
+      /** Polizei und Justizvollzug
+       */
+      Sicherheit,
+      Sonstiges,
+      Stiftung,
+      Verwaltung,
+      Landwirtschaft
+    );
+
+  TOPIC CSV_Import =
+
+    /** Gebäude-Importdaten
+     */
+    CLASS Gebaeude =
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      egid : MANDATORY 1 .. 999999999;
+      /** HBA-interne, eindeutige Gebäudenummer (SAP-ID)
+       */
+      id_ge : TEXT*20;
+      /** Vermögensart
+       */
+      vermoegensart : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Prioritaetsstufe;
+      /** Bauperiode des Gebäudes
+       */
+      baujahr_gruppe : TEXT*50;
+      /** Gebäudenutzungsart
+       */
+      nutzung : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Nutzungsart;
+      /** Wird das Gebäude vom Kanton gemietet? (AM = Anmiete)
+       */
+      anmiete : TEXT*10;
+      /** Gebäudebezeichnung
+       */
+      Gebaeude_Bez : TEXT*100;
+      /** Eigenbedarf des Kantons
+       */
+      eigenbedarf : TEXT*50;
+      /** Ist die Liegenschaft an Dritte vermietet?
+       */
+      vermietet : TEXT*50;
+      /** Immoinfo-Link
+      */
+      link : URI;
+      UNIQUE egid;
+    END Gebaeude;
+
+  END CSV_Import;
+
+END SO_HBA_Immobilienportfolio_Gebaeude_20260713.
