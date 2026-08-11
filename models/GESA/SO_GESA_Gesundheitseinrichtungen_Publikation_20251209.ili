@@ -6,8 +6,9 @@ INTERLIS 2.3;
  * !! 2025-12-09 | jek | Ersterfassung
  * !!==============================================================================
  */
-!!@ technicalContact=mailto:agi@bd.so.ch
-!!@ Name=Value
+!!@ technicalContact="mailto:agi@bd.so.ch"
+!!@ title="Gesundheitseinrichtungen"
+!!@ shortDescription="Modell für Gesundheitseinrichtungen, welche kognitiv und/oder physisch beeinträchtigte Personen betreuen"
 MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
   AT "https://gesa.so.ch"
   VERSION "2025-12-09"
@@ -18,9 +19,9 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
 
     /** 
     * Koordinate und Informationen zu Gesundheitseinrichtungen, 
-    * welche kognitiv und oder physisch beeinträchtige Personen betreuen.
+    * welche kognitiv und oder physisch beeinträchtigte Personen betreuen.
     * Einrichtungen: Spitäler, Alters- und Pflegeheime, Institutionen 
-    * für kognitiv beeinträchtige Personen.
+    * für kognitiv beeinträchtigte Personen.
     */
     CLASS Gesundheitseinrichtung =
       /** Punktgeometrie der Lage der Einrichtung
@@ -40,6 +41,7 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
       Typ : MANDATORY (
         !!@ ili2db.dispName="Alters- und/oder Pflegeheim"
         APH,
+        !!@ ili2db.dispName="Spital"
         Spital,
         !!@ ili2db.dispName="Sozialmedizinische Institution"
         Sozmed
@@ -56,7 +58,7 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
       /** Adresse: Name der Ortschaft
        */
       Adresse_Ortschaft : MANDATORY TEXT*256;
-      /** Adresse: Potleitzahl
+      /** Adresse: Postleitzahl
        */
       Adresse_PLZ : MANDATORY 1000 .. 9999;
       /** Adresse: Name der Strasse
@@ -73,33 +75,49 @@ MODEL SO_GESA_Gesundheitseinrichtungen_Publikation_20251209 (de)
        * Beeinträchtigung leiden sowie Personen mit schweren psychiatrischen Erkrankungen.
        * Personen dieser Gruppe sind nicht physisch beeinträchtigt.
        */
-      Kognitiv_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      Kognitiv_schwer_beeintraechtigt : 0 .. 1000;
       /** Anzahl kognitiv und physisch schwer beeinträchtigte betreute Personen (Gruppe 1+).
        * Personen der Gruppe 1, die zusätzlich in ihrer Mobilität eingeschränkt sind, sind speziell zu kennzeichnen
        * (jede Person ist nur einmal aufzuführen).
        */
-      Kognitiv_und_physisch_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      Kognitiv_und_physisch_schwer_beeintraechtigt : 0 .. 1000;
       /** Anzahl physisch schwer beeinträchtigte betreute Personen (Gruppe 2).
        * Umfasst Personen mit eingeschränkter Mobilität (keine kognitive Einschränkung), die auf besondere Gehhilfen,
        * Rollstühle oder ähnliche Mobilitätshilfen angewiesen sind sowie Personen die bettlägerig sind, welche 
        * spezielle Transportmittel sowie barrierefreie Einrichtungen in den Evakuierungszentren erfordern.
        * Personen dieser Gruppe sind nicht kognitiv beeinträchtigt.
        */
-      Physisch_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      Physisch_schwer_beeintraechtigt : 0 .. 1000;
       /** Anzahl betreute Personen ohne schwere kognitive oder physische Beeinträchtigung (Gruppe 3).
        * Umfasst alle Personen ohne schwere kognitive oder physische Beeinträchtigung, die in der Lage sind, sich
        * selbständig zu bewegen und den Evakuationsanweisungen zu folgen.
        */
-      Nicht_schwer_beeintraechtigt : MANDATORY 0 .. 1000;
+      Nicht_schwer_beeintraechtigt : 0 .. 1000;
       /** Anzahl betreute Personen, total.
        */
-      Total : MANDATORY 0 .. 1000;
+      Total : 0 .. 4000;
       /** Kommentare zur Einrichtung wie beispielsweise Hinweise zu den Gebäuden, falls es sich
       * bei der Gesundheitseinrichtung um ein Areal mit mehreren Gebäuden handelt.
       */
       Kommentare : MTEXT*500;
 
       UNIQUE Name;
+
+      /** Die Anzahl der betreuten Personen muss pro Gruppe angegeben werden (Ausnahme: Spitäler).
+       */
+      !!@ ilivalid.msg = "Die Anzahl der betreuten Personen muss pro Gruppe angegeben werden (Ausnahme: Spitäler)."
+      MANDATORY CONSTRAINT
+        (Typ == #Spital)
+        OR (DEFINED (Kognitiv_schwer_beeintraechtigt)
+            AND DEFINED (Kognitiv_und_physisch_schwer_beeintraechtigt)
+            AND DEFINED (Physisch_schwer_beeintraechtigt)
+            AND DEFINED (Nicht_schwer_beeintraechtigt));
+
+      /** Bei Spitälern muss das Total der betreuten Personen angegeben werden.
+       */
+      !!@ ilivalid.msg = "Bei Spitälern muss das Total der betreuten Personen angegeben werden."
+      MANDATORY CONSTRAINT
+        NOT (Typ == #Spital) OR DEFINED (Total);
 
     END Gesundheitseinrichtung;
 
