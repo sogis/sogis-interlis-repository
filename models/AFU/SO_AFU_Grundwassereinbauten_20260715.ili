@@ -17,28 +17,6 @@ VERSION "2026-07-15"  =
 
     DOMAIN
 
-      Art_Wasserhaltung_Enum = (
-        !!@ ili2db.dispName = "Keine Wasserhaltung"
-        Keine_Wasserhaltung,
-        !!@ ili2db.dispName = "Wellpoint"
-        Wellpoint,
-        !!@ ili2db.dispName = "Pumpensumpf"
-        Pumpensumpf,
-        !!@ ili2db.dispName = "Filterbrunnen"
-        Filterbrunnen,
-        !!@ ili2db.dispName = "Andere"
-        Andere
-      );
-
-      Ableitung_Pumpwasser_Enum = (
-        !!@ ili2db.dispName = "Wiederversickerung"
-        Wiederversickerung,
-        !!@ ili2db.dispName = "Fliessgewässer"
-        Fliessgewaesser,
-        !!@ ili2db.dispName = "Kanalisation"
-        Kanalisation
-      );
-
       Status_Einbau_Enum = (
         !!@ ili2db.dispName = "Voranfrage"
         Voranfrage,
@@ -56,19 +34,6 @@ VERSION "2026-07-15"  =
         Bewilligt_nicht_ausgefuehrt
       );
 
-      Art_Einbau_Enum = (
-        !!@ ili2db.dispName = "Fundament"
-        Fundament,
-        !!@ ili2db.dispName = "Vertiefungen"
-        Vertiefungen,
-        !!@ ili2db.dispName = "Andere"
-        andere,
-        !!@ ili2db.dispName = "Pfähle"
-        Pfaehle,
-        !!@ ili2db.dispName = "Temporäre Wasserhaltung"
-        Temporaere_Wasserhaltung
-      );
-
       Status_Abnahme_Enum = (
         !!@ ili2db.dispName = "keine Abnahme erforderlich"
         keine_Abnahme,
@@ -77,36 +42,19 @@ VERSION "2026-07-15"  =
         !!@ ili2db.dispName = "abgenommen"
         abgenommen
       );
+
     /** Grundwassereinbauten und zugehörige Angaben aus Bewilligung, Bau und Abnahme.
      */
     CLASS Grundwassereinbau =
-      /** Art des Einbaus.
-       */
-      Art : BAG {1..*} OF Art_Einbau_Enum;
-      /** Objektidentifikation; ehemalige VEGAS-ID.
-       */
-      Objekt_ID : MANDATORY 592138001 .. 645262999;
       /** Objektname.
        */
-      Bezeichnung : MANDATORY TEXT*300;
-      /** Technische Beschreibung.
-       */
-      Beschreibung : MTEXT*8000;
-      /** Allgemeines Bemerkungsfeld.
-       */
-      Bemerkung : MTEXT*2000;
+      Vorhaben : MANDATORY TEXT*300;
       /** Datum der Objektaufnahme.
        */
-      Aufnahmedatum : MANDATORY INTERLIS.XMLDate;
-      /** Name des Datenerfassers.
-       */
-      Erfasser : MANDATORY TEXT*200;
-      /** Art der Wasserhaltung.
-       */
-      Wasserhaltung : BAG {1..*} OF Art_Wasserhaltung_Enum;
+      Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
       /** Geschäftsnummer BauGK, falls vorhanden.
        */
-      Geschaeftsnummer : TEXT*200;
+      BauGK_Nummer : TEXT*200;
       /** eBau-Nummer.
        */
       eBau_Nummer : TEXT*200;
@@ -116,12 +64,50 @@ VERSION "2026-07-15"  =
       /** Aktennummer gemäss Registraturplan.
        */
       Aktennummer : MANDATORY TEXT*20;
+
+      UNIQUE Aktennummer;
+    END Grundwassereinbau;
+
+    CLASS Bewilligung =
       /** Datum der Bewilligung.
        */
       Bewilligungsdatum : INTERLIS.XMLDate;
       /** Datum der Eröffnung durch die Baubehörde.
        */
       Eroeffnung_Baubehoerde : INTERLIS.XMLDate;
+      /** Art des Einbaus. Fundament
+       */
+      Grundwassereinbau_Art_Fundament : BOOLEAN;
+      /** Art des Einbaus. Vertiefung
+       */
+      Grundwassereinbau_Art_Vertiefung : BOOLEAN;
+      /** Art des Einbaus. Andere
+       */
+      Grundwassereinbau_Art_Andere : BOOLEAN;
+      /** Art des Einbaus. Pfähle
+       */
+      Grundwassereinbau_Art_Pfaehle : BOOLEAN;
+      /** Art des Einbaus. Temporäre Wasserhaltung
+       */
+      Grundwassereinbau_Art_Temporaere_Wasserhaltung : BOOLEAN;
+      /** Allgemeines Bemerkungsfeld.
+       */
+      Bemerkung : MTEXT*2000;
+      /** Art der Wasserhaltung. Keine Wasserhaltung
+       */
+      Wasserhaltung_Keine_Wasserhaltung : BOOLEAN;
+      /** Art der Wasserhaltung. Wellpoint
+       */
+      Wasserhaltung_Wellpoint : BOOLEAN;
+      /** Art der Wasserhaltung. Pumpensumpf
+       */
+      Wasserhaltung_Pumpensumpf : BOOLEAN;
+      /** Art der Wasserhaltung. Filterbrunnen
+       */
+      Wasserhaltung_Filterbrunnen : BOOLEAN;
+      /** Art der Wasserhaltung. Andere
+       */
+      Wasserhaltung_Andere : BOOLEAN;      
       /** Kote des höchsten Grundwasserspiegels in Meter über Meer.
        */
       Kote_HGW : 0.0 .. 9999.9;
@@ -152,12 +138,27 @@ VERSION "2026-07-15"  =
       /** Gegenmassnahmen, beispielsweise Massnahmen zur Förderung des Durchflusses.
        */
       Gegenmassnahmen : MTEXT*2000;
-      /** Art der Ableitung des Pumpwassers.
-       */
-      Ableitung_Pumpwasser : BAG {0..*} OF Ableitung_Pumpwasser_Enum;
-      /** Ort der Rückgabe; beispielsweise Parzelle der Versickerung, Name des Fliessgewässers oder ARA.
-       */
-      Ort_der_Rueckgabe : TEXT*200;
+      /** Lässt man das Pumpwasser versickern?
+      */
+      Rueckgabe_Versickerung : MANDATORY BOOLEAN;
+      /** Rückgabe des Pumpwassers in Parzelle Grundbuchnummer
+      */
+      Rueckgabe_Versickerung_Grundstueck : TEXT*10;
+      /** Leitet man das Pumpwasser in Gewässer ab?
+      */
+      Rueckgabe_Gewaesser : MANDATORY BOOLEAN;
+      /** Name des Gewässers in das das Pumpwasser zurückgegeben wird.
+      */
+      Rueckgabe_Gewaesser_Gewaessername : TEXT*100;
+      /** Menge des Pumpwassers, das ins Gewässer abgegeben wird in l/min. 
+      */
+      Rueckgabe_Gewaesser_Wassermenge : 0..9999;
+      /** Wird das Pumpwasser in die Kanalisation geleitet? 
+      */
+      Rueckgabe_Kanalisation : MANDATORY BOOLEAN;
+      /** ARA Name in welche das Pumpwasser abgegeben wird. 
+      */
+      Rueckgabe_Kanalisation_ARA_Name : TEXT*100; 
       /** Höchste Pumpmenge in Litern pro Minute.
        */
       Hoechste_Pumpmenge : 0 .. 99999;
@@ -252,9 +253,29 @@ VERSION "2026-07-15"  =
         Monitoring != #abgenommen OR
         Monitoring_Datum != UNDEFINED;
 
-      UNIQUE Objekt_ID;
-      UNIQUE Aktennummer;
-    END Grundwassereinbau;
+      !!@ name = "Rueckgabe_Grundstueck"
+      !!@ ilivalid.msg = "Wenn Rückgabe Versickerung gewählt wurde, muss eine Parzellen-Nummer angegeben werden."
+      MANDATORY CONSTRAINT
+        Rueckgabe_Versickerung == #false OR
+        Rueckgabe_Versickerung_Grundstueck != UNDEFINED;
+
+      !!@ name = "Rueckgabe_Gewaesser"
+      !!@ ilivalid.msg = "Wenn Rückgabe Gewässer gewählt wurde, muss ein Gewässername angegeben werden."
+      MANDATORY CONSTRAINT
+        Rueckgabe_Gewaesser == #false OR
+        Rueckgabe_Gewaesser_Gewaessername != UNDEFINED;
+
+      !!@ name = "Rueckgabe_Kanalisation"
+      !!@ ilivalid.msg = "Wenn Rückgabe Kanalisation gewählt wurde, muss ein ARA-Name angegeben werden."
+      MANDATORY CONSTRAINT
+        Rueckgabe_Kanalisation == #false OR
+        Rueckgabe_Kanalisation_ARA_Name != UNDEFINED;
+    END Bewilligung;
+
+    ASSOCIATION Grundwassereinbau_Bewilligung =
+      Bewilligung_r -- {1..*} Bewilligung;
+      Grundwassereinbau_r -- {1} Grundwassereinbau;
+    END Grundwassereinbau_Bewilligung;   
 
   END Grundwassereinbauten;
 
