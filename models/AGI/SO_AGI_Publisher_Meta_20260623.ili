@@ -16,52 +16,25 @@ MODEL SO_AGI_Publisher_Meta_20260623 (de)
   =
   IMPORTS GeometryCHLV95_V2;
 
-  DOMAIN
-    Referenziert_Typ = (
-      eins,
-      zwei,
-      drei,
-      vier,
-      !!@ ili2db.dispName=fünf
-      fuenf
-    );
-
   TOPIC Publisher =
-    /* Succesful publication of a DataIdent on PubDate
-    */
+
     CLASS Publication =
-      /* Identifier of the dataset (= Themenbereitstellung)
-      */
       DataIdent : MANDATORY TEXT*256;
-      /* Date of the Publication
-      */
       PubDate : MANDATORY DATE;
       UNIQUE DataIdent, PubDate;
     END Publication;
 
-    /* Information for the part of the dataset that was published.
-    */
     CLASS Part =
-      /* Identifier of the part of the dataset.
-      * For example the bfs-nr if the parts are "Gemeinden".
-      */
       PartIdent : MANDATORY TEXT*256;
-      /* Date of the Publication of this part
-      */
       PubDate : MANDATORY DATE;
     END Part;
 
     ASSOCIATION Publication_Part =
-      Publication_R -- {1} Publication;
-      Part_R -- {0..*} Part;
-
+      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.Publication;
+      Part_R -- {0..*} SO_AGI_Publisher_Meta_20260623.Publisher.Part;
       UNIQUE Publication_R, Part_R->PartIdent, Part_R->PubDate;
     END Publication_Part;
 
-    /* The exported format (xtf, itf, shp, ...).
-    * The publication knows about all it's formats
-    * over the association 
-    */
     CLASS ExportedFormat =
       Format : MANDATORY (
         xtf,
@@ -74,11 +47,11 @@ MODEL SO_AGI_Publisher_Meta_20260623 (de)
     END ExportedFormat;
 
     ASSOCIATION Publication_ExportedFormat =
-      Publication_R -- {1} Publication;
-      Format_R -- {1..*} ExportedFormat;
-
+      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.Publication;
+      Format_R -- {1..*} SO_AGI_Publisher_Meta_20260623.Publisher.ExportedFormat;
       UNIQUE Publication_R, Format_R->Format;
     END Publication_ExportedFormat;
 
   END Publisher;
+
 END SO_AGI_Publisher_Meta_20260623.
