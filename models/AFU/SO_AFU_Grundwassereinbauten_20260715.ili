@@ -309,7 +309,7 @@ VERSION "2026-07-15"  =
         (Grundwassereinbau_Art_Bodenplatte != #false OR 
          Grundwassereinbau_Art_Vertiefungen != #false OR 
          Grundwassereinbau_Art_Pfaehle != #false OR 
-         Grundwassereinbau_Art_Andere != #false) AND          
+         Grundwassereinbau_Art_Andere != #false) =>          
         (DEFINED(Beanspruchtes_Volumen_unter_MGW) OR 
          DEFINED(Querschnittsverringerung_unter_MGW)
         );
@@ -323,7 +323,7 @@ VERSION "2026-07-15"  =
       !!@ name = "Obligatorische_Attribute_bei_Temporaerer_Wasserhaltung."
       !!@ ilivalid.msg = "Wenn temporäre Wasserhaltung, müssen Pumpmengen, Dauer, Art der Wasserhaltung und Rückgabe ausgefüllt bzw. gewählt werden."
       MANDATORY CONSTRAINT
-        (Grundwassereinbau_Art_Temporaere_Wasserhaltung != #false) AND
+        (Grundwassereinbau_Art_Temporaere_Wasserhaltung != #false) =>
         (DEFINED(Hoechste_Pumpmenge) AND
          DEFINED(Mittlere_Pumpmenge) AND 
          DEFINED(Voraussichtliche_Pumpdauer) AND 
@@ -341,7 +341,7 @@ VERSION "2026-07-15"  =
 
     END Bewilligung;
 
-    /**Grundwassereinbauten können 0 bis 1 Bewilligung haben. Wenn eine Bewilligung erstellt werden, müssen diverse Bedingungen erfüllt sein.
+    /**Grundwassereinbauten können 0 bis n Bewilligung haben. Wenn eine Bewilligung erstellt werden, müssen diverse Bedingungen erfüllt sein.
     */
     ASSOCIATION Grundwassereinbau_Bewilligung =
       Bewilligung_r -- {0..*} Bewilligung;
@@ -350,7 +350,7 @@ VERSION "2026-07-15"  =
       !!@ name = "Obligatorische_Attribute_wenn_Bewilligung_erstellt"
       !!@ ilivalid.msg = "Wenn die Bewilligung erstellt wurde, müssen die obligatorischen Angaben ausgefüllt sein."
       MANDATORY CONSTRAINT
-        Bewilligung_r->Status_Bewilligung != #Bewilligung_erstellt OR
+        Bewilligung_r->Status_Bewilligung == #Bewilligung_erstellt =>
         (
           DEFINED(Grundwassereinbau_r->Aktennummer) AND
           DEFINED(Grundwassereinbau_r->Vorhaben) AND
