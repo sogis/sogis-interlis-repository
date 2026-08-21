@@ -18,19 +18,11 @@ VERSION "2026-07-15"  =
     DOMAIN
 
       Status_Einbau_Enum = (
-        !!@ ili2db.dispName = "Voranfrage"
-        Voranfrage,
-        !!@ ili2db.dispName = "Bewilligung in Arbeit"
-        Bewilligung_in_Arbeit,
         !!@ ili2db.dispName = "Bewilligung erstellt"
         Bewilligung_erstellt,
         !!@ ili2db.dispName = "Bewilligung durch Behörde eröffnet"
         Bewilligung_durch_Baubehoerde_eroeffnet,
-        !!@ ili2db.dispName = "Abnahme erforderlich"
-        Abnahme_erforderlich,
-        !!@ ili2db.dispName = "Bau Wasserhaltung abgeschlossen"
-        Bau_Wasserhaltung_abgeschlossen,
-        !!@ ili2db.dispName = "Bewilligung nicht ausgeführt"
+        !!@ ili2db.dispName = "Bewilligung wird nicht ausgeführt"
         Bewilligt_nicht_ausgefuehrt
       );
 
@@ -43,7 +35,7 @@ VERSION "2026-07-15"  =
         abgenommen
       );
 
-    /** Grundwassereinbauten und zugehörige Angaben aus Bewilligung, Bau und Abnahme.
+    /** Angaben zu den Grundwassereinbauten
      */
     CLASS Grundwassereinbau =
       /** Objektname.
@@ -63,11 +55,36 @@ VERSION "2026-07-15"  =
       Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
       /** Aktennummer gemäss Registraturplan.
        */
-      Aktennummer : MANDATORY TEXT*20;
+      Aktennummer : TEXT*20;
 
       UNIQUE Aktennummer;
     END Grundwassereinbau;
 
+    /** Voranfragen zu Einbauten ins Grundwasser
+    */
+    CLASS Voranfrage =
+      /** Angaben zur Person, welche die Voranfrage stellte.
+      */
+      Anfrage_durch : MANDATORY MTEXT*200;
+      /**Vorbesprechung ja oder nein
+      */
+      Vorbesprechung : BOOLEAN;
+      /**Unterlagen zur Vorbesprechung 
+      */
+      Unterlagen : TEXT*200;
+      /**Vorhabensbeschreibung 
+      */
+      Vorhabensbeschreibung : MANDATORY MTEXT*2000;
+      /**Antworten 
+      */
+      Antworten : MANDATORY MTEXT*2000;
+      /**Hydrogeologie 
+      */
+      Hydrogeologie : MTEXT*2000;
+    END Voranfrage;
+
+    /** Angaben zu Bewilligung, Bau und Abnahme.
+     */
     CLASS Bewilligung =
       /** Datum der Bewilligung.
        */
@@ -75,12 +92,12 @@ VERSION "2026-07-15"  =
       /** Datum der Eröffnung durch die Baubehörde.
        */
       Eroeffnung_Baubehoerde : INTERLIS.XMLDate;
-      /** Art des Einbaus. Fundament
+      /** Art des Einbaus. Bodenplatte
        */
-      Grundwassereinbau_Art_Fundament : BOOLEAN;
-      /** Art des Einbaus. Vertiefung
+      Grundwassereinbau_Art_Bodenplatte : BOOLEAN;
+      /** Art des Einbaus. Vertiefungen
        */
-      Grundwassereinbau_Art_Vertiefung : BOOLEAN;
+      Grundwassereinbau_Art_Vertiefungen : BOOLEAN;
       /** Art des Einbaus. Andere
        */
       Grundwassereinbau_Art_Andere : BOOLEAN;
@@ -90,12 +107,9 @@ VERSION "2026-07-15"  =
       /** Art des Einbaus. Temporäre Wasserhaltung
        */
       Grundwassereinbau_Art_Temporaere_Wasserhaltung : BOOLEAN;
-      /** Allgemeines Bemerkungsfeld.
+      /** Bemerkung_Art_und_Formelles.
        */
-      Bemerkung : MTEXT*2000;
-      /** Art der Wasserhaltung. Keine Wasserhaltung
-       */
-      Wasserhaltung_Keine_Wasserhaltung : BOOLEAN;
+      Bemerkung_Art : MTEXT*2000;
       /** Art der Wasserhaltung. Wellpoint
        */
       Wasserhaltung_Wellpoint : BOOLEAN;
@@ -129,7 +143,7 @@ VERSION "2026-07-15"  =
       /** Kote der Pfahlfundation in Meter über Meer.
        */
       Kote_Pfahlfundation : 0.00 .. 9999.99;
-      /** Kommentar zu den Koten 
+      /** Kommentar zu den Koten (z.B. «Messung auf Parzelle», «mit Referenzmessstelle abgeglichen», «Angaben aus Untersuchungen auf GB Gde Nr. XXX» etc)
       */
       Kommentar_Koten : MTEXT*2000;
       /** Beanspruchtes Volumen unter dem mittleren Grundwasserspiegel in Kubikmetern.
@@ -138,15 +152,18 @@ VERSION "2026-07-15"  =
       /** Querschnittsverringerung unter dem mittleren Grundwasserspiegel in Prozent.
        */
       Querschnittsverringerung_unter_MGW : 0.00 .. 100.00;
-      /** Gegenmassnahmen, beispielsweise Massnahmen zur Förderung des Durchflusses.
+      /** Kompensationsmassnahmen, beispielsweise Massnahmen zur Förderung des Durchflusses.
        */
-      Gegenmassnahmen : MTEXT*2000;
+      Kompensationsmassnahmen : MTEXT*2000;
       /** Lässt man das Pumpwasser versickern?
       */
       Rueckgabe_Versickerung : MANDATORY BOOLEAN;
+      /** Rückgabe des Pumpwassers in Grundbuch / Gemeinde
+      */
+      Rueckgabe_Versickerung_Grundbuch_Name : TEXT*50;
       /** Rückgabe des Pumpwassers in Parzelle Grundbuchnummer
       */
-      Rueckgabe_Versickerung_Grundstueck : TEXT*10;
+      Rueckgabe_Versickerung_Grundstueck : TEXT*25;
       /** Leitet man das Pumpwasser in Gewässer ab?
       */
       Rueckgabe_Gewaesser : MANDATORY BOOLEAN;
@@ -174,9 +191,9 @@ VERSION "2026-07-15"  =
       /** Gesamte Pumpmenge in Kubikmetern.
        */
       Gesamte_Pumpmenge : 0 .. 99999999;
-      /** Bearbeitungs- beziehungsweise Bewilligungsstatus des Einbaus.
+      /** Status der Bewilligung.
        */
-      Status_Einbau : MANDATORY Status_Einbau_Enum;
+      Status_Bewilligung : MANDATORY Status_Einbau_Enum;
       /** für die Abnahmen Zuständige Person oder Stelle.
        */
       Zustaendigkeit : MANDATORY TEXT*200;
@@ -273,12 +290,93 @@ VERSION "2026-07-15"  =
       MANDATORY CONSTRAINT
         Rueckgabe_Kanalisation == #false OR
         DEFINED(Rueckgabe_Kanalisation_ARA_Name);
+
+      !!@ name = "Vertiefung_und_Kote_Bauprojektn"
+      !!@ ilivalid.msg = "Wenn Einbau Art Vertiefungen ausgewählt ist, ist unter Koten Bauprojekt die Kote Vertiefungen Pflicht."
+      MANDATORY CONSTRAINT
+        Grundwassereinbau_Art_Vertiefungen == #false OR
+        DEFINED(Kote_Vertiefungen);
+
+      !!@ name = "Pfaehle_und_Kote_Pfaehlung"
+      !!@ ilivalid.msg = "Wenn Einbau Art Pfähle ausgewählt ist, ist unter Koten Bauprojekt die Kote Pfählung Pflicht."
+      MANDATORY CONSTRAINT
+        Grundwassereinbau_Art_Pfaehle == #false OR
+        DEFINED(Kote_Pfahlfundation);
+
+      !!@ name = "Fundament_Vertiefung_Pfaehle_Andere"
+      !!@ ilivalid.msg = "Wenn unter Einbau Art entweder Fundament, Vertiefungen, Pfähle oder Andere ausgewählt ist, muss Beanspruchtes Volumen unter MGW und Querschnittsverringerung unter MGW ausgefüllt sein."
+      MANDATORY CONSTRAINT
+        (Grundwassereinbau_Art_Bodenplatte != #false OR 
+         Grundwassereinbau_Art_Vertiefungen != #false OR 
+         Grundwassereinbau_Art_Pfaehle != #false OR 
+         Grundwassereinbau_Art_Andere != #false) AND          
+        (DEFINED(Beanspruchtes_Volumen_unter_MGW) OR 
+         DEFINED(Querschnittsverringerung_unter_MGW)
+        );
+
+      !!@ name = "Obligatorische_Attribute_wenn_Bewilligung_durch_Baubehoerden_eroeffnet"
+      !!@ ilivalid.msg = "Wenn die Bewilligung durch Baubehörden eröffnet wurde, muss das Datum der eröffnung angegeben werden."
+      MANDATORY CONSTRAINT 
+        Status_Bewilligung != #Bewilligung_durch_Baubehoerde_eroeffnet OR 
+        DEFINED(Eroeffnung_Baubehoerde);
+
+      !!@ name = "Obligatorische_Attribute_bei_Temporaerer_Wasserhaltung."
+      !!@ ilivalid.msg = "Wenn temporäre Wasserhaltung, müssen Pumpmengen, Dauer, Art der Wasserhaltung und Rückgabe ausgefüllt bzw. gewählt werden."
+      MANDATORY CONSTRAINT
+        (Grundwassereinbau_Art_Temporaere_Wasserhaltung != #false) AND
+        (DEFINED(Hoechste_Pumpmenge) AND
+         DEFINED(Mittlere_Pumpmenge) AND 
+         DEFINED(Voraussichtliche_Pumpdauer) AND 
+         DEFINED(Gesamte_Pumpmenge) AND (
+          (Wasserhaltung_Wellpoint == #true) OR 
+          (Wasserhaltung_Pumpensumpf == #true) OR 
+          (Wasserhaltung_Filterbrunnen == #true) OR 
+          (Wasserhaltung_Andere == #true) 
+         ) AND (
+          (Rueckgabe_Versickerung == #true) OR 
+          (Rueckgabe_Gewaesser == #true) OR 
+          (Rueckgabe_Kanalisation == #true)
+         )
+        );
+
     END Bewilligung;
 
+    /**Grundwassereinbauten können 0 bis 1 Bewilligung haben. Wenn eine Bewilligung erstellt werden, müssen diverse Bedingungen erfüllt sein.
+    */
     ASSOCIATION Grundwassereinbau_Bewilligung =
-      Bewilligung_r -- {1..*} Bewilligung;
+      Bewilligung_r -- {0..*} Bewilligung;
       Grundwassereinbau_r -- {1} Grundwassereinbau;
-    END Grundwassereinbau_Bewilligung;   
+
+      !!@ name = "Obligatorische_Attribute_wenn_Bewilligung_erstellt"
+      !!@ ilivalid.msg = "Wenn die Bewilligung erstellt wurde, müssen die obligatorischen Angaben ausgefüllt sein."
+      MANDATORY CONSTRAINT
+        Bewilligung_r->Status_Bewilligung != #Bewilligung_erstellt OR
+        (
+          DEFINED(Grundwassereinbau_r->Aktennummer) AND
+          DEFINED(Grundwassereinbau_r->Vorhaben) AND
+          DEFINED(Bewilligung_r->Bewilligungsdatum) AND
+          (
+            Bewilligung_r->Grundwassereinbau_Art_Bodenplatte == #true OR
+            Bewilligung_r->Grundwassereinbau_Art_Vertiefungen == #true OR
+            Bewilligung_r->Grundwassereinbau_Art_Andere == #true OR
+            Bewilligung_r->Grundwassereinbau_Art_Pfaehle == #true OR
+            Bewilligung_r->Grundwassereinbau_Art_Temporaere_Wasserhaltung == #true
+          ) AND
+          DEFINED(Bewilligung_r->Kote_generelle_Fundation) AND
+          DEFINED(Bewilligung_r->Kote_HGW) AND
+          DEFINED(Bewilligung_r->Kote_MGW) AND
+          DEFINED(Bewilligung_r->Kote_TGW) AND
+          DEFINED(Bewilligung_r->Kote_Stauer) AND
+          DEFINED(Bewilligung_r->Kommentar_Koten)
+        );
+    END Grundwassereinbau_Bewilligung;
+
+    /**Grundwassereinbauten können eine Voranfrage haben, müssen aber nicht.
+    */
+    ASSOCIATION Grundwassereinbau_Voranfrage =
+      Voranfrage_r -- {0..1} Voranfrage;
+      Grundwassereinbau_r -- {1} Grundwassereinbau; 
+    END Grundwassereinbau_Voranfrage;
 
   END Grundwassereinbauten;
 
