@@ -18,23 +18,42 @@ MODEL SO_AGI_Publisher_Meta_20260623 (de)
 
   TOPIC Publisher =
 
-    CLASS Publication =
+    /** Result of one run of the publisher task.
+     */
+    CLASS PublicationRun =
+      /** Identifier of the themepublication
+       */
       DataIdent : MANDATORY TEXT*256;
+      /** Date of the run
+       */
       PubDate : MANDATORY DATE;
       UNIQUE DataIdent, PubDate;
-    END Publication;
+    END PublicationRun;
 
+    /** If a run publishes the data split up in several fragments,
+     * these are recorded here.
+     * The publisher integrates previously generated fragments as
+     * convenience for the downloader into one zip.
+     * Here reflected are only those fragments, that where newly
+     * generated from source by this run.
+     * A run of a configuration with non splitted data does have no records
+     * in this class.
+     */
     CLASS Part =
+      /** Identifier of the Fragments that where generated form source by this run
+       */
       PartIdent : MANDATORY TEXT*256;
-      PubDate : MANDATORY DATE;
     END Part;
 
     ASSOCIATION Publication_Part =
-      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.Publication;
+      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.PublicationRun;
       Part_R -- {0..*} SO_AGI_Publisher_Meta_20260623.Publisher.Part;
-      UNIQUE Publication_R, Part_R->PartIdent, Part_R->PubDate;
+      UNIQUE Publication_R, Part_R->PartIdent;
     END Publication_Part;
 
+    /** One of the 1-n exported formats of the run,
+     * as defined by Publisher.outFormats.
+     */
     CLASS ExportedFormat =
       Format : MANDATORY (
         xtf,
@@ -47,7 +66,7 @@ MODEL SO_AGI_Publisher_Meta_20260623 (de)
     END ExportedFormat;
 
     ASSOCIATION Publication_ExportedFormat =
-      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.Publication;
+      Publication_R -- {1} SO_AGI_Publisher_Meta_20260623.Publisher.PublicationRun;
       Format_R -- {1..*} SO_AGI_Publisher_Meta_20260623.Publisher.ExportedFormat;
       UNIQUE Publication_R, Format_R->Format;
     END Publication_ExportedFormat;
