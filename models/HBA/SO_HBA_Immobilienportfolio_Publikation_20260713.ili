@@ -88,13 +88,13 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
        */
       Vermietet : BOOLEAN;
       /** Immoinfo-Link
-      */
-      Link : URI;
+       */
+      Link : INTERLIS.URI;
       /** Verantwortliche Person für das Gebäude
-      */
+       */
       Gebaeudeverantwortung : TEXT*100;
       /** Verantwortliche Person für die Hauswartung
-      */
+       */
       Hauswartung : TEXT*100;
       /** Grundriss des Gebäudes gemäss amtlicher Vermessung
        */
@@ -102,9 +102,9 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       UNIQUE EGID;
     END Gebaeude;
 
-    /** Staatsportfolio der Grundstücke
-     */
-    CLASS Grundsteucke =
+    /** Abstrakte Klassen für die Liegenschaften/Grundstücke
+    */
+    CLASS Liegenschaften (ABSTRACT) =
       /** Eidgenössischer Grundstücksidentifikator
        */
       EGRID : MANDATORY TEXT*14;
@@ -112,17 +112,26 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
        */
       Grundstuecknummer : TEXT*15;
       /** Fläche des Grundstücks in m2
-      */
-      Flaechenmass : 1..999999999;
+       */
+      Flaechenmass : 1 .. 999999999;
       /** HBA-interne, eindeutige Grundstücknummer (id_gr)
        */
       Wirtschaftseinheit : TEXT*20;
-      /** Priorität im Kontext der Immobilienstrategie
-       */
-      Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Vermögensart
        */
       Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
+      /** Geometrie des Grundstückes
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      UNIQUE EGRID;
+    END Liegenschaften;
+
+    /** Staatsportfolio der Grundstücke
+     */
+    CLASS Grundstuecke EXTENDS SO_HBA_Immobilienportfolio_Publikation_20260713.Immobilienportfolio.Liegenschaften =
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      Prioritaet : SO_HBA_Immobilienportfolio_Publikation_20260713.Prioritaetsstufe;
       /** Besteht Eigenbedarf?
        */
       Eigenbedarf : BOOLEAN;
@@ -138,11 +147,13 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       /** Wurde das Grundstück veräussert?
        */
       Veraeusserung : BOOLEAN;
-      /** Geometrie des Grundstückes
-       */
-      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
       UNIQUE EGRID;
-    END Grundsteucke;
+    END Grundstuecke;
+
+    /** Grundstücksgeometrien mit Baurechten
+     */
+    CLASS Baurecht EXTENDS SO_HBA_Immobilienportfolio_Publikation_20260713.Immobilienportfolio.Liegenschaften =
+    END Baurecht;
 
   END Immobilienportfolio;
 
