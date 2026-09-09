@@ -1,0 +1,100 @@
+INTERLIS 2.3;
+
+/** !!------------------------------------------------------------------------------
+ *  !! Version    | wer | Änderung
+ *  !!------------------------------------------------------------------------------
+ *  !! 2026-09-09 | cr  | Ersterfassung
+ *  !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ shortDescription="Übungsmodell für den kantonsinternen QGIS-Erfassungskurs. Enthält nur Modellelemente, die im Kurs benötigt werden."
+!!@ title="QGIS-Schulung Erfassung"
+MODEL SO_AGI_QGIS_Schulung_Erfassung_20260909 (de)
+AT "https://agi.so.ch"
+VERSION "2026-09-09"  =
+  IMPORTS GeometryCHLV95_V1;
+
+  TOPIC Schulungsdaten =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      /** Art der Bodenbedeckung.
+       */
+      Bodenbedeckungsart = (
+        !!@ ili2db.dispName=Gebäude
+        Gebaeude,
+        !!@ ili2db.dispName=Umschwung
+        Umschwung
+      );
+
+      /** Gebietseinteilung ohne Überlappungstoleranz.
+       */
+      Gebietseinteilung = AREA WITH (ARCS,STRAIGHTS)
+                          VERTEX GeometryCHLV95_V1.Coord2
+                          WITHOUT OVERLAPS>0;
+
+    /** Lückenlose Einteilung eines Grundstücks in Gebäude- und Umschwung-
+     *  flächen.
+     */
+    CLASS Bodenbedeckung =
+      /** Polygon, als Teil einer Gebietseinteilung, ohne Überlappungstoleranz.
+       */
+      Geometrie : MANDATORY Gebietseinteilung;
+      /** Art der Bodenbedeckung.
+       */
+      Typ : MANDATORY Bodenbedeckungsart;
+      /** Gesamtzahl der bewohnenden Personen. Nur bei Gebäuden zu erfassen.
+       */
+      Bewohnende_Gesamt : 0 .. 99;
+      /** Anzahl der bewohnenden Personen ab 18 Jahren. Nur bei Gebäuden zu
+       *  erfassen.
+       */
+      Bewohnende_Erwachsene : 0 .. 99;
+      /** Anzahl der bewohnenden Personen unter 18 Jahren. Nur bei Gebäuden zu
+       *  erfassen.
+       */
+      Bewohnende_Kinder : 0 .. 99;
+
+      !! Erwachsene dürfen die Gesamtzahl der Bewohnenden nicht übersteigen.
+      !!@ name = checkErwachseneMaxGesamt
+      MANDATORY CONSTRAINT
+         NOT (DEFINED (Bewohnende_Gesamt) AND DEFINED (Bewohnende_Erwachsene))
+         OR Bewohnende_Erwachsene <= Bewohnende_Gesamt;
+
+      !! Kinder dürfen die Gesamtzahl der Bewohnenden nicht übersteigen.
+      !!@ name = checkKinderMaxGesamt
+      MANDATORY CONSTRAINT
+         NOT (DEFINED (Bewohnende_Gesamt) AND DEFINED (Bewohnende_Kinder))
+         OR Bewohnende_Kinder <= Bewohnende_Gesamt;
+
+      !! Bewohnende werden nur bei Gebäuden erfasst.
+      !!@ name = checkBewohnendeNurGebaeude
+      MANDATORY CONSTRAINT
+         Typ == #Gebaeude
+         OR NOT (DEFINED (Bewohnende_Gesamt) OR DEFINED (Bewohnende_Erwachsene)
+                 OR DEFINED (Bewohnende_Kinder));
+    END Bodenbedeckung;
+
+    /** Zugang zu einem Gebäude.
+     */
+    CLASS Eingang =
+      /** Verortung des Eingangs. Auf der Gebäudegrenze zu erfassen.
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V1.Coord2;
+      /** Name der Strasse, an welcher der Eingang liegt.
+       */
+      Strassenname : MANDATORY TEXT*60;
+      /** Hausnummer inklusive allfälligem Zusatz, zum Beispiel "12a".
+       */
+      Hausnummer : MANDATORY TEXT*12;
+      /** Person, die den Eingang digitalisiert hat.
+       */
+      Erfasst_durch : MANDATORY TEXT*60;
+
+      UNIQUE Strassenname, Hausnummer;
+    END Eingang;
+
+  END Schulungsdaten;
+
+END SO_AGI_QGIS_Schulung_Erfassung_20260909.
