@@ -43,17 +43,47 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
       Landwirtschaft
     );
 
-  TOPIC CSV_Import =
+  TOPIC Gebaeude =
 
-    /** Gebäude-Importdaten
+    /** Gebäudeattribute, welche bezüglich der Eindeutigkeit immer vorkommen
      */
-    CLASS Gebaeude =
+    CLASS GebaeudeBasis (ABSTRACT) =
       /** Eidgenössischer Gebäudeidentifikator
        */
       egid : MANDATORY 1 .. 999999999;
       /** HBA-interne, eindeutige Gebäudenummer (SAP-ID)
        */
-      id_ge : TEXT*20;
+      id_ge : MANDATORY TEXT*20;
+      /** Gebäudenutzungsart
+       */
+      nutzung : MANDATORY SO_HBA_Immobilienportfolio_Gebaeude_20260713.Nutzungsart;
+      /** Gebäudebezeichnung
+       */
+      Gebaeude_Bez : MANDATORY TEXT*100;
+      /** Eigenbedarf des Kantons
+       */
+      eigenbedarf : TEXT*50;
+      /** Wird das Gebäude vom Kanton gemietet? (AM = Anmiete)
+       */
+      anmiete : TEXT*10;
+      /** Ist die Liegenschaft an Dritte vermietet?
+       */
+      vermietet : TEXT*50;
+      /** Immoinfo-Link
+       */
+      link : INTERLIS.URI;
+      /** Verantwortliche Person für das Gebäude mit E-Mail-Link
+       */
+      verantwortung_geb : INTERLIS.URI;
+      /** Verantwortliche Person für die Hauswartung mit E-Mail-Link
+       */
+      verantwortung_hw : INTERLIS.URI;
+      UNIQUE egid;
+    END GebaeudeBasis;
+
+    /** Gebäude-Importklasse
+     */
+    CLASS CSV_Import EXTENDS SO_HBA_Immobilienportfolio_Gebaeude_20260713.Gebaeude.GebaeudeBasis =
       /** Vermögensart
        */
       vermoegensart : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Vermoegensart;
@@ -63,39 +93,39 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
       /** Bauperiode des Gebäudes
        */
       baujahr_gruppe : TEXT*50;
-      /** Gebäudenutzungsart
-       */
-      nutzung : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Nutzungsart;
-      /** Wird das Gebäude vom Kanton gemietet? (AM = Anmiete)
-       */
-      anmiete : TEXT*10;
-      /** Gebäudebezeichnung
-       */
-      Gebaeude_Bez : TEXT*100;
-      /** Eigenbedarf des Kantons
-       */
-      eigenbedarf : TEXT*50;
-      /** Ist die Liegenschaft an Dritte vermietet?
-       */
-      vermietet : TEXT*50;
-      /** Immoinfo-Link
-      */
-      link : URI;
-      /** Verantwortliche Person für das Gebäude
-      */
-      verantwortung_geb : TEXT*100;
-      /** Verantwortliche Person für die Hauswartung
-      */
-      verantwortung_hw : TEXT*100;
-      /** Direkter E-Mail Link zur verantwortlichen Person für das Gebäude
-      */
-      email_geb : TEXT*200;
-      /** Direkter E-Mail Link zur verantwortlichen Person für die Hauswartung
-      */
-      email_hw : TEXT*200;
-      UNIQUE egid;
-    END Gebaeude;
+    END CSV_Import;
 
-  END CSV_Import;
+    /** Abhängig von den Werten bei den Attributen anmiete (Wert 'AM') und vermietet (Wert 'vermietet'), weisen andere Attribute nur NULL-Werte auf.
+     *  Diese Klasse dient dazu eine Kontrolle der "anderen" Attribute durchzuführen.
+     *  Dafür müssen diese Attribute mit "Mandatory" versehen und bei der Umverteilung die vorhin genannten Werte rausgefiltert werden.
+     */
+    CLASS GebaeudeMandatory EXTENDS SO_HBA_Immobilienportfolio_Gebaeude_20260713.Gebaeude.GebaeudeBasis =
+      /** Vermögensart
+       */
+      vermoegensart : MANDATORY SO_HBA_Immobilienportfolio_Gebaeude_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : MANDATORY SO_HBA_Immobilienportfolio_Gebaeude_20260713.Prioritaetsstufe;
+      /** Bauperiode des Gebäudes
+       */
+      baujahr_gruppe : MANDATORY TEXT*50;
+    END GebaeudeMandatory;
+
+    /** Abhängig von den Werten bei den Attributen anmiete (Wert 'AM') und vermietet (Wert 'vermietet'), weisen andere Attribute nur NULL-Werte auf.
+     *  Die Attribute mit den vorhin genannten Werten werden in diese Klasse abgefüllt.
+     */
+    CLASS GebaeudeOptional EXTENDS SO_HBA_Immobilienportfolio_Gebaeude_20260713.Gebaeude.GebaeudeBasis =
+      /** Vermögensart
+       */
+      vermoegensart : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Prioritaetsstufe;
+      /** Bauperiode des Gebäudes
+       */
+      baujahr_gruppe : TEXT*50;
+    END GebaeudeOptional;
+
+  END Gebaeude;
 
 END SO_HBA_Immobilienportfolio_Gebaeude_20260713.
