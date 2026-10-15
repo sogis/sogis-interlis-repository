@@ -1,4 +1,4 @@
-INTERLIS 2.3;
+INTERLIS 2.4;
 
 /** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
@@ -45,7 +45,7 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
 
   TOPIC Gebaeude =
 
-    /** Gebäudeattribute, welche bezüglich der Eindeutigkeit immer vorkommen
+    /** Gebäudeattribute, welche bezüglich der Kardinalität fix sind
      */
     CLASS GebaeudeBasis (ABSTRACT) =
       /** Eidgenössischer Gebäudeidentifikator
@@ -54,6 +54,9 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
       /** HBA-interne, eindeutige Gebäudenummer (SAP-ID)
        */
       id_ge : MANDATORY TEXT*20;
+      /** HBA-interne, eindeutiger Gebäudeschlüssel
+       */
+      we : MANDATORY TEXT*4;
       /** Gebäudenutzungsart
        */
       nutzung : MANDATORY SO_HBA_Immobilienportfolio_Gebaeude_20260713.Nutzungsart;
@@ -72,12 +75,18 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
       /** Immoinfo-Link
        */
       link : INTERLIS.URI;
-      /** Verantwortliche Person für das Gebäude mit E-Mail-Link
+      /** Name Verantwortliche Person für das Gebäude
        */
-      verantwortung_geb : INTERLIS.URI;
-      /** Verantwortliche Person für die Hauswartung mit E-Mail-Link
+      verantwortung_geb : TEXT*100;
+      /** E-Mail-Adresse der verantwortlichen Person für das Gebäude
        */
-      verantwortung_hw : INTERLIS.URI;
+      email_geb : TEXT*100;
+      /** Name Verantwortliche Person für die Hauswartung
+       */
+      verantwortung_hw : TEXT*100;
+      /** E-Mail-Adresse der verantwortlichen Person für die Hauswartung
+       */
+      email_hw : TEXT*100;
       UNIQUE egid;
     END GebaeudeBasis;
 
@@ -95,9 +104,9 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
       baujahr_gruppe : TEXT*50;
     END CSV_Import;
 
-    /** Abhängig von den Werten bei den Attributen anmiete (Wert 'AM') und vermietet (Wert 'vermietet'), weisen andere Attribute nur NULL-Werte auf.
-     *  Diese Klasse dient dazu eine Kontrolle der "anderen" Attribute durchzuführen.
-     *  Dafür müssen diese Attribute mit "Mandatory" versehen und bei der Umverteilung die vorhin genannten Werte rausgefiltert werden.
+    /** Wenn entweder das Attribut anmiete den Wert 'AM' oder das Attribut vermietet den Wert 'vermietet' aufweist, weisen die restlichen Attribute oft keine vollständigen Daten auf.
+     * Um beim Datenimport einen möglichst vollständigen Datensatz sicherzustellen, sind in dieser KLasse die Attribute mandatory, welche immer vorhanden sein sollten, sofern die zwei vorhin genannten Bedigungen nicht bestehen.
+     * Vor der Publikation, sollten die betroffenen Daten zur Prüfung der Vollständigkeit in diese Klasse abgefüllt werden.
      */
     CLASS GebaeudeMandatory EXTENDS SO_HBA_Immobilienportfolio_Gebaeude_20260713.Gebaeude.GebaeudeBasis =
       /** Vermögensart
@@ -110,21 +119,6 @@ MODEL SO_HBA_Immobilienportfolio_Gebaeude_20260713 (de)
        */
       baujahr_gruppe : MANDATORY TEXT*50;
     END GebaeudeMandatory;
-
-    /** Abhängig von den Werten bei den Attributen anmiete (Wert 'AM') und vermietet (Wert 'vermietet'), weisen andere Attribute nur NULL-Werte auf.
-     *  Die Attribute mit den vorhin genannten Werten werden in diese Klasse abgefüllt.
-     */
-    CLASS GebaeudeOptional EXTENDS SO_HBA_Immobilienportfolio_Gebaeude_20260713.Gebaeude.GebaeudeBasis =
-      /** Vermögensart
-       */
-      vermoegensart : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Vermoegensart;
-      /** Priorität im Kontext der Immobilienstrategie
-       */
-      prio : SO_HBA_Immobilienportfolio_Gebaeude_20260713.Prioritaetsstufe;
-      /** Bauperiode des Gebäudes
-       */
-      baujahr_gruppe : TEXT*50;
-    END GebaeudeOptional;
 
   END Gebaeude;
 
