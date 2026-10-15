@@ -1,0 +1,185 @@
+INTERLIS 2.4;
+
+/** Publikationsmodell für nachteilige Nutzungen im Wald (Art. 16 WaG, § 23 WaVSO).
+ * Eine nachteilige Nutzung stellt keine Rodung dar im Sinne von Art. 4 WaG, gefährdet
+ * oder beeinträchtigt jedoch die Funktionen oder die Bewirtschaftung des Waldes.
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-10-14 | CR  | Ersterfassung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Publikationsmodell für nachteilige Nutzungen im Wald"
+!!@ title="Nachteilige Nutzungen"
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_AWJF_Nachteilige_Nutzung_Publikation_20261014 (de)
+  AT "https://geo.so.ch/models/AWJF"
+  VERSION "2026-10-14"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  TOPIC Nachteilige_Nutzungen =
+    OID AS INTERLIS.UUIDOID;
+
+    /** Gemeinsame Attribute der Punkte und Flächen einer nachteiligen Nutzung
+     */
+    CLASS Nachteilige_Nutzung (ABSTRACT) =
+      /** Bezeichnung des Vorhabens bzw. Baubegehrens, z.B. «Sondierbohrungen zur Abklärung der Grundwassersituation».
+       */
+      Vorhaben : MANDATORY TEXT*500;
+      /** Behörde, die das Gesuch bearbeitet.
+       */
+      Zustaendigkeit : MANDATORY (
+        !!@ ili2db.dispName=Kanton
+        Kanton,
+        !!@ ili2db.dispName=Bund
+        Bund
+      );
+      /** Eindeutige Laufnummer der nachteiligen Nutzung, vergeben durch die Fachstelle, z.B. NN2026-001
+       */
+      Nr_Kanton : MANDATORY TEXT*30;
+      /** Art der nachteiligen Nutzung. Bei «weitere» ist die Nutzung im Feld «Bemerkung_Nachteilige_Nutzung» beschrieben.
+       */
+      Nutzungsart : MANDATORY (
+        !!@ ili2db.dispName="Bauten und Anlagen für standortgebundene Sport-, Freizeit- und Erholungseinrichtungen sowie Jagdhütten"
+        Sport_Freizeit_Erholung_Jagdhuetten,
+        !!@ ili2db.dispName="Waldspielgruppen (Waldpädagogik)"
+        Waldspielgruppen,
+        !!@ ili2db.dispName="Fahrrad- und Reitstrecken"
+        Fahrrad_Reitstrecken,
+        !!@ ili2db.dispName="Kleine erdverlegte Leitungen"
+        Leitungen_erdverlegt,
+        /** Niederhalten von Bäumen (§ 23 Bst. a WaVSO)
+         */
+        !!@ ili2db.dispName=Niederhaltung
+        Niederhaltung,
+        /** Beweiden von Wäldern, ausgenommen landschaftstypische Weidwälder (§ 23 Bst. b WaVSO)
+         */
+        !!@ ili2db.dispName=Beweidung
+        Beweidung,
+        /** Dauernde Weihnachtsbaumkulturen (§ 23 Bst. c WaVSO)
+         */
+        !!@ ili2db.dispName=Weihnachtsbaumkultur
+        Weihnachtsbaumkultur,
+        /** Sondierbohrungen und -schlitze, z.B. zur Altlastenuntersuchung bei Schiessanlagen
+         */
+        !!@ ili2db.dispName="Sondierbohrungen und -schlitze"
+        Sondierungen,
+        /** Weitere nachteilige Nutzung. Die Nutzung ist im Feld «Bemerkung_Nachteilige_Nutzung» beschrieben.
+         */
+        !!@ ili2db.dispName=weitere
+        weitere
+      );
+      /** Weiterführende Informationen zur nachteiligen Nutzung. Bei Nutzungsart «weitere» ist hier die Nutzung beschrieben.
+       */
+      Bemerkung_Nachteilige_Nutzung : MTEXT*4000;
+      /** Datum, an dem das Gesuch im Amtsblatt publiziert wurde.
+       */
+      Datum_Amtsblatt_Gesuch : DATE;
+      /** Entscheid über das Gesuch (positiv = bewilligt, negativ = abgelehnt). Leer, solange nicht entschieden ist.
+       */
+      Entscheid : (
+        !!@ ili2db.dispName=positiv
+        positiv,
+        !!@ ili2db.dispName=negativ
+        negativ
+      );
+      /** Datum der Verfügung, mit der über das Gesuch entschieden wurde
+       */
+      Datum_Entscheid : DATE;
+      /** Fläche der nachteiligen Nutzung in m2 gemäss Gesuch bzw. nach dem Entscheid gemäss Verfügung (nicht die aus den Flächengeometrien berechnete Fläche)
+       */
+      Flaeche_Nachteilige_Nutzung : 0.00 .. 9999999.99;
+      /** Datum, ab dem die Verfügung rechtskräftig ist
+       */
+      Datum_Rechtskraft : DATE;
+      /** Namen der betroffenen Forstkreise (kommagetrennt). Wird bei der Publikation ergänzt.
+       */
+      Forstkreise : TEXT*255;
+      /** Namen der betroffenen Forstreviere (kommagetrennt). Wird bei der Publikation ergänzt.
+       */
+      Forstreviere : TEXT*255;
+      /** Namen der betroffenen Gemeinden (kommagetrennt). Wird bei der Publikation ergänzt.
+       */
+      Gemeindenamen : TEXT*255;
+      /** Aktueller Stand des Bewilligungsverfahrens
+       */
+      Verfahrensstatus : (
+        !!@ ili2db.dispName=Vorprüfung
+        Vorpruefung,
+        !!@ ili2db.dispName="Gesuch gestellt"
+        Gesuch_gestellt,
+        !!@ ili2db.dispName="Öffentliche Auflage"
+        Oeffentliche_Auflage,
+        /** Einsprachen aus der öffentlichen Auflage werden behandelt
+         */
+        !!@ ili2db.dispName=Einsprachebehandlung
+        Einsprachebehandlung,
+        /** Beschwerden gegen den Entscheid werden behandelt
+         */
+        !!@ ili2db.dispName=Beschwerdebehandlung
+        Beschwerdebehandlung,
+        !!@ ili2db.dispName=Rechtskräftig
+        Rechtskraeftig,
+        !!@ ili2db.dispName=Zurückgezogen
+        Zurueckgezogen,
+        !!@ ili2db.dispName=Abgeschlossen
+        Abgeschlossen
+      );
+      /** Bewilligungsverfahren (Leitverfahren), in dem über die nachteilige Nutzung entschieden wird
+       */
+      Art_Bewilligungsverfahren : (
+        !!@ ili2db.dispName=Baugesuchsverfahren
+        Baugesuchsverfahren,
+        !!@ ili2db.dispName=Nutzungsplanverfahren
+        Nutzungsplanverfahren,
+        /** Plangenehmigungsverfahren des Bundes (z.B. ESTI, BAV, ASTRA)
+         */
+        !!@ ili2db.dispName=Plangenehmigungsverfahren
+        Plangenehmigungsverfahren,
+        /** Eigenständiges Gesuch im waldrechtlichen Verfahren, ohne anderes Leitverfahren
+         */
+        !!@ ili2db.dispName="Waldrechtliches Verfahren"
+        Waldrechtliches_Verfahren
+      );
+      /** (Bau)gesuchsnummer aus Sobau, z.B. 103212
+       */
+      SOBAU_ID : TEXT*6;
+      /** Baugesuchsnummer aus eBauSO, z.B. 2435-20254-18
+       */
+      eBau_ID : TEXT*50;
+      /** Ja: Die nachteilige Nutzung des Punkts bzw. der Fläche ist befristet und muss bis zur Frist aufgehoben sein. Nein: Die nachteilige Nutzung ist unbefristet.
+       */
+      Befristet : MANDATORY BOOLEAN;
+      /** Datum, bis zu dem die nachteilige Nutzung aufgehoben sein muss. Nur vorhanden, wenn «Befristet» = ja.
+       */
+      Frist : DATE;
+      /** Neues Datum, bis zu dem die nachteilige Nutzung aufgehoben sein muss. Nur vorhanden, wenn die Frist verlängert wurde.
+       */
+      Frist_Verlaengerung : DATE;
+      /** Bemerkung zur Geometrie (Punkt bzw. Fläche)
+       */
+      Bemerkung_Geometrie : MTEXT*4000;
+    END Nachteilige_Nutzung;
+
+    /** Punktgeometrie der nachteiligen Nutzung. Entspricht einer vorläufigen Verortung oder punktförmigen Nutzung. Pro nachteilige Nutzung können mehrere Punkte vorhanden sein.
+     */
+    CLASS Punkt
+    EXTENDS SO_AWJF_Nachteilige_Nutzung_Publikation_20261014.Nachteilige_Nutzungen.Nachteilige_Nutzung =
+      /** Lage der nachteiligen Nutzung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+    END Punkt;
+
+    /** Flächengeometrie der nachteiligen Nutzung. Entspricht einer flächigen Nutzung. Pro nachteilige Nutzung können mehrere Flächen vorhanden sein.
+     */
+    CLASS Flaeche
+    EXTENDS SO_AWJF_Nachteilige_Nutzung_Publikation_20261014.Nachteilige_Nutzungen.Nachteilige_Nutzung =
+      /** Flächengeometrie der nachteiligen Nutzung
+       */
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+    END Flaeche;
+
+  END Nachteilige_Nutzungen;
+
+END SO_AWJF_Nachteilige_Nutzung_Publikation_20261014.
