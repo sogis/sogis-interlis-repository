@@ -1,0 +1,151 @@
+INTERLIS 2.4;
+
+/** Flaches Publikationsmodell der eBauSO-Geschaefte mit AfU-Beteiligung.
+ *
+ * Quelle: SO_DSBJD_eBauSO_Geschaefte_20250422.
+ * Inhaltlich orientiert an SO_AfU_BauGK_CCCCache_20180507.
+ *
+ * Auswahl: mindestens ein Eintrag in Zirkulation mit Fachstelle = AFU.
+ * Alle Verfahrensarten und Geschaeftsstatus bleiben erhalten.
+ * Die Auswahl beschreibt eine Beteiligung, nicht den Bearbeitungsstand
+ * einer einzelnen Stellungnahme des AfU.
+ *
+ * Je Geschaeft und vorhandener Geometrieart wird ein Objekt publiziert.
+ * Native Multi-Geometrien aus INTERLIS 2.4 benoetigen keine Strukturen.
+ * Hat ein Geschaeft mehrere Geometriearten, werden seine Sachdaten in
+ * den betreffenden Klassen wiederholt.
+ *
+ * Eingang, Ausgang und Sachverhalte aus dem BauGK-Modell besitzen im
+ * eBauSO-Quellmodell keine direkte Entsprechung. Die Gemeinde wird mit
+ * BFSNr bezeichnet; Lokalisation.Ortschaft ist kein Gemeindename.
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+!!@ title="eBauSO-Geschäfte mit AfU-Beteiligung"
+!!@ shortDescription="Flache Publikation der eBauSO-Geschäfte mit AfU-Beteiligung."
+MODEL SO_DSBJD_eBauSO_Geschaefte_AfU_Publikation_20261022 (de)
+  AT "https://geo.so.ch/models/DSBJD"
+  VERSION "2026-10-22"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  DOMAIN
+
+    /** Werte und Hierarchie unveraendert aus dem eBauSO-Quellmodell.
+     * Keine Uebersetzung in die bisherigen BauGK-Projektstatus.
+     */
+    Status_Geschaeft = (
+      neu,
+      Pruefung (
+        !!@ ili2db.dispName="formelle Prüfung"
+        formell,
+        !!@ ili2db.dispName="materielle Prüfung"
+        materiell
+      ),
+      !!@ ili2db.dispName="in Korrektur"
+      in_Korrektur,
+      !!@ ili2db.dispName="zur Rückweisung"
+      zur_Rueckweisung,
+      !!@ ili2db.dispName="zurückgewiesen"
+      zurueckgewiesen,
+      !!@ ili2db.dispName="zum Rückzug"
+      zum_Rueckzug,
+      !!@ ili2db.dispName="zurückgezogen"
+      zurueckgezogen,
+      !!@ ili2db.dispName="Zirkulation initialisieren"
+      Zirkulation_initialisieren,
+      !!@ ili2db.dispName="in Zirkulation"
+      in_Zirkulation,
+      Entscheid,
+      entschieden,
+      Baubegleitung,
+      abgeschlossen
+    );
+
+    /** Entscheid bzw. Beurteilung der Leitbehoerde.
+     * Werte unveraendert aus dem eBauSO-Quellmodell.
+     */
+    Entscheid = (
+      Ablehnung,
+      Zustimmung,
+      Teilzustimmung,
+      !!@ ili2db.dispName="Rückzug"
+      Rueckzug,
+      positiv,
+      negativ
+    );
+
+  TOPIC Geschaefte =
+
+    CLASS Geschaeft (ABSTRACT) =
+
+      /** Kantonsweit eindeutiger Geschaeftsidentifikator aus eBauSO.
+       * Derselbe Wert darf in mehreren Geometrieklassen vorkommen.
+       */
+      Identifikator : MANDATORY TEXT*72;
+
+      /** Vorhaben aus Bauprojekt.Beschreibung, nicht Bauwerke.Bezeichnung.
+       * Wie die Quelle optional und ohne Laengenbegrenzung.
+       */
+      Titel : TEXT;
+
+      /** BFS-Nummer der politischen Gemeinde.
+       */
+      BFSNr : MANDATORY 0 .. 9999;
+
+      /** Originalwert. QGIS: Baugesuch gruen, alle anderen Werte blau
+       * mit Legendentext "andere". Kein Verfahrensart-Filter im Datenumbau.
+       */
+      Verfahrensart : MANDATORY TEXT*200;
+
+      /** Originalstatus des gesamten Geschaefts; Grundlage des Statuszeichens.
+       */
+      Status_Geschaeft : MANDATORY SO_DSBJD_eBauSO_Geschaefte_AfU_Publikation_20261022.Status_Geschaeft;
+
+      /** Aus Entscheid_Leitbehoerde.Entscheid, kein separater AfU-Entscheid.
+       */
+      Entscheid : SO_DSBJD_eBauSO_Geschaefte_AfU_Publikation_20261022.Entscheid;
+
+      /** Aus Entscheid_Leitbehoerde.Datum; kein Abschlussdatum des Geschaefts.
+       */
+      Entscheid_Datum : DATE;
+
+      /** Aus Zustaendige_Personen.Fachstelle: Zustaendigkeit ausserhalb
+       * der Zirkulation. Keine Ableitung aus der blossen AfU-Beteiligung.
+       */
+      Zustaendige_Fachstelle : TEXT*100;
+
+      /** Aus Zustaendige_Personen.Abteilung.
+       */
+      Zustaendige_Abteilung : TEXT*500;
+
+      ausserhalb_Bauzone : BOOLEAN;
+
+      /** Unveraenderte URL fuer den Ruecksprung nach eBauSO.
+       */
+      eBau_Link : MANDATORY INTERLIS.URI;
+
+      /** Im Quellmodell sind innerhalb eines vorhandenen Entscheids
+       * Entscheid und Datum beide obligatorisch.
+       */
+      MANDATORY CONSTRAINT DEFINED(Entscheid) == DEFINED(Entscheid_Datum);
+
+    END Geschaeft;
+
+    CLASS Geschaeft_Punkt EXTENDS Geschaeft =
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiPoint;
+      UNIQUE Identifikator;
+    END Geschaeft_Punkt;
+
+    CLASS Geschaeft_Linie EXTENDS Geschaeft =
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      UNIQUE Identifikator;
+    END Geschaeft_Linie;
+
+    CLASS Geschaeft_Flaeche EXTENDS Geschaeft =
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      UNIQUE Identifikator;
+    END Geschaeft_Flaeche;
+
+  END Geschaefte;
+
+END SO_DSBJD_eBauSO_Geschaefte_AfU_Publikation_20261022.
