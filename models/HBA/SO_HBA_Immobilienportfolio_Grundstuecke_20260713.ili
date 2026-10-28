@@ -1,4 +1,4 @@
-INTERLIS 2.3;
+INTERLIS 2.4;
 
 /** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
@@ -26,22 +26,15 @@ MODEL SO_HBA_Immobilienportfolio_Grundstuecke_20260713 (de)
       B,
       C
     );
-    
-  TOPIC CSV_Import =
 
-    CLASS Grundstuecke =
+  TOPIC Grundstuecke =
+
+    /** Grundstückattribute, welche bezüglich ihrer Kardinalität fix sind
+     */
+    CLASS Grundstueckebasis (ABSTRACT) =
       /** Eidgenössischer Grundstücksidentifikator
        */
       egrid : MANDATORY TEXT*14;
-      /** HBA-interne, eindeutige Grundstücknummer (SAP-ID)
-       */
-      id_gr : TEXT*20;
-      /** Vermögensart
-       */
-      vermoegensart : SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Vermoegensart;
-      /** Priorität im Kontext der Immobilienstrategie
-       */
-      prio : SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Prioritaetsstufe;
       /** Besteht Eigenbedarf?
        */
       eigenbedarf : TEXT*50;
@@ -54,12 +47,45 @@ MODEL SO_HBA_Immobilienportfolio_Grundstuecke_20260713 (de)
       /** Veräusserungsjahr
        */
       jahr_veraeussert : 1900 .. 2100;
-      /** Status
-      */
-      status : TEXT*50;
       UNIQUE egrid;
-    END Grundstuecke;
+    END Grundstueckebasis;
 
-  END CSV_Import;
+    /** Grundstück-Importklasse
+     */
+    CLASS CSV_Import EXTENDS SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Grundstuecke.Grundstueckebasis =
+      /** HBA-interne, eindeutige Grundstücknummer (SAP-ID)
+       */
+      id_gr : TEXT*20;
+      /** HBA-interne, eindeutiger Grundstücksschlüssel
+       */
+      we : TEXT*4;
+      /** Vermögensart
+       */
+      vermoegensart : SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Prioritaetsstufe;
+    END CSV_Import;
+
+    /** Wenn entweder das Attribut baurecht den Wert 'Baurecht' aufweist oder das Attribut jahr_veraeussert nicht NULL ist, weisen die restlichen Attribute oft keine vollständigen Daten auf.
+     * Um beim Datenimport einen möglichst vollständigen Datensatz sicherzustellen, sind in dieser KLasse die Attribute mandatory, welche immer vorhanden sein sollten, sofern die zwei vorhin genannten Bedigungen nicht bestehen.
+     * Vor der Publikation, sollten die betroffenen Daten zur Prüfung der Vollständigkeit in diese Klasse abgefüllt werden.
+     */
+    CLASS GrundstueckeMandatory EXTENDS SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Grundstuecke.Grundstueckebasis =
+      /** HBA-interne, eindeutige Grundstücknummer (SAP-ID)
+       */
+      id_gr : MANDATORY TEXT*20;
+      /** HBA-interne, eindeutiger Grundstücksschlüssel
+       */
+      we : MANDATORY TEXT*4;
+      /** Vermögensart
+       */
+      vermoegensart : MANDATORY SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : MANDATORY SO_HBA_Immobilienportfolio_Grundstuecke_20260713.Prioritaetsstufe;
+    END GrundstueckeMandatory;
+
+  END Grundstuecke;
 
 END SO_HBA_Immobilienportfolio_Grundstuecke_20260713.

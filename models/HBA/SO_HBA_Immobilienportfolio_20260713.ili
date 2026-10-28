@@ -1,0 +1,186 @@
+INTERLIS 2.4;
+
+/** !!------------------------------------------------------------------------------
+ * !! Version    | wer | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-07-13 | pb | Initiale Erstellung
+ * !!==============================================================================
+ */
+!!@ shortDescription="Importmodell für die Gebäude und Grundstücke aus dem Immobilienportfolio des Hochbauamtes Kanton Solothurn"
+!!@ title="Gebäude und Gründstücke des Kanton Solothurns (Immobilienportfolio)"
+!!@ technicalContact=agi@bd.so.ch
+MODEL SO_HBA_Immobilienportfolio_20260713 (de)
+  AT "https://geo.so.ch/models/HBA"
+  VERSION "2026-07-13"
+  =
+
+  DOMAIN
+    Vermoegensart = (
+      AM,
+      SV,
+      VV,
+      FV
+    );
+    Prioritaetsstufe = (
+      A,
+      B,
+      C
+    );
+    Nutzungsart = (
+      /** HPSZ, BBZ, Kantonsschule, FHNW
+       */
+      Bildung,
+      /** Spitäler
+       */
+      Gesundheit,
+      Lager_Archiv,
+      /** Polizei und Justizvollzug
+       */
+      Sicherheit,
+      Sonstiges,
+      Stiftung,
+      Verwaltung,
+      Landwirtschaft
+    );
+
+  TOPIC Gebaeude =
+
+    /** Gebäudeattribute, welche bezüglich der Kardinalität fix sind
+     */
+    CLASS GebaeudeBasis (ABSTRACT) =
+      /** Eidgenössischer Gebäudeidentifikator
+       */
+      egid : MANDATORY 1 .. 999999999;
+      /** HBA-interne, eindeutige Gebäudenummer (SAP-ID)
+       */
+      id_ge : MANDATORY TEXT*20;
+      /** HBA-interne, eindeutiger Gebäudeschlüssel
+       */
+      we : MANDATORY TEXT*4;
+      /** Gebäudenutzungsart
+       */
+      nutzung : MANDATORY SO_HBA_Immobilienportfolio_20260713.Nutzungsart;
+      /** Gebäudebezeichnung
+       */
+      Gebaeude_Bez : MANDATORY TEXT*100;
+      /** Eigenbedarf des Kantons
+       */
+      eigenbedarf : TEXT*50;
+      /** Wird das Gebäude vom Kanton gemietet? (AM = Anmiete)
+       */
+      anmiete : TEXT*10;
+      /** Ist die Liegenschaft an Dritte vermietet?
+       */
+      vermietet : TEXT*50;
+      /** Immoinfo-Link
+       */
+      link : INTERLIS.URI;
+      /** Name Verantwortliche Person für das Gebäude
+       */
+      name_geb : TEXT*100;
+      /** E-Mail-Adresse der verantwortlichen Person für das Gebäude
+       */
+      email_geb : TEXT*100;
+      /** Name Verantwortliche Person für die Hauswartung
+       */
+      name_hw : TEXT*100;
+      /** E-Mail-Adresse der verantwortlichen Person für die Hauswartung
+       */
+      email_hw : TEXT*100;
+      UNIQUE egid;
+    END GebaeudeBasis;
+
+    /** Gebäude-Importklasse
+     */
+    CLASS CSV_Import EXTENDS SO_HBA_Immobilienportfolio_20260713.Gebaeude.GebaeudeBasis =
+      /** Vermögensart
+       */
+      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+      /** Bauperiode des Gebäudes
+       */
+      baujahr_gruppe : TEXT*50;
+    END CSV_Import;
+
+    /** Wenn entweder das Attribut anmiete den Wert 'AM' oder das Attribut vermietet den Wert 'vermietet' aufweist, weisen die restlichen Attribute zu einem Gebäude oft keine vollständigen Daten auf.
+     * Um beim Datenimport einen möglichst vollständigen Datensatz sicherzustellen, sind in dieser Klasse die Attribute mandatory, welche immer vorhanden sein sollten, sofern die zwei vorhin genannten Bedingungen nicht bestehen.
+     * Vor der Publikation sollten die betroffenen Daten zur Prüfung der Vollständigkeit in diese Klasse abgefüllt werden.
+     */
+    CLASS GebaeudeMandatory EXTENDS SO_HBA_Immobilienportfolio_20260713.Gebaeude.GebaeudeBasis =
+      /** Vermögensart
+       */
+      vermoegensart : MANDATORY SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : MANDATORY SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+      /** Bauperiode des Gebäudes
+       */
+      baujahr_gruppe : MANDATORY TEXT*50;
+    END GebaeudeMandatory;
+
+  END Gebaeude;
+
+  TOPIC Grundstuecke =
+
+    /** Grundstückattribute, welche bezüglich ihrer Kardinalität fix sind
+     */
+    CLASS GrundstueckeBasis (ABSTRACT) =
+      /** Eidgenössischer Grundstücksidentifikator
+       */
+      egrid : MANDATORY TEXT*14;
+      /** Besteht Eigenbedarf?
+       */
+      eigenbedarf : TEXT*50;
+      /** Fachliche Verantwortung für das Grundstück
+       */
+      fach_verantwortung : TEXT*100;
+      /** Besteht ein Baurecht für Dritte?
+       */
+      baurecht : TEXT*50;
+      /** Veräusserungsjahr
+       */
+      jahr_veraeussert : 1900 .. 2100;
+      UNIQUE egrid;
+    END GrundstueckeBasis;
+
+    /** Grundstück-Importklasse
+     */
+    CLASS CSV_Import EXTENDS SO_HBA_Immobilienportfolio_20260713.Grundstuecke.GrundstueckeBasis =
+      /** HBA-interne, eindeutige Grundstücknummer (SAP-ID)
+       */
+      id_gr : TEXT*20;
+      /** HBA-interne, eindeutiger Grundstücksschlüssel
+       */
+      we : TEXT*4;
+      /** Vermögensart
+       */
+      vermoegensart : SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+    END CSV_Import;
+
+    /** Wenn entweder das Attribut baurecht den Wert 'Baurecht' aufweist oder das Attribut jahr_veraeussert nicht NULL ist, weisen die restlichen Attribute zu einem Grundstück oft keine vollständigen Daten auf.
+     * Um beim Datenimport einen möglichst vollständigen Datensatz sicherzustellen, sind in dieser Klasse die Attribute mandatory, welche immer vorhanden sein sollten, sofern die zwei vorhin genannten Bedingungen nicht bestehen.
+     * Vor der Publikation sollten die betroffenen Daten zur Prüfung der Vollständigkeit in diese Klasse abgefüllt werden.
+     */
+    CLASS GrundstueckeMandatory EXTENDS SO_HBA_Immobilienportfolio_20260713.Grundstuecke.GrundstueckeBasis =
+      /** HBA-interne, eindeutige Grundstücknummer (SAP-ID)
+       */
+      id_gr : MANDATORY TEXT*20;
+      /** HBA-interne, eindeutiger Grundstücksschlüssel
+       */
+      we : MANDATORY TEXT*4;
+      /** Vermögensart
+       */
+      vermoegensart : MANDATORY SO_HBA_Immobilienportfolio_20260713.Vermoegensart;
+      /** Priorität im Kontext der Immobilienstrategie
+       */
+      prio : MANDATORY SO_HBA_Immobilienportfolio_20260713.Prioritaetsstufe;
+    END GrundstueckeMandatory;
+
+  END Grundstuecke;
+
+END SO_HBA_Immobilienportfolio_20260713.

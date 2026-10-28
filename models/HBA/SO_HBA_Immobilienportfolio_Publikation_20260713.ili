@@ -1,4 +1,4 @@
-INTERLIS 2.3;
+INTERLIS 2.4;
 
 /** !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
@@ -13,7 +13,7 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
   AT "https://geo.so.ch/models/HBA"
   VERSION "2026-07-13"
   =
-  IMPORTS GeometryCHLV95_V1;
+  IMPORTS GeometryCHLV95_V2;
 
   DOMAIN
     Vermoegensart = (
@@ -60,9 +60,12 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       /** Eidgenössischer Gebäudeidentifikator
        */
       EGID : 1 .. 999999999;
-      /** HBA-interne, eindeutige Gebäudenummer (SAP-ID)
+      /** HBA-interne, eindeutiger Gebäudeschlüssel
        */
-      Wirtschaftseinheit : TEXT*20;
+      Immobilienschluessel : TEXT*4;
+      /** HBA-interne, eindeutige Wirtschaftseinheit
+       */
+      Schluessel_Wirtschaftseinheit : TEXT*20;
       /** Gebäudebezeichnung
        */
       Bezeichnung : TEXT*100;
@@ -90,20 +93,20 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       /** Immoinfo-Link
        */
       Link : INTERLIS.URI;
-      /** Verantwortliche Person für das Gebäude
+      /** Verantwortliche Person für das Gebäude mit E-Mail-Link
        */
-      Gebaeudeverantwortung : TEXT*100;
-      /** Verantwortliche Person für die Hauswartung
+      Gebaeudeverantwortung : INTERLIS.URI;
+      /** Verantwortliche Person für die Hauswartung mit E-Mail-Link
        */
-      Hauswartung : TEXT*100;
+      Hauswartung : INTERLIS.URI;
       /** Grundriss des Gebäudes gemäss amtlicher Vermessung
        */
-      Geometrie : GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      Geometrie : GeometryCHLV95_V2.Surface;
       UNIQUE EGID;
     END Gebaeude;
 
     /** Abstrakte Klassen für die Liegenschaften/Grundstücke
-    */
+     */
     CLASS Liegenschaften (ABSTRACT) =
       /** Eidgenössischer Grundstücksidentifikator
        */
@@ -114,15 +117,18 @@ MODEL SO_HBA_Immobilienportfolio_Publikation_20260713 (de)
       /** Fläche des Grundstücks in m2
        */
       Flaechenmass : 1 .. 999999999;
-      /** HBA-interne, eindeutige Grundstücknummer (id_gr)
+      /** HBA-interne, eindeutiger Grundstücksschlüssel
        */
-      Wirtschaftseinheit : TEXT*20;
+      Immobilienschluessel : TEXT*4;
+      /** HBA-interne, eindeutige Wirtschaftseinheit
+       */
+      Schluessel_Wirtschaftseinheit : TEXT*20;
       /** Vermögensart
        */
       Vermoegensart : SO_HBA_Immobilienportfolio_Publikation_20260713.Vermoegensart;
       /** Geometrie des Grundstückes
        */
-      Geometrie : MANDATORY GeometryCHLV95_V1.SurfaceWithOverlaps2mm;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Surface;
       UNIQUE EGRID;
     END Liegenschaften;
 
