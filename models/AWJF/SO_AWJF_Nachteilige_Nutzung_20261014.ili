@@ -1,7 +1,7 @@
 INTERLIS 2.4;
 
 /** Erfassungsmodell für nachteilige Nutzungen im Wald (Art. 16 WaG, § 23 WaVSO).
- * Eine nachteilige Nutzung stellt keine Rodung dar im Sinne von Art. 4 WaG, gefährdet
+ * Eine nachteilige Nutzung stellt keine Rodung im Sinne von Art. 4 WaG dar, gefährdet
  * oder beeinträchtigt jedoch die Funktionen oder die Bewirtschaftung des Waldes.
  * !!------------------------------------------------------------------------------
  * !! Version    | wer | Änderung
@@ -38,43 +38,12 @@ MODEL SO_AWJF_Nachteilige_Nutzung_20261014 (de)
       /** Laufnummer der nachteiligen Nutzung, vergeben durch die Fachstelle, z.B. NN2026-001. Darf nur einmal vorkommen.
        */
       Nr_Kanton : MANDATORY TEXT*30;
-      /** Art der nachteiligen Nutzung. Bei «weitere» die Nutzung im Feld «Bemerkung» beschreiben.
+      /** Art der nachteiligen Nutzung, z.B. Niederhaltung.
        */
-      !! tbd: Vorschlag an AWJF, statt einer Aufzählung freien Text zuzulassen und die Werte
-      !! im QGIS-Projekt als Vorschläge (Dropdown) anzubieten.
-      Nutzungsart : MANDATORY (
-        !!@ ili2db.dispName="Bauten und Anlagen für standortgebundene Sport-, Freizeit- und Erholungseinrichtungen sowie Jagdhütten"
-        Sport_Freizeit_Erholung_Jagdhuetten,
-        !!@ ili2db.dispName="Waldspielgruppen (Waldpädagogik)"
-        Waldspielgruppen,
-        !!@ ili2db.dispName="Fahrrad- und Reitstrecken"
-        Fahrrad_Reitstrecken,
-        !!@ ili2db.dispName="Kleine erdverlegte Leitungen"
-        Leitungen_erdverlegt,
-        /** Niederhalten von Bäumen (§ 23 Bst. a WaVSO)
-         */
-        !!@ ili2db.dispName=Niederhaltung
-        Niederhaltung,
-        /** Beweiden von Wäldern, ausgenommen landschaftstypische Weidwälder (§ 23 Bst. b WaVSO)
-         */
-        !!@ ili2db.dispName=Beweidung
-        Beweidung,
-        /** Dauernde Weihnachtsbaumkulturen (§ 23 Bst. c WaVSO)
-         */
-        !!@ ili2db.dispName=Weihnachtsbaumkultur
-        Weihnachtsbaumkultur,
-        /** Sondierbohrungen und -schlitze, z.B. zur Altlastenuntersuchung bei Schiessanlagen
-         */
-        !!@ ili2db.dispName="Sondierbohrungen und -schlitze"
-        Sondierungen,
-        /** Weitere nachteilige Nutzung. Die Nutzung im Feld «Bemerkung» beschreiben.
-         */
-        !!@ ili2db.dispName=weitere
-        weitere
-      );
+      Nutzungsart : TEXT*255;
       /** Weiterführende Informationen zur nachteiligen Nutzung. Bei Nutzungsart «weitere» hier die Nutzung beschreiben.
        */
-      Bemerkung : MTEXT*4000;
+      Bemerkung : MTEXT*1000;
       /** Datum, an dem das Gesuch im Amtsblatt publiziert wurde.
        */
       Datum_Amtsblatt_Gesuch : DATE;
@@ -89,7 +58,7 @@ MODEL SO_AWJF_Nachteilige_Nutzung_20261014 (de)
       /** Datum der Verfügung, mit der über das Gesuch entschieden wurde
        */
       Datum_Entscheid : DATE;
-      /** Fläche der nachteiligen Nutzung in m2 gemäss Gesuch, nach dem Entscheid gemäss Verfügung nachführen (nicht die aus den erfassten Flächen berechnete Fläche)
+      /** Fläche der nachteiligen Nutzung in m² gemäss Gesuch, nach dem Entscheid gemäss Verfügung nachführen (nicht die aus den erfassten Flächen berechnete Fläche)
        */
       Flaeche_Nachteilige_Nutzung : 0.00 .. 9999999.99;
       /** Datum, ab dem die Verfügung rechtskräftig ist
@@ -135,7 +104,7 @@ MODEL SO_AWJF_Nachteilige_Nutzung_20261014 (de)
         !!@ ili2db.dispName="Waldrechtliches Verfahren"
         Waldrechtliches_Verfahren
       );
-      /** (Bau)gesuchsnummer aus Sobau, z.B. 103212
+      /** (Bau)gesuchsnummer aus SOBAU, z.B. 103212
        */
       SOBAU_ID : TEXT*6;
       /** Baugesuchsnummer aus eBauSO, z.B. 2435-20254-18
@@ -147,10 +116,7 @@ MODEL SO_AWJF_Nachteilige_Nutzung_20261014 (de)
     /** Attribute, welche sowohl für die Punkt- als auch die Flächengeometrie relevant sind.
      */
     CLASS Geometrie (ABSTRACT) =
-      /** Ja: Die nachteilige Nutzung ist befristet und muss bis zur Frist aufgehoben sein. Nein: Die nachteilige Nutzung ist unbefristet.
-       */
-      Befristet : MANDATORY BOOLEAN;
-      /** Datum, bis zu dem die nachteilige Nutzung aufgehoben sein muss. Nur erfassen, wenn «Befristet» = ja.
+      /** Datum, bis zu dem die nachteilige Nutzung aufgehoben sein muss.
        */
       Frist : DATE;
       /** Neues Datum, bis zu dem die nachteilige Nutzung aufgehoben sein muss. Nur erfassen, wenn die Frist verlängert wurde.
@@ -158,14 +124,14 @@ MODEL SO_AWJF_Nachteilige_Nutzung_20261014 (de)
       Frist_Verlaengerung : DATE;
       /** Bemerkung zum Punkt bzw. zur Fläche
        */
-      Bemerkung : MTEXT*4000;
+      Bemerkung : MTEXT*1000;
     END Geometrie;
 
     /** Punktgeometrie einer nachteiligen Nutzung. Entspricht einer vorläufigen Verortung oder punktförmigen Nutzung.
      */
     CLASS Punkt
     EXTENDS SO_AWJF_Nachteilige_Nutzung_20261014.Nachteilige_Nutzungen.Geometrie =
-      /** Lage der nachteiligen Nutzung
+      /** Lage der nachteiligen Nutzung oder punktförmige nachteilige Nutzung.
        */
       Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
     END Punkt;
