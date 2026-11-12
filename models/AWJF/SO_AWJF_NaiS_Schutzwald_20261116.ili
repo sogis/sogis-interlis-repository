@@ -1,0 +1,53 @@
+INTERLIS 2.4;
+
+/** ------------------------------------------------------------------------------
+ * Version    | wer | Aenderung
+ * ------------------------------------------------------------------------------
+ * 2026-11-16 | pb  | Ersterfassung Modell
+ * ==============================================================================
+ */
+!!@ technicalContact=mailto:agi@bd.so.ch
+MODEL SO_AWJF_NaiS_Schutzwald_20261116 (de)
+  AT "https://geo.so.ch/models/AWJF"
+  VERSION "2026-11-16"
+  =
+  IMPORTS GeometryCHLV95_V2;
+
+  TOPIC NaiS =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+      NaiS_Code = (
+        !!@ ili2db.dispName="Handlungsbedarf vorhanden, ohne Ansprache (Strasse etc.)"
+        Handlungsbedarf_ohne_Ansprache,
+        !!@ ili2db.dispName="Handlungsbedarf vorhanden, Dringlichkeit klein"
+        Handlungsbedarf_Dringlichkeit_klein,
+        !!@ ili2db.dispName="Handlungsbedarf vorhanden, Dringlichkeit mittel"
+        Handlungsbedarf_Dringlichkeit_mittel,
+        !!@ ili2db.dispName="Handlungsbedarf vorhanden, Dringlichkeit gross"
+        Handlungsbedarf_Dringlichkeit_gross,
+        !!@ ili2db.dispName="kein Handlungsbedarf, keine Priorität"
+        kein_Handlungsbedarf,
+        !!@ ili2db.dispName="keine Ansprache durchgeführt"
+        keine_Ansprache
+      );
+
+    /** Nais - Herleitung des Handlungsbedarfs nach Jahr (Formular)
+     */
+    CLASS Dokument =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Pdf-Dokument
+       */
+      Dokument : MANDATORY TEXT*100;
+      /** Handlungsbedarf-Dringlichkeit. (Muss mit NaiS-Code im Datenmodell_sw_info übereinstimmen)
+       */
+      !!@ ili2db.dispName=NaiS-Code
+      Jahr : MANDATORY INTERLIS.GregorianYear;
+      !!@ ili2db.dispName=Handungsbedarf
+      NaiS_Code : SO_AWJF_NaiS_Schutzwald_20261116.NaiS.NaiS_Code;
+      Beschreibung : TEXT*100;
+    END Dokument;
+
+  END NaiS;
+
+END SO_AWJF_NaiS_Schutzwald_20261116.
