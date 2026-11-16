@@ -19,6 +19,8 @@ VERSION "2026-08-31"  =
     DOMAIN
 
       Status_Einbau_Enum = (
+        !!@ili2db.dispName= "Bewilligung in Arbeit"
+        Bewilligung_in_Arbeit,
         !!@ ili2db.dispName = "Bewilligung erstellt"
         Bewilligung_erstellt,
         !!@ ili2db.dispName = "Bewilligung durch Behörde eröffnet"
@@ -36,16 +38,52 @@ VERSION "2026-08-31"  =
         abgenommen
       );
 
-    /** Angaben zu den Grundwassereinbauten
-     */
-    CLASS Grundwassereinbau =
-      /** Objektname.
-       */
-      Vorhaben : MANDATORY TEXT*300;
+          /** Voranfragen zu Einbauten ins Grundwasser
+    */
+    STRUCTURE Voranfrage =
       /** Datum der Objektaufnahme.
        */
       Erfassungsdatum : MANDATORY INTERLIS.XMLDate;
-      /** Geschäftsnummer BauGK, falls vorhanden.
+      /** Name Person, welche die Voranfrage stellte.
+      */
+      Anfrage_durch_Name : MANDATORY TEXT*200;
+      /** Firma, welche die Voranfrage stellte.
+      */
+      Anfrage_durch_Firma : MANDATORY TEXT*200;
+      /** Tel. der Firma / Person, welche die Voranfrage stellte.
+      */
+      Anfrage_durch_Telefonnummer : MANDATORY TEXT*200;
+      /** E-Mail der Firma / Person, welche die Voranfrage stellte.
+      */
+      Anfrage_durch_EMail : MANDATORY TEXT*200;
+      /**Rückmeldeweg: Telefon, E-Mail, Vorbesprechung
+      */
+      Rueckmeldung_via : MTEXT*1000;
+      /**Ablageort der Unterlagen zur Vorbesprechung (Mail, H-Laufwerk, BauGK Nummer oder eBau Nummer) 
+      */
+      Unterlagen : TEXT*200;
+      /**Beschreibung des Vorhabens (Mehrfamilienhaus mit Einstellhhalle, Einfamilienhaus, Pfählung, Pfahlart etc.)
+      */
+      Beschreibung_Vorhaben : MANDATORY MTEXT*2000;
+      /**Beurteilung der Bewilligungsfähigkeit, Massnahmen, Anforderungen Unterlagen/Nachweis etc.
+      */
+      Rueckmeldung_AFU : MANDATORY MTEXT*2000;
+      /**Anmerkungen zur Hydrogeologie (Flurabstand, Stauer, Nutzungen), Altlasten, Nachbarschaft, etc.  
+      */
+      Bemerkungen : MTEXT*5000;
+    END Voranfrage;
+
+    /** Angaben zu den Grundwassereinbauten
+     */
+    CLASS Grundwassereinbau =
+      /** Objektname (Name, Strasse, PLZ, Ort).
+       */
+      Objektname : MANDATORY TEXT*300;   
+      /** Voranfrage
+      */
+      !!@ili2db.mapping=EXPAND
+      Voranfrage : SO_AFU_Grundwassereinbauten_20260831.Grundwassereinbauten.Voranfrage;
+      /** Geschäftsnummer falls vorhanden, z.B. 2026-508.
        */
       BauGK_Nummer : TEXT*200;
       /** eBau-Nummer.
@@ -54,35 +92,12 @@ VERSION "2026-08-31"  =
       /** Räumliche Darstellung des Grundwassereinbaus als Punkt in LV95.
        */
       Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
-      /** Aktennummer gemäss Registraturplan.
+      /** Aktennummer gemäss Registraturplan 353.xxx.xxx.
        */
       Aktennummer : TEXT*20;
 
       UNIQUE Aktennummer;
     END Grundwassereinbau;
-
-    /** Voranfragen zu Einbauten ins Grundwasser
-    */
-    CLASS Voranfrage =
-      /** Angaben zur Person, welche die Voranfrage stellte.
-      */
-      Anfrage_durch : MANDATORY MTEXT*200;
-      /**Vorbesprechung ja oder nein
-      */
-      Vorbesprechung : BOOLEAN;
-      /**Unterlagen zur Vorbesprechung 
-      */
-      Unterlagen : TEXT*200;
-      /**Vorhabensbeschreibung 
-      */
-      Vorhabensbeschreibung : MANDATORY MTEXT*2000;
-      /**Antworten 
-      */
-      Antworten : MANDATORY MTEXT*2000;
-      /**Hydrogeologie 
-      */
-      Hydrogeologie : MTEXT*2000;
-    END Voranfrage;
 
     /** Angaben zu Bewilligung, Bau und Abnahme.
      */
@@ -108,7 +123,10 @@ VERSION "2026-08-31"  =
       /** Art des Einbaus. Temporäre Wasserhaltung
        */
       Grundwassereinbau_Art_Temporaere_Wasserhaltung : BOOLEAN;
-      /** Bemerkung_Art_und_Formelles.
+      /** Art des Einbaus. Leitungen/Schächte
+       */
+      Grundwassereinbau_Art_Leitungen_Schaechte : BOOLEAN;
+      /** Bemerkung_Art_und_Formelles. Kombibewilligung, ARP, PGV, etc.
        */
       Bemerkung_Art : MTEXT*2000;
       /** Art der Wasserhaltung. Wellpoint
@@ -135,6 +153,9 @@ VERSION "2026-08-31"  =
       /** Kote des Stauers in Meter über Meer.
        */
       Kote_Stauer : 0.0 .. 9999.9;
+      /**gespanntes Grundwasser
+      */
+      gespanntes_Grundwasser : BOOLEAN;
       /** Kote der generellen Fundation, beispielsweise der Bodenplatte, in Meter über Meer.
        */
       Kote_generelle_Fundation : 0.00 .. 9999.99;
@@ -153,7 +174,7 @@ VERSION "2026-08-31"  =
       /** Querschnittsverringerung unter dem mittleren Grundwasserspiegel in Prozent.
        */
       Querschnittsverringerung_unter_MGW : 0.00 .. 100.00;
-      /** Kompensationsmassnahmen, beispielsweise Massnahmen zur Förderung des Durchflusses.
+      /** Massnahmen zur Förderung des Durchflusses.
        */
       Kompensationsmassnahmen : MTEXT*2000;
       /** Lässt man das Pumpwasser versickern?
@@ -195,86 +216,13 @@ VERSION "2026-08-31"  =
       /** Status der Bewilligung.
        */
       Status_Bewilligung : MANDATORY Status_Einbau_Enum;
-      /** für die Abnahmen Zuständige Person oder Stelle.
-       */
-      Zustaendigkeit : MANDATORY TEXT*200;
-      /** Status der Abnahme der Hinterfüllung. 
-       */
-      Abnahme_Hinterfuellung : Status_Abnahme_Enum;
-      /** Datum der Abnahme der Hinterfüllung. 
-       */
-      Abnahme_Hinterfuellung_Datum : INTERLIS.XMLDate;
-      /** Status der Abnahme der Ersatzmassnahmen.
-       */
-      Abnahme_Ersatzmassnahmen : Status_Abnahme_Enum;
-      /** Datum der Abnahme der Ersatzmassnahmen.
-       */
-      Abnahme_Ersatzmassnahmen_Datum : INTERLIS.XMLDate;      
-      /** Status der Schadstoffanalyse vor Pumpbeginn.
-       */
-      Schadstoffanalyse_vor_Pumpbeginn : Status_Abnahme_Enum;
-      /** Datum der Schadstoffanalyse vor Pumpbeginn.
-       */
-      Schadstoffanalyse_vor_Pumpbeginn_Datum : INTERLIS.XMLDate;
-      /** Status der Abnahme des Pumpprotokolls.
-       */
-      Abnahme_Pumpprotokoll : Status_Abnahme_Enum;
-      /** Datum der Abnahme des Pumpprotokolls.
-       */
-      Abnahme_Pumpprotokoll_Datum : INTERLIS.XMLDate;
-      /** Status der Abnahme der Pfähle.
-       */
-      Abnahme_Pfaehle : Status_Abnahme_Enum;
-      /** Datum der Abnahme der Pfähle.
-       */
-      Abnahme_Pfaehle_Datum : INTERLIS.XMLDate;
-      /** Status des Monitorings.
-       */
-      Monitoring : Status_Abnahme_Enum;
-      /** Datum des Monitorings.
-       */
-      Monitoring_Datum : INTERLIS.XMLDate;
-      /** Kommentare und Beanstandungen im Zusammenhang mit den Abnahmen.
-       */
-      Kommentar_Beanstandungen : MTEXT*2000;
-
+      /** Ist für die Einleitung ins Oberflächengewässer eine Schadstoffanalyse gefordert? 
+      */
+      Schadstoffanalyse : MANDATORY BOOLEAN;
+      /** Ist eine Pegelüberwachung in umliegenden Piezometern gefordert?
+      */
+      Pegelueberwachung : MANDATORY BOOLEAN;
       /*
-      !!@ name = "Abnahme_Hinterfuellung_Datum"
-      !!@ ilivalid.msg = "Wenn die Hinterfüllung abgenommen wurde (und nur dann) darf ein Abnahmedatum gesetzt werden."  
-      MANDATORY CONSTRAINT
-        Abnahme_Hinterfuellung != #abgenommen OR
-        DEFINED(Abnahme_Hinterfuellung_Datum);
-
-      !!@ name = "Abnahme_Ersatzmassnahmen_Datum"
-      !!@ ilivalid.msg = "Wenn die Ersatzmassnahmen abgenommen wurden (und nur dann), muss ein Abnahmedatum gesetzt sein."
-      MANDATORY CONSTRAINT
-        Abnahme_Ersatzmassnahmen != #abgenommen OR
-        DEFINED(Abnahme_Ersatzmassnahmen_Datum);
-
-      !!@ name = "Schadstoffanalyse_vor_Pumpbeginn_Datum"
-      !!@ ilivalid.msg = "Wenn die Schadstoffanalyse vor Pumpbeginn abgenommen wurde (und nur dann), muss ein Datum gesetzt sein."
-      MANDATORY CONSTRAINT
-        Schadstoffanalyse_vor_Pumpbeginn != #abgenommen OR
-        DEFINED(Schadstoffanalyse_vor_Pumpbeginn_Datum);
-
-      !!@ name = "Abnahme_Pumpprotokoll_Datum"
-      !!@ ilivalid.msg = "Wenn das Pumpprotokoll abgenommen wurde (und nur dann), muss ein Abnahmedatum gesetzt sein."
-      MANDATORY CONSTRAINT
-        Abnahme_Pumpprotokoll != #abgenommen OR
-        DEFINED(Abnahme_Pumpprotokoll_Datum);
-
-      !!@ name = "Abnahme_Pfaehle_Datum"
-      !!@ ilivalid.msg = "Wenn die Pfähle abgenommen wurden (und nur dann), muss ein Abnahmedatum gesetzt sein."
-      MANDATORY CONSTRAINT
-        Abnahme_Pfaehle != #abgenommen OR
-        DEFINED(Abnahme_Pfaehle_Datum);
-
-      !!@ name = "Monitoring_Datum"
-      !!@ ilivalid.msg = "Wenn das Monitoring abgenommen wurde (und nur dann), muss ein Datum gesetzt sein."
-      MANDATORY CONSTRAINT
-        Monitoring != #abgenommen OR
-        DEFINED(Monitoring_Datum);
-
       !!@ name = "Rueckgabe_Grundstueck"
       !!@ ilivalid.msg = "Wenn Rückgabe Versickerung gewählt wurde, muss eine Parzellen-Nummer angegeben werden."
       MANDATORY CONSTRAINT
@@ -376,13 +324,6 @@ VERSION "2026-08-31"  =
         );
         */
     END Grundwassereinbau_Bewilligung;
-
-    /**Grundwassereinbauten können eine Voranfrage haben, müssen aber nicht.
-    */
-    ASSOCIATION Grundwassereinbau_Voranfrage =
-      Voranfrage_r -- {0..1} Voranfrage;
-      Grundwassereinbau_r -- {1} Grundwassereinbau; 
-    END Grundwassereinbau_Voranfrage;
 
   END Grundwassereinbauten;
 
