@@ -1,0 +1,776 @@
+INTERLIS 2.4;
+
+/** !
+ * !!------------------------------------------------------------------------------
+ * !! Version    | wer   | Änderung
+ * !!------------------------------------------------------------------------------
+ * !! 2026-09-29 | geow  | Anpassung an MGDM Schutzbauten_V1_1: GeometryCHLV95_V2,
+ * !!                     Baumaterial_Typ um "unbekannt" ergänzt, Constraint
+ * !!                     Zustand / Zustandsbeurteilung_Jahr
+ * !! 2026-11-04 | geow  | Neues obligatorisches Attribut reduzierte_Erfassung:
+ * !!                     nicht benötigte Attribute optional, Pflicht bei
+ * !!                     vollständiger Erfassung via Constraints CheckVollerfassung*
+ * !!                     Basket-Definition entfernt (Default-Basket),
+ * !!                     Constraint CheckFotoFormat entfernt
+ * !! 2026-11-12 | geow  | Zusätzliches Foto-Attribut entfernt (Foto-Pfade werden via
+ * !!                     Dokumentklasse hinterlegt).
+ * !! 2026-11-19 | geow  | Constraint CheckVollerfassungDokument: bei vollständiger
+ * !!                     Erfassung mindestens ein Dokument obligatorisch.
+ * !! 2026-11-25 | geow  | CheckDateinameFormat: nur noch die kleingeschriebenen
+ * !!                     Dateiendungen jpg, png und pdf erlaubt.
+ * !!==============================================================================
+ */
+!!@ technicalContact=mailto:agi@so.ch
+!!@ furtherInformation=http://geo.so.ch/models/AFU/SO_AFU_Schutzbauten_20261231.uml
+MODEL SO_AFU_Schutzbauten_20261231_draft (de)
+AT "http://www.geo.so.ch/models/AFU"
+VERSION "2026-12-31"  =
+  IMPORTS Units,GeometryCHLV95_V2,Text_V2;
+
+  TOPIC Schutzbauten =
+    OID AS INTERLIS.UUIDOID;
+
+    DOMAIN
+
+      /** Aufzählung der unterschiedlichen Materialen einer Schutzbaute.
+       * Entspricht der Definition gemäss MGDM.
+       */
+      Baumaterial_Typ = (
+        Beton,
+        Stein,
+        Holz,
+        Erdmaterial,
+        Metall,
+        Kunststoff,
+        Ingenieurbiologie,
+        unbekannt
+      );
+
+      /** Aufzählung zur Beurteilung des Zustands einer Schutzbaute.
+       * Entspricht der Definition gemäss MGDM.
+       */
+      Beurteilung_Typ = (
+        !!@ ili2db.dispName="gut bis annehmbar"
+        gut_bis_annehmbar,
+        !!@ ili2db.dispName="schadhaft bis schlecht"
+        schadhaft_bis_schlecht,
+        alarmierend,
+        !!@ ili2db.dispName="noch abzuklären"
+        noch_abzuklaeren
+      );
+
+      /** Breite in Meter einer Schutzbaute */
+      Breite = 0.1 .. 9999.9 [INTERLIS.m];
+
+      /** Fläche in Quadratmeter einer Schutzbaute. */
+      Flaeche = 1 .. 9999999 [Units.m2];
+
+      /** Höhe in Meter einer Schutzbaute. */
+      Hoehe = 0.1 .. 999.9 [INTERLIS.m];
+
+      /** Höhe zum Umland in Meter einer Schutzbaute. */
+      Hoehe_zum_Umland = 0.1 .. 999.9 [INTERLIS.m];
+
+      /** Aufzählung der verschiedenen Körperschaften, welche die Erhaltungsverantwortung tragen.
+       * Kantonale Erweiterung gegenüber MGDM: Bund
+       */
+      Koerperschaft_Typ = (
+        Kanton,
+        Bund,
+        Gemeinde,
+        !!@ ili2db.dispName=Bürgergemeinde
+        Buergergemeinde,
+        Korporation,
+        Private,
+        ASTRA,
+        SBB,
+        Privatbahn,
+        !!@ ili2db.dispName="in Abklärung"
+        in_Abklaerung
+      );
+
+      /** Länge in Meter einer Schutzbaute */
+      Laenge = 0.1 .. 99999.9 [INTERLIS.m];
+
+      /** Rückhaltevolumen in Kubikmeter einer Schutzbaute */
+      Rueckhaltevolumen = 1 .. 999999999 [Units.m3];
+
+      /** Kantonale Mehranforderung zur Beurteilung der Wirksamkeit eines Bauwerks. */
+      Wirksamkeit_Typ = (
+        hoch,
+        !!@ ili2db.dispName=eingeschränkt
+        eingeschraenkt,
+        gering,
+        !!@ ili2db.dispName="noch abzuklären"
+        noch_abzuklaeren,
+        negativ
+      );
+
+    /** Klasse für Dokumente wie Pläne, Bilder etc. */
+    CLASS Dokument =
+      /** Titel des Dokuments. */
+      Titel : MANDATORY TEXT*255;
+      /** Kurzbeschrieb oder Bemerkungen in Freitext. */
+      Beschrieb : TEXT*255;
+      /** Der Dateiname mit Dateiendung, aber ohne Pfad. */
+      Dateiname : MANDATORY TEXT*64;
+      /** Prüft die Eindeutigkeit eines Dateinamen. */
+      UNIQUE CheckUniqueDateiname: Dateiname;
+      /** Prüft den Dateinamen: erlaubt sind ausschliesslich Buchstaben und Zahlen, sowie Bindestrich, Unterstrich, Tilde und Punkt.
+       * Die Dateiendung muss jpg, png oder pdf lauten und kleingeschrieben sein.
+       */
+      !!@ ilivalid.msg="{Dateiname} ist kein gültiger Dateiname (erlaubt sind nur die kleingeschriebenen Endungen .jpg, .png und .pdf)"
+      MANDATORY CONSTRAINT CheckDateinameFormat: Text_V2.matches(Dateiname, "^[-a-zA-Z0-9_~.]+\\.(jpg|png|pdf)$");
+    END Dokument;
+
+    /** Abstrakte Klasse für die Schutzbauten mit den Attributen, welche
+     * für alle Werksarten gelten, unabhängig des Hauptprozess
+     */
+    CLASS Schutzbautenobjekt (ABSTRACT) =
+      /** Eindeutiger Identifikator einer Schutzbaute */
+      Schutzbauten_ID : MANDATORY TEXT*30;
+      /** Material welches für den Bau der Schutzbaute hauptsächlich verwendet worden ist. */
+      Material : MANDATORY Baumaterial_Typ;
+      /** Jahr in welchem die Schutzbaute erstellt worden ist. */
+      Erstellungsjahr : 1800 .. 2050 [INTERLIS.Y];
+      /** Art der Körperschaft, welche die Erhaltung für die Schutzbaute verantwortet.
+       * Gemäss MGDM wird "in_Abklaerung" vergeben, wenn bei
+       * der Erhebung der Erhaltungsverantwortliche noch nicht bekannt ist.
+       */
+      Erhaltungsverantwortung_Kategorie : MANDATORY Koerperschaft_Typ;
+      /** Name oder Bezeichnung der Körperschaft, welche die Erhaltung der Schutzbaute verantwortet. */
+      Erhaltungsverantwortung_Name : MANDATORY TEXT*200;
+      /** Die Bewertung des Zustands einer Schutzbaute. */
+      Zustand : MANDATORY Beurteilung_Typ;
+      /** Jahr in welchem der Zustand bewertet worden ist. */
+      Zustandsbeurteilung_Jahr : 2000 .. 2050 [INTERLIS.Y];
+      /** Freitextfeld für weitere Bemerkungen */
+      Bemerkungen : MTEXT*1000;
+      /** Die Bewertung der Wirksamkeit einer Schutzbaute. Ob die Funktion einer Massnahme gewährleistet ist, kann unabhängig vom Zustand sein.
+       * Kantonale Erweiterung
+       */
+      Wirksamkeit : Wirksamkeit_Typ;
+      /** Wahr bei reduzierter Erfassung der Schutzbaute, falsch bei vollständiger Erfassung. */
+      reduzierte_Erfassung : MANDATORY BOOLEAN;
+      /** Prüft die Eindeutigkeit der Schutzbauten_ID. */
+      !!@ ilivalid.msg="{Schutzbauten_ID} ist kein eindeutiger Identifikator"
+      UNIQUE CheckUniqueSchutzbauten_ID: Schutzbauten_ID;
+      /** Wenn der Zustand noch abzuklären ist, darf kein Beurteilungsjahr erfasst werden, andernfalls ist es obligatorisch.
+       * Entspricht der Einschränkung (4) gemäss MGDM.
+       */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} muss das Beurteilungsjahr angegeben werden, ausser der Zustand ist noch abzuklären (dann darf es nicht angegeben werden)."
+      MANDATORY CONSTRAINT CheckZustandsbeurteilung_Jahr:
+        ((Zustand != #noch_abzuklaeren) AND (DEFINED(Zustandsbeurteilung_Jahr)))
+        OR
+        ((Zustand == #noch_abzuklaeren) AND NOT (DEFINED(Zustandsbeurteilung_Jahr)));
+      /** Die Pflichtangaben der reduzierten Erfassung (Schutzbauten_ID, Material, Erhaltungsverantwortung,
+       * Zustand, Geometrie und die Art der jeweiligen Klasse) sind bereits als MANDATORY definiert.
+       */
+      /** Bei vollständiger Erfassung müssen Erstellungsjahr und Wirksamkeit angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Erstellungsjahr und Wirksamkeit angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassungObjekt: reduzierte_Erfassung OR (DEFINED(Erstellungsjahr) AND DEFINED(Wirksamkeit));
+    END Schutzbautenobjekt;
+
+    /** Abstrakte Klasse für alle Schutzbauten
+     * gegen den Hauptprozess Rutschung
+     */
+    CLASS Schutzbautenobjekt_Rutschung (ABSTRACT)
+    EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Wasser bietet. */
+      weiterer_Prozess_Wasser : BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Sturz bietet. */
+      weiterer_Prozess_Sturz : BOOLEAN;
+      /** Bei vollständiger Erfassung müssen weiterer_Prozess_Wasser und weiterer_Prozess_Sturz angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen weiterer_Prozess_Wasser und weiterer_Prozess_Sturz angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassungProzess: reduzierte_Erfassung OR (DEFINED(weiterer_Prozess_Wasser) AND DEFINED(weiterer_Prozess_Sturz));
+    END Schutzbautenobjekt_Rutschung;
+
+    /** Abstrakte Klasse für alle Schutzbauten
+     * gegen den Hauptprozess Sturz
+     */
+    CLASS Schutzbautenobjekt_Sturz (ABSTRACT)
+    EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Wasser bietet. */
+      weiterer_Prozess_Wasser : BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Rutschung bietet. */
+      weiterer_Prozess_Rutschung : BOOLEAN;
+      /** Bei vollständiger Erfassung müssen weiterer_Prozess_Wasser und weiterer_Prozess_Rutschung angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen weiterer_Prozess_Wasser und weiterer_Prozess_Rutschung angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassungProzess: reduzierte_Erfassung OR (DEFINED(weiterer_Prozess_Wasser) AND DEFINED(weiterer_Prozess_Rutschung));
+    END Schutzbautenobjekt_Sturz;
+
+    /** Abstrakte Klasse für alle Schutzbauten
+     * gegen den Hauptprozess Wasser
+     */
+    CLASS Schutzbautenobjekt_Wasser (ABSTRACT)
+    EXTENDS Schutzbautenobjekt =
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Rutschung bietet. */
+      weiterer_Prozess_Rutschung : BOOLEAN;
+      /** Wahr, wenn diese Baute nebst dem Schutz vor dem Hauptprozess auch Schutz vor dem Prozess Sturz bietet. */
+      weiterer_Prozess_Sturz : BOOLEAN;
+      /** Bei vollständiger Erfassung müssen weiterer_Prozess_Rutschung und weiterer_Prozess_Sturz angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen weiterer_Prozess_Rutschung und weiterer_Prozess_Sturz angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassungProzess: reduzierte_Erfassung OR (DEFINED(weiterer_Prozess_Rutschung) AND DEFINED(weiterer_Prozess_Sturz));
+    END Schutzbautenobjekt_Wasser;
+
+    ASSOCIATION Schutzbaute_Dokument =
+      Schutzbaute -- {1..*} Schutzbautenobjekt;
+      Dokument -- {0..*} Dokument;
+    END Schutzbaute_Dokument;
+
+    CONSTRAINTS OF Schutzbautenobjekt =
+      /** Bei vollständiger Erfassung muss mindestens ein Dokument zugeordnet sein. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss mindestens ein Dokument zugeordnet sein."
+      MANDATORY CONSTRAINT CheckVollerfassungDokument: reduzierte_Erfassung OR (INTERLIS.objectCount(Dokument) >= 1);
+    END;
+
+    /** Funktion: Schutz vor Anriss
+     * Werksarten gemäss MGDM:
+     * Abdeckung
+     * ingenieurbiologische Massnahme
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_Abdeckung_IngMassnahme
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Art : MANDATORY (
+        Abdeckung,
+        !!@ ili2db.dispName="ingenieurbiologische Massnahme"
+        ingenieurbiologische_Massnahme
+      );
+      Flaeche : Flaeche;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung muss Flaeche angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Flaeche angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Flaeche));
+    END Rutschung_Abdeckung_IngMassnahme;
+
+    /** Diverse Werksarten gegen den Hauptprozess Rutschung
+     * Flächenobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_andere_Werksart_Flaeche
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Rutschung_andere_Werksart_Flaeche;
+
+    /** Diverse Werksarten gegen den Hauptprozess Rutschung
+     * Linienobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_andere_Werksart_Linie
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Rutschung_andere_Werksart_Linie;
+
+    /** Diverse Werksarten gegen den Hauptprozess Rutschung
+     * Punktobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_andere_Werksart_Punkt
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Rutschung_andere_Werksart_Punkt;
+
+    /** Funktion: Ablenkung und Auffangen */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Auffangnetz; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_Auffangnetz
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Laenge : Laenge;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung muss Laenge angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Laenge angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge));
+    END Rutschung_Auffangnetz;
+
+    /** Funktion: Ablenkung und Auffangen */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Damm (Rutschung); ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_Damm
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Laenge : Laenge;
+      Breite : Breite;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung müssen Laenge und Breite angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Breite angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite));
+    END Rutschung_Damm;
+
+    /** Funktion: Schutz vor Anriss
+     * Werksarten gemäss MGDM:
+     * Hangstützwerk
+     * Entwässerung
+     * Palisade
+     */
+    !!@ qgis.modelbaker.dispExression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Rutschung_Hangstuetzwerk_Entwaesserung_Palisade
+    EXTENDS Schutzbautenobjekt_Rutschung =
+      Art : MANDATORY (
+        !!@ ili2db.dispName=Hangstützwerk
+        Hangstuetzwerk,
+        !!@ ili2db.dispName=Entwässerung
+        Entwaesserung,
+        Palisade
+      );
+      Laenge : Laenge;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung muss Laenge angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Laenge angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge));
+    END Rutschung_Hangstuetzwerk_Entwaesserung_Palisade;
+
+    /** Funktion: Schutz vor Ausbruch
+     * Werksarten gemäss MGDM:
+     * Abdeckung
+     * Verankerung
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_Abdeckung_Verankerung
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Art : MANDATORY (
+        Abdeckung,
+        Verankerung
+      );
+      Flaeche : Flaeche;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung muss Flaeche angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Flaeche angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Flaeche));
+    END Sturz_Abdeckung_Verankerung;
+
+    /** Diverse Werksarten gegen den Hauptprozess Sturz
+     * Flächenobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_andere_Werksart_Flaeche
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Sturz_andere_Werksart_Flaeche;
+
+    /** Diverse Werksarten gegen den Hauptprozess Sturz
+     * Linienobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_andere_Werksart_Linie
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Sturz_andere_Werksart_Linie;
+
+    /** Funktion: Diverse
+     * Werksart gemäss MGDM: andere Werksart im Hauptprozess Sturz
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_andere_Werksart_Punkt
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Sturz_andere_Werksart_Punkt;
+
+    /** Funktion: Schutz vor Aufprall
+     * Werksart gemäss MGDM: Galerie
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Galerie; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_Galerie
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Laenge : Laenge;
+      Breite : Breite;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung müssen Laenge und Breite angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Breite angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite));
+    END Sturz_Galerie;
+
+    /** Funktion: Schutz vor Aufprall
+     * Werksarten gemäss MGDM:
+     * Schutznetz
+     * Palisade, Barrage
+     * Damm
+     * Schutzzaun
+     * Mauer
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_Schutznetz_Palisade_Damm_Schutzzaun_Mauer
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Art : MANDATORY (
+        Schutznetz,
+        !!@ ili2db.dispName="Palisade, Barrage"
+        Palisade_Barrage,
+        Damm,
+        Schutzzaun,
+        Mauer
+      );
+      Laenge : Laenge;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Hoehe_zum_Umland));
+    END Sturz_Schutznetz_Palisade_Damm_Schutzzaun_Mauer;
+
+    /** Funktion: Schutz vor Ausbruch
+     * Werksarten gemäss MGDM:
+     * Unterfangung
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Unterfangung; ID: ',   schutzbauten_id  )"
+    CLASS Sturz_Unterfangung
+    EXTENDS Schutzbautenobjekt_Sturz =
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+    END Sturz_Unterfangung;
+
+    /** Diverse Werksarten gegen den Hauptprozess Wasser
+     * Flächenobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_andere_Werksart_Flaeche
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Wasser_andere_Werksart_Flaeche;
+
+    /** Diverse Werksarten gegen den Hauptprozess Wasser
+     * Linienobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_andere_Werksart_Linie
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Wasser_andere_Werksart_Linie;
+
+    /** Diverse Werksarten gegen den Hauptprozess Wasser
+     * Punktobjekte
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Andere Werksart; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_andere_Werksart_Punkt
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Flaeche : Flaeche;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Bei anderer Werksart sind die Abmessungen nicht festgelegt. Darum verlangt die vollständige Erfassung
+       * hier bewusst keine Abmessungen (kein CheckVollerfassung), die Bemerkungen beschreiben das Bauwerk.
+       */
+    END Wasser_andere_Werksart_Punkt;
+
+    /** Funktion: Diverse
+     * Werden zusätzlich aufgenommen, sind jedoch keine Schutzbauten
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Brücke, Steg; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Bruecke_Steg
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Bei vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite) AND DEFINED(Hoehe));
+    END Wasser_Bruecke_Steg;
+
+    /** Funktion: Schutz vor Seitenerosion */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Buhne; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Buhne
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung muss Laenge angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Laenge angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge));
+    END Wasser_Buhne;
+
+    /** Funktion: Schutz vor Überflutung / Übersarung */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Damm (Wasser); ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Damm
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Hoehe_zum_Umland));
+    END Wasser_Damm;
+
+    /** Funktion: Diverse
+     * Werden aufgenommen, auch wenn es keine Schutzbauten sind. Bei Rohrdurchlässen: Durchmesser = Höhe
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Eindolung; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Eindolung
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite) AND DEFINED(Hoehe));
+    END Wasser_Eindolung;
+
+    /** Funktion: Entlastung */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Entlastungsbauwerk; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Entlastungsbauwerk
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung muss Laenge angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Laenge angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge));
+    END Wasser_Entlastungsbauwerk;
+
+    /** Funktion: Entlastung
+     * Werksarten gemäss MGDM:
+     * Umleit- / Entlastungsstollen
+     * Entlastungsgerinne / -kanal
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Entlastungsstollen_kanal
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        !!@ ili2db.dispName="Umleit- / Entlastungsstollen"
+        Umleit_Entlastungsstollen,
+        !!@ ili2db.dispName="Entlastungsgerinne / -kanal"
+        Entlastungsgerinne_kanal
+      );
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge, Breite und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite) AND DEFINED(Hoehe));
+    END Wasser_Entlastungsstollen_kanal;
+
+    /** Funktion: Diverse
+     * Werden zusätzlich aufgenommen, sind jedoch keine Schutzbauten
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Furt; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Furt
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Breite : Breite;
+      Geometrie : MANDATORY GeometryCHLV95_V2.Coord2;
+      /** Bei vollständiger Erfassung müssen Laenge und Breite angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Breite angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite));
+    END Wasser_Furt;
+
+    /** Funktion: Rückhalt
+     * Werksart gemäss MGDM:
+     * bewirtschafteter Geschiebeablagerungsplatz
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Geschiebeablagerungsplatz; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Geschiebeablagerungsplatz
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Flaeche : Flaeche;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung muss Flaeche angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung muss Flaeche angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Flaeche));
+    END Wasser_Geschiebeablagerungsplatz;
+
+    /** Funktion: Rückhalt
+     * Werksarten gemäss MGDM:
+     * Hochwasserrückhaltebauwerk
+     * Geschiebe- oder Murgangrückhaltebauwerk
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Hochwasser_Geschiebe_Rueckhaltebauwerk
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        !!@ ili2db.dispName=Hochwasserrückhaltebauwerk
+        Hochwasserrueckhaltebauwerk,
+        !!@ ili2db.dispName="Geschiebe- oder Murgangrückhaltebauwerk"
+        Geschiebe_oder_Murgangrueckhaltebauwerk
+      );
+      Laenge : Laenge;
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung müssen Laenge, Breite, Hoehe und Rueckhaltevolumen angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge, Breite, Hoehe und Rueckhaltevolumen angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite) AND DEFINED(Hoehe) AND DEFINED(Rueckhaltevolumen));
+    END Wasser_Hochwasser_Geschiebe_Rueckhaltebauwerk;
+
+    /** Funktion: Schutz vor Überflutung / Übersarung */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Mauer; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Mauer
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Laenge : Laenge;
+      Hoehe_zum_Umland : Hoehe_zum_Umland;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Hoehe_zum_Umland angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Hoehe_zum_Umland));
+    END Wasser_Mauer;
+
+    /** Funktion: Diverse */
+    !!@ qgis.modelbaker.dispExpression="concat( 'Murbrecher, Murbremse; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Murbrecher_Murbremse
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Breite und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Breite und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Breite) AND DEFINED(Hoehe));
+    END Wasser_Murbrecher_Murbremse;
+
+    /** Funktion: Gewährung der Sohlenstabilität
+     * Werksarten gemäss MGDM
+     * Rampe
+     * flächenhafte Sohlensicherung
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Rampe_Sohlensicherung
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        Rampe,
+        !!@ ili2db.dispName="flächenhafte Sohlensicherung"
+        flaechenhafte_Sohlensicherung
+      );
+      Laenge : Laenge;
+      Breite : Breite;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiSurface;
+      /** Bei vollständiger Erfassung müssen Laenge und Breite angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Breite angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Breite));
+    END Wasser_Rampe_Sohlensicherung;
+
+    /** Funktion: Rückhalt
+     * Werksarten gemäss MGDM:
+     * Schwemmholzrückhaltebauwerk
+     * Eisrückhaltebauwerk
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Schwemmholz_Eis_Rueckhaltebauwerk
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        !!@ ili2db.dispName=Schwemmholzrückhaltebauwerk
+        Schwemmholzrueckhaltebauwerk,
+        !!@ ili2db.dispName=Eisrückhaltebauwerk
+        Eisrueckhaltebauwerk
+      );
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Rueckhaltevolumen : Rueckhaltevolumen;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Breite, Hoehe und Rueckhaltevolumen angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Breite, Hoehe und Rueckhaltevolumen angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Breite) AND DEFINED(Hoehe) AND DEFINED(Rueckhaltevolumen));
+    END Wasser_Schwemmholz_Eis_Rueckhaltebauwerk;
+
+    /** Funktion: Gewährung der Sohlenstabilität
+     * Werksarten gemäss MGDM
+     * Sperre
+     * Schwelle
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Sperre_Schwelle
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        Sperre,
+        Schwelle
+      );
+      Breite : Breite;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Breite und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Breite und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Breite) AND DEFINED(Hoehe));
+    END Wasser_Sperre_Schwelle;
+
+    /** Funktion: Schutz vor Seitenerosion
+     * Werksarten gemäss MGDM:
+     * Uferdeckwerk
+     * Ufermauer/Holzlängsverbau
+     */
+    !!@ qgis.modelbaker.dispExpression="concat( represent_value( art ), '; ID: ',   schutzbauten_id  )"
+    CLASS Wasser_Uferdeckwerk_Ufermauer
+    EXTENDS Schutzbautenobjekt_Wasser =
+      Art : MANDATORY (
+        Uferdeckwerk,
+        !!@ ili2db.dispName="Ufermauer / Holzlängsverbau"
+        Ufermauer_Holzlaengsverbau
+      );
+      Laenge : Laenge;
+      Hoehe : Hoehe;
+      Geometrie : MANDATORY GeometryCHLV95_V2.MultiLine;
+      /** Bei vollständiger Erfassung müssen Laenge und Hoehe angegeben werden. */
+      !!@ ilivalid.msg="Für Schutzbaute {Schutzbauten_ID} mit vollständiger Erfassung müssen Laenge und Hoehe angegeben werden."
+      MANDATORY CONSTRAINT CheckVollerfassung: reduzierte_Erfassung OR (DEFINED(Laenge) AND DEFINED(Hoehe));
+    END Wasser_Uferdeckwerk_Ufermauer;
+
+  END Schutzbauten;
+
+END SO_AFU_Schutzbauten_20261231_draft.
